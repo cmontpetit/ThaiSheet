@@ -1,0 +1,444 @@
+{
+  "consonants": [
+    {
+      "character": "ค",
+      "name": "คอ ควาย",
+      "transcription": "khaawᴹ khwaaiᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "kh-", "final": "-k" }
+      }
+    },
+    {
+      "character": "ฅ",
+      "name": "ฅอ คน",
+      "transcription": "khaawᴹ khonᴹ",
+      "class": "low",
+      "usage": "ancient",
+      "sounds": {
+        "en": { "initial": "kh-", "final": "-k" }
+      }
+    },
+    {
+      "character": "ฆ",
+      "name": "ฆอ ระฆัง",
+      "transcription": "khaawᴹ raᴴ khangᴹ",
+      "class": "low",
+      "usage": "uncommon",
+      "sounds": {
+        "en": { "initial": "kh-", "final": "-k" }
+      }
+    },
+    {
+      "character": "ง",
+      "name": "งอ งู",
+      "transcription": "ngaawᴹ nguuᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "ng-", "final": "-ng" }
+      }
+    },
+    {
+      "character": "ช",
+      "name": "ชอ ช้าง",
+      "transcription": "chaawᴹ changᴴ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "ch-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ซ",
+      "name": "ซอ โซ่",
+      "transcription": "saawᴹ sohᶠ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "s-", "final": "-s" }
+      }
+    },
+    {
+      "character": "ฌ",
+      "name": "ฌอ เฌอ",
+      "transcription": "chaawᴹ chuuhrᴹ",
+      "class": "low",
+      "usage": "rare",
+      "sounds": {
+        "en": { "initial": "ch-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ญ",
+      "name": "ญอ หญิง",
+      "transcription": "yaawᴹ yingᴿ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "y-", "final": "-n" }
+      }
+    },
+    {
+      "character": "ฑ",
+      "name": "ฑอ มณโฑ",
+      "transcription": "thaawᴹ mohnᴹ-thohᴹ",
+      "class": "low",
+      "usage": "rare",
+      "sounds": {
+        "en": { "initial": "th-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ฒ",
+      "name": "ฒอ ผู้เฒ่า",
+      "transcription": "thaawᴹ phuuᶠ thaoᶠ",
+      "class": "low",
+      "usage": "rare",
+      "sounds": {
+        "en": { "initial": "th-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ณ",
+      "name": "ณอ เณร",
+      "transcription": "naawᴹ neehnᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "n-", "final": "-n" }
+      }
+    },
+    {
+      "character": "ท",
+      "name": "ทอ ทหาร",
+      "transcription": "thaawᴹ tha-haanᴿ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "th-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ธ",
+      "name": "ธอ ธง",
+      "transcription": "thaawᴹ thohngᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "th-", "final": "-t" }
+      }
+    },
+    {
+      "character": "น",
+      "name": "นอ หนู",
+      "transcription": "naawᴹ nuuᴿ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "n-", "final": "-n" }
+      }
+    },
+    {
+      "character": "พ",
+      "name": "พอ พาน",
+      "transcription": "phaawᴹ phaanᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "ph-", "final": "-p" }
+      }
+    },
+    {
+      "character": "ฟ",
+      "name": "ฟอ ฟัน",
+      "transcription": "faawᴹ fanᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "f-", "final": "-p" }
+      }
+    },
+    {
+      "character": "ภ",
+      "name": "ภอ สำเภา",
+      "transcription": "phaawᴹ samᴿ phaoᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "ph-", "final": "-p" }
+      }
+    },
+    {
+      "character": "ม",
+      "name": "มอ ม้า",
+      "transcription": "maawᴹ maaᴴ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "m-", "final": "-m" }
+      }
+    },
+    {
+      "character": "ย",
+      "name": "ยอ ยักษ์",
+      "transcription": "yaawᴹ yakᴴ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "y-", "final": "[vowel]" }
+      }
+    },
+    {
+      "character": "ร",
+      "name": "รอ เรือ",
+      "transcription": "raawᴹ reuaᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "r-", "final": "-n" }
+      }
+    },
+    {
+      "character": "ล",
+      "name": "ลอ ลิง",
+      "transcription": "laawᴹ lingᴹ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "l-", "final": "-n" }
+      }
+    },
+    {
+      "character": "ว",
+      "name": "วอ แหวน",
+      "transcription": "waawᴹ waenᴿ",
+      "class": "low",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "w-", "final": "[vowel]" }
+      }
+    },
+    {
+      "character": "ฬ",
+      "name": "ฬอ จุฬา",
+      "transcription": "laawᴹ jooᴸ-laaᴹ",
+      "class": "low",
+      "usage": "uncommon",
+      "sounds": {
+        "en": { "initial": "l-", "final": "-n" }
+      }
+    },
+    {
+      "character": "ฮ",
+      "name": "ฮอ นกฮูก",
+      "transcription": "haawᴹ nokᴴ-huukᶠ",
+      "class": "low",
+      "usage": "uncommon",
+      "sounds": {
+        "en": { "initial": "h-", "final": "n/a" }
+      }
+    },
+    {
+      "character": "ก",
+      "name": "กอ ไก่",
+      "transcription": "gaawᴹ gaiᴸ",
+      "class": "mid",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "g-", "final": "-k" }
+      }
+    },
+    {
+      "character": "จ",
+      "name": "จอ จาน",
+      "transcription": "jaawᴹ jaanᴹ",
+      "class": "mid",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "j-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ฎ",
+      "name": "ฎอ ชฎา",
+      "transcription": "daawᴹ cha-daaᴹ",
+      "class": "mid",
+      "usage": "uncommon",
+      "sounds": {
+        "en": { "initial": "d-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ฏ",
+      "name": "ฏอ ปฏัก",
+      "transcription": "dtaawᴹ bpaᴸ dtakᴸ",
+      "class": "mid",
+      "usage": "uncommon",
+      "sounds": {
+        "en": { "initial": "dt-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ด",
+      "name": "ดอ เด็ก",
+      "transcription": "daawᴹ dekᴸ",
+      "class": "mid",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "d-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ต",
+      "name": "ตอ เต่า",
+      "transcription": "dtaawᴹ dtaoᴸ",
+      "class": "mid",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "dt-", "final": "-t" }
+      }
+    },
+    {
+      "character": "บ",
+      "name": "บอ ใบไม้",
+      "transcription": "baawᴹ baiᴹ maiᴴ",
+      "class": "mid",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "b-", "final": "-p" }
+      }
+    },
+    {
+      "character": "ป",
+      "name": "ปอ ปลา",
+      "transcription": "bpaawᴹ bplaaᴹ",
+      "class": "mid",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "bp-", "final": "-p" }
+      }
+    },
+    {
+      "character": "อ",
+      "name": "ออ อ่าง",
+      "transcription": "aawᴹ aangᴸ",
+      "class": "mid",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "[silent]", "final": "[vowel]" }
+      }
+    },
+    {
+      "character": "ข",
+      "name": "ขอ ไข่",
+      "transcription": "khaawᴿ khaiᴸ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "kh-", "final": "-k" }
+      }
+    },
+    {
+      "character": "ฃ",
+      "name": "ฃอ ขวด",
+      "transcription": "khaawᴿ khuaatᴸ",
+      "class": "high",
+      "usage": "ancient",
+      "sounds": {
+        "en": { "initial": "kh-", "final": "-k" }
+      }
+    },
+    {
+      "character": "ฉ",
+      "name": "ฉอ ฉิ่ง",
+      "transcription": "chaawᴿ chingᴸ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "ch-", "final": "n/a" }
+      }
+    },
+    {
+      "character": "ฐ",
+      "name": "ฐอ ฐาน",
+      "transcription": "thaawᴿ thaanᴿ",
+      "class": "high",
+      "usage": "uncommon",
+      "sounds": {
+        "en": { "initial": "th-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ถ",
+      "name": "ถอ ถุง",
+      "transcription": "thaawᴿ thungᴿ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "th-", "final": "-k" }
+      }
+    },
+    {
+      "character": "ผ",
+      "name": "ผอ ผึ้ง",
+      "transcription": "phaawᴿ pheungᶠ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "ph-", "final": "n/a" }
+      }
+    },
+    {
+      "character": "ฝ",
+      "name": "ฝอ ฝา",
+      "transcription": "faawᴿ faaᴿ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "f-", "final": "n/a" }
+      }
+    },
+    {
+      "character": "ศ",
+      "name": "ศอ ศาลา",
+      "transcription": "saawᴿ saaᴿ laaᴹ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "s-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ษ",
+      "name": "ษอ ฤๅษี",
+      "transcription": "saawᴿ reuuᴹ seeᴿ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "s-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ส",
+      "name": "สอ เสือ",
+      "transcription": "saawᴿ seuaᴿ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "s-", "final": "-t" }
+      }
+    },
+    {
+      "character": "ห",
+      "name": "หอ หีบ",
+      "transcription": "haawᴿ hiipᴸ",
+      "class": "high",
+      "usage": "common",
+      "sounds": {
+        "en": { "initial": "h-", "final": "n/a" }
+      }
+    }
+  ]
+}
