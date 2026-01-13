@@ -1,0 +1,75 @@
+//
+//  Consonant.swift
+//  Aksorn
+//
+
+import Foundation
+import SwiftUI
+
+enum ConsonantClass: String, Codable, CaseIterable {
+    case low
+    case mid
+    case high
+
+    var label: String {
+        switch self {
+        case .low: return "L"
+        case .mid: return "M"
+        case .high: return "H"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .low: return Color.green.opacity(0.3)
+        case .mid: return Color.yellow.opacity(0.3)
+        case .high: return Color.red.opacity(0.3)
+        }
+    }
+}
+
+enum ConsonantUsage: String, Codable {
+    case common
+    case uncommon
+    case rare
+    case ancient
+}
+
+struct ConsonantSounds: Codable {
+    let initial: String
+    let final: String
+}
+
+struct ConsonantSoundsContainer: Codable {
+    let en: ConsonantSounds
+}
+
+struct Consonant: Codable, Identifiable {
+    let character: String
+    let name: String
+    let transcription: String
+    let `class`: ConsonantClass
+    let usage: ConsonantUsage
+    let sounds: ConsonantSoundsContainer
+
+    var id: String { character }
+
+    var initialSound: String { sounds.en.initial }
+    var finalSound: String { sounds.en.final }
+    var consonantClass: ConsonantClass { `class` }
+}
+
+struct ConsonantsData: Codable {
+    let consonants: [Consonant]
+}
+
+extension Consonant {
+    static func loadAll() -> [Consonant] {
+        guard let url = Bundle.main.url(forResource: "consonants", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let decoded = try? JSONDecoder().decode(ConsonantsData.self, from: data) else {
+            return []
+        }
+        return decoded.consonants
+    }
+}
