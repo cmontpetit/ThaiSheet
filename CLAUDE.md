@@ -59,6 +59,18 @@ xcodebuild -project Aksorn.xcodeproj -scheme Aksorn test
 - The clip-* files are just subsets of the cheatsheet-complete png file, for easier processing.
 - The consonants "initial" and "final" columns are the sounds that they would sound like in English.
 - The vowels "sound" column has the same purpose as the consonants initial and final columns.
-- In the model, these two columns should be marked as Englis, since a French version, for instance, may have different letters.
-- The place holder "◌" in the clip-vowel file will be replaced with the character "ก"
+- In the model, these two columns should be marked as English, since a French version, for instance, may have different letters.
+- The placeholder "◌" (U+25CC dotted circle) is replaced with "ก" in JSON data.
+
+### Vowel notation
+- **Closed** = syllable ends with consonant → form includes `-` to show where final consonant goes
+- **Open** = syllable ends with vowel sound → no dash needed
+- Example: short closed `กั-` (needs final consonant), short open `กะ` (vowel terminates)
+
+### Thai character rendering on iOS
+- The dotted circle `◌` (U+25CC) causes double-circle rendering on iOS when combined with vowel marks that go above/below (e.g., `◌ิ` shows two circles)
+- This is because ◌ is a combining placeholder - marks attach to it visibly
+- Alternative `○` (U+25CB white circle) positions marks beside it rather than on it
+- Different fonts (Thonburi, SukhumvitSet) may render differently
+- For data, use `ก` as the consonant placeholder; display rendering TBD
 
