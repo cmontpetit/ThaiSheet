@@ -1,0 +1,24 @@
+{
+  "toneMarks": [
+    {
+      "toneMark": "ก่",
+      "onLowConsonant": "High",
+      "onMidHighConsonant": "Falling"
+    },
+    {
+      "toneMark": "ก้",
+      "onLowConsonant": "Falling",
+      "onMidHighConsonant": "Low"
+    },
+    {
+      "toneMark": "ก๊",
+      "onLowConsonant": "n/a",
+      "onMidHighConsonant": "High"
+    },
+    {
+      "toneMark": "ก๋",
+      "onLowConsonant": "n/a",
+      "onMidHighConsonant": "Rising"
+    }
+  ]
+}
