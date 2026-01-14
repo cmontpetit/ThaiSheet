@@ -74,3 +74,25 @@ xcodebuild -project Aksorn.xcodeproj -scheme Aksorn test
 - Different fonts (Thonburi, SukhumvitSet) may render differently
 - For data, use `ก` as the consonant placeholder; display rendering TBD
 
+### Project Structure
+- `Aksorn/Models/` - Data models (Consonant, Vowel, ToneRule, ToneMark, Cluster)
+- `Aksorn/Views/` - SwiftUI views (CheatsheetBrowserView, row views, FilterChipView)
+- `Aksorn/Services/` - AudioPlayer singleton for sound playback
+- `Aksorn/Resources/` - JSON data files and sounds
+
+### Sound Files
+- Location: `Aksorn/Resources/sounds/`
+- Naming: `cheat_sheet_consonant_ก.mp3`, `cheat_sheet_vowel_กา.mp3`, etc.
+- Consonant sounds are ready; vowel sounds need review before enabling
+
+### Build Notes
+- If provisioning errors occur, build for simulator:
+  ```bash
+  xcodebuild -project Aksorn.xcodeproj -scheme Aksorn -destination 'platform=iOS Simulator,name=iPhone 17' build
+  ```
+
+### Reference Tab Status
+- Implemented: Consonants, Vowels, Tone Rules, Tone Marks, Clusters
+- Each type has search filtering and type-specific filter chips
+- Sound playback enabled for consonants only
+

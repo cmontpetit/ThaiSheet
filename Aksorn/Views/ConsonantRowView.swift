@@ -35,65 +35,103 @@ struct ClassIndicatorView: View {
 struct ConsonantHeaderView: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            Text("Class")
-                .frame(width: 20)
+            HStack(alignment: .center, spacing: 12) {
+                Text("Class")
+                    .frame(width: 20)
 
-            Text("Char")
-                .frame(width: 40)
+                Text("Char")
+                    .frame(width: 40)
 
-            Text("Transcription")
+                Text("Transcription")
 
-            Spacer()
+                Spacer()
 
-            HStack(spacing: 8) {
-                Text("Initial")
-                Text("Final")
+                HStack(spacing: 8) {
+                    Text("Initial")
+                    Text("Final")
+                }
             }
+
+            // Space for sound button
+            Text("Sound")
+                .frame(width: 44)
         }
         .font(.caption)
         .fontWeight(.semibold)
         .foregroundStyle(.secondary)
         .padding(.vertical, 8)
-        .padding(.horizontal, 12)
+        .padding(.leading, 12)
+        .padding(.trailing, 4)
         .background(Color(.systemBackground))
     }
 }
 
 struct ConsonantRowView: View {
     let consonant: Consonant
+    let onRowTap: (() -> Void)?
+
+    init(consonant: Consonant, onRowTap: (() -> Void)? = nil) {
+        self.consonant = consonant
+        self.onRowTap = onRowTap
+    }
+
+    private var hasSound: Bool {
+        AudioPlayer.shared.hasConsonantSound(for: consonant.character)
+    }
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            ClassIndicatorView(activeClass: consonant.consonantClass)
+            // Main row content (tappable for flashcard)
+            HStack(alignment: .center, spacing: 12) {
+                ClassIndicatorView(activeClass: consonant.consonantClass)
 
-            Text(consonant.character)
-                .font(.largeTitle)
+                Text(consonant.character)
+                    .font(.largeTitle)
 
-            Text(consonant.transcription)
-                .font(.subheadline)
-                .foregroundStyle(.primary)
+                Text(consonant.transcription)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
 
-            Spacer()
+                Spacer()
 
-            VStack(alignment: .trailing, spacing: 2) {
-                HStack(spacing: 8) {
-                    Text(consonant.initialSound)
-                        .font(.subheadline)
-                        .monospacedDigit()
-                    Text(consonant.finalSound)
-                        .font(.subheadline)
-                        .monospacedDigit()
-                }
+                VStack(alignment: .trailing, spacing: 2) {
+                    HStack(spacing: 8) {
+                        Text(consonant.initialSound)
+                            .font(.subheadline)
+                            .monospacedDigit()
+                        Text(consonant.finalSound)
+                            .font(.subheadline)
+                            .monospacedDigit()
+                    }
 
-                if consonant.usage != .common {
-                    Text(consonant.usage.rawValue)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if consonant.usage != .common {
+                        Text(consonant.usage.rawValue)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onRowTap?()
+            }
+
+            // Sound button
+            Button {
+                AudioPlayer.shared.playConsonantSound(for: consonant.character)
+            } label: {
+                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                    .font(.title3)
+                    .foregroundColor(hasSound ? .accentColor : .secondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!hasSound)
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .padding(.leading, 12)
+        .padding(.trailing, 4)
     }
 }
 
