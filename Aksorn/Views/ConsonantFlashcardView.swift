@@ -1,0 +1,586 @@
+//
+//  ConsonantFlashcardView.swift
+//  Aksorn
+//
+
+import SwiftUI
+
+struct ConsonantFlashcardView: View {
+    let consonants: [Consonant]
+    @State private var currentIndex: Int = 0
+    @State private var cardState = CardState()
+
+    // Generated options for current card
+    @State private var initialSoundOptions: [String] = []
+    @State private var finalSoundOptions: [String] = []
+    @State private var transcriptionOptions: [String] = []
+
+    var currentConsonant: Consonant? {
+        guard currentIndex < consonants.count else { return nil }
+        return consonants[currentIndex]
+    }
+
+    var body: some View {
+        if let consonant = currentConsonant {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Consonant display with status indicator
+                    consonantCard(consonant: consonant)
+
+                    // Summary section
+                    summarySection(consonant: consonant)
+
+                    // Selection area (changes based on current step)
+                    selectionArea(consonant: consonant)
+
+                    // Anki-style rating (only when completed)
+                    if cardState.step == .completed {
+                        ankiRatingSection
+                    }
+
+                    // Progress indicator
+                    progressIndicator
+                }
+                .padding()
+            }
+            .navigationTitle("Flashcards")
+            .onAppear {
+                generateOptions(for: consonant)
+            }
+        } else {
+            ContentUnavailableView(
+                "No Consonants",
+                systemImage: "character.book.closed",
+                description: Text("No consonants available")
+            )
+        }
+    }
+
+    // MARK: - Consonant Card
+
+    private func consonantCard(consonant: Consonant) -> some View {
+        VStack(spacing: 12) {
+            ZStack {
+                // Status ring
+                if cardState.step == .completed {
+                    Circle()
+                        .stroke(cardState.hasError(for: consonant) ? Color.red : Color.green, lineWidth: 4)
+                        .frame(width: 160, height: 160)
+                }
+
+                Text(consonant.character)
+                    .font(.system(size: 100))
+                    .minimumScaleFactor(0.5)
+            }
+
+            // Speaker button (only when completed)
+            if cardState.step == .completed {
+                Button {
+                    AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "speaker.wave.2.fill")
+                        Text("Play")
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.accentColor)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .background(Color(.systemGray6))
+        .cornerRadius(16)
+    }
+
+    // MARK: - Summary Section
+
+    private func summarySection(consonant: Consonant) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Summary")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 6) {
+                summaryRow(
+                    label: "Class",
+                    selectedValue: cardState.selectedClass?.rawValue.capitalized,
+                    correctValue: consonant.consonantClass.rawValue.capitalized,
+                    isCorrect: cardState.selectedClass == consonant.consonantClass,
+                    wasSelected: cardState.selectedClass != nil,
+                    showResult: cardState.step == .completed
+                )
+                summaryRow(
+                    label: "Initial",
+                    selectedValue: cardState.selectedInitial,
+                    correctValue: consonant.initialSound,
+                    isCorrect: cardState.selectedInitial == consonant.initialSound,
+                    wasSelected: cardState.selectedInitial != nil,
+                    showResult: cardState.step == .completed
+                )
+                summaryRow(
+                    label: "Final",
+                    selectedValue: cardState.selectedFinal,
+                    correctValue: consonant.finalSound,
+                    isCorrect: cardState.selectedFinal == consonant.finalSound,
+                    wasSelected: cardState.selectedFinal != nil,
+                    showResult: cardState.step == .completed
+                )
+                summaryRow(
+                    label: "Name",
+                    selectedValue: cardState.selectedTranscription,
+                    correctValue: consonant.transcription,
+                    isCorrect: cardState.selectedTranscription == consonant.transcription,
+                    wasSelected: cardState.selectedTranscription != nil,
+                    showResult: cardState.step == .completed
+                )
+            }
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+        }
+    }
+
+    private func summaryRow(label: String, selectedValue: String?, correctValue: String, isCorrect: Bool, wasSelected: Bool, showResult: Bool) -> some View {
+        HStack {
+            Text(label)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .frame(width: 60, alignment: .leading)
+
+            if showResult {
+                if wasSelected {
+                    if isCorrect {
+                        // Correct answer - green, no checkmark
+                        Text(selectedValue ?? correctValue)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.green)
+                    } else {
+                        // Wrong answer: correct value in black, then wrong struck-through in light red
+                        Text(correctValue)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.primary)
+                        Text(selectedValue ?? "")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.red.opacity(0.5))
+                            .strikethrough(color: .red.opacity(0.5))
+                    }
+                } else {
+                    // Not selected - just show correct value
+                    Text(correctValue)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.primary)
+                }
+            } else if let selected = selectedValue {
+                // During selection, show what's been selected so far
+                Text(selected)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(.primary)
+            } else {
+                // Not yet selected
+                Text("—")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+        }
+    }
+
+    // MARK: - Selection Area
+
+    @ViewBuilder
+    private func selectionArea(consonant: Consonant) -> some View {
+        switch cardState.step {
+        case .selectClass:
+            classSelectionView(consonant: consonant)
+        case .selectInitial:
+            initialSoundSelectionView(consonant: consonant)
+        case .selectFinal:
+            finalSoundSelectionView(consonant: consonant)
+        case .selectTranscription:
+            transcriptionSelectionView(consonant: consonant)
+        case .completed:
+            nextCardButton
+        }
+    }
+
+    // MARK: - Class Selection
+
+    private func classSelectionView(consonant: Consonant) -> some View {
+        VStack(spacing: 16) {
+            Text("Select the class")
+                .font(.headline)
+
+            HStack(spacing: 12) {
+                ForEach(ConsonantClass.allCases, id: \.self) { classType in
+                    Button {
+                        cardState.selectedClass = classType
+                        cardState.step = .selectInitial
+                    } label: {
+                        Text(classType.rawValue.capitalized)
+                            .font(.body.weight(.medium))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(classType.color)
+                            .foregroundColor(.primary)
+                            .cornerRadius(10)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Initial Sound Selection
+
+    private func initialSoundSelectionView(consonant: Consonant) -> some View {
+        VStack(spacing: 16) {
+            selectionHeader(title: "Select the initial sound") {
+                cardState.selectedClass = nil
+                cardState.step = .selectClass
+            }
+
+            FlowLayout(spacing: 10) {
+                ForEach(initialSoundOptions, id: \.self) { sound in
+                    selectionButton(label: sound) {
+                        cardState.selectedInitial = sound
+                        cardState.step = .selectFinal
+                    }
+                }
+            }
+
+            selectionFooter {
+                completeCardEarly(consonant: consonant)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Final Sound Selection
+
+    private func finalSoundSelectionView(consonant: Consonant) -> some View {
+        VStack(spacing: 16) {
+            selectionHeader(title: "Select the final sound") {
+                cardState.selectedInitial = nil
+                cardState.step = .selectInitial
+            }
+
+            FlowLayout(spacing: 10) {
+                ForEach(finalSoundOptions, id: \.self) { sound in
+                    selectionButton(label: sound) {
+                        cardState.selectedFinal = sound
+                        cardState.step = .selectTranscription
+                    }
+                }
+            }
+
+            selectionFooter {
+                completeCardEarly(consonant: consonant)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Transcription Selection
+
+    private func transcriptionSelectionView(consonant: Consonant) -> some View {
+        VStack(spacing: 16) {
+            selectionHeader(title: "Select the transcription") {
+                cardState.selectedFinal = nil
+                cardState.step = .selectFinal
+            }
+
+            FlowLayout(spacing: 10) {
+                ForEach(transcriptionOptions, id: \.self) { transcription in
+                    selectionButton(label: transcription) {
+                        cardState.selectedTranscription = transcription
+                        completeCard(consonant: consonant)
+                    }
+                }
+            }
+
+            selectionFooter {
+                completeCardEarly(consonant: consonant)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Selection Helpers
+
+    private func selectionHeader(title: String, onBack: @escaping () -> Void) -> some View {
+        HStack {
+            Button {
+                onBack()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                    Text("Back")
+                }
+                .font(.subheadline)
+                .foregroundColor(.accentColor)
+            }
+
+            Spacer()
+
+            Text(title)
+                .font(.headline)
+
+            Spacer()
+
+            // Invisible spacer for centering
+            HStack(spacing: 4) {
+                Image(systemName: "chevron.left")
+                Text("Back")
+            }
+            .font(.subheadline)
+            .opacity(0)
+        }
+    }
+
+    private func selectionButton(label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.body)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(cardState.selectedClass?.color ?? Color(.systemGray5))
+                .foregroundColor(.primary)
+                .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func selectionFooter(skipAction: @escaping () -> Void) -> some View {
+        Button {
+            skipAction()
+        } label: {
+            Text("Complete card now")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+    }
+
+    // MARK: - Card Completion
+
+    private func completeCard(consonant: Consonant) {
+        cardState.step = .completed
+        AudioPlayer.shared.playConsonantSound(for: consonant.character)
+    }
+
+    private func completeCardEarly(consonant: Consonant) {
+        cardState.step = .completed
+        AudioPlayer.shared.playConsonantSound(for: consonant.character)
+    }
+
+    // MARK: - Anki Rating
+
+    private var ankiRatingSection: some View {
+        VStack(spacing: 12) {
+            Text("How well did you know this?")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            HStack(spacing: 10) {
+                ankiButton(label: "Again", color: .red) {
+                    goToNextCard()
+                }
+                ankiButton(label: "Hard", color: .orange) {
+                    goToNextCard()
+                }
+                ankiButton(label: "Good", color: .blue) {
+                    goToNextCard()
+                }
+                ankiButton(label: "Easy", color: .green) {
+                    goToNextCard()
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+
+    private func ankiButton(label: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.subheadline.weight(.medium))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(color.opacity(0.2))
+                .foregroundColor(color)
+                .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Next Card Button
+
+    private var nextCardButton: some View {
+        Button {
+            goToNextCard()
+        } label: {
+            HStack {
+                Text("Next Card")
+                Image(systemName: "arrow.right")
+            }
+            .font(.headline)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.accentColor)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+        }
+    }
+
+    // MARK: - Progress Indicator
+
+    private var progressIndicator: some View {
+        Text("\(currentIndex + 1) / \(consonants.count)")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .padding(.top, 8)
+    }
+
+    // MARK: - Actions
+
+    private func goToNextCard() {
+        // Reset state
+        cardState = CardState()
+
+        // Move to next card (loop back to start if at end)
+        currentIndex = (currentIndex + 1) % consonants.count
+
+        // Generate new options
+        if let consonant = currentConsonant {
+            generateOptions(for: consonant)
+        }
+    }
+
+    private func generateOptions(for consonant: Consonant) {
+        // Get unique initial sounds from all consonants
+        let allInitialSounds = Set(consonants.map { $0.initialSound })
+        var initialOptions = Array(allInitialSounds.filter { $0 != consonant.initialSound }.shuffled().prefix(4))
+        initialOptions.append(consonant.initialSound)
+        initialSoundOptions = initialOptions.shuffled()
+
+        // Get unique final sounds from all consonants
+        let allFinalSounds = Set(consonants.map { $0.finalSound })
+        var finalOptions = Array(allFinalSounds.filter { $0 != consonant.finalSound }.shuffled().prefix(3))
+        finalOptions.append(consonant.finalSound)
+        finalSoundOptions = finalOptions.shuffled()
+
+        // Get transcriptions from other consonants
+        var transcriptionOpts = consonants
+            .filter { $0.character != consonant.character }
+            .shuffled()
+            .prefix(5)
+            .map { $0.transcription }
+        transcriptionOpts.append(consonant.transcription)
+        transcriptionOptions = Array(transcriptionOpts).shuffled()
+    }
+}
+
+// MARK: - Card State
+
+struct CardState {
+    enum Step {
+        case selectClass
+        case selectInitial
+        case selectFinal
+        case selectTranscription
+        case completed
+    }
+
+    var step: Step = .selectClass
+    var selectedClass: ConsonantClass? = nil
+    var selectedInitial: String? = nil
+    var selectedFinal: String? = nil
+    var selectedTranscription: String? = nil
+}
+
+extension CardState {
+    func hasError(for consonant: Consonant) -> Bool {
+        if let selected = selectedClass, selected != consonant.consonantClass {
+            return true
+        }
+        if let selected = selectedInitial, selected != consonant.initialSound {
+            return true
+        }
+        if let selected = selectedFinal, selected != consonant.finalSound {
+            return true
+        }
+        if let selected = selectedTranscription, selected != consonant.transcription {
+            return true
+        }
+        return false
+    }
+}
+
+// MARK: - Flow Layout
+
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+        return result.size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+
+        for (index, subview) in subviews.enumerated() {
+            if index < result.positions.count {
+                let position = result.positions[index]
+                subview.place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
+            }
+        }
+    }
+
+    private func arrangeSubviews(proposal: ProposedViewSize, subviews: Subviews) -> (size: CGSize, positions: [CGPoint]) {
+        let maxWidth = proposal.width ?? .infinity
+        var positions: [CGPoint] = []
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var lineHeight: CGFloat = 0
+        var totalHeight: CGFloat = 0
+        var totalWidth: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+
+            if currentX + size.width > maxWidth && currentX > 0 {
+                currentX = 0
+                currentY += lineHeight + spacing
+                lineHeight = 0
+            }
+
+            positions.append(CGPoint(x: currentX, y: currentY))
+
+            lineHeight = max(lineHeight, size.height)
+            currentX += size.width + spacing
+            totalWidth = max(totalWidth, currentX - spacing)
+            totalHeight = currentY + lineHeight
+        }
+
+        return (CGSize(width: totalWidth, height: totalHeight), positions)
+    }
+}
+
+#Preview {
+    NavigationStack {
+        ConsonantFlashcardView(consonants: Consonant.loadAll())
+    }
+}

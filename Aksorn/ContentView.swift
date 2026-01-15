@@ -24,14 +24,24 @@ struct ContentView: View {
 }
 
 struct FlashcardsView: View {
+    @State private var consonants: [Consonant] = []
+
     var body: some View {
         NavigationStack {
-            ContentUnavailableView(
-                "Flashcards",
-                systemImage: "rectangle.on.rectangle",
-                description: Text("Practice Thai characters with spaced repetition")
-            )
-            .navigationTitle("Flashcards")
+            if consonants.isEmpty {
+                ContentUnavailableView(
+                    "Loading...",
+                    systemImage: "rectangle.on.rectangle",
+                    description: Text("Loading consonants")
+                )
+            } else {
+                ConsonantFlashcardView(consonants: consonants)
+            }
+        }
+        .onAppear {
+            if consonants.isEmpty {
+                consonants = Consonant.loadAll()
+            }
         }
     }
 }
