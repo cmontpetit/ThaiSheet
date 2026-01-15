@@ -50,18 +50,15 @@ struct ConsonantHeaderView: View {
                     Text("Initial")
                     Text("Final")
                 }
+                .frame(minWidth: 80)
             }
-
-            // Space for sound button
-            Text("Sound")
-                .frame(width: 44)
         }
         .font(.caption)
         .fontWeight(.semibold)
         .foregroundStyle(.secondary)
         .padding(.vertical, 8)
-        .padding(.leading, 12)
-        .padding(.trailing, 4)
+        .padding(.leading, 20) // Account for highlight indicator
+        .padding(.trailing, 12)
         .background(Color(.systemBackground))
     }
 }
@@ -95,41 +92,39 @@ struct ConsonantRowView: View {
                     .foregroundStyle(.primary)
 
                 Spacer()
-
-                VStack(alignment: .trailing, spacing: 2) {
-                    HStack(spacing: 8) {
-                        Text(consonant.initialSound)
-                            .font(.subheadline)
-                            .monospacedDigit()
-                        Text(consonant.finalSound)
-                            .font(.subheadline)
-                            .monospacedDigit()
-                    }
-
-                    if consonant.usage != .common {
-                        Text(consonant.usage.rawValue)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
             .contentShape(Rectangle())
             .onTapGesture {
                 onPractice?()
             }
 
-            // Sound button
-            Button {
-                AudioPlayer.shared.playConsonantSound(for: consonant.character)
-            } label: {
-                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                    .font(.title3)
-                    .foregroundColor(hasSound ? .accentColor : .secondary)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
+            // Sound area (tappable to play sound)
+            VStack(alignment: .trailing, spacing: 2) {
+                HStack(spacing: 8) {
+                    Text(consonant.initialSound)
+                        .font(.subheadline)
+                        .monospacedDigit()
+                    Text(consonant.finalSound)
+                        .font(.subheadline)
+                        .monospacedDigit()
+                }
+                .foregroundColor(hasSound ? .accentColor : .primary)
+
+                if consonant.usage != .common {
+                    Text(consonant.usage.rawValue)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
-            .buttonStyle(.plain)
-            .disabled(!hasSound)
+            .frame(minWidth: 80)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 8)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if hasSound {
+                    AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                }
+            }
         }
         .padding(.vertical, 4)
         .padding(.leading, 8)

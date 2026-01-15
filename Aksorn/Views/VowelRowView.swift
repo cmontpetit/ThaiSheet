@@ -70,6 +70,16 @@ struct VowelRowView: View {
         return allForms.compactMap { $0 }.contains(highlighted)
     }
 
+    // Find a form that has a sound file (prefer closed forms)
+    private var soundForm: String? {
+        let formsToTry = [vowel.long.closed, vowel.short.closed, vowel.long.open, vowel.short.open]
+        return formsToTry.compactMap { $0 }.first { AudioPlayer.shared.hasVowelSound(for: $0) }
+    }
+
+    private var hasSound: Bool {
+        soundForm != nil
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Highlight indicator
@@ -95,11 +105,17 @@ struct VowelRowView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Sound
+            // Sound (tappable to play)
             Text(vowel.sound)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundColor(hasSound ? .accentColor : .secondary)
                 .frame(width: 60)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if let form = soundForm {
+                        AudioPlayer.shared.playVowelSound(for: form)
+                    }
+                }
         }
         .padding(.leading, 8)
         .padding(.trailing, 12)

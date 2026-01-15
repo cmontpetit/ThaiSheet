@@ -58,4 +58,10 @@ class AudioPlayer {
         return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
                Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
     }
+
+    func hasVowelSound(for form: String) -> Bool {
+        let filename = "cheat_sheet_vowel_\(form)"
+        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
+               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
+    }
 }

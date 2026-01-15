@@ -141,17 +141,18 @@ struct VowelFlashcardView: View {
 
                 // Speaker button (only when completed)
                 if cardState.step == .completed {
+                    let hasSound = AudioPlayer.shared.hasVowelSound(for: card.display)
                     Button {
-                        // TODO: Play vowel sound when available
+                        playVowelSound()
                     } label: {
                         HStack(spacing: 4) {
-                            Image(systemName: "speaker.wave.2.fill")
+                            Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
                             Text("Play")
                         }
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(hasSound ? .accentColor : .secondary)
                     }
-                    .disabled(true) // Vowel sounds not yet available
+                    .disabled(!hasSound)
                 }
             }
         }
@@ -406,11 +407,20 @@ struct VowelFlashcardView: View {
 
     private func completeCard() {
         cardState.step = .completed
-        // TODO: Play vowel sound when available
+        playVowelSound()
     }
 
     private func completeCardEarly() {
         cardState.step = .completed
+        playVowelSound()
+    }
+
+    private func playVowelSound() {
+        guard let card = currentCard else { return }
+        // Try to play sound for the current form, or find one that exists
+        if AudioPlayer.shared.hasVowelSound(for: card.display) {
+            AudioPlayer.shared.playVowelSound(for: card.display)
+        }
     }
 
     // MARK: - Next Card Button
