@@ -7,6 +7,9 @@ import SwiftUI
 
 struct ConsonantFlashcardView: View {
     let consonants: [Consonant]
+    @Binding var startingConsonant: String?
+    var onViewInReference: ((String) -> Void)?
+
     @State private var currentIndex: Int = 0
     @State private var cardState = CardState()
 
@@ -40,7 +43,25 @@ struct ConsonantFlashcardView: View {
             }
             .navigationTitle("Flashcards")
             .onAppear {
+                // If starting at a specific consonant, find its index
+                if let startChar = startingConsonant,
+                   let index = consonants.firstIndex(where: { $0.character == startChar }) {
+                    currentIndex = index
+                    startingConsonant = nil  // Clear after using
+                }
                 generateOptions(for: consonant)
+            }
+            .onChange(of: startingConsonant) { _, newValue in
+                // Handle navigation from Reference while already visible
+                if let startChar = newValue,
+                   let index = consonants.firstIndex(where: { $0.character == startChar }) {
+                    currentIndex = index
+                    cardState = CardState()  // Reset card state
+                    startingConsonant = nil
+                    if let newConsonant = currentConsonant {
+                        generateOptions(for: newConsonant)
+                    }
+                }
             }
         } else {
             ContentUnavailableView(
@@ -68,17 +89,32 @@ struct ConsonantFlashcardView: View {
                     .minimumScaleFactor(0.5)
             }
 
-            // Speaker button (only when completed)
-            if cardState.step == .completed {
+            // Action buttons
+            HStack(spacing: 20) {
+                // View in Reference button
                 Button {
-                    AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                    onViewInReference?(consonant.character)
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "speaker.wave.2.fill")
-                        Text("Play")
+                        Image(systemName: "book")
+                        Text("Reference")
                     }
                     .font(.subheadline)
                     .foregroundColor(.accentColor)
+                }
+
+                // Speaker button (only when completed)
+                if cardState.step == .completed {
+                    Button {
+                        AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "speaker.wave.2.fill")
+                            Text("Play")
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.accentColor)
+                    }
                 }
             }
         }
@@ -535,6 +571,10 @@ struct FlowLayout: Layout {
 
 #Preview {
     NavigationStack {
-        ConsonantFlashcardView(consonants: Consonant.loadAll())
+        ConsonantFlashcardView(
+            consonants: Consonant.loadAll(),
+            startingConsonant: .constant(nil),
+            onViewInReference: { _ in }
+        )
     }
 }

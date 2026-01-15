@@ -13,6 +13,11 @@ enum CheatsheetEntryType: String, CaseIterable {
 }
 
 struct CheatsheetBrowserView: View {
+    // Navigation bindings
+    @Binding var highlightedConsonant: String?
+    @Binding var flashcardStartingConsonant: String?
+    @Binding var selectedTab: AppTab
+
     @State private var searchText = ""
     @State private var selectedType: CheatsheetEntryType = .consonants
     @State private var consonants: [Consonant] = []
@@ -197,11 +202,29 @@ struct CheatsheetBrowserView: View {
                     VStack(spacing: 0) {
                         ConsonantHeaderView()
                         Divider()
-                        List(filteredConsonants) { consonant in
-                            ConsonantRowView(consonant: consonant)
+                        ScrollViewReader { proxy in
+                            List(filteredConsonants) { consonant in
+                                ConsonantRowView(
+                                    consonant: consonant,
+                                    isHighlighted: highlightedConsonant == consonant.character,
+                                    onPractice: {
+                                        flashcardStartingConsonant = consonant.character
+                                        highlightedConsonant = nil
+                                        selectedTab = .flashcards
+                                    }
+                                )
                                 .listRowInsets(EdgeInsets())
+                                .id(consonant.character)
+                            }
+                            .listStyle(.plain)
+                            .onChange(of: highlightedConsonant) { _, newValue in
+                                if let character = newValue {
+                                    withAnimation {
+                                        proxy.scrollTo(character, anchor: .center)
+                                    }
+                                }
+                            }
                         }
-                        .listStyle(.plain)
                     }
                 case .vowels:
                     VStack(spacing: 0) {
@@ -275,9 +298,20 @@ struct CheatsheetBrowserView: View {
                 clusters = Cluster.loadAll()
             }
         }
+        .onChange(of: highlightedConsonant) { _, newValue in
+            // Switch to consonants tab when a consonant is highlighted
+            if newValue != nil {
+                selectedType = .consonants
+                selectedConsonantClass = nil  // Clear filter to ensure consonant is visible
+            }
+        }
     }
 }
 
 #Preview {
-    CheatsheetBrowserView()
+    CheatsheetBrowserView(
+        highlightedConsonant: .constant(nil),
+        flashcardStartingConsonant: .constant(nil),
+        selectedTab: .constant(.reference)
+    )
 }

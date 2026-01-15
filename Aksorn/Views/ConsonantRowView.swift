@@ -68,20 +68,22 @@ struct ConsonantHeaderView: View {
 
 struct ConsonantRowView: View {
     let consonant: Consonant
-    let onRowTap: (() -> Void)?
-
-    init(consonant: Consonant, onRowTap: (() -> Void)? = nil) {
-        self.consonant = consonant
-        self.onRowTap = onRowTap
-    }
+    var isHighlighted: Bool = false
+    var onPractice: (() -> Void)? = nil
 
     private var hasSound: Bool {
         AudioPlayer.shared.hasConsonantSound(for: consonant.character)
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            // Main row content (tappable for flashcard)
+        HStack(alignment: .center, spacing: 0) {
+            // Highlight indicator
+            Circle()
+                .fill(isHighlighted ? Color.accentColor : Color.clear)
+                .frame(width: 8, height: 8)
+                .padding(.trailing, 8)
+
+            // Main row content
             HStack(alignment: .center, spacing: 12) {
                 ClassIndicatorView(activeClass: consonant.consonantClass)
 
@@ -111,9 +113,19 @@ struct ConsonantRowView: View {
                     }
                 }
             }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                onRowTap?()
+
+            // Practice button
+            if let onPractice = onPractice {
+                Button {
+                    onPractice()
+                } label: {
+                    Image(systemName: "rectangle.on.rectangle")
+                        .font(.body)
+                        .foregroundColor(.accentColor)
+                        .frame(width: 36, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
 
             // Sound button
@@ -130,8 +142,9 @@ struct ConsonantRowView: View {
             .disabled(!hasSound)
         }
         .padding(.vertical, 4)
-        .padding(.leading, 12)
+        .padding(.leading, 8)
         .padding(.trailing, 4)
+        .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
     }
 }
 
