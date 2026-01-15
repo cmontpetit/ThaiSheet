@@ -1,34 +1,40 @@
 {
   "clusters": [
-    { "cluster": "กร-", "sound": "gr-", "type": "smooth" },
-    { "cluster": "กล-", "sound": "gl-", "type": "smooth" },
-    { "cluster": "กว-", "sound": "gw-", "type": "smooth" },
+    { "cluster": "กร-", "sound": "kr-", "type": "smooth" },
+    { "cluster": "กล-", "sound": "kl-", "type": "smooth" },
+    { "cluster": "กว-", "sound": "kw-", "type": "smooth" },
+
     { "cluster": "ขร-", "sound": "kr-", "type": "smooth" },
     { "cluster": "ขล-", "sound": "kl-", "type": "smooth" },
     { "cluster": "ขว-", "sound": "kw-", "type": "smooth" },
+
     { "cluster": "คร-", "sound": "kr-", "type": "smooth" },
     { "cluster": "คล-", "sound": "kl-", "type": "smooth" },
     { "cluster": "คว-", "sound": "kw-", "type": "smooth" },
+
     { "cluster": "ตร-", "sound": "dtr-", "type": "smooth" },
     { "cluster": "ปร-", "sound": "bpr-", "type": "smooth" },
     { "cluster": "ปล-", "sound": "bpl-", "type": "smooth" },
+
     { "cluster": "ผล-", "sound": "pl-", "type": "smooth" },
     { "cluster": "พร-", "sound": "pr-", "type": "smooth" },
     { "cluster": "พล-", "sound": "pl-", "type": "smooth" },
-    { "cluster": "บร-", "sound": "br-", "type": "smooth" },
-    { "cluster": "บล-", "sound": "bl-", "type": "smooth" },
+
+    { "cluster": "บร-", "sound": "pr-", "type": "smooth" },
+    { "cluster": "บล-", "sound": "pl-", "type": "smooth" },
+
     { "cluster": "ดร-", "sound": "dr-", "type": "smooth" },
+
     { "cluster": "ทร-", "sound": "s-", "type": "irregular" },
-    { "cluster": "ทร-", "sound": "t-", "type": "irregular" },
-    { "cluster": "-ทร", "sound": "-t", "type": "irregular" },
     { "cluster": "สร-", "sound": "s-", "type": "irregular" },
     { "cluster": "จร-", "sound": "j-", "type": "irregular" },
-    { "cluster": "หง-", "sound": null, "type": "silent" },
-    { "cluster": "หน-", "sound": null, "type": "silent" },
-    { "cluster": "หม-", "sound": null, "type": "silent" },
-    { "cluster": "หย-", "sound": null, "type": "silent" },
-    { "cluster": "หร-", "sound": null, "type": "silent" },
-    { "cluster": "หล-", "sound": null, "type": "silent" },
-    { "cluster": "หว-", "sound": null, "type": "silent" }
+
+    { "cluster": "หง-", "sound": "ng-", "type": "silent" },
+    { "cluster": "หน-", "sound": "n-", "type": "silent" },
+    { "cluster": "หม-", "sound": "m-", "type": "silent" },
+    { "cluster": "หย-", "sound": "y-", "type": "silent" },
+    { "cluster": "หร-", "sound": "r-", "type": "silent" },
+    { "cluster": "หล-", "sound": "l-", "type": "silent" },
+    { "cluster": "หว-", "sound": "w-", "type": "silent" }
   ]
 }
