@@ -467,7 +467,7 @@ struct VowelFlashcardView: View {
     private func generateOptions(for card: VowelCard) {
         // Get unique sounds from all vowels
         let allSounds = Set(allVowels.map { $0.sound })
-        var options = Array(allSounds.filter { $0 != card.vowel.sound }.shuffled().prefix(4))
+        var options = Array(allSounds.filter { $0 != card.vowel.sound }.shuffled().prefix(7))
         options.append(card.vowel.sound)
         soundOptions = options.shuffled()
     }

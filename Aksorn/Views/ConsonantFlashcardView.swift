@@ -465,7 +465,7 @@ struct ConsonantFlashcardView: View {
     private func generateOptions(for consonant: Consonant) {
         // Get unique initial sounds from all consonants
         let allInitialSounds = Set(consonants.map { $0.initialSound })
-        var initialOptions = Array(allInitialSounds.filter { $0 != consonant.initialSound }.shuffled().prefix(4))
+        var initialOptions = Array(allInitialSounds.filter { $0 != consonant.initialSound }.shuffled().prefix(7))
         initialOptions.append(consonant.initialSound)
         initialSoundOptions = initialOptions.shuffled()
 
