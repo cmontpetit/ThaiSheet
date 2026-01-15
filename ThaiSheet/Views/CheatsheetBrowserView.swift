@@ -60,16 +60,40 @@ struct CheatsheetBrowserView: View {
         return result
     }
 
+    // Thai combining characters that need a base consonant (vowels above/below, tone marks)
+    private static let thaiCombiningMarks: CharacterSet = {
+        var set = CharacterSet()
+        // Vowels: ั ิ ี ึ ื ุ ู
+        set.insert(charactersIn: "\u{0E31}\u{0E34}\u{0E35}\u{0E36}\u{0E37}\u{0E38}\u{0E39}")
+        // Tone marks and other combining: ็ ่ ้ ๊ ๋ ์ ํ ๎
+        set.insert(charactersIn: "\u{0E47}\u{0E48}\u{0E49}\u{0E4A}\u{0E4B}\u{0E4C}\u{0E4D}\u{0E4E}")
+        return set
+    }()
+
+    private func normalizeThaiSearch(_ text: String) -> String {
+        guard let firstScalar = text.unicodeScalars.first,
+              Self.thaiCombiningMarks.contains(firstScalar) else {
+            return text
+        }
+        // Prepend ก if text starts with a combining character
+        return "ก" + text
+    }
+
+    // Normalized search query for vowels (prepends ก to combining characters)
+    private var normalizedVowelSearch: String? {
+        guard !searchText.isEmpty else { return nil }
+        return normalizeThaiSearch(searchText)
+    }
+
     var filteredVowels: [Vowel] {
-        guard !searchText.isEmpty else { return vowels }
+        guard let normalizedSearch = normalizedVowelSearch else { return vowels }
 
         let query = searchText.lowercased()
         return vowels.filter { vowel in
-            // Match any Thai vowel form (strip placeholder ก before searching)
+            // Match any Thai vowel form
             let forms = [vowel.short.closed, vowel.short.open, vowel.long.closed, vowel.long.open]
             for form in forms.compactMap({ $0 }) {
-                let vowelOnly = form.replacingOccurrences(of: "ก", with: "")
-                if !vowelOnly.isEmpty && vowelOnly.contains(searchText) {
+                if form.contains(normalizedSearch) {
                     return true
                 }
             }
@@ -237,6 +261,7 @@ struct CheatsheetBrowserView: View {
                                 VowelRowView(
                                     vowel: vowel,
                                     highlightedForm: highlightedVowel,
+                                    searchQuery: normalizedVowelSearch,
                                     onPractice: { form in
                                         flashcardStartingVowel = form
                                         highlightedVowel = nil

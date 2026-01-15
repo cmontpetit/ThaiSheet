@@ -59,10 +59,16 @@ struct VowelHeaderView: View {
 struct VowelRowView: View {
     let vowel: Vowel
     var highlightedForm: String? = nil
+    var searchQuery: String? = nil
     var onPractice: ((String) -> Void)? = nil
 
     private var allForms: [String?] {
         [vowel.short.closed, vowel.short.open, vowel.long.closed, vowel.long.open]
+    }
+
+    private func formMatchesSearch(_ form: String?) -> Bool {
+        guard let form = form, let query = searchQuery, !query.isEmpty else { return true }
+        return form.contains(query)
     }
 
     private var isHighlighted: Bool {
@@ -135,8 +141,10 @@ struct VowelRowView: View {
     @ViewBuilder
     private func vowelCell(_ text: String?) -> some View {
         if let text = text {
+            let matches = formMatchesSearch(text)
             Text(text)
                 .font(.title2)
+                .foregroundStyle(matches ? .primary : .tertiary)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
