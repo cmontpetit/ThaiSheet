@@ -27,6 +27,15 @@ struct VowelHeaderView: View {
             Divider()
                 .frame(height: 30)
 
+            // Sound column (center)
+            Text("Sound")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .frame(width: 60)
+
+            Divider()
+                .frame(height: 30)
+
             // LONG section
             VStack(spacing: 2) {
                 Text("LONG")
@@ -42,12 +51,6 @@ struct VowelHeaderView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-
-            // Sound column
-            Text("Sound")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .frame(width: 60)
         }
         .foregroundStyle(.secondary)
         .padding(.horizontal, 12)
@@ -104,24 +107,27 @@ struct VowelRowView: View {
             Divider()
                 .frame(height: 30)
 
+            // Sound (center, tappable to go to practice)
+            Text(vowel.sound)
+                .font(.caption)
+                .foregroundColor(.accentColor)
+                .frame(width: 60)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if let form = soundForm {
+                        onPractice?(form)
+                    }
+                }
+
+            Divider()
+                .frame(height: 30)
+
             // LONG section
             HStack(spacing: 0) {
                 vowelCell(vowel.long.closed)
                 vowelCell(vowel.long.open)
             }
             .frame(maxWidth: .infinity)
-
-            // Sound (tappable to play)
-            Text(vowel.sound)
-                .font(.caption)
-                .foregroundColor(hasSound ? .accentColor : .secondary)
-                .frame(width: 60)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if let form = soundForm {
-                        AudioPlayer.shared.playVowelSound(for: form)
-                    }
-                }
         }
         .padding(.leading, 8)
         .padding(.trailing, 12)
@@ -142,13 +148,16 @@ struct VowelRowView: View {
     private func vowelCell(_ text: String?) -> some View {
         if let text = text {
             let matches = formMatchesSearch(text)
+            let hasSound = AudioPlayer.shared.hasVowelSound(for: text)
             Text(text)
                 .font(.title2)
-                .foregroundStyle(matches ? .primary : .tertiary)
+                .foregroundColor(matches ? (hasSound ? .accentColor : .primary) : .secondary)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    onPractice?(text)
+                    if hasSound {
+                        AudioPlayer.shared.playVowelSound(for: text)
+                    }
                 }
                 .background(highlightedForm == text ? Color.accentColor.opacity(0.2) : Color.clear)
                 .cornerRadius(4)
