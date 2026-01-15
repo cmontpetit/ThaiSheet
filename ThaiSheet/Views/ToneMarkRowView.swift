@@ -8,13 +8,19 @@ import SwiftUI
 struct ToneMarkHeaderView: View {
     var body: some View {
         HStack(spacing: 0) {
-            Text("Tone Mark")
+            Text("Low")
                 .frame(maxWidth: .infinity)
 
-            Text("On Low Cons.")
+            Text("Tone")
                 .frame(maxWidth: .infinity)
 
-            Text("On Mid/High Cons.")
+            Divider()
+                .frame(height: 20)
+
+            Text("Mid/High")
+                .frame(maxWidth: .infinity)
+
+            Text("Tone")
                 .frame(maxWidth: .infinity)
         }
         .font(.caption)
@@ -27,18 +33,27 @@ struct ToneMarkHeaderView: View {
 }
 
 struct ToneMarkRowView: View {
-    let mark: ToneMark
+    let toneMark: ToneMark
 
     var body: some View {
         HStack(spacing: 0) {
-            Text(mark.toneMark)
-                .font(.title)
+            // Low consonant column
+            Text(toneMark.withLowConsonant)
+                .font(.title2)
                 .frame(maxWidth: .infinity)
 
-            toneCell(mark.onLowConsonant)
+            toneCell(toneMark.onLowConsonant)
                 .frame(maxWidth: .infinity)
 
-            toneCell(mark.onMidHighConsonant)
+            Divider()
+                .frame(height: 30)
+
+            // Mid/High consonant column
+            Text(toneMark.withMidHighConsonant)
+                .font(.title2)
+                .frame(maxWidth: .infinity)
+
+            toneCell(toneMark.onMidHighConsonant)
                 .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)
@@ -62,14 +77,20 @@ struct ToneMarkRowView: View {
     VStack(spacing: 0) {
         ToneMarkHeaderView()
         Divider()
-        ToneMarkRowView(mark: ToneMark(
-            toneMark: "ก่",
+        ToneMarkRowView(toneMark: ToneMark(
+            mark: "",
+            onLowConsonant: "Mid",
+            onMidHighConsonant: "Mid"
+        ))
+        Divider()
+        ToneMarkRowView(toneMark: ToneMark(
+            mark: "\u{0E48}",
             onLowConsonant: "High",
             onMidHighConsonant: "Falling"
         ))
         Divider()
-        ToneMarkRowView(mark: ToneMark(
-            toneMark: "ก๊",
+        ToneMarkRowView(toneMark: ToneMark(
+            mark: "\u{0E4A}",
             onLowConsonant: "n/a",
             onMidHighConsonant: "High"
         ))

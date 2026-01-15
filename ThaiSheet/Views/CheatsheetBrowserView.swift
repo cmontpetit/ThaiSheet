@@ -122,7 +122,8 @@ struct CheatsheetBrowserView: View {
 
         let query = searchText.lowercased()
         return toneMarks.filter { mark in
-            mark.toneMark.contains(searchText) ||
+            mark.withLowConsonant.contains(searchText) ||
+            mark.withMidHighConsonant.contains(searchText) ||
             mark.onLowConsonant.lowercased().contains(query) ||
             mark.onMidHighConsonant.lowercased().contains(query)
         }
@@ -305,7 +306,7 @@ struct CheatsheetBrowserView: View {
                                 ToneMarkHeaderView()
                                 Divider()
                                 ForEach(filteredToneMarks) { mark in
-                                    ToneMarkRowView(mark: mark)
+                                    ToneMarkRowView(toneMark: mark)
                                     Divider()
                                 }
                             }
