@@ -83,7 +83,7 @@ struct ConsonantRowView: View {
                 .frame(width: 8, height: 8)
                 .padding(.trailing, 8)
 
-            // Main row content
+            // Main row content (tappable for practice)
             HStack(alignment: .center, spacing: 12) {
                 ClassIndicatorView(activeClass: consonant.consonantClass)
 
@@ -113,19 +113,9 @@ struct ConsonantRowView: View {
                     }
                 }
             }
-
-            // Practice button
-            if let onPractice = onPractice {
-                Button {
-                    onPractice()
-                } label: {
-                    Image(systemName: "rectangle.on.rectangle")
-                        .font(.body)
-                        .foregroundColor(.accentColor)
-                        .frame(width: 36, height: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onPractice?()
             }
 
             // Sound button
