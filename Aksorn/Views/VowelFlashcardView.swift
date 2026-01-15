@@ -47,11 +47,11 @@ struct VowelCard: Identifiable {
 struct VowelFlashcardView: View {
     let cards: [VowelCard]
     let allVowels: [Vowel]
+    @Binding var currentIndex: Int
     @Binding var startingVowel: String?
     var onViewInReference: ((String) -> Void)?
     var onNextCard: (() -> Void)?
 
-    @State private var currentIndex: Int = 0
     @State private var cardState = VowelCardState()
 
     // Generated options for sound selection
@@ -335,21 +335,13 @@ struct VowelFlashcardView: View {
                 cardState.step = .selectForm
             }
 
-            FlowLayout(spacing: 10) {
+            // 2 rows of 4 buttons
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(soundOptions, id: \.self) { sound in
-                    Button {
+                    gridButton(label: sound) {
                         cardState.selectedSound = sound
                         completeCard()
-                    } label: {
-                        Text(sound)
-                            .font(.body)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(Color(.systemGray5))
-                            .foregroundColor(.primary)
-                            .cornerRadius(8)
                     }
-                    .buttonStyle(.plain)
                 }
             }
 
@@ -360,6 +352,19 @@ struct VowelFlashcardView: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+    }
+
+    private func gridButton(label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.body)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color(.systemGray5))
+                .foregroundColor(.primary)
+                .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Selection Helpers
@@ -509,6 +514,7 @@ extension VowelCardState {
         VowelFlashcardView(
             cards: VowelCard.allCards(from: Vowel.loadAll()),
             allVowels: Vowel.loadAll(),
+            currentIndex: .constant(0),
             startingVowel: .constant(nil),
             onViewInReference: { _ in },
             onNextCard: { }

@@ -302,7 +302,6 @@ struct CheatsheetBrowserView: View {
                     .background(Color(.secondarySystemBackground))
                 }
             }
-            .navigationTitle("Cheatsheet")
             .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
         }
         .onAppear {

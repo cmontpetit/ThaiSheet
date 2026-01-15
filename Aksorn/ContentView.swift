@@ -64,6 +64,8 @@ struct FlashcardsView: View {
     @State private var vowels: [Vowel] = []
     @State private var vowelCards: [VowelCard] = []
     @State private var currentType: FlashcardType = .consonant
+    @State private var consonantIndex: Int = 0
+    @State private var vowelIndex: Int = 0
 
     var body: some View {
         NavigationStack {
@@ -90,6 +92,7 @@ struct FlashcardsView: View {
                     if currentType == .consonant {
                         ConsonantFlashcardView(
                             consonants: consonants,
+                            currentIndex: $consonantIndex,
                             startingConsonant: $startingConsonant,
                             onViewInReference: { character in
                                 highlightedConsonant = character
@@ -103,6 +106,7 @@ struct FlashcardsView: View {
                         VowelFlashcardView(
                             cards: vowelCards,
                             allVowels: vowels,
+                            currentIndex: $vowelIndex,
                             startingVowel: $startingVowel,
                             onViewInReference: { vowel in
                                 highlightedVowel = vowel
@@ -114,7 +118,6 @@ struct FlashcardsView: View {
                         )
                     }
                 }
-                .navigationTitle("Flashcards")
             }
         }
         .onAppear {

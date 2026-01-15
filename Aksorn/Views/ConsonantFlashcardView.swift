@@ -7,11 +7,11 @@ import SwiftUI
 
 struct ConsonantFlashcardView: View {
     let consonants: [Consonant]
+    @Binding var currentIndex: Int
     @Binding var startingConsonant: String?
     var onViewInReference: ((String) -> Void)?
     var onNextCard: (() -> Void)?
 
-    @State private var currentIndex: Int = 0
     @State private var cardState = CardState()
 
     // Generated options for current card
@@ -42,7 +42,6 @@ struct ConsonantFlashcardView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Flashcards")
             .onAppear {
                 // If starting at a specific consonant, find its index
                 if let startChar = startingConsonant,
@@ -277,9 +276,10 @@ struct ConsonantFlashcardView: View {
                 cardState.step = .selectClass
             }
 
-            FlowLayout(spacing: 10) {
+            // 2 rows of 4 buttons
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(initialSoundOptions, id: \.self) { sound in
-                    selectionButton(label: sound) {
+                    gridButton(label: sound) {
                         cardState.selectedInitial = sound
                         cardState.step = .selectFinal
                     }
@@ -304,9 +304,10 @@ struct ConsonantFlashcardView: View {
                 cardState.step = .selectInitial
             }
 
-            FlowLayout(spacing: 10) {
+            // 1 row of 4 buttons
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(finalSoundOptions, id: \.self) { sound in
-                    selectionButton(label: sound) {
+                    gridButton(label: sound) {
                         cardState.selectedFinal = sound
                         cardState.step = .selectTranscription
                     }
@@ -331,9 +332,10 @@ struct ConsonantFlashcardView: View {
                 cardState.step = .selectFinal
             }
 
-            FlowLayout(spacing: 10) {
+            // 2 rows of 2 buttons
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 2), spacing: 10) {
                 ForEach(transcriptionOptions, id: \.self) { transcription in
-                    selectionButton(label: transcription) {
+                    gridButton(label: transcription) {
                         cardState.selectedTranscription = transcription
                         completeCard(consonant: consonant)
                     }
@@ -381,13 +383,13 @@ struct ConsonantFlashcardView: View {
         }
     }
 
-    private func selectionButton(label: String, action: @escaping () -> Void) -> some View {
+    private func gridButton(label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
                 .font(.body)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(cardState.selectedClass?.color ?? Color(.systemGray5))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color(.systemGray5))
                 .foregroundColor(.primary)
                 .cornerRadius(8)
         }
@@ -475,11 +477,11 @@ struct ConsonantFlashcardView: View {
         finalOptions.append(consonant.finalSound)
         finalSoundOptions = finalOptions.shuffled()
 
-        // Get transcriptions from other consonants
+        // Get transcriptions from other consonants (3 wrong + 1 correct = 4 total)
         var transcriptionOpts = consonants
             .filter { $0.character != consonant.character }
             .shuffled()
-            .prefix(5)
+            .prefix(3)
             .map { $0.transcription }
         transcriptionOpts.append(consonant.transcription)
         transcriptionOptions = Array(transcriptionOpts).shuffled()
@@ -577,6 +579,7 @@ struct FlowLayout: Layout {
     NavigationStack {
         ConsonantFlashcardView(
             consonants: Consonant.loadAll(),
+            currentIndex: .constant(0),
             startingConsonant: .constant(nil),
             onViewInReference: { _ in },
             onNextCard: { }
