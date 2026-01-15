@@ -1,46 +1,53 @@
 {
   "toneRules": [
-    {
-      "initialConsonant": "Low",
-      "vowelDuration": "Short",
-      "end": "Dead/None",
-      "tone": "High"
-    },
-    {
-      "initialConsonant": "Low",
-      "vowelDuration": "Long",
-      "end": "Dead",
-      "tone": "Falling"
-    },
-    {
-      "initialConsonant": "Low",
-      "vowelDuration": "Any",
-      "end": "Live",
-      "tone": "Mid"
-    },
-    {
-      "initialConsonant": "Mid",
-      "vowelDuration": "Any",
-      "end": "Live",
-      "tone": "Mid"
-    },
-    {
-      "initialConsonant": "Mid",
-      "vowelDuration": "Any",
-      "end": "Dead",
-      "tone": "Low"
-    },
-    {
-      "initialConsonant": "High",
-      "vowelDuration": "Any",
-      "end": "Live",
-      "tone": "Rising"
-    },
-    {
-      "initialConsonant": "High",
-      "vowelDuration": "Any",
-      "end": "Dead",
-      "tone": "Low"
-    }
+      {
+        "initialConsonant": "Low",
+        "vowelDuration": "Short",
+        "end": "Dead/None",
+        "tone": "High",
+        "sampleWord": "คะ"
+      },
+      {
+        "initialConsonant": "Low",
+        "vowelDuration": "Long",
+        "end": "Dead",
+        "tone": "Low",
+        "sampleWord": "พูด"
+      },
+      {
+        "initialConsonant": "Low",
+        "vowelDuration": "Any",
+        "end": "Live",
+        "tone": "Mid",
+        "sampleWord": "มา"
+      },
+      {
+        "initialConsonant": "Mid",
+        "vowelDuration": "Any",
+        "end": "Live",
+        "tone": "Mid",
+        "sampleWord": "กา"
+      },
+      {
+        "initialConsonant": "Mid",
+        "vowelDuration": "Any",
+        "end": "Dead",
+        "tone": "Low",
+        "sampleWord": "กัด"
+      },
+      {
+        "initialConsonant": "High",
+        "vowelDuration": "Any",
+        "end": "Live",
+        "tone": "Rising",
+        "sampleWord": "ขา"
+      },
+      {
+        "initialConsonant": "High",
+        "vowelDuration": "Any",
+        "end": "Dead",
+        "tone": "Low",
+        "sampleWord": "ขาด"
+      }
   ]
 }
