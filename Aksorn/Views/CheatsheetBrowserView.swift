@@ -15,7 +15,9 @@ enum CheatsheetEntryType: String, CaseIterable {
 struct CheatsheetBrowserView: View {
     // Navigation bindings
     @Binding var highlightedConsonant: String?
+    @Binding var highlightedVowel: String?
     @Binding var flashcardStartingConsonant: String?
+    @Binding var flashcardStartingVowel: String?
     @Binding var selectedTab: AppTab
 
     @State private var searchText = ""
@@ -230,11 +232,33 @@ struct CheatsheetBrowserView: View {
                     VStack(spacing: 0) {
                         VowelHeaderView()
                         Divider()
-                        List(filteredVowels) { vowel in
-                            VowelRowView(vowel: vowel)
+                        ScrollViewReader { proxy in
+                            List(filteredVowels) { vowel in
+                                VowelRowView(
+                                    vowel: vowel,
+                                    highlightedForm: highlightedVowel,
+                                    onPractice: { form in
+                                        flashcardStartingVowel = form
+                                        highlightedVowel = nil
+                                        selectedTab = .flashcards
+                                    }
+                                )
                                 .listRowInsets(EdgeInsets())
+                                .id(vowel.id)
+                            }
+                            .listStyle(.plain)
+                            .onChange(of: highlightedVowel) { _, newValue in
+                                if let vowelForm = newValue,
+                                   let vowel = vowels.first(where: { v in
+                                       [v.short.closed, v.short.open, v.long.closed, v.long.open]
+                                           .compactMap { $0 }.contains(vowelForm)
+                                   }) {
+                                    withAnimation {
+                                        proxy.scrollTo(vowel.id, anchor: .center)
+                                    }
+                                }
+                            }
                         }
-                        .listStyle(.plain)
                     }
                 case .tones:
                     ScrollView {
@@ -305,13 +329,21 @@ struct CheatsheetBrowserView: View {
                 selectedConsonantClass = nil  // Clear filter to ensure consonant is visible
             }
         }
+        .onChange(of: highlightedVowel) { _, newValue in
+            // Switch to vowels tab when a vowel is highlighted
+            if newValue != nil {
+                selectedType = .vowels
+            }
+        }
     }
 }
 
 #Preview {
     CheatsheetBrowserView(
         highlightedConsonant: .constant(nil),
+        highlightedVowel: .constant(nil),
         flashcardStartingConsonant: .constant(nil),
+        flashcardStartingVowel: .constant(nil),
         selectedTab: .constant(.reference)
     )
 }

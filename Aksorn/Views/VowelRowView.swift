@@ -58,9 +58,26 @@ struct VowelHeaderView: View {
 
 struct VowelRowView: View {
     let vowel: Vowel
+    var highlightedForm: String? = nil
+    var onPractice: ((String) -> Void)? = nil
+
+    private var allForms: [String?] {
+        [vowel.short.closed, vowel.short.open, vowel.long.closed, vowel.long.open]
+    }
+
+    private var isHighlighted: Bool {
+        guard let highlighted = highlightedForm else { return false }
+        return allForms.compactMap { $0 }.contains(highlighted)
+    }
 
     var body: some View {
         HStack(spacing: 0) {
+            // Highlight indicator
+            Circle()
+                .fill(isHighlighted ? Color.accentColor : Color.clear)
+                .frame(width: 8, height: 8)
+                .padding(.trailing, 4)
+
             // SHORT section
             HStack(spacing: 0) {
                 vowelCell(vowel.short.closed)
@@ -84,9 +101,19 @@ struct VowelRowView: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 60)
         }
-        .padding(.horizontal, 12)
+        .padding(.leading, 8)
+        .padding(.trailing, 12)
         .padding(.vertical, 6)
-        .background(vowel.isRare ? Color.pink.opacity(0.1) : Color.clear)
+        .background(backgroundForRow)
+    }
+
+    private var backgroundForRow: Color {
+        if isHighlighted {
+            return Color.accentColor.opacity(0.1)
+        } else if vowel.isRare {
+            return Color.pink.opacity(0.1)
+        }
+        return Color.clear
     }
 
     @ViewBuilder
@@ -95,6 +122,12 @@ struct VowelRowView: View {
             Text(text)
                 .font(.title2)
                 .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onPractice?(text)
+                }
+                .background(highlightedForm == text ? Color.accentColor.opacity(0.2) : Color.clear)
+                .cornerRadius(4)
         } else {
             Text("-")
                 .font(.title2)

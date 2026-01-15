@@ -9,6 +9,7 @@ struct ConsonantFlashcardView: View {
     let consonants: [Consonant]
     @Binding var startingConsonant: String?
     var onViewInReference: ((String) -> Void)?
+    var onNextCard: (() -> Void)?
 
     @State private var currentIndex: Int = 0
     @State private var cardState = CardState()
@@ -456,6 +457,9 @@ struct ConsonantFlashcardView: View {
         if let consonant = currentConsonant {
             generateOptions(for: consonant)
         }
+
+        // Notify parent to switch card type (consonant/vowel alternation)
+        onNextCard?()
     }
 
     private func generateOptions(for consonant: Consonant) {
@@ -574,7 +578,8 @@ struct FlowLayout: Layout {
         ConsonantFlashcardView(
             consonants: Consonant.loadAll(),
             startingConsonant: .constant(nil),
-            onViewInReference: { _ in }
+            onViewInReference: { _ in },
+            onNextCard: { }
         )
     }
 }
