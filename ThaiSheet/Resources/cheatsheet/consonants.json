@@ -57,7 +57,7 @@
       "class": "low",
       "usage": "common",
       "sounds": {
-        "en": { "initial": "s-", "final": "-s" }
+        "en": { "initial": "s-", "final": "-t" }
       }
     },
     {
@@ -235,7 +235,7 @@
       "name": "ฮอ นกฮูก",
       "transcription": "haawᴹ nokᴴ-huukᶠ",
       "class": "low",
-      "usage": "uncommon",
+      "usage": "common",
       "sounds": {
         "en": { "initial": "h-", "final": "n/a" }
       }
@@ -377,7 +377,7 @@
       "class": "high",
       "usage": "common",
       "sounds": {
-        "en": { "initial": "th-", "final": "-k" }
+        "en": { "initial": "th-", "final": "-t" }
       }
     },
     {

@@ -1,159 +1,253 @@
 {
   "vowels": [
-    {
-      "short": { "closed": "กั-", "open": "กะ" },
-      "long": { "closed": "กา-", "open": "กา" },
-      "sounds": { "en": "aa/ah" }
-    },
-    {
-      "short": { "closed": "แก็-", "open": "แกะ" },
-      "long": { "closed": "แก-", "open": "แก" },
-      "sounds": { "en": "ae" }
-    },
-    {
-      "short": { "closed": "ก็-", "open": "เกาะ" },
-      "long": { "closed": "กอ-", "open": "กอ" },
-      "sounds": { "en": "aaw" }
-    },
-    {
-      "short": { "closed": "เก็-", "open": "เกะ" },
-      "long": { "closed": "เก-", "open": "เก" },
-      "sounds": { "en": "eh/ey" }
-    },
-    {
-      "short": { "closed": "เกิ-", "open": "เกอะ" },
-      "long": { "closed": "เกิ-", "open": "เกอ" },
-      "sounds": { "en": "erh/uuhr" }
-    },
-    {
-      "short": { "closed": null, "open": "โกะ" },
-      "long": { "closed": "โก-", "open": "โก" },
-      "sounds": { "en": "oh" }
-    },
-    {
-      "short": { "closed": "กิ-", "open": "กิ" },
-      "long": { "closed": "กี-", "open": "กี" },
-      "sounds": { "en": "ee" }
-    },
-    {
-      "short": { "closed": "กึ-", "open": "กึ" },
-      "long": { "closed": "กื-", "open": "กือ" },
-      "sounds": { "en": "eu" }
-    },
-    {
-      "short": { "closed": "กุ-", "open": "กุ" },
-      "long": { "closed": "กู-", "open": "กู" },
-      "sounds": { "en": "oo" }
-    },
-    {
-      "short": { "closed": null, "open": "เกียะ" },
-      "long": { "closed": "เกีย-", "open": "เกีย" },
-      "sounds": { "en": "ia" }
-    },
-    {
-      "short": { "closed": null, "open": "เกือะ" },
-      "long": { "closed": "เกือ-", "open": "เกือ" },
-      "sounds": { "en": "eua" }
-    },
-    {
-      "short": { "closed": null, "open": "กัวะ" },
-      "long": { "closed": "กัว-", "open": "กัว" },
-      "sounds": { "en": "ua" }
-    },
-    {
-      "short": { "closed": "ไก", "open": null },
-      "long": { "closed": "ไก-", "open": null },
-      "sounds": { "en": "ai" }
-    },
-    {
-      "short": { "closed": "ใก", "open": null },
-      "long": { "closed": null, "open": "กาย" },
-      "sounds": { "en": "ai" }
-    },
-    {
-      "short": { "closed": "กัย", "open": null },
-      "long": { "closed": null, "open": null },
-      "sounds": { "en": "ai" }
-    },
-    {
-      "short": { "closed": "ไกย", "open": null },
-      "long": { "closed": null, "open": null },
-      "sounds": { "en": "ai" }
-    },
-    {
-      "short": { "closed": "กอย", "open": null },
-      "long": { "closed": null, "open": "กอย" },
-      "sounds": { "en": "aawy" }
-    },
-    {
-      "short": { "closed": null, "open": null },
-      "long": { "closed": "เกย", "open": null },
-      "sounds": { "en": "eeuy" }
-    },
-    {
-      "short": { "closed": null, "open": null },
-      "long": { "closed": "โกย", "open": null },
-      "sounds": { "en": "oy/ohy" }
-    },
-    {
-      "short": { "closed": "กุย", "open": null },
-      "long": { "closed": null, "open": null },
-      "sounds": { "en": "uy" }
-    },
-    {
-      "short": { "closed": null, "open": null },
-      "long": { "closed": "เกือย", "open": null },
-      "sounds": { "en": "euuay" }
-    },
-    {
-      "short": { "closed": "กวย", "open": null },
-      "long": { "closed": null, "open": "กวาย" },
-      "sounds": { "en": "uay" }
-    },
-    {
-      "short": { "closed": "เกา", "open": null },
-      "long": { "closed": null, "open": "กาว" },
-      "sounds": { "en": "ao" }
-    },
-    {
-      "short": { "closed": "แกว", "open": null },
-      "long": { "closed": null, "open": "แกว" },
-      "sounds": { "en": "aeo" }
-    },
-    {
-      "short": { "closed": null, "open": null },
-      "long": { "closed": null, "open": "เกา" },
-      "sounds": { "en": "uaaw" }
-    },
-    {
-      "short": { "closed": "เกว", "open": null },
-      "long": { "closed": null, "open": "เกว" },
-      "sounds": { "en": "ayo" }
-    },
-    {
-      "short": { "closed": "กิว", "open": null },
-      "long": { "closed": null, "open": null },
-      "sounds": { "en": "iu" }
-    },
-    {
-      "short": { "closed": null, "open": null },
-      "long": { "closed": "เกียว", "open": null },
-      "sounds": { "en": "iaao" }
-    },
-    {
-      "short": { "closed": "กำ", "open": null },
-      "long": { "closed": null, "open": "กำ" },
-      "sounds": { "en": "ahm" }
-    },
-    {
-      "short": { "closed": "ฤ-", "open": "ฤ" },
-      "long": { "closed": null, "open": null },
-      "sounds": { "en": "rue" }
-    },
-    {
-      "short": { "closed": "ฤ-", "open": null },
-      "long": { "closed": "ฤ-", "open": "ฤ" },
-      "sounds": { "en": "ri/reer" }
-    }
+      {
+        "short": {
+          "closed": "กั-",
+          "open": "กะ"
+        },
+        "long": {
+          "closed": "กา-",
+          "open": "กา"
+        },
+        "sounds": {
+          "en": "aa/ah"
+        }
+      },
+      {
+        "short": {
+          "closed": "แก็-",
+          "open": "แกะ"
+        },
+        "long": {
+          "closed": "แก-",
+          "open": "แก"
+        },
+        "sounds": {
+          "en": "ae"
+        }
+      },
+      {
+        "short": {
+          "closed": "กอ็-",
+          "open": "เกาะ"
+        },
+        "long": {
+          "closed": "กอ-",
+          "open": "กอ"
+        },
+        "sounds": {
+          "en": "aaw"
+        }
+      },
+      {
+        "short": {
+          "closed": "เก็-",
+          "open": "เกะ"
+        },
+        "long": {
+          "closed": "เก-",
+          "open": "เก"
+        },
+        "sounds": {
+          "en": "eh/ey"
+        }
+      },
+      {
+        "short": {
+          "closed": "เกิ-",
+          "open": "เกอะ"
+        },
+        "long": {
+          "closed": "เกิ-",
+          "open": "เกอ"
+        },
+        "sounds": {
+          "en": "erh/uuhr"
+        }
+      },
+      {
+        "short": {
+          "closed": null,
+          "open": "โกะ"
+        },
+        "long": {
+          "closed": "โก-",
+          "open": "โก"
+        },
+        "sounds": {
+          "en": "oh"
+        }
+      },
+      {
+        "short": {
+          "closed": "กิ-",
+          "open": "กิ"
+        },
+        "long": {
+          "closed": "กี-",
+          "open": "กี"
+        },
+        "sounds": {
+          "en": "ee"
+        }
+      },
+      {
+        "short": {
+          "closed": "กึ-",
+          "open": "กึ"
+        },
+        "long": {
+          "closed": "กื-",
+          "open": "กือ"
+        },
+        "sounds": {
+          "en": "eu"
+        }
+      },
+      {
+        "short": {
+          "closed": "กุ-",
+          "open": "กุ"
+        },
+        "long": {
+          "closed": "กู-",
+          "open": "กู"
+        },
+        "sounds": {
+          "en": "oo"
+        }
+      },
+      {
+        "short": {
+          "closed": null,
+          "open": "เกียะ"
+        },
+        "long": {
+          "closed": "เกีย-",
+          "open": "เกีย"
+        },
+        "sounds": {
+          "en": "ia"
+        }
+      },
+      {
+        "short": {
+          "closed": null,
+          "open": "เกือะ"
+        },
+        "long": {
+          "closed": "เกือ-",
+          "open": "เกือ"
+        },
+        "sounds": {
+          "en": "eua"
+        }
+      },
+      {
+        "short": {
+          "closed": null,
+          "open": "กัวะ"
+        },
+        "long": {
+          "closed": "กัว-",
+          "open": "กัว"
+        },
+        "sounds": {
+          "en": "ua"
+        }
+      },
+      {
+        "short": {
+          "closed": "เกา",
+          "open": null
+        },
+        "long": {
+          "closed": null,
+          "open": "กาว"
+        },
+        "sounds": {
+          "en": "ao"
+        }
+      },
+      {
+        "short": {
+          "closed": "แกว",
+          "open": null
+        },
+        "long": {
+          "closed": null,
+          "open": "แกว"
+        },
+        "sounds": {
+          "en": "aeo"
+        }
+      },
+      {
+        "short": {
+          "closed": null,
+          "open": null
+        },
+        "long": {
+          "closed": null,
+          "open": "เกออ"
+        },
+        "sounds": {
+          "en": "uaaw"
+        },
+        "usage": "rare"
+      },
+      {
+        "short": {
+          "closed": "เก็ว",
+          "open": null
+        },
+        "long": {
+          "closed": null,
+          "open": "เกว"
+        },
+        "sounds": {
+          "en": "ayo"
+        }
+      },
+      {
+        "short": {
+          "closed": "กิว",
+          "open": null
+        },
+        "long": {
+          "closed": null,
+          "open": null
+        },
+        "sounds": {
+          "en": "iu"
+        },
+        "usage": "uncommon"
+      },
+      {
+        "short": {
+          "closed": null,
+          "open": null
+        },
+        "long": {
+          "closed": "เกียว",
+          "open": null
+        },
+        "sounds": {
+          "en": "iaao"
+        }
+      },
+      {
+        "short": {
+          "closed": "กำ",
+          "open": null
+        },
+        "long": {
+          "closed": null,
+          "open": "กำ"
+        },
+        "sounds": {
+          "en": "ahm"
+        }
+      }
   ]
 }
