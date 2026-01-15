@@ -86,6 +86,7 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 - Consonant sounds are ready; vowel sounds need review before enabling
 
 ### Build Notes
+- **Deployment target:** iOS 17.0 (supports iPhone XR and newer)
 - If provisioning errors occur, build for simulator:
   ```bash
   xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 17' build
