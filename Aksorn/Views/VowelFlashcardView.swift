@@ -120,7 +120,7 @@ struct VowelFlashcardView: View {
                         .frame(width: 160, height: 160)
                 }
 
-                Text(card.display)
+                Text(card.display.replacingOccurrences(of: "-", with: ""))
                     .font(.system(size: 72))
                     .minimumScaleFactor(0.5)
             }
