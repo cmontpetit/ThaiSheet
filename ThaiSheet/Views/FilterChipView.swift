@@ -1,6 +1,6 @@
 //
 //  FilterChipView.swift
-//  Aksorn
+//  ThaiSheet
 //
 
 import SwiftUI

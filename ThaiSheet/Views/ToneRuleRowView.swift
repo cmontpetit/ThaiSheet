@@ -1,6 +1,6 @@
 //
 //  ToneRuleRowView.swift
-//  Aksorn
+//  ThaiSheet
 //
 
 import SwiftUI

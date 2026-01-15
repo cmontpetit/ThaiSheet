@@ -1,6 +1,6 @@
 //
 //  CheatsheetBrowserView.swift
-//  Aksorn
+//  ThaiSheet
 //
 
 import SwiftUI

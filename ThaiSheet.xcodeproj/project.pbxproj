@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		5175862D2F1432FD00443EAD /* Aksorn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Aksorn.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5175862D2F1432FD00443EAD /* ThaiSheet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThaiSheet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5175862F2F1432FD00443EAD /* Aksorn */ = {
+		5175862F2F1432FD00443EAD /* ThaiSheet */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Aksorn;
+			path = ThaiSheet;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		517586242F1432FD00443EAD = {
 			isa = PBXGroup;
 			children = (
-				5175862F2F1432FD00443EAD /* Aksorn */,
+				5175862F2F1432FD00443EAD /* ThaiSheet */,
 				5175862E2F1432FD00443EAD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		5175862E2F1432FD00443EAD /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5175862D2F1432FD00443EAD /* Aksorn.app */,
+				5175862D2F1432FD00443EAD /* ThaiSheet.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5175862C2F1432FD00443EAD /* Aksorn */ = {
+		5175862C2F1432FD00443EAD /* ThaiSheet */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 517586382F1432FD00443EAD /* Build configuration list for PBXNativeTarget "Aksorn" */;
+			buildConfigurationList = 517586382F1432FD00443EAD /* Build configuration list for PBXNativeTarget "ThaiSheet" */;
 			buildPhases = (
 				517586292F1432FD00443EAD /* Sources */,
 				5175862A2F1432FD00443EAD /* Frameworks */,
@@ -61,13 +61,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				5175862F2F1432FD00443EAD /* Aksorn */,
+				5175862F2F1432FD00443EAD /* ThaiSheet */,
 			);
-			name = Aksorn;
+			name = ThaiSheet;
 			packageProductDependencies = (
 			);
-			productName = Aksorn;
-			productReference = 5175862D2F1432FD00443EAD /* Aksorn.app */;
+			productName = ThaiSheet;
+			productReference = 5175862D2F1432FD00443EAD /* ThaiSheet.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 517586282F1432FD00443EAD /* Build configuration list for PBXProject "Aksorn" */;
+			buildConfigurationList = 517586282F1432FD00443EAD /* Build configuration list for PBXProject "ThaiSheet" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5175862C2F1432FD00443EAD /* Aksorn */,
+				5175862C2F1432FD00443EAD /* ThaiSheet */,
 			);
 		};
 /* End PBXProject section */
@@ -266,7 +266,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = cm.Aksorn;
+				PRODUCT_BUNDLE_IDENTIFIER = cm.ThaiSheet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -298,7 +298,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = cm.Aksorn;
+				PRODUCT_BUNDLE_IDENTIFIER = cm.ThaiSheet;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -313,7 +313,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		517586282F1432FD00443EAD /* Build configuration list for PBXProject "Aksorn" */ = {
+		517586282F1432FD00443EAD /* Build configuration list for PBXProject "ThaiSheet" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				517586362F1432FD00443EAD /* Debug */,
@@ -322,7 +322,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		517586382F1432FD00443EAD /* Build configuration list for PBXNativeTarget "Aksorn" */ = {
+		517586382F1432FD00443EAD /* Build configuration list for PBXNativeTarget "ThaiSheet" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				517586392F1432FD00443EAD /* Debug */,

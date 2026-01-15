@@ -1,6 +1,6 @@
-# Aksorn
+# ThaiSheet
 
-## About Aksorn
+## About ThaiSheet
 
 iOS application for learning to read Thai, based on a comprehensive cheatsheet.
 
@@ -17,8 +17,8 @@ iOS application for learning to read Thai, based on a comprehensive cheatsheet.
 ## Project Resources
 
 - **Source cheatsheet images:** `external-resources/` (project root)
-- **Generated data:** `Aksorn/Resources/` (bundled with app)
-- **App assets:** `Aksorn/Assets.xcassets`
+- **Generated data:** `ThaiSheet/Resources/` (bundled with app)
+- **App assets:** `ThaiSheet/Assets.xcassets`
 
 
 ## Apple Framework Documentation
@@ -44,10 +44,10 @@ Other useful docs in that folder:
 
 ```bash
 # Build
-xcodebuild -project Aksorn.xcodeproj -scheme Aksorn -configuration Debug build
+xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -configuration Debug build
 
 # Run tests
-xcodebuild -project Aksorn.xcodeproj -scheme Aksorn test
+xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 ```
 
 ## Project Conventions
@@ -75,20 +75,20 @@ xcodebuild -project Aksorn.xcodeproj -scheme Aksorn test
 - For data, use `ก` as the consonant placeholder; display rendering TBD
 
 ### Project Structure
-- `Aksorn/Models/` - Data models (Consonant, Vowel, ToneRule, ToneMark, Cluster)
-- `Aksorn/Views/` - SwiftUI views (CheatsheetBrowserView, row views, FilterChipView)
-- `Aksorn/Services/` - AudioPlayer singleton for sound playback
-- `Aksorn/Resources/` - JSON data files and sounds
+- `ThaiSheet/Models/` - Data models (Consonant, Vowel, ToneRule, ToneMark, Cluster)
+- `ThaiSheet/Views/` - SwiftUI views (CheatsheetBrowserView, row views, FilterChipView)
+- `ThaiSheet/Services/` - AudioPlayer singleton for sound playback
+- `ThaiSheet/Resources/` - JSON data files and sounds
 
 ### Sound Files
-- Location: `Aksorn/Resources/sounds/`
+- Location: `ThaiSheet/Resources/sounds/`
 - Naming: `cheat_sheet_consonant_ก.mp3`, `cheat_sheet_vowel_กา.mp3`, etc.
 - Consonant sounds are ready; vowel sounds need review before enabling
 
 ### Build Notes
 - If provisioning errors occur, build for simulator:
   ```bash
-  xcodebuild -project Aksorn.xcodeproj -scheme Aksorn -destination 'platform=iOS Simulator,name=iPhone 17' build
+  xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 17' build
   ```
 
 ### Reference Tab Status

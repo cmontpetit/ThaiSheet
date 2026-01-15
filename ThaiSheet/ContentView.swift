@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  Aksorn
+//  ThaiSheet
 //
 //  Created by Claude Montpetit on 2026-01-11.
 //
