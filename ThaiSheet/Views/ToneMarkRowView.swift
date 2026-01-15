@@ -35,6 +35,14 @@ struct ToneMarkHeaderView: View {
 struct ToneMarkRowView: View {
     let toneMark: ToneMark
 
+    private var hasLowSound: Bool {
+        AudioPlayer.shared.hasToneMarkSound(for: toneMark.withLowConsonant)
+    }
+
+    private var hasMidHighSound: Bool {
+        AudioPlayer.shared.hasToneMarkSound(for: toneMark.withMidHighConsonant)
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Low consonant column
@@ -42,8 +50,10 @@ struct ToneMarkRowView: View {
                 .font(.title2)
                 .frame(maxWidth: .infinity)
 
-            toneCell(toneMark.onLowConsonant)
-                .frame(maxWidth: .infinity)
+            toneCell(toneMark.onLowConsonant, hasSound: hasLowSound) {
+                AudioPlayer.shared.playToneMarkSound(for: toneMark.withLowConsonant)
+            }
+            .frame(maxWidth: .infinity)
 
             Divider()
                 .frame(height: 30)
@@ -53,15 +63,17 @@ struct ToneMarkRowView: View {
                 .font(.title2)
                 .frame(maxWidth: .infinity)
 
-            toneCell(toneMark.onMidHighConsonant)
-                .frame(maxWidth: .infinity)
+            toneCell(toneMark.onMidHighConsonant, hasSound: hasMidHighSound) {
+                AudioPlayer.shared.playToneMarkSound(for: toneMark.withMidHighConsonant)
+            }
+            .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
     }
 
     @ViewBuilder
-    private func toneCell(_ tone: String) -> some View {
+    private func toneCell(_ tone: String, hasSound: Bool, onTap: @escaping () -> Void) -> some View {
         if tone == "n/a" {
             Text("n/a")
                 .font(.subheadline)
@@ -69,6 +81,13 @@ struct ToneMarkRowView: View {
         } else {
             StyledToneText(tone: tone)
                 .font(.subheadline)
+                .foregroundColor(hasSound ? .accentColor : .primary)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if hasSound {
+                        onTap()
+                    }
+                }
         }
     }
 }

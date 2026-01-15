@@ -27,7 +27,7 @@ class AudioPlayer {
     }
 
     func playToneMarkSound(for mark: String) {
-        let filename = "cheat_sheet_tone_\(mark)"
+        let filename = "cheat_sheet_tone_mark_\(mark)"
         play(filename: filename)
     }
 
@@ -61,6 +61,12 @@ class AudioPlayer {
 
     func hasVowelSound(for form: String) -> Bool {
         let filename = "cheat_sheet_vowel_\(form)"
+        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
+               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
+    }
+
+    func hasToneMarkSound(for mark: String) -> Bool {
+        let filename = "cheat_sheet_tone_mark_\(mark)"
         return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
                Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
     }
