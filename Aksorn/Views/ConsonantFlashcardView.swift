@@ -33,11 +33,6 @@ struct ConsonantFlashcardView: View {
                     // Selection area (changes based on current step)
                     selectionArea(consonant: consonant)
 
-                    // Anki-style rating (only when completed)
-                    if cardState.step == .completed {
-                        ankiRatingSection
-                    }
-
                     // Progress indicator
                     progressIndicator
                 }
@@ -382,47 +377,6 @@ struct ConsonantFlashcardView: View {
     private func completeCardEarly(consonant: Consonant) {
         cardState.step = .completed
         AudioPlayer.shared.playConsonantSound(for: consonant.character)
-    }
-
-    // MARK: - Anki Rating
-
-    private var ankiRatingSection: some View {
-        VStack(spacing: 12) {
-            Text("How well did you know this?")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            HStack(spacing: 10) {
-                ankiButton(label: "Again", color: .red) {
-                    goToNextCard()
-                }
-                ankiButton(label: "Hard", color: .orange) {
-                    goToNextCard()
-                }
-                ankiButton(label: "Good", color: .blue) {
-                    goToNextCard()
-                }
-                ankiButton(label: "Easy", color: .green) {
-                    goToNextCard()
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-
-    private func ankiButton(label: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.subheadline.weight(.medium))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(color.opacity(0.2))
-                .foregroundColor(color)
-                .cornerRadius(8)
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Next Card Button
