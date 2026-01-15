@@ -1,29 +1,29 @@
 {
   "toneMarks": [
-    {
-      "mark": "",
-      "onLowConsonant": "Mid",
-      "onMidHighConsonant": "Mid"
-    },
-    {
-      "mark": "\u0E48",
-      "onLowConsonant": "High",
-      "onMidHighConsonant": "Falling"
-    },
-    {
-      "mark": "\u0E49",
-      "onLowConsonant": "Falling",
-      "onMidHighConsonant": "Low"
-    },
-    {
-      "mark": "\u0E4A",
-      "onLowConsonant": "n/a",
-      "onMidHighConsonant": "High"
-    },
-    {
-      "mark": "\u0E4B",
-      "onLowConsonant": "n/a",
-      "onMidHighConsonant": "Rising"
-    }
+      {
+        "mark": "",
+        "onLowConsonant": "Mid",
+        "onMidHighConsonant": "Mid"
+      },
+      {
+        "mark": "\u0E48",
+        "onLowConsonant": "Falling",
+        "onMidHighConsonant": "Low"
+      },
+      {
+        "mark": "\u0E49",
+        "onLowConsonant": "High",
+        "onMidHighConsonant": "Falling"
+      },
+      {
+        "mark": "\u0E4A",
+        "onLowConsonant": "n/a",
+        "onMidHighConsonant": "High"
+      },
+      {
+        "mark": "\u0E4B",
+        "onLowConsonant": "n/a",
+        "onMidHighConsonant": "Rising"
+      }
   ]
 }
