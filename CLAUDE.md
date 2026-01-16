@@ -87,6 +87,28 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 - Naming: `cheat_sheet_consonant_ก.mp3`, `cheat_sheet_vowel_กา.mp3`, etc.
 - Consonant sounds are ready; vowel sounds need review before enabling
 
+### Sound File Generation
+- Script: `scripts/generate_sounds.py` (uses Google Text-to-Speech)
+- First-time setup:
+  ```bash
+  cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+  ```
+- After setup, just activate and run:
+  ```bash
+  source scripts/venv/bin/activate && python3 scripts/generate_sounds.py --all
+  # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
+  ```
+- Tone mark sounds: Generated for all common consonant + tone mark + า combinations (134 files)
+
+### Flashcard Design Decisions
+- **Tone Marks**: Use random common consonants (not fixed ค/ก) with า vowel for variety
+  - 2-step selection: consonant class first, then tone
+  - Display shows full syllable: ค่า, ม้า, etc.
+- **Tone Rules**: Use predefined sample words (not random combinations) because:
+  - Real vocabulary is more pedagogically useful
+  - Combinatorial explosion would require thousands of sound files
+  - `full` = complete word, `focus` = syllable demonstrating the rule
+
 ### Build Notes
 - **Deployment target:** iOS 17.0 (supports iPhone XR and newer)
 - If provisioning errors occur, build for simulator:
