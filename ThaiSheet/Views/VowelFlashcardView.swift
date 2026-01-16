@@ -164,6 +164,16 @@ struct VowelFlashcardView: View {
                     showResult: cardState.step == .completed,
                     labelWidth: 70
                 )
+
+                // Show note if available and card is completed
+                if cardState.step == .completed,
+                   let note = card.vowel.note(for: card.duration.rawValue, form: card.form.rawValue) {
+                    Divider()
+                    Text(note)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .padding()
             .background(Color(.systemGray6))

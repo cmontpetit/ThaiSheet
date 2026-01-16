@@ -179,13 +179,15 @@ struct VowelRowView: View {
         VowelRowView(vowel: Vowel(
             short: VowelForm(closed: "กั-", open: "กะ"),
             long: VowelForm(closed: "กา-", open: "กา"),
-            sounds: VowelSounds(en: "aa/ah")
+            sounds: VowelSounds(en: "aa/ah"),
+            notes: nil
         ))
         .listRowInsets(EdgeInsets())
         VowelRowView(vowel: Vowel(
-            short: VowelForm(closed: nil, open: "โกะ"),
+            short: VowelForm(closed: "ก-", open: "โกะ"),
             long: VowelForm(closed: "โก-", open: "โก"),
-            sounds: VowelSounds(en: "oh")
+            sounds: VowelSounds(en: "oh"),
+            notes: VowelNotes(short_closed: "Unwritten/inherent vowel (e.g., กก = gok)", short_open: nil, long_closed: nil, long_open: nil)
         ))
         .listRowInsets(EdgeInsets())
     }
