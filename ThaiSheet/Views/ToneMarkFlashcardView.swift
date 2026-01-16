@@ -91,8 +91,12 @@ struct ToneMarkFlashcardView: View {
             hasError: cardState.hasError(for: card)
         ) {
             VStack(spacing: 12) {
-                // Main character with left/right tap zones for navigation
-                NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
+                // Main character with swipe gestures for navigation and reveal
+                NavigableTapArea(
+                    onPrevious: handlePrevious,
+                    onNext: handleNext,
+                    onReveal: cardState.step != .completed ? { completeCard() } : nil
+                ) {
                     Text(card.display)
                         .font(.system(size: 100))
                         .minimumScaleFactor(0.5)

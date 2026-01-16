@@ -7,28 +7,39 @@
 
 import SwiftUI
 
-// MARK: - Navigable Tap Area
+// MARK: - Swipeable Card Area
 
-/// A container that detects left/right taps for card navigation
+/// A container that detects horizontal swipes for card navigation
+/// - Swipe left: next card
+/// - Swipe right: previous card
 struct NavigableTapArea<Content: View>: View {
     let onPrevious: () -> Void
     let onNext: () -> Void
+    var onReveal: (() -> Void)? = nil  // Not used currently (ScrollView conflicts with vertical swipes)
     @ViewBuilder let content: () -> Content
 
+    private let swipeThreshold: CGFloat = 50
+
     var body: some View {
-        GeometryReader { geometry in
-            content()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .onTapGesture { location in
-                    let midPoint = geometry.size.width / 2
-                    if location.x < midPoint {
-                        onPrevious()
-                    } else {
-                        onNext()
+        content()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                    .onEnded { value in
+                        let horizontal = value.translation.width
+                        let vertical = value.translation.height
+
+                        // Only handle horizontal swipes (avoid conflict with ScrollView)
+                        guard abs(horizontal) > abs(vertical) else { return }
+
+                        if horizontal < -swipeThreshold {
+                            onNext()
+                        } else if horizontal > swipeThreshold {
+                            onPrevious()
+                        }
                     }
-                }
-        }
+            )
     }
 }
 

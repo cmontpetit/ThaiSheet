@@ -88,8 +88,12 @@ struct VowelFlashcardView: View {
             hasError: cardState.hasError(for: card)
         ) {
             VStack(spacing: 12) {
-                // Main character with left/right tap zones for navigation
-                NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
+                // Main character with swipe gestures for navigation and reveal
+                NavigableTapArea(
+                    onPrevious: handlePrevious,
+                    onNext: handleNext,
+                    onReveal: cardState.step != .completed ? { completeCardEarly() } : nil
+                ) {
                     Text(card.display.replacingOccurrences(of: "-", with: ""))
                         .font(.system(size: 72))
                         .minimumScaleFactor(0.5)

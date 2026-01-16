@@ -23,6 +23,9 @@ class FlashcardManager {
     // Current position in filtered cards
     private(set) var currentIndex: Int = 0
 
+    // Override card (shown once when jumping from Reference, clears on navigation)
+    private var overrideCard: FlashcardItem? = nil
+
     // Track settings state to detect changes
     private var lastSettingsHash: Int = 0
 
@@ -104,6 +107,11 @@ class FlashcardManager {
     // MARK: - Current Card
 
     var currentCard: FlashcardItem? {
+        // Return override card if set (from Reference navigation)
+        if let override = overrideCard {
+            return override
+        }
+
         let cards = filteredCards
         guard !cards.isEmpty else { return nil }
 
@@ -115,6 +123,9 @@ class FlashcardManager {
     // MARK: - Navigation
 
     func nextCard() {
+        // Clear override and resume normal navigation
+        overrideCard = nil
+
         let cards = filteredCards
         guard !cards.isEmpty else { return }
 
@@ -122,6 +133,9 @@ class FlashcardManager {
     }
 
     func previousCard() {
+        // Clear override and resume normal navigation
+        overrideCard = nil
+
         let cards = filteredCards
         guard !cards.isEmpty else { return }
 
@@ -136,8 +150,10 @@ class FlashcardManager {
         }
     }
 
-    /// Jump to a consonant by character
+    /// Jump to a consonant by character (sets override if not in filtered list)
     func jumpToConsonant(_ character: String) {
+        guard let consonant = allConsonants.first(where: { $0.character == character }) else { return }
+
         let cards = filteredCards
         if let index = cards.firstIndex(where: {
             if case .consonant(let c) = $0 {
@@ -145,12 +161,19 @@ class FlashcardManager {
             }
             return false
         }) {
+            // Card is in filtered list, jump to it
+            overrideCard = nil
             currentIndex = index
+        } else {
+            // Card not in filtered list, show as override
+            overrideCard = .consonant(consonant)
         }
     }
 
-    /// Jump to a vowel by display string
+    /// Jump to a vowel by display string (sets override if not in filtered list)
     func jumpToVowel(_ display: String) {
+        guard let vowelCard = allVowelCards.first(where: { $0.display == display }) else { return }
+
         let cards = filteredCards
         if let index = cards.firstIndex(where: {
             if case .vowel(let v) = $0 {
@@ -158,12 +181,19 @@ class FlashcardManager {
             }
             return false
         }) {
+            // Card is in filtered list, jump to it
+            overrideCard = nil
             currentIndex = index
+        } else {
+            // Card not in filtered list, show as override
+            overrideCard = .vowel(vowelCard)
         }
     }
 
-    /// Jump to a tone mark by display string
+    /// Jump to a tone mark by display string (sets override if not in filtered list)
     func jumpToToneMark(_ display: String) {
+        guard let toneMarkCard = allToneMarkCards.first(where: { $0.display == display }) else { return }
+
         let cards = filteredCards
         if let index = cards.firstIndex(where: {
             if case .toneMark(let t) = $0 {
@@ -171,12 +201,19 @@ class FlashcardManager {
             }
             return false
         }) {
+            // Card is in filtered list, jump to it
+            overrideCard = nil
             currentIndex = index
+        } else {
+            // Card not in filtered list, show as override
+            overrideCard = .toneMark(toneMarkCard)
         }
     }
 
-    /// Jump to a tone rule by ID
+    /// Jump to a tone rule by ID (sets override if not in filtered list)
     func jumpToToneRule(_ ruleId: String) {
+        guard let ruleCard = allToneRuleCards.first(where: { $0.rule.id == ruleId }) else { return }
+
         let cards = filteredCards
         if let index = cards.firstIndex(where: {
             if case .toneRule(let t) = $0 {
@@ -184,7 +221,12 @@ class FlashcardManager {
             }
             return false
         }) {
+            // Card is in filtered list, jump to it
+            overrideCard = nil
             currentIndex = index
+        } else {
+            // Card not in filtered list, show as override
+            overrideCard = .toneRule(ruleCard)
         }
     }
 

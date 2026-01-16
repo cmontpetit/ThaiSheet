@@ -51,8 +51,12 @@ struct ConsonantFlashcardView: View {
             hasError: cardState.hasError(for: consonant)
         ) {
             VStack(spacing: 12) {
-                // Main character with left/right tap zones for navigation
-                NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
+                // Main character with swipe gestures for navigation and reveal
+                NavigableTapArea(
+                    onPrevious: handlePrevious,
+                    onNext: handleNext,
+                    onReveal: cardState.step != .completed ? { completeCardEarly() } : nil
+                ) {
                     Text(consonant.character)
                         .font(.system(size: 100))
                         .minimumScaleFactor(0.5)
