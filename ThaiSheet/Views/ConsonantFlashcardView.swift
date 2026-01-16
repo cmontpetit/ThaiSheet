@@ -27,11 +27,6 @@ struct ConsonantFlashcardView: View {
         if let consonant = currentConsonant {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Card type label
-                    Text("Consonant")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
                     // Consonant display with status indicator
                     consonantCard(consonant: consonant)
 
@@ -90,6 +85,11 @@ struct ConsonantFlashcardView: View {
                 }
             }
             .frame(height: 160)
+
+            // Card type label
+            Text("Consonant")
+                .font(.caption)
+                .foregroundColor(.secondary)
 
             // Action buttons
             HStack(spacing: 20) {

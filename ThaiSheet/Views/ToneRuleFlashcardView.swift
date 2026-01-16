@@ -52,11 +52,6 @@ struct ToneRuleFlashcardView: View {
         if let card = currentCard {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Card type label
-                    Text("Tone rule")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
                     // Sample word display with status indicator
                     sampleWordCardView(card: card)
 
@@ -109,6 +104,11 @@ struct ToneRuleFlashcardView: View {
                 }
             }
             .frame(height: 160)
+
+            // Card type label
+            Text("Tone rule")
+                .font(.caption)
+                .foregroundColor(.secondary)
 
             // Action buttons
             HStack(spacing: 20) {

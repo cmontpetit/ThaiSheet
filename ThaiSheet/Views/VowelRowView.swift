@@ -151,7 +151,7 @@ struct VowelRowView: View {
             let hasSound = AudioPlayer.shared.hasVowelSound(for: text)
             Text(text)
                 .font(.title2)
-                .foregroundColor(matches ? .primary : .secondary)
+                .foregroundColor(matches ? (hasSound ? .accentColor : .primary) : .secondary)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {

@@ -65,11 +65,6 @@ struct VowelFlashcardView: View {
         if let card = currentCard {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Card type label
-                    Text("Vowel")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
                     // Vowel display with status indicator
                     vowelCardView(card: card)
 
@@ -126,6 +121,11 @@ struct VowelFlashcardView: View {
                 }
             }
             .frame(height: 160)
+
+            // Card type label
+            Text("Vowel")
+                .font(.caption)
+                .foregroundColor(.secondary)
 
             // Action buttons
             HStack(spacing: 20) {

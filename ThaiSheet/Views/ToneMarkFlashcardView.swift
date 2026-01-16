@@ -65,11 +65,6 @@ struct ToneMarkFlashcardView: View {
         if let card = currentCard {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Card type label
-                    Text("Tone mark")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
                     // Tone mark display with status indicator
                     toneMarkCardView(card: card)
 
@@ -123,8 +118,8 @@ struct ToneMarkFlashcardView: View {
             }
             .frame(height: 160)
 
-            // Consonant class label
-            Text(card.consonantClass.rawValue + " class consonant")
+            // Card type label
+            Text("Tone mark")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -176,6 +171,12 @@ struct ToneMarkFlashcardView: View {
 
             VStack(spacing: 6) {
                 FlashcardSummaryRow(
+                    label: "Class",
+                    selectedValue: cardState.selectedClass,
+                    correctValue: card.consonantClass.rawValue,
+                    showResult: cardState.step == .completed
+                )
+                FlashcardSummaryRow(
                     label: "Tone",
                     selectedValue: cardState.selectedTone,
                     correctValue: card.correctTone,
@@ -193,11 +194,45 @@ struct ToneMarkFlashcardView: View {
     @ViewBuilder
     private func selectionArea(card: ToneMarkCard) -> some View {
         switch cardState.step {
+        case .selectClass:
+            classSelectionView(card: card)
         case .selectTone:
             toneSelectionView(card: card)
         case .completed:
             nextCardButton
         }
+    }
+
+    // MARK: - Class Selection
+
+    private let classOptions = ["Low", "Mid/High"]
+
+    private func classSelectionView(card: ToneMarkCard) -> some View {
+        VStack(spacing: 16) {
+            Text("Select the consonant class")
+                .font(.headline)
+
+            HStack(spacing: 12) {
+                ForEach(classOptions, id: \.self) { classOption in
+                    Button {
+                        cardState.selectedClass = classOption
+                        cardState.step = .selectTone
+                    } label: {
+                        Text(classOption)
+                            .font(.body.weight(.medium))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color(.systemGray5))
+                            .foregroundColor(.primary)
+                            .cornerRadius(10)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
 
     // MARK: - Tone Selection
@@ -265,16 +300,21 @@ struct ToneMarkFlashcardView: View {
 
 struct ToneMarkCardState {
     enum Step {
+        case selectClass
         case selectTone
         case completed
     }
 
-    var step: Step = .selectTone
+    var step: Step = .selectClass
+    var selectedClass: String? = nil
     var selectedTone: String? = nil
 }
 
 extension ToneMarkCardState {
     func hasError(for card: ToneMarkCard) -> Bool {
+        if let selected = selectedClass, selected != card.consonantClass.rawValue {
+            return true
+        }
         if let selected = selectedTone, selected != card.correctTone {
             return true
         }

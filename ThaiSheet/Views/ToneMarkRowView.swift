@@ -104,7 +104,7 @@ struct ToneMarkRowView: View {
         } else {
             StyledToneText(tone: tone)
                 .font(.subheadline)
-                .foregroundColor(.primary)
+                .foregroundColor(hasSound ? .accentColor : .primary)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     if hasSound {
