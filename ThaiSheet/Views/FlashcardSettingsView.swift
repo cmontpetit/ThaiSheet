@@ -8,10 +8,29 @@ import SwiftUI
 struct FlashcardSettingsView: View {
     @Bindable var settings: FlashcardSettings
     @Environment(\.dismiss) private var dismiss
+    @State private var refreshID = UUID()
 
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    HStack {
+                        Button("Select All") {
+                            settings.selectAll()
+                            refreshID = UUID()
+                        }
+                        .disabled(settings.isAllSelected)
+
+                        Spacer()
+
+                        Button("Reset") {
+                            settings.resetToDefault()
+                            refreshID = UUID()
+                        }
+                        .disabled(settings.isDefault)
+                    }
+                }
+
                 Section {
                     settingToggle(
                         title: "High consonants",
@@ -67,6 +86,7 @@ struct FlashcardSettingsView: View {
                     Text("Tones")
                 }
             }
+            .id(refreshID)
             .navigationTitle("Flashcard Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

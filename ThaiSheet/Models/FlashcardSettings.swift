@@ -125,4 +125,44 @@ class FlashcardSettings {
     var areToneMarksEnabled: Bool {
         toneMarks
     }
+
+    // MARK: - Bulk Actions
+
+    func selectAll() {
+        highConsonants = true
+        midConsonants = true
+        lowConsonants = true
+        uncommonConsonants = true
+        longVowels = true
+        shortVowels = true
+        highToneRules = true
+        midToneRules = true
+        lowToneRules = true
+        toneMarks = true
+    }
+
+    func resetToDefault() {
+        highConsonants = true
+        midConsonants = false
+        lowConsonants = false
+        uncommonConsonants = false
+        longVowels = false
+        shortVowels = false
+        highToneRules = false
+        midToneRules = false
+        lowToneRules = false
+        toneMarks = false
+    }
+
+    var isAllSelected: Bool {
+        highConsonants && midConsonants && lowConsonants && uncommonConsonants &&
+        longVowels && shortVowels &&
+        highToneRules && midToneRules && lowToneRules && toneMarks
+    }
+
+    var isDefault: Bool {
+        highConsonants && !midConsonants && !lowConsonants && !uncommonConsonants &&
+        !longVowels && !shortVowels &&
+        !highToneRules && !midToneRules && !lowToneRules && !toneMarks
+    }
 }
