@@ -11,6 +11,7 @@ struct ToneRule: Codable, Identifiable {
     let vowelDuration: String
     let end: String
     let tone: String
+    let sampleWord: String?
 
     var id: String { "\(initialConsonant)-\(vowelDuration)-\(end)" }
 

@@ -60,6 +60,11 @@ struct ToneRuleHeaderView: View {
 struct ToneRuleRowView: View {
     let rule: ToneRule
 
+    private var hasSound: Bool {
+        guard let sampleWord = rule.sampleWord else { return false }
+        return AudioPlayer.shared.hasToneRuleSound(for: sampleWord)
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             Text(rule.initialConsonant)
@@ -87,7 +92,14 @@ struct ToneRuleRowView: View {
                 .frame(width: 20)
 
             StyledToneText(tone: rule.tone)
+                .foregroundColor(hasSound ? .accentColor : .primary)
                 .frame(width: 60)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if let sampleWord = rule.sampleWord, hasSound {
+                        AudioPlayer.shared.playToneRuleSound(for: sampleWord)
+                    }
+                }
         }
         .font(.subheadline)
         .padding(.vertical, 4)
@@ -105,21 +117,24 @@ struct ToneRuleRowView: View {
             initialConsonant: "Low",
             vowelDuration: "Short",
             end: "Dead/None",
-            tone: "High"
+            tone: "High",
+            sampleWord: "คะ"
         ))
         .listRowInsets(EdgeInsets())
         ToneRuleRowView(rule: ToneRule(
             initialConsonant: "Mid",
             vowelDuration: "Any",
             end: "Live",
-            tone: "Mid"
+            tone: "Mid",
+            sampleWord: "กา"
         ))
         .listRowInsets(EdgeInsets())
         ToneRuleRowView(rule: ToneRule(
             initialConsonant: "High",
             vowelDuration: "Any",
             end: "Live",
-            tone: "Rising"
+            tone: "Rising",
+            sampleWord: "ขา"
         ))
         .listRowInsets(EdgeInsets())
     }

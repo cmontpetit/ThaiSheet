@@ -31,6 +31,11 @@ class AudioPlayer {
         play(filename: filename)
     }
 
+    func playToneRuleSound(for sampleWord: String) {
+        let filename = "cheat_sheet_tone_rule_\(sampleWord)"
+        play(filename: filename)
+    }
+
     private func play(filename: String) {
         guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") else {
             // Try without subdirectory
@@ -67,6 +72,12 @@ class AudioPlayer {
 
     func hasToneMarkSound(for mark: String) -> Bool {
         let filename = "cheat_sheet_tone_mark_\(mark)"
+        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
+               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
+    }
+
+    func hasToneRuleSound(for sampleWord: String) -> Bool {
+        let filename = "cheat_sheet_tone_rule_\(sampleWord)"
         return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
                Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
     }
