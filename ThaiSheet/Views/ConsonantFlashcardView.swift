@@ -61,11 +61,6 @@ struct ConsonantFlashcardView: View {
             }
             .frame(height: 160)
 
-            // Card type label
-            Text("Consonant")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
             // Action buttons
             HStack(spacing: 20) {
                 // View in Reference button

@@ -101,11 +101,6 @@ struct ToneMarkFlashcardView: View {
             }
             .frame(height: 160)
 
-            // Card type label
-            Text("Tone mark")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
             // Action buttons
             HStack(spacing: 20) {
                 // View in Reference button

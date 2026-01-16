@@ -98,11 +98,6 @@ struct VowelFlashcardView: View {
             }
             .frame(height: 160)
 
-            // Card type label
-            Text("Vowel")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
             // Action buttons
             HStack(spacing: 20) {
                 // View in Reference button
