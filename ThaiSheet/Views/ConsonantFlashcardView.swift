@@ -77,28 +77,15 @@ struct ConsonantFlashcardView: View {
     private func consonantCard(consonant: Consonant) -> some View {
         VStack(spacing: 12) {
             // Main character with left/right tap zones for navigation
-            GeometryReader { geometry in
+            NavigableTapArea(onPrevious: goToPreviousCard, onNext: goToNextCard) {
                 ZStack {
-                    // Status ring
                     if cardState.step == .completed {
-                        Circle()
-                            .stroke(cardState.hasError(for: consonant) ? Color.red : Color.green, lineWidth: 4)
-                            .frame(width: 160, height: 160)
+                        FlashcardStatusRing(hasError: cardState.hasError(for: consonant))
                     }
 
                     Text(consonant.character)
                         .font(.system(size: 100))
                         .minimumScaleFactor(0.5)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .onTapGesture { location in
-                    let midPoint = geometry.size.width / 2
-                    if location.x < midPoint {
-                        goToPreviousCard()
-                    } else {
-                        goToNextCard()
-                    }
                 }
             }
             .frame(height: 160)
@@ -142,109 +129,40 @@ struct ConsonantFlashcardView: View {
 
     private func summarySection(consonant: Consonant) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Summary")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-
-                Spacer()
-
-                // Reveal button (only when not completed)
-                if cardState.step != .completed {
-                    Button {
-                        completeCardEarly(consonant: consonant)
-                    } label: {
-                        Text("Reveal")
-                            .font(.caption)
-                            .foregroundColor(.accentColor)
-                    }
-                }
-            }
+            FlashcardSummaryHeader(
+                showReveal: cardState.step != .completed,
+                onReveal: { completeCardEarly(consonant: consonant) }
+            )
 
             VStack(spacing: 6) {
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Class",
                     selectedValue: cardState.selectedClass?.rawValue.capitalized,
                     correctValue: consonant.consonantClass.rawValue.capitalized,
-                    isCorrect: cardState.selectedClass == consonant.consonantClass,
-                    wasSelected: cardState.selectedClass != nil,
                     showResult: cardState.step == .completed
                 )
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Initial",
                     selectedValue: cardState.selectedInitial,
                     correctValue: consonant.initialSound,
-                    isCorrect: cardState.selectedInitial == consonant.initialSound,
-                    wasSelected: cardState.selectedInitial != nil,
                     showResult: cardState.step == .completed
                 )
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Final",
                     selectedValue: cardState.selectedFinal,
                     correctValue: consonant.finalSound,
-                    isCorrect: cardState.selectedFinal == consonant.finalSound,
-                    wasSelected: cardState.selectedFinal != nil,
                     showResult: cardState.step == .completed
                 )
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Name",
                     selectedValue: cardState.selectedTranscription,
                     correctValue: consonant.transcription,
-                    isCorrect: cardState.selectedTranscription == consonant.transcription,
-                    wasSelected: cardState.selectedTranscription != nil,
                     showResult: cardState.step == .completed
                 )
             }
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(12)
-        }
-    }
-
-    private func summaryRow(label: String, selectedValue: String?, correctValue: String, isCorrect: Bool, wasSelected: Bool, showResult: Bool) -> some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .frame(width: 60, alignment: .leading)
-
-            if showResult {
-                if wasSelected {
-                    if isCorrect {
-                        // Correct answer - green, no checkmark
-                        Text(selectedValue ?? correctValue)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.green)
-                    } else {
-                        // Wrong answer: correct value in black, then wrong struck-through in light red
-                        Text(correctValue)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.primary)
-                        Text(selectedValue ?? "")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.red.opacity(0.5))
-                            .strikethrough(color: .red.opacity(0.5))
-                    }
-                } else {
-                    // Not selected - just show correct value
-                    Text(correctValue)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(.primary)
-                }
-            } else if let selected = selectedValue {
-                // During selection, show what's been selected so far
-                Text(selected)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.primary)
-            } else {
-                // Not yet selected
-                Text("—")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
         }
     }
 
@@ -308,7 +226,7 @@ struct ConsonantFlashcardView: View {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(initialSoundOptions, id: \.self) { sound in
-                    gridButton(label: sound) {
+                    FlashcardGridButton(label: sound) {
                         cardState.selectedInitial = sound
                         cardState.step = .selectFinal
                     }
@@ -332,7 +250,7 @@ struct ConsonantFlashcardView: View {
             // 1 row of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(finalSoundOptions, id: \.self) { sound in
-                    gridButton(label: sound) {
+                    FlashcardGridButton(label: sound) {
                         cardState.selectedFinal = sound
                         cardState.step = .selectTranscription
                     }
@@ -356,7 +274,7 @@ struct ConsonantFlashcardView: View {
             // 2 rows of 2 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 2), spacing: 10) {
                 ForEach(transcriptionOptions, id: \.self) { transcription in
-                    gridButton(label: transcription) {
+                    FlashcardGridButton(label: transcription) {
                         cardState.selectedTranscription = transcription
                         completeCard(consonant: consonant)
                     }
@@ -400,19 +318,6 @@ struct ConsonantFlashcardView: View {
         }
     }
 
-    private func gridButton(label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.body)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(Color(.systemGray5))
-                .foregroundColor(.primary)
-                .cornerRadius(8)
-        }
-        .buttonStyle(.plain)
-    }
-
     // MARK: - Card Completion
 
     private func completeCard(consonant: Consonant) {
@@ -428,30 +333,16 @@ struct ConsonantFlashcardView: View {
     // MARK: - Next Card Button
 
     private var nextCardButton: some View {
-        Button {
+        FlashcardNextButton {
             goToNextCard()
             onNextCard?()
-        } label: {
-            HStack {
-                Text("Next Card")
-                Image(systemName: "arrow.right")
-            }
-            .font(.headline)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.accentColor)
-            .foregroundColor(.white)
-            .cornerRadius(12)
         }
     }
 
     // MARK: - Progress Indicator
 
     private var progressIndicator: some View {
-        Text("\(currentIndex + 1) / \(consonants.count)")
-            .font(.caption)
-            .foregroundColor(.secondary)
-            .padding(.top, 8)
+        FlashcardProgressIndicator(current: currentIndex + 1, total: consonants.count)
     }
 
     // MARK: - Actions

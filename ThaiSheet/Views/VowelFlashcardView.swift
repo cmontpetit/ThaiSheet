@@ -113,28 +113,15 @@ struct VowelFlashcardView: View {
     private func vowelCardView(card: VowelCard) -> some View {
         VStack(spacing: 12) {
             // Main character with left/right tap zones for navigation
-            GeometryReader { geometry in
+            NavigableTapArea(onPrevious: goToPreviousCard, onNext: goToNextCard) {
                 ZStack {
-                    // Status ring
                     if cardState.step == .completed {
-                        Circle()
-                            .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
-                            .frame(width: 160, height: 160)
+                        FlashcardStatusRing(hasError: cardState.hasError(for: card))
                     }
 
                     Text(card.display.replacingOccurrences(of: "-", with: ""))
                         .font(.system(size: 72))
                         .minimumScaleFactor(0.5)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .onTapGesture { location in
-                    let midPoint = geometry.size.width / 2
-                    if location.x < midPoint {
-                        goToPreviousCard()
-                    } else {
-                        goToNextCard()
-                    }
                 }
             }
             .frame(height: 160)
@@ -180,96 +167,37 @@ struct VowelFlashcardView: View {
 
     private func summarySection(card: VowelCard) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Summary")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-
-                Spacer()
-
-                // Reveal button (only when not completed)
-                if cardState.step != .completed {
-                    Button {
-                        completeCardEarly()
-                    } label: {
-                        Text("Reveal")
-                            .font(.caption)
-                            .foregroundColor(.accentColor)
-                    }
-                }
-            }
+            FlashcardSummaryHeader(
+                showReveal: cardState.step != .completed,
+                onReveal: { completeCardEarly() }
+            )
 
             VStack(spacing: 6) {
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Duration",
                     selectedValue: cardState.selectedDuration?.rawValue,
                     correctValue: card.duration.rawValue,
-                    isCorrect: cardState.selectedDuration == card.duration,
-                    wasSelected: cardState.selectedDuration != nil,
-                    showResult: cardState.step == .completed
+                    showResult: cardState.step == .completed,
+                    labelWidth: 70
                 )
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Form",
                     selectedValue: cardState.selectedForm?.rawValue,
                     correctValue: card.form.rawValue,
-                    isCorrect: cardState.selectedForm == card.form,
-                    wasSelected: cardState.selectedForm != nil,
-                    showResult: cardState.step == .completed
+                    showResult: cardState.step == .completed,
+                    labelWidth: 70
                 )
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Sound",
                     selectedValue: cardState.selectedSound,
                     correctValue: card.vowel.sound,
-                    isCorrect: cardState.selectedSound == card.vowel.sound,
-                    wasSelected: cardState.selectedSound != nil,
-                    showResult: cardState.step == .completed
+                    showResult: cardState.step == .completed,
+                    labelWidth: 70
                 )
             }
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(12)
-        }
-    }
-
-    private func summaryRow(label: String, selectedValue: String?, correctValue: String, isCorrect: Bool, wasSelected: Bool, showResult: Bool) -> some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .frame(width: 70, alignment: .leading)
-
-            if showResult {
-                if wasSelected {
-                    if isCorrect {
-                        Text(selectedValue ?? correctValue)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.green)
-                    } else {
-                        Text(correctValue)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.primary)
-                        Text(selectedValue ?? "")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.red.opacity(0.5))
-                            .strikethrough(color: .red.opacity(0.5))
-                    }
-                } else {
-                    Text(correctValue)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(.primary)
-                }
-            } else if let selected = selectedValue {
-                Text(selected)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.primary)
-            } else {
-                Text("—")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
         }
     }
 
@@ -363,7 +291,7 @@ struct VowelFlashcardView: View {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(soundOptions, id: \.self) { sound in
-                    gridButton(label: sound) {
+                    FlashcardGridButton(label: sound) {
                         cardState.selectedSound = sound
                         completeCard()
                     }
@@ -373,19 +301,6 @@ struct VowelFlashcardView: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
-    }
-
-    private func gridButton(label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.body)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(Color(.systemGray5))
-                .foregroundColor(.primary)
-                .cornerRadius(8)
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Selection Helpers
@@ -442,30 +357,16 @@ struct VowelFlashcardView: View {
     // MARK: - Next Card Button
 
     private var nextCardButton: some View {
-        Button {
+        FlashcardNextButton {
             goToNextCard()
             onNextCard?()
-        } label: {
-            HStack {
-                Text("Next Card")
-                Image(systemName: "arrow.right")
-            }
-            .font(.headline)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.accentColor)
-            .foregroundColor(.white)
-            .cornerRadius(12)
         }
     }
 
     // MARK: - Progress Indicator
 
     private var progressIndicator: some View {
-        Text("\(currentIndex + 1) / \(cards.count)")
-            .font(.caption)
-            .foregroundColor(.secondary)
-            .padding(.top, 8)
+        FlashcardProgressIndicator(current: currentIndex + 1, total: cards.count)
     }
 
     // MARK: - Actions

@@ -109,28 +109,15 @@ struct ToneMarkFlashcardView: View {
     private func toneMarkCardView(card: ToneMarkCard) -> some View {
         VStack(spacing: 12) {
             // Main character with left/right tap zones for navigation
-            GeometryReader { geometry in
+            NavigableTapArea(onPrevious: goToPreviousCard, onNext: goToNextCard) {
                 ZStack {
-                    // Status ring
                     if cardState.step == .completed {
-                        Circle()
-                            .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
-                            .frame(width: 160, height: 160)
+                        FlashcardStatusRing(hasError: cardState.hasError(for: card))
                     }
 
                     Text(card.display)
                         .font(.system(size: 100))
                         .minimumScaleFactor(0.5)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .onTapGesture { location in
-                    let midPoint = geometry.size.width / 2
-                    if location.x < midPoint {
-                        goToPreviousCard()
-                    } else {
-                        goToNextCard()
-                    }
                 }
             }
             .frame(height: 160)
@@ -181,80 +168,22 @@ struct ToneMarkFlashcardView: View {
 
     private func summarySection(card: ToneMarkCard) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Summary")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-
-                Spacer()
-
-                // Reveal button (only when not completed)
-                if cardState.step != .completed {
-                    Button {
-                        completeCard(card: card)
-                    } label: {
-                        Text("Reveal")
-                            .font(.caption)
-                            .foregroundColor(.accentColor)
-                    }
-                }
-            }
+            FlashcardSummaryHeader(
+                showReveal: cardState.step != .completed,
+                onReveal: { completeCard(card: card) }
+            )
 
             VStack(spacing: 6) {
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Tone",
                     selectedValue: cardState.selectedTone,
                     correctValue: card.correctTone,
-                    isCorrect: cardState.selectedTone == card.correctTone,
-                    wasSelected: cardState.selectedTone != nil,
                     showResult: cardState.step == .completed
                 )
             }
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(12)
-        }
-    }
-
-    private func summaryRow(label: String, selectedValue: String?, correctValue: String, isCorrect: Bool, wasSelected: Bool, showResult: Bool) -> some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .frame(width: 60, alignment: .leading)
-
-            if showResult {
-                if wasSelected {
-                    if isCorrect {
-                        Text(selectedValue ?? correctValue)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.green)
-                    } else {
-                        Text(correctValue)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.primary)
-                        Text(selectedValue ?? "")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.red.opacity(0.5))
-                            .strikethrough(color: .red.opacity(0.5))
-                    }
-                } else {
-                    Text(correctValue)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(.primary)
-                }
-            } else if let selected = selectedValue {
-                Text(selected)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.primary)
-            } else {
-                Text("—")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
         }
     }
 
@@ -313,30 +242,16 @@ struct ToneMarkFlashcardView: View {
     // MARK: - Next Card Button
 
     private var nextCardButton: some View {
-        Button {
+        FlashcardNextButton {
             goToNextCard()
             onNextCard?()
-        } label: {
-            HStack {
-                Text("Next Card")
-                Image(systemName: "arrow.right")
-            }
-            .font(.headline)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.accentColor)
-            .foregroundColor(.white)
-            .cornerRadius(12)
         }
     }
 
     // MARK: - Progress Indicator
 
     private var progressIndicator: some View {
-        Text("\(currentIndex + 1) / \(cards.count)")
-            .font(.caption)
-            .foregroundColor(.secondary)
-            .padding(.top, 8)
+        FlashcardProgressIndicator(current: currentIndex + 1, total: cards.count)
     }
 
     // MARK: - Actions

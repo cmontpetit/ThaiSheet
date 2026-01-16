@@ -96,27 +96,15 @@ struct ToneRuleFlashcardView: View {
     private func sampleWordCardView(card: ToneRuleCard) -> some View {
         VStack(spacing: 12) {
             // Main character with left/right tap zones for navigation
-            GeometryReader { geometry in
+            NavigableTapArea(onPrevious: goToPreviousCard, onNext: goToNextCard) {
                 ZStack {
                     // Status ring
                     if cardState.step == .completed {
-                        Circle()
-                            .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
-                            .frame(width: 160, height: 160)
+                        FlashcardStatusRing(hasError: cardState.hasError(for: card))
                     }
 
                     // Display the sample word with focus highlighting
                     sampleWordText(card: card)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .onTapGesture { location in
-                    let midPoint = geometry.size.width / 2
-                    if location.x < midPoint {
-                        goToPreviousCard()
-                    } else {
-                        goToNextCard()
-                    }
                 }
             }
             .frame(height: 160)
@@ -207,50 +195,39 @@ struct ToneRuleFlashcardView: View {
 
     private func summarySection(card: ToneRuleCard) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Summary")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-
-                Spacer()
-
-                // Reveal button (only when not completed)
-                if cardState.step != .completed {
-                    Button {
-                        completeCard(card: card)
-                    } label: {
-                        Text("Reveal")
-                            .font(.caption)
-                            .foregroundColor(.accentColor)
-                    }
-                }
-            }
+            FlashcardSummaryHeader(
+                showReveal: cardState.step != .completed,
+                onReveal: { completeCard(card: card) }
+            )
 
             VStack(spacing: 6) {
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Class",
                     selectedValue: cardState.selectedConsonantClass,
                     correctValue: card.rule.initialConsonant,
-                    showResult: cardState.step == .completed
+                    showResult: cardState.step == .completed,
+                    labelWidth: 50
                 )
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Vowel",
                     selectedValue: cardState.selectedVowelDuration,
                     correctValue: card.rule.vowelDuration,
-                    showResult: cardState.step == .completed
+                    showResult: cardState.step == .completed,
+                    labelWidth: 50
                 )
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "End",
                     selectedValue: cardState.selectedEnd,
                     correctValue: normalizedEnd(card.rule.end),
-                    showResult: cardState.step == .completed
+                    showResult: cardState.step == .completed,
+                    labelWidth: 50
                 )
-                summaryRow(
+                FlashcardSummaryRow(
                     label: "Tone",
                     selectedValue: cardState.selectedTone,
                     correctValue: card.correctTone,
-                    showResult: cardState.step == .completed
+                    showResult: cardState.step == .completed,
+                    labelWidth: 50
                 )
             }
             .padding()
@@ -262,47 +239,6 @@ struct ToneRuleFlashcardView: View {
     // Normalize "Dead/None" to "Dead" for comparison
     private func normalizedEnd(_ end: String) -> String {
         end == "Dead/None" ? "Dead" : end
-    }
-
-    private func summaryRow(label: String, selectedValue: String?, correctValue: String, showResult: Bool) -> some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .frame(width: 50, alignment: .leading)
-
-            if showResult {
-                if let selected = selectedValue {
-                    if selected == correctValue {
-                        Text(selected)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.green)
-                    } else {
-                        Text(correctValue)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.primary)
-                        Text(selected)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.red.opacity(0.5))
-                            .strikethrough(color: .red.opacity(0.5))
-                    }
-                } else {
-                    Text(correctValue)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(.primary)
-                }
-            } else if let selected = selectedValue {
-                Text(selected)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.primary)
-            } else {
-                Text("—")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
-        }
     }
 
     // MARK: - Selection Area
@@ -383,18 +319,9 @@ struct ToneRuleFlashcardView: View {
     }
 
     private func selectionButton(_ option: String, onSelect: @escaping (String) -> Void) -> some View {
-        Button {
+        FlashcardSelectionButton(label: option) {
             onSelect(option)
-        } label: {
-            Text(option)
-                .font(.body.weight(.medium))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(Color(.systemGray5))
-                .foregroundColor(.primary)
-                .cornerRadius(10)
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Card Completion
@@ -409,30 +336,16 @@ struct ToneRuleFlashcardView: View {
     // MARK: - Next Card Button
 
     private var nextCardButton: some View {
-        Button {
+        FlashcardNextButton {
             goToNextCard()
             onNextCard?()
-        } label: {
-            HStack {
-                Text("Next Card")
-                Image(systemName: "arrow.right")
-            }
-            .font(.headline)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.accentColor)
-            .foregroundColor(.white)
-            .cornerRadius(12)
         }
     }
 
     // MARK: - Progress Indicator
 
     private var progressIndicator: some View {
-        Text("\(currentIndex + 1) / \(cards.count)")
-            .font(.caption)
-            .foregroundColor(.secondary)
-            .padding(.top, 8)
+        FlashcardProgressIndicator(current: currentIndex + 1, total: cards.count)
     }
 
     // MARK: - Actions
