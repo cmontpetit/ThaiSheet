@@ -289,24 +289,24 @@ struct CheatsheetBrowserView: View {
                 case .tones:
                     ScrollView {
                         VStack(spacing: 16) {
-                            // Tone Rules table
-                            VStack(spacing: 0) {
-                                ToneRuleHeaderView()
-                                Divider()
-                                ForEach(filteredToneRules) { rule in
-                                    ToneRuleRowView(rule: rule)
-                                    Divider()
-                                }
-                            }
-                            .background(Color(.systemBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-
                             // Tone Marks table
                             VStack(spacing: 0) {
                                 ToneMarkHeaderView()
                                 Divider()
                                 ForEach(filteredToneMarks) { mark in
                                     ToneMarkRowView(toneMark: mark)
+                                    Divider()
+                                }
+                            }
+                            .background(Color(.systemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                            // Tone Rules table
+                            VStack(spacing: 0) {
+                                ToneRuleHeaderView()
+                                Divider()
+                                ForEach(filteredToneRules) { rule in
+                                    ToneRuleRowView(rule: rule)
                                     Divider()
                                 }
                             }

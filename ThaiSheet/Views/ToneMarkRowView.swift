@@ -84,9 +84,8 @@ struct ToneMarkRowView: View {
     @ViewBuilder
     private func toneCell(_ tone: String, hasSound: Bool, onTap: @escaping () -> Void) -> some View {
         if tone == "n/a" {
-            Text("n/a")
+            Text("")
                 .font(.subheadline)
-                .foregroundStyle(.tertiary)
         } else {
             StyledToneText(tone: tone)
                 .font(.subheadline)
