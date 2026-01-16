@@ -178,7 +178,7 @@ struct FlashcardsView: View {
             }
             if toneMarks.isEmpty {
                 toneMarks = ToneMark.loadAll()
-                toneMarkCards = ToneMarkCard.allCards(from: toneMarks)
+                toneMarkCards = ToneMarkCard.allCards(from: toneMarks, consonants: consonants)
             }
             if toneRules.isEmpty {
                 toneRules = ToneRule.loadAll()

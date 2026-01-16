@@ -48,38 +48,52 @@ def generate_sound(text: str, filepath: Path, description: str = "") -> None:
 # TONE MARKS
 # =============================================================================
 
-# Tone marks with mid/high consonant (ก)
-TONE_MARKS_MID_HIGH = [
-    ("ก", "กา"),      # No mark - mid tone
-    ("ก่", "ก่า"),    # Mai Ek - low tone
-    ("ก้", "ก้า"),    # Mai Tho - falling tone
-    ("ก๊", "ก๊า"),    # Mai Tri - high tone
-    ("ก๋", "ก๋า"),    # Mai Chattawa - rising tone
-]
-
-# Tone marks with low consonant (ค)
-TONE_MARKS_LOW = [
-    ("ค", "คา"),      # No mark - mid tone
-    ("ค่", "ค่า"),    # Mai Ek - falling tone
-    ("ค้", "ค้า"),    # Mai Tho - high tone
-]
-
-
-def generate_tone_marks(sounds_dir: Path) -> None:
-    """Generate tone mark sound files."""
+def generate_tone_marks(sounds_dir: Path, cheatsheet_dir: Path) -> None:
+    """Generate tone mark sound files for all common consonants."""
     print("\n[Tone Marks]")
 
-    print("Mid/High consonant (ก) series:")
-    for mark, text in TONE_MARKS_MID_HIGH:
-        filename = f"cheat_sheet_tone_mark_{mark}.mp3"
-        generate_sound(text, sounds_dir / filename)
+    # Load consonants
+    consonants_path = cheatsheet_dir / "consonants.json"
+    with open(consonants_path, 'r', encoding='utf-8') as f:
+        consonants_data = json.load(f)
 
-    print("Low consonant (ค) series:")
-    for mark, text in TONE_MARKS_LOW:
-        filename = f"cheat_sheet_tone_mark_{mark}.mp3"
-        generate_sound(text, sounds_dir / filename)
+    # Filter for common consonants only
+    common_consonants = [
+        c for c in consonants_data['consonants']
+        if c['usage'] == 'common'
+    ]
+    print(f"  Found {len(common_consonants)} common consonants")
 
-    print(f"  Generated {len(TONE_MARKS_MID_HIGH) + len(TONE_MARKS_LOW)} tone mark sounds")
+    # Load tone marks
+    tone_marks_path = cheatsheet_dir / "tone-marks.json"
+    with open(tone_marks_path, 'r', encoding='utf-8') as f:
+        tone_marks_data = json.load(f)
+
+    count = 0
+    for tone_mark in tone_marks_data['toneMarks']:
+        mark = tone_mark['mark']
+        on_low = tone_mark['onLowConsonant']
+        on_mid_high = tone_mark['onMidHighConsonant']
+
+        for consonant in common_consonants:
+            char = consonant['character']
+            consonant_class = consonant['class']
+
+            # Determine if this consonant is low class
+            is_low_class = consonant_class == 'low'
+            correct_tone = on_low if is_low_class else on_mid_high
+
+            # Skip if this tone mark doesn't apply to this consonant class
+            if correct_tone == 'n/a':
+                continue
+
+            # Display: consonant + tone mark + า
+            display = char + mark + "า"
+            filename = f"cheat_sheet_tone_mark_{display}.mp3"
+            generate_sound(display, sounds_dir / filename, f"{correct_tone} tone")
+            count += 1
+
+    print(f"  Generated {count} tone mark sounds")
 
 
 # =============================================================================
@@ -201,7 +215,7 @@ def main():
     print(f"Output directory: {sounds_dir}")
 
     if args.all or args.tone_marks:
-        generate_tone_marks(sounds_dir)
+        generate_tone_marks(sounds_dir, cheatsheet_dir)
 
     if args.all or args.tone_rules:
         generate_tone_rules(sounds_dir, cheatsheet_dir)

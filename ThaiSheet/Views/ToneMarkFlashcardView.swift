@@ -5,9 +5,10 @@
 
 import SwiftUI
 
-// Represents a single tone mark card (one consonant class variant)
+// Represents a single tone mark card with a random consonant
 struct ToneMarkCard: Identifiable {
     let toneMark: ToneMark
+    let consonant: Consonant
     let consonantClass: ConsonantClassType
     let display: String
     let correctTone: String
@@ -19,29 +20,35 @@ struct ToneMarkCard: Identifiable {
         case midHigh = "Mid/High"
     }
 
-    static func allCards(from toneMarks: [ToneMark]) -> [ToneMarkCard] {
+    static func allCards(from toneMarks: [ToneMark], consonants: [Consonant]) -> [ToneMarkCard] {
+        // Filter for common consonants only
+        let commonConsonants = consonants.filter { $0.usage == .common }
+
         var cards: [ToneMarkCard] = []
         for toneMark in toneMarks {
-            // Add low consonant card if not n/a
-            if toneMark.onLowConsonant != "n/a" {
+            for consonant in commonConsonants {
+                // Determine if this consonant is low or mid/high class
+                let isLowClass = consonant.consonantClass == .low
+                let correctTone = isLowClass ? toneMark.onLowConsonant : toneMark.onMidHighConsonant
+
+                // Skip if this tone mark doesn't apply to this consonant class
+                if correctTone == "n/a" {
+                    continue
+                }
+
+                // Display: consonant + tone mark + า
+                let display = consonant.character + toneMark.mark + "า"
+
                 cards.append(ToneMarkCard(
                     toneMark: toneMark,
-                    consonantClass: .low,
-                    display: toneMark.withLowConsonant,
-                    correctTone: toneMark.onLowConsonant
-                ))
-            }
-            // Add mid/high consonant card if not n/a
-            if toneMark.onMidHighConsonant != "n/a" {
-                cards.append(ToneMarkCard(
-                    toneMark: toneMark,
-                    consonantClass: .midHigh,
-                    display: toneMark.withMidHighConsonant,
-                    correctTone: toneMark.onMidHighConsonant
+                    consonant: consonant,
+                    consonantClass: isLowClass ? .low : .midHigh,
+                    display: display,
+                    correctTone: correctTone
                 ))
             }
         }
-        return cards
+        return cards.shuffled()
     }
 }
 
@@ -325,7 +332,7 @@ extension ToneMarkCardState {
 #Preview {
     NavigationStack {
         ToneMarkFlashcardView(
-            cards: ToneMarkCard.allCards(from: ToneMark.loadAll()),
+            cards: ToneMarkCard.allCards(from: ToneMark.loadAll(), consonants: Consonant.loadAll()),
             currentIndex: .constant(0),
             startingToneMark: .constant(nil),
             onViewInReference: { _ in }
