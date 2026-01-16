@@ -86,55 +86,53 @@ struct ToneMarkFlashcardView: View {
     // MARK: - Tone Mark Card View
 
     private var toneMarkCardView: some View {
-        VStack(spacing: 12) {
-            // Main character with left/right tap zones for navigation
-            NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
-                ZStack {
-                    if cardState.step == .completed {
-                        FlashcardStatusRing(hasError: cardState.hasError(for: card))
-                    }
-
+        FlashcardResultCard(
+            showResult: cardState.step == .completed,
+            hasError: cardState.hasError(for: card)
+        ) {
+            VStack(spacing: 12) {
+                // Main character with left/right tap zones for navigation
+                NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
                     Text(card.display)
                         .font(.system(size: 100))
                         .minimumScaleFactor(0.5)
                 }
-            }
-            .frame(height: 160)
+                .frame(height: 160)
 
-            // Action buttons
-            HStack(spacing: 20) {
-                // View in Reference button
-                Button {
-                    onViewInReference?(card.display)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "book")
-                        Text("Reference")
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.accentColor)
-                }
-
-                // Speaker button (only when completed)
-                if cardState.step == .completed {
-                    let hasSound = AudioPlayer.shared.hasToneMarkSound(for: card.display)
+                // Action buttons
+                HStack(spacing: 20) {
+                    // View in Reference button
                     Button {
-                        AudioPlayer.shared.playToneMarkSound(for: card.display)
+                        onViewInReference?(card.display)
                     } label: {
                         HStack(spacing: 4) {
-                            Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                            Text("Play")
+                            Image(systemName: "book")
+                            Text("Reference")
                         }
                         .font(.subheadline)
-                        .foregroundColor(hasSound ? .accentColor : .secondary)
+                        .foregroundColor(.accentColor)
                     }
-                    .disabled(!hasSound)
+
+                    // Speaker button (only when completed)
+                    if cardState.step == .completed {
+                        let hasSound = AudioPlayer.shared.hasToneMarkSound(for: card.display)
+                        Button {
+                            AudioPlayer.shared.playToneMarkSound(for: card.display)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                                Text("Play")
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(hasSound ? .accentColor : .secondary)
+                        }
+                        .disabled(!hasSound)
+                    }
                 }
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .background(Color(.systemGray6))
         .cornerRadius(16)
     }
 

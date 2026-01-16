@@ -92,6 +92,9 @@ struct CheatsheetBrowserView: View {
     var filteredVowels: [Vowel] {
         guard let normalizedSearch = normalizedVowelSearch else { return vowels }
 
+        // Don't match vowels if searching for just the placeholder consonant
+        if searchText == "ก" { return [] }
+
         let query = searchText.lowercased()
         return vowels.filter { vowel in
             // Match any Thai vowel form
@@ -123,6 +126,9 @@ struct CheatsheetBrowserView: View {
 
     var filteredToneMarks: [ToneMark] {
         guard !searchText.isEmpty else { return toneMarks }
+
+        // Don't match tone marks if searching for just the placeholder consonant
+        if searchText == "ก" { return [] }
 
         let query = searchText.lowercased()
         let normalizedSearch = normalizeThaiSearch(searchText)

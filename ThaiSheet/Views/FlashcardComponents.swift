@@ -135,18 +135,66 @@ struct FlashcardSummaryRow: View {
     }
 }
 
-// MARK: - Status Ring
+// MARK: - Result Card Wrapper
 
-/// Circle indicator showing completion status (green for correct, red for errors)
-struct FlashcardStatusRing: View {
+/// Wraps card content with background tint and shake animation for results
+struct FlashcardResultCard<Content: View>: View {
+    let showResult: Bool
     let hasError: Bool
-    var size: CGFloat = 160
-    var lineWidth: CGFloat = 4
+    @ViewBuilder let content: () -> Content
+
+    @State private var shakeOffset: CGFloat = 0
 
     var body: some View {
-        Circle()
-            .stroke(hasError ? Color.red : Color.green, lineWidth: lineWidth)
-            .frame(width: size, height: size)
+        content()
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(backgroundColor)
+            )
+            .offset(x: shakeOffset)
+            .onChange(of: showResult) { _, isCompleted in
+                if isCompleted && hasError {
+                    triggerShake()
+                }
+            }
+    }
+
+    private var backgroundColor: Color {
+        guard showResult else { return Color(.systemGray6) }
+        return hasError ? Color.red.opacity(0.15) : Color.green.opacity(0.15)
+    }
+
+    private func triggerShake() {
+        let shakeDistance: CGFloat = 10
+        let shakeDuration: Double = 0.08
+
+        withAnimation(.easeInOut(duration: shakeDuration)) {
+            shakeOffset = shakeDistance
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + shakeDuration) {
+            withAnimation(.easeInOut(duration: shakeDuration)) {
+                shakeOffset = -shakeDistance
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + shakeDuration * 2) {
+            withAnimation(.easeInOut(duration: shakeDuration)) {
+                shakeOffset = shakeDistance * 0.5
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + shakeDuration * 3) {
+            withAnimation(.easeInOut(duration: shakeDuration)) {
+                shakeOffset = -shakeDistance * 0.5
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + shakeDuration * 4) {
+            withAnimation(.easeInOut(duration: shakeDuration)) {
+                shakeOffset = 0
+            }
+        }
     }
 }
 

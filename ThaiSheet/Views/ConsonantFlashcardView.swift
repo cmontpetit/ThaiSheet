@@ -46,53 +46,51 @@ struct ConsonantFlashcardView: View {
     // MARK: - Consonant Card
 
     private var consonantCard: some View {
-        VStack(spacing: 12) {
-            // Main character with left/right tap zones for navigation
-            NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
-                ZStack {
-                    if cardState.step == .completed {
-                        FlashcardStatusRing(hasError: cardState.hasError(for: consonant))
-                    }
-
+        FlashcardResultCard(
+            showResult: cardState.step == .completed,
+            hasError: cardState.hasError(for: consonant)
+        ) {
+            VStack(spacing: 12) {
+                // Main character with left/right tap zones for navigation
+                NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
                     Text(consonant.character)
                         .font(.system(size: 100))
                         .minimumScaleFactor(0.5)
                 }
-            }
-            .frame(height: 160)
+                .frame(height: 160)
 
-            // Action buttons
-            HStack(spacing: 20) {
-                // View in Reference button
-                Button {
-                    onViewInReference?(consonant.character)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "book")
-                        Text("Reference")
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.accentColor)
-                }
-
-                // Speaker button (only when completed)
-                if cardState.step == .completed {
+                // Action buttons
+                HStack(spacing: 20) {
+                    // View in Reference button
                     Button {
-                        AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                        onViewInReference?(consonant.character)
                     } label: {
                         HStack(spacing: 4) {
-                            Image(systemName: "speaker.wave.2.fill")
-                            Text("Play")
+                            Image(systemName: "book")
+                            Text("Reference")
                         }
                         .font(.subheadline)
                         .foregroundColor(.accentColor)
                     }
+
+                    // Speaker button (only when completed)
+                    if cardState.step == .completed {
+                        Button {
+                            AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "speaker.wave.2.fill")
+                                Text("Play")
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.accentColor)
+                        }
+                    }
                 }
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .background(Color(.systemGray6))
         .cornerRadius(16)
     }
 
