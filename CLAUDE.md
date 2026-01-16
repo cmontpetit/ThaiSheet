@@ -1,5 +1,7 @@
 # ThaiSheet
 
+**Project location:** `/Users/claude/dev/claude-code/ios/ThaiSheet` (renamed from Aksorn)
+
 ## About ThaiSheet
 
 iOS application for learning to read Thai, based on a comprehensive cheatsheet.

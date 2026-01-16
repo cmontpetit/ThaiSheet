@@ -33,12 +33,15 @@ struct ToneRuleFlashcardView: View {
     let cards: [ToneRuleCard]
     @Binding var currentIndex: Int
     @Binding var startingRuleId: String?
-    var onViewInReference: (() -> Void)?
+    var onViewInReference: ((String) -> Void)?
     var onNextCard: (() -> Void)?
 
     @State private var cardState = ToneRuleCardState()
 
-    // All possible tones for selection
+    // Selection options
+    private let consonantClassOptions = ["Low", "Mid", "High"]
+    private let vowelDurationOptions = ["Short", "Long", "Any"]
+    private let endOptions = ["Live", "Dead"]
     private let toneOptions = ["Low", "Mid", "High", "Falling", "Rising"]
 
     var currentCard: ToneRuleCard? {
@@ -92,20 +95,34 @@ struct ToneRuleFlashcardView: View {
 
     private func sampleWordCardView(card: ToneRuleCard) -> some View {
         VStack(spacing: 12) {
-            ZStack {
-                // Status ring
-                if cardState.step == .completed {
-                    Circle()
-                        .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
-                        .frame(width: 160, height: 160)
+            // Main character with left/right tap zones for navigation
+            GeometryReader { geometry in
+                ZStack {
+                    // Status ring
+                    if cardState.step == .completed {
+                        Circle()
+                            .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
+                            .frame(width: 160, height: 160)
+                    }
+
+                    // Display the sample word with focus highlighting
+                    sampleWordText(card: card)
                 }
-
-                // Display the sample word with focus highlighting
-                sampleWordText(card: card)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture { location in
+                    let midPoint = geometry.size.width / 2
+                    if location.x < midPoint {
+                        goToPreviousCard()
+                    } else {
+                        goToNextCard()
+                    }
+                }
             }
+            .frame(height: 160)
 
-            // Rule description
-            Text(ruleDescription(card: card))
+            // Label
+            Text("Tone rule")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -113,7 +130,7 @@ struct ToneRuleFlashcardView: View {
             HStack(spacing: 20) {
                 // View in Reference button
                 Button {
-                    onViewInReference?()
+                    onViewInReference?(card.rule.id)
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "book")
@@ -186,26 +203,53 @@ struct ToneRuleFlashcardView: View {
         }
     }
 
-    private func ruleDescription(card: ToneRuleCard) -> String {
-        "\(card.rule.initialConsonant) + \(card.rule.vowelDuration) + \(card.rule.end)"
-    }
-
     // MARK: - Summary Section
 
     private func summarySection(card: ToneRuleCard) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Summary")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
+            HStack {
+                Text("Summary")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+
+                Spacer()
+
+                // Reveal button (only when not completed)
+                if cardState.step != .completed {
+                    Button {
+                        completeCard(card: card)
+                    } label: {
+                        Text("Reveal")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                    }
+                }
+            }
 
             VStack(spacing: 6) {
+                summaryRow(
+                    label: "Class",
+                    selectedValue: cardState.selectedConsonantClass,
+                    correctValue: card.rule.initialConsonant,
+                    showResult: cardState.step == .completed
+                )
+                summaryRow(
+                    label: "Vowel",
+                    selectedValue: cardState.selectedVowelDuration,
+                    correctValue: card.rule.vowelDuration,
+                    showResult: cardState.step == .completed
+                )
+                summaryRow(
+                    label: "End",
+                    selectedValue: cardState.selectedEnd,
+                    correctValue: normalizedEnd(card.rule.end),
+                    showResult: cardState.step == .completed
+                )
                 summaryRow(
                     label: "Tone",
                     selectedValue: cardState.selectedTone,
                     correctValue: card.correctTone,
-                    isCorrect: cardState.selectedTone == card.correctTone,
-                    wasSelected: cardState.selectedTone != nil,
                     showResult: cardState.step == .completed
                 )
             }
@@ -215,24 +259,29 @@ struct ToneRuleFlashcardView: View {
         }
     }
 
-    private func summaryRow(label: String, selectedValue: String?, correctValue: String, isCorrect: Bool, wasSelected: Bool, showResult: Bool) -> some View {
+    // Normalize "Dead/None" to "Dead" for comparison
+    private func normalizedEnd(_ end: String) -> String {
+        end == "Dead/None" ? "Dead" : end
+    }
+
+    private func summaryRow(label: String, selectedValue: String?, correctValue: String, showResult: Bool) -> some View {
         HStack {
             Text(label)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-                .frame(width: 60, alignment: .leading)
+                .frame(width: 50, alignment: .leading)
 
             if showResult {
-                if wasSelected {
-                    if isCorrect {
-                        Text(selectedValue ?? correctValue)
+                if let selected = selectedValue {
+                    if selected == correctValue {
+                        Text(selected)
                             .font(.subheadline.weight(.medium))
                             .foregroundColor(.green)
                     } else {
                         Text(correctValue)
                             .font(.subheadline.weight(.medium))
                             .foregroundColor(.primary)
-                        Text(selectedValue ?? "")
+                        Text(selected)
                             .font(.subheadline.weight(.medium))
                             .foregroundColor(.red.opacity(0.5))
                             .strikethrough(color: .red.opacity(0.5))
@@ -261,42 +310,91 @@ struct ToneRuleFlashcardView: View {
     @ViewBuilder
     private func selectionArea(card: ToneRuleCard) -> some View {
         switch cardState.step {
+        case .selectConsonantClass:
+            selectionView(
+                title: "Select the consonant class",
+                options: consonantClassOptions
+            ) { selection in
+                cardState.selectedConsonantClass = selection
+                cardState.step = .selectVowelDuration
+            }
+        case .selectVowelDuration:
+            selectionView(
+                title: "Select the vowel duration",
+                options: vowelDurationOptions
+            ) { selection in
+                cardState.selectedVowelDuration = selection
+                cardState.step = .selectEnd
+            }
+        case .selectEnd:
+            selectionView(
+                title: "Select the syllable ending",
+                options: endOptions
+            ) { selection in
+                cardState.selectedEnd = selection
+                cardState.step = .selectTone
+            }
         case .selectTone:
-            toneSelectionView(card: card)
+            selectionView(
+                title: "Select the tone",
+                options: toneOptions
+            ) { selection in
+                cardState.selectedTone = selection
+                completeCard(card: card)
+            }
         case .completed:
             nextCardButton
         }
     }
 
-    // MARK: - Tone Selection
+    // MARK: - Generic Selection View
 
-    private func toneSelectionView(card: ToneRuleCard) -> some View {
+    private func selectionView(title: String, options: [String], onSelect: @escaping (String) -> Void) -> some View {
         VStack(spacing: 16) {
-            Text("Select the tone")
+            Text(title)
                 .font(.headline)
 
-            // 5 tone buttons in a row
-            HStack(spacing: 8) {
-                ForEach(toneOptions, id: \.self) { tone in
-                    Button {
-                        cardState.selectedTone = tone
-                        completeCard(card: card)
-                    } label: {
-                        Text(tone)
-                            .font(.body.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color(.systemGray5))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
+            // Flexible layout based on number of options
+            if options.count <= 3 {
+                HStack(spacing: 8) {
+                    ForEach(options, id: \.self) { option in
+                        selectionButton(option, onSelect: onSelect)
                     }
-                    .buttonStyle(.plain)
+                }
+            } else {
+                // Two rows for more options
+                VStack(spacing: 8) {
+                    HStack(spacing: 8) {
+                        ForEach(options.prefix(3), id: \.self) { option in
+                            selectionButton(option, onSelect: onSelect)
+                        }
+                    }
+                    HStack(spacing: 8) {
+                        ForEach(options.dropFirst(3), id: \.self) { option in
+                            selectionButton(option, onSelect: onSelect)
+                        }
+                    }
                 }
             }
         }
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+    }
+
+    private func selectionButton(_ option: String, onSelect: @escaping (String) -> Void) -> some View {
+        Button {
+            onSelect(option)
+        } label: {
+            Text(option)
+                .font(.body.weight(.medium))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Color(.systemGray5))
+                .foregroundColor(.primary)
+                .cornerRadius(10)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Card Completion
@@ -313,6 +411,7 @@ struct ToneRuleFlashcardView: View {
     private var nextCardButton: some View {
         Button {
             goToNextCard()
+            onNextCard?()
         } label: {
             HStack {
                 Text("Next Card")
@@ -341,7 +440,11 @@ struct ToneRuleFlashcardView: View {
     private func goToNextCard() {
         cardState = ToneRuleCardState()
         currentIndex = (currentIndex + 1) % cards.count
-        onNextCard?()
+    }
+
+    private func goToPreviousCard() {
+        cardState = ToneRuleCardState()
+        currentIndex = (currentIndex - 1 + cards.count) % cards.count
     }
 }
 
@@ -349,16 +452,33 @@ struct ToneRuleFlashcardView: View {
 
 struct ToneRuleCardState {
     enum Step {
+        case selectConsonantClass
+        case selectVowelDuration
+        case selectEnd
         case selectTone
         case completed
     }
 
-    var step: Step = .selectTone
+    var step: Step = .selectConsonantClass
+    var selectedConsonantClass: String? = nil
+    var selectedVowelDuration: String? = nil
+    var selectedEnd: String? = nil
     var selectedTone: String? = nil
 }
 
 extension ToneRuleCardState {
     func hasError(for card: ToneRuleCard) -> Bool {
+        let normalizedCorrectEnd = card.rule.end == "Dead/None" ? "Dead" : card.rule.end
+
+        if let selected = selectedConsonantClass, selected != card.rule.initialConsonant {
+            return true
+        }
+        if let selected = selectedVowelDuration, selected != card.rule.vowelDuration {
+            return true
+        }
+        if let selected = selectedEnd, selected != normalizedCorrectEnd {
+            return true
+        }
         if let selected = selectedTone, selected != card.correctTone {
             return true
         }
@@ -372,7 +492,7 @@ extension ToneRuleCardState {
             cards: ToneRuleCard.allCards(from: ToneRule.loadAll()),
             currentIndex: .constant(0),
             startingRuleId: .constant(nil),
-            onViewInReference: { },
+            onViewInReference: { _ in },
             onNextCard: { }
         )
     }

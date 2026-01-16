@@ -16,6 +16,8 @@ struct CheatsheetBrowserView: View {
     // Navigation bindings
     @Binding var highlightedConsonant: String?
     @Binding var highlightedVowel: String?
+    @Binding var highlightedToneMark: String?
+    @Binding var highlightedToneRule: String?
     @Binding var flashcardStartingConsonant: String?
     @Binding var flashcardStartingVowel: String?
     @Binding var flashcardStartingToneMark: String?
@@ -290,39 +292,68 @@ struct CheatsheetBrowserView: View {
                         }
                     }
                 case .tones:
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            // Tone Marks table
-                            VStack(spacing: 0) {
-                                ToneMarkHeaderView()
-                                Divider()
-                                ForEach(filteredToneMarks) { mark in
-                                    ToneMarkRowView(toneMark: mark) { display in
-                                        flashcardStartingToneMark = display
-                                        selectedTab = .flashcards
-                                    }
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(spacing: 16) {
+                                // Tone Marks table
+                                VStack(spacing: 0) {
+                                    ToneMarkHeaderView()
                                     Divider()
+                                    ForEach(filteredToneMarks) { mark in
+                                        let isMarkHighlighted = highlightedToneMark == mark.withLowConsonant ||
+                                                                highlightedToneMark == mark.withMidHighConsonant
+                                        ToneMarkRowView(
+                                            toneMark: mark,
+                                            isHighlighted: isMarkHighlighted
+                                        ) { display in
+                                            flashcardStartingToneMark = display
+                                            highlightedToneMark = nil
+                                            selectedTab = .flashcards
+                                        }
+                                        .id("tonemark-\(mark.id)")
+                                        Divider()
+                                    }
                                 }
-                            }
-                            .background(Color(.systemBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .background(Color(.systemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                            // Tone Rules table
-                            VStack(spacing: 0) {
-                                ToneRuleHeaderView()
-                                Divider()
-                                ForEach(filteredToneRules) { rule in
-                                    ToneRuleRowView(rule: rule) {
-                                        flashcardStartingToneRule = rule.id
-                                        selectedTab = .flashcards
-                                    }
+                                // Tone Rules table
+                                VStack(spacing: 0) {
+                                    ToneRuleHeaderView()
                                     Divider()
+                                    ForEach(filteredToneRules) { rule in
+                                        ToneRuleRowView(
+                                            rule: rule,
+                                            isHighlighted: highlightedToneRule == rule.id
+                                        ) {
+                                            flashcardStartingToneRule = rule.id
+                                            highlightedToneRule = nil
+                                            selectedTab = .flashcards
+                                        }
+                                        .id("tonerule-\(rule.id)")
+                                        Divider()
+                                    }
+                                }
+                                .background(Color(.systemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            .padding(.horizontal)
+                        }
+                        .onChange(of: highlightedToneMark) { _, newValue in
+                            if let display = newValue,
+                               let mark = toneMarks.first(where: { $0.withLowConsonant == display || $0.withMidHighConsonant == display }) {
+                                withAnimation {
+                                    proxy.scrollTo("tonemark-\(mark.id)", anchor: .center)
                                 }
                             }
-                            .background(Color(.systemBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        .padding(.horizontal)
+                        .onChange(of: highlightedToneRule) { _, newValue in
+                            if let ruleId = newValue {
+                                withAnimation {
+                                    proxy.scrollTo("tonerule-\(ruleId)", anchor: .center)
+                                }
+                            }
+                        }
                     }
                     .background(Color(.secondarySystemBackground))
                 case .clusters:
@@ -369,6 +400,18 @@ struct CheatsheetBrowserView: View {
                 selectedType = .vowels
             }
         }
+        .onChange(of: highlightedToneMark) { _, newValue in
+            // Switch to tones tab when a tone mark is highlighted
+            if newValue != nil {
+                selectedType = .tones
+            }
+        }
+        .onChange(of: highlightedToneRule) { _, newValue in
+            // Switch to tones tab when a tone rule is highlighted
+            if newValue != nil {
+                selectedType = .tones
+            }
+        }
     }
 }
 
@@ -376,6 +419,8 @@ struct CheatsheetBrowserView: View {
     CheatsheetBrowserView(
         highlightedConsonant: .constant(nil),
         highlightedVowel: .constant(nil),
+        highlightedToneMark: .constant(nil),
+        highlightedToneRule: .constant(nil),
         flashcardStartingConsonant: .constant(nil),
         flashcardStartingVowel: .constant(nil),
         flashcardStartingToneMark: .constant(nil),

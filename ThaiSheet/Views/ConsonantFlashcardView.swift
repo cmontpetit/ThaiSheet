@@ -76,18 +76,32 @@ struct ConsonantFlashcardView: View {
 
     private func consonantCard(consonant: Consonant) -> some View {
         VStack(spacing: 12) {
-            ZStack {
-                // Status ring
-                if cardState.step == .completed {
-                    Circle()
-                        .stroke(cardState.hasError(for: consonant) ? Color.red : Color.green, lineWidth: 4)
-                        .frame(width: 160, height: 160)
-                }
+            // Main character with left/right tap zones for navigation
+            GeometryReader { geometry in
+                ZStack {
+                    // Status ring
+                    if cardState.step == .completed {
+                        Circle()
+                            .stroke(cardState.hasError(for: consonant) ? Color.red : Color.green, lineWidth: 4)
+                            .frame(width: 160, height: 160)
+                    }
 
-                Text(consonant.character)
-                    .font(.system(size: 100))
-                    .minimumScaleFactor(0.5)
+                    Text(consonant.character)
+                        .font(.system(size: 100))
+                        .minimumScaleFactor(0.5)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture { location in
+                    let midPoint = geometry.size.width / 2
+                    if location.x < midPoint {
+                        goToPreviousCard()
+                    } else {
+                        goToNextCard()
+                    }
+                }
             }
+            .frame(height: 160)
 
             // Action buttons
             HStack(spacing: 20) {
@@ -128,10 +142,25 @@ struct ConsonantFlashcardView: View {
 
     private func summarySection(consonant: Consonant) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Summary")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
+            HStack {
+                Text("Summary")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+
+                Spacer()
+
+                // Reveal button (only when not completed)
+                if cardState.step != .completed {
+                    Button {
+                        completeCardEarly(consonant: consonant)
+                    } label: {
+                        Text("Reveal")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                    }
+                }
+            }
 
             VStack(spacing: 6) {
                 summaryRow(
@@ -285,10 +314,6 @@ struct ConsonantFlashcardView: View {
                     }
                 }
             }
-
-            selectionFooter {
-                completeCardEarly(consonant: consonant)
-            }
         }
         .padding()
         .background(Color(.systemGray6))
@@ -313,10 +338,6 @@ struct ConsonantFlashcardView: View {
                     }
                 }
             }
-
-            selectionFooter {
-                completeCardEarly(consonant: consonant)
-            }
         }
         .padding()
         .background(Color(.systemGray6))
@@ -340,10 +361,6 @@ struct ConsonantFlashcardView: View {
                         completeCard(consonant: consonant)
                     }
                 }
-            }
-
-            selectionFooter {
-                completeCardEarly(consonant: consonant)
             }
         }
         .padding()
@@ -396,16 +413,6 @@ struct ConsonantFlashcardView: View {
         .buttonStyle(.plain)
     }
 
-    private func selectionFooter(skipAction: @escaping () -> Void) -> some View {
-        Button {
-            skipAction()
-        } label: {
-            Text("Complete card now")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-    }
-
     // MARK: - Card Completion
 
     private func completeCard(consonant: Consonant) {
@@ -423,6 +430,7 @@ struct ConsonantFlashcardView: View {
     private var nextCardButton: some View {
         Button {
             goToNextCard()
+            onNextCard?()
         } label: {
             HStack {
                 Text("Next Card")
@@ -459,9 +467,19 @@ struct ConsonantFlashcardView: View {
         if let consonant = currentConsonant {
             generateOptions(for: consonant)
         }
+    }
 
-        // Notify parent to switch card type (consonant/vowel alternation)
-        onNextCard?()
+    private func goToPreviousCard() {
+        // Reset state
+        cardState = CardState()
+
+        // Move to previous card (loop to end if at start)
+        currentIndex = (currentIndex - 1 + consonants.count) % consonants.count
+
+        // Generate new options
+        if let consonant = currentConsonant {
+            generateOptions(for: consonant)
+        }
     }
 
     private func generateOptions(for consonant: Consonant) {

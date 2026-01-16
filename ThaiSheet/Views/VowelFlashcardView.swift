@@ -112,18 +112,32 @@ struct VowelFlashcardView: View {
 
     private func vowelCardView(card: VowelCard) -> some View {
         VStack(spacing: 12) {
-            ZStack {
-                // Status ring
-                if cardState.step == .completed {
-                    Circle()
-                        .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
-                        .frame(width: 160, height: 160)
-                }
+            // Main character with left/right tap zones for navigation
+            GeometryReader { geometry in
+                ZStack {
+                    // Status ring
+                    if cardState.step == .completed {
+                        Circle()
+                            .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
+                            .frame(width: 160, height: 160)
+                    }
 
-                Text(card.display.replacingOccurrences(of: "-", with: ""))
-                    .font(.system(size: 72))
-                    .minimumScaleFactor(0.5)
+                    Text(card.display.replacingOccurrences(of: "-", with: ""))
+                        .font(.system(size: 72))
+                        .minimumScaleFactor(0.5)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture { location in
+                    let midPoint = geometry.size.width / 2
+                    if location.x < midPoint {
+                        goToPreviousCard()
+                    } else {
+                        goToNextCard()
+                    }
+                }
             }
+            .frame(height: 160)
 
             // Action buttons
             HStack(spacing: 20) {
@@ -166,10 +180,25 @@ struct VowelFlashcardView: View {
 
     private func summarySection(card: VowelCard) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Summary")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
+            HStack {
+                Text("Summary")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+
+                Spacer()
+
+                // Reveal button (only when not completed)
+                if cardState.step != .completed {
+                    Button {
+                        completeCardEarly()
+                    } label: {
+                        Text("Reveal")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                    }
+                }
+            }
 
             VStack(spacing: 6) {
                 summaryRow(
@@ -316,10 +345,6 @@ struct VowelFlashcardView: View {
                     .buttonStyle(.plain)
                 }
             }
-
-            selectionFooter {
-                completeCardEarly()
-            }
         }
         .padding()
         .background(Color(.systemGray6))
@@ -343,10 +368,6 @@ struct VowelFlashcardView: View {
                         completeCard()
                     }
                 }
-            }
-
-            selectionFooter {
-                completeCardEarly()
             }
         }
         .padding()
@@ -398,16 +419,6 @@ struct VowelFlashcardView: View {
         }
     }
 
-    private func selectionFooter(skipAction: @escaping () -> Void) -> some View {
-        Button {
-            skipAction()
-        } label: {
-            Text("Complete card now")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-    }
-
     // MARK: - Card Completion
 
     private func completeCard() {
@@ -433,6 +444,7 @@ struct VowelFlashcardView: View {
     private var nextCardButton: some View {
         Button {
             goToNextCard()
+            onNextCard?()
         } label: {
             HStack {
                 Text("Next Card")
@@ -464,9 +476,14 @@ struct VowelFlashcardView: View {
         if let newCard = currentCard {
             generateOptions(for: newCard)
         }
+    }
 
-        // Notify parent to switch card type (consonant/vowel alternation)
-        onNextCard?()
+    private func goToPreviousCard() {
+        cardState = VowelCardState()
+        currentIndex = (currentIndex - 1 + cards.count) % cards.count
+        if let newCard = currentCard {
+            generateOptions(for: newCard)
+        }
     }
 
     private func generateOptions(for card: VowelCard) {

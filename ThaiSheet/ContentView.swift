@@ -23,6 +23,8 @@ struct ContentView: View {
     @State private var selectedTab: AppTab = .flashcards
     @State private var highlightedConsonant: String? = nil
     @State private var highlightedVowel: String? = nil
+    @State private var highlightedToneMark: String? = nil
+    @State private var highlightedToneRule: String? = nil
     @State private var flashcardStartingConsonant: String? = nil
     @State private var flashcardStartingVowel: String? = nil
     @State private var flashcardStartingToneMark: String? = nil
@@ -33,6 +35,8 @@ struct ContentView: View {
             FlashcardsView(
                 highlightedConsonant: $highlightedConsonant,
                 highlightedVowel: $highlightedVowel,
+                highlightedToneMark: $highlightedToneMark,
+                highlightedToneRule: $highlightedToneRule,
                 startingConsonant: $flashcardStartingConsonant,
                 startingVowel: $flashcardStartingVowel,
                 startingToneMark: $flashcardStartingToneMark,
@@ -47,6 +51,8 @@ struct ContentView: View {
             CheatsheetBrowserView(
                 highlightedConsonant: $highlightedConsonant,
                 highlightedVowel: $highlightedVowel,
+                highlightedToneMark: $highlightedToneMark,
+                highlightedToneRule: $highlightedToneRule,
                 flashcardStartingConsonant: $flashcardStartingConsonant,
                 flashcardStartingVowel: $flashcardStartingVowel,
                 flashcardStartingToneMark: $flashcardStartingToneMark,
@@ -64,6 +70,8 @@ struct ContentView: View {
 struct FlashcardsView: View {
     @Binding var highlightedConsonant: String?
     @Binding var highlightedVowel: String?
+    @Binding var highlightedToneMark: String?
+    @Binding var highlightedToneRule: String?
     @Binding var startingConsonant: String?
     @Binding var startingVowel: String?
     @Binding var startingToneMark: String?
@@ -147,7 +155,8 @@ struct FlashcardsView: View {
                             cards: toneMarkCards,
                             currentIndex: $toneMarkIndex,
                             startingToneMark: $startingToneMark,
-                            onViewInReference: { _ in
+                            onViewInReference: { display in
+                                highlightedToneMark = display
                                 selectedTab = .reference
                             },
                             onNextCard: {
@@ -159,7 +168,8 @@ struct FlashcardsView: View {
                             cards: toneRuleCards,
                             currentIndex: $toneRuleIndex,
                             startingRuleId: $startingToneRule,
-                            onViewInReference: {
+                            onViewInReference: { ruleId in
+                                highlightedToneRule = ruleId
                                 selectedTab = .reference
                             },
                             onNextCard: {

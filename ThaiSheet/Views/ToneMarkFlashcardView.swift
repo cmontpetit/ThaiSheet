@@ -108,18 +108,32 @@ struct ToneMarkFlashcardView: View {
 
     private func toneMarkCardView(card: ToneMarkCard) -> some View {
         VStack(spacing: 12) {
-            ZStack {
-                // Status ring
-                if cardState.step == .completed {
-                    Circle()
-                        .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
-                        .frame(width: 160, height: 160)
-                }
+            // Main character with left/right tap zones for navigation
+            GeometryReader { geometry in
+                ZStack {
+                    // Status ring
+                    if cardState.step == .completed {
+                        Circle()
+                            .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
+                            .frame(width: 160, height: 160)
+                    }
 
-                Text(card.display)
-                    .font(.system(size: 100))
-                    .minimumScaleFactor(0.5)
+                    Text(card.display)
+                        .font(.system(size: 100))
+                        .minimumScaleFactor(0.5)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture { location in
+                    let midPoint = geometry.size.width / 2
+                    if location.x < midPoint {
+                        goToPreviousCard()
+                    } else {
+                        goToNextCard()
+                    }
+                }
             }
+            .frame(height: 160)
 
             // Consonant class label
             Text(card.consonantClass.rawValue + " class consonant")
@@ -167,10 +181,25 @@ struct ToneMarkFlashcardView: View {
 
     private func summarySection(card: ToneMarkCard) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Summary")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
+            HStack {
+                Text("Summary")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+
+                Spacer()
+
+                // Reveal button (only when not completed)
+                if cardState.step != .completed {
+                    Button {
+                        completeCard(card: card)
+                    } label: {
+                        Text("Reveal")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                    }
+                }
+            }
 
             VStack(spacing: 6) {
                 summaryRow(
@@ -286,6 +315,7 @@ struct ToneMarkFlashcardView: View {
     private var nextCardButton: some View {
         Button {
             goToNextCard()
+            onNextCard?()
         } label: {
             HStack {
                 Text("Next Card")
@@ -314,7 +344,11 @@ struct ToneMarkFlashcardView: View {
     private func goToNextCard() {
         cardState = ToneMarkCardState()
         currentIndex = (currentIndex + 1) % cards.count
-        onNextCard?()
+    }
+
+    private func goToPreviousCard() {
+        cardState = ToneMarkCardState()
+        currentIndex = (currentIndex - 1 + cards.count) % cards.count
     }
 }
 

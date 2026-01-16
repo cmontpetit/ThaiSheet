@@ -95,15 +95,19 @@ def generate_tone_rules(sounds_dir: Path, cheatsheet_dir: Path) -> None:
         data = json.load(f)
 
     count = 0
+    seen = set()  # Avoid duplicates across rules
+
     for rule in data['toneRules']:
         if 'samples' in rule and rule['samples']:
-            # Generate sound for the primary (first) sample
-            sample = rule['samples'][0]
-            word = sample['full']
             tone = rule['tone']
-            filename = f"cheat_sheet_tone_rule_{word}.mp3"
-            generate_sound(word, sounds_dir / filename, f"{tone} tone")
-            count += 1
+            # Generate sound for all samples in the rule
+            for sample in rule['samples']:
+                word = sample['full']
+                if word not in seen:
+                    seen.add(word)
+                    filename = f"cheat_sheet_tone_rule_{word}.mp3"
+                    generate_sound(word, sounds_dir / filename, f"{tone} tone")
+                    count += 1
 
     print(f"  Generated {count} tone rule sounds")
 
