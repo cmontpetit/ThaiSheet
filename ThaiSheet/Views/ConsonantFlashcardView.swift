@@ -27,6 +27,11 @@ struct ConsonantFlashcardView: View {
         if let consonant = currentConsonant {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Card type label
+                    Text("Consonant")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
                     // Consonant display with status indicator
                     consonantCard(consonant: consonant)
 
@@ -35,9 +40,6 @@ struct ConsonantFlashcardView: View {
 
                     // Selection area (changes based on current step)
                     selectionArea(consonant: consonant)
-
-                    // Progress indicator
-                    progressIndicator
                 }
                 .padding()
             }
@@ -335,12 +337,6 @@ struct ConsonantFlashcardView: View {
         FlashcardNextButton {
             goToNextCard()
         }
-    }
-
-    // MARK: - Progress Indicator
-
-    private var progressIndicator: some View {
-        FlashcardProgressIndicator(current: currentIndex + 1, total: consonants.count)
     }
 
     // MARK: - Actions

@@ -65,6 +65,11 @@ struct VowelFlashcardView: View {
         if let card = currentCard {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Card type label
+                    Text("Vowel")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
                     // Vowel display with status indicator
                     vowelCardView(card: card)
 
@@ -73,9 +78,6 @@ struct VowelFlashcardView: View {
 
                     // Selection area (changes based on current step)
                     selectionArea(card: card)
-
-                    // Progress indicator
-                    progressIndicator
                 }
                 .padding()
             }
@@ -359,12 +361,6 @@ struct VowelFlashcardView: View {
         FlashcardNextButton {
             goToNextCard()
         }
-    }
-
-    // MARK: - Progress Indicator
-
-    private var progressIndicator: some View {
-        FlashcardProgressIndicator(current: currentIndex + 1, total: cards.count)
     }
 
     // MARK: - Actions

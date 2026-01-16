@@ -65,6 +65,11 @@ struct ToneMarkFlashcardView: View {
         if let card = currentCard {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Card type label
+                    Text("Tone mark")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
                     // Tone mark display with status indicator
                     toneMarkCardView(card: card)
 
@@ -73,9 +78,6 @@ struct ToneMarkFlashcardView: View {
 
                     // Selection area
                     selectionArea(card: card)
-
-                    // Progress indicator
-                    progressIndicator
                 }
                 .padding()
             }
@@ -244,12 +246,6 @@ struct ToneMarkFlashcardView: View {
         FlashcardNextButton {
             goToNextCard()
         }
-    }
-
-    // MARK: - Progress Indicator
-
-    private var progressIndicator: some View {
-        FlashcardProgressIndicator(current: currentIndex + 1, total: cards.count)
     }
 
     // MARK: - Actions

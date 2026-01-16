@@ -53,20 +53,6 @@ struct FlashcardNextButton: View {
     }
 }
 
-// MARK: - Progress Indicator
-
-struct FlashcardProgressIndicator: View {
-    let current: Int
-    let total: Int
-
-    var body: some View {
-        Text("\(current) / \(total)")
-            .font(.caption)
-            .foregroundColor(.secondary)
-            .padding(.top, 8)
-    }
-}
-
 // MARK: - Summary Header
 
 /// Header for the summary section with optional Reveal button
@@ -76,11 +62,6 @@ struct FlashcardSummaryHeader: View {
 
     var body: some View {
         HStack {
-            Text("Summary")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
-
             Spacer()
 
             if showReveal {
@@ -215,9 +196,6 @@ struct FlashcardGridButton: View {
 
 #Preview("Components") {
     VStack(spacing: 20) {
-        // Progress
-        FlashcardProgressIndicator(current: 5, total: 44)
-
         // Summary Header
         FlashcardSummaryHeader(showReveal: true) {
             print("Reveal tapped")

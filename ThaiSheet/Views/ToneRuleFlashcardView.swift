@@ -52,6 +52,11 @@ struct ToneRuleFlashcardView: View {
         if let card = currentCard {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Card type label
+                    Text("Tone rule")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
                     // Sample word display with status indicator
                     sampleWordCardView(card: card)
 
@@ -60,9 +65,6 @@ struct ToneRuleFlashcardView: View {
 
                     // Selection area
                     selectionArea(card: card)
-
-                    // Progress indicator
-                    progressIndicator
                 }
                 .padding()
             }
@@ -107,11 +109,6 @@ struct ToneRuleFlashcardView: View {
                 }
             }
             .frame(height: 160)
-
-            // Label
-            Text("Tone rule")
-                .font(.caption)
-                .foregroundColor(.secondary)
 
             // Action buttons
             HStack(spacing: 20) {
@@ -338,12 +335,6 @@ struct ToneRuleFlashcardView: View {
         FlashcardNextButton {
             goToNextCard()
         }
-    }
-
-    // MARK: - Progress Indicator
-
-    private var progressIndicator: some View {
-        FlashcardProgressIndicator(current: currentIndex + 1, total: cards.count)
     }
 
     // MARK: - Actions
