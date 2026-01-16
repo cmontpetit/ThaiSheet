@@ -67,7 +67,7 @@
       },
       {
         "short": {
-          "closed": null,
+          "closed": "ก-",
           "open": "โกะ"
         },
         "long": {
@@ -76,6 +76,9 @@
         },
         "sounds": {
           "en": "oh"
+        },
+        "notes": {
+          "short_closed": "Unwritten/inherent vowel (e.g., กก = gok)"
         }
       },
       {
