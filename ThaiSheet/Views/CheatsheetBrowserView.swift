@@ -121,9 +121,10 @@ struct CheatsheetBrowserView: View {
         guard !searchText.isEmpty else { return toneMarks }
 
         let query = searchText.lowercased()
+        let normalizedSearch = normalizeThaiSearch(searchText)
         return toneMarks.filter { mark in
-            mark.withLowConsonant.contains(searchText) ||
-            mark.withMidHighConsonant.contains(searchText) ||
+            mark.withLowConsonant.contains(normalizedSearch) ||
+            mark.withMidHighConsonant.contains(normalizedSearch) ||
             mark.onLowConsonant.lowercased().contains(query) ||
             mark.onMidHighConsonant.lowercased().contains(query)
         }
