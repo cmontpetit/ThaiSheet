@@ -15,6 +15,7 @@ enum AppTab: Int {
 enum FlashcardType {
     case consonant
     case vowel
+    case toneMark
 }
 
 struct ContentView: View {
@@ -23,6 +24,7 @@ struct ContentView: View {
     @State private var highlightedVowel: String? = nil
     @State private var flashcardStartingConsonant: String? = nil
     @State private var flashcardStartingVowel: String? = nil
+    @State private var flashcardStartingToneMark: String? = nil
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -31,6 +33,7 @@ struct ContentView: View {
                 highlightedVowel: $highlightedVowel,
                 startingConsonant: $flashcardStartingConsonant,
                 startingVowel: $flashcardStartingVowel,
+                startingToneMark: $flashcardStartingToneMark,
                 selectedTab: $selectedTab
             )
             .tabItem {
@@ -43,6 +46,7 @@ struct ContentView: View {
                 highlightedVowel: $highlightedVowel,
                 flashcardStartingConsonant: $flashcardStartingConsonant,
                 flashcardStartingVowel: $flashcardStartingVowel,
+                flashcardStartingToneMark: $flashcardStartingToneMark,
                 selectedTab: $selectedTab
             )
             .tabItem {
@@ -58,18 +62,30 @@ struct FlashcardsView: View {
     @Binding var highlightedVowel: String?
     @Binding var startingConsonant: String?
     @Binding var startingVowel: String?
+    @Binding var startingToneMark: String?
     @Binding var selectedTab: AppTab
 
     @State private var consonants: [Consonant] = []
     @State private var vowels: [Vowel] = []
     @State private var vowelCards: [VowelCard] = []
+    @State private var toneMarks: [ToneMark] = []
+    @State private var toneMarkCards: [ToneMarkCard] = []
     @State private var currentType: FlashcardType = .consonant
     @State private var consonantIndex: Int = 0
     @State private var vowelIndex: Int = 0
+    @State private var toneMarkIndex: Int = 0
+
+    private var typeLabel: String {
+        switch currentType {
+        case .consonant: return "Consonant"
+        case .vowel: return "Vowel"
+        case .toneMark: return "Tone Mark"
+        }
+    }
 
     var body: some View {
         NavigationStack {
-            if consonants.isEmpty || vowelCards.isEmpty {
+            if consonants.isEmpty || vowelCards.isEmpty || toneMarkCards.isEmpty {
                 ContentUnavailableView(
                     "Loading...",
                     systemImage: "rectangle.on.rectangle",
@@ -79,7 +95,7 @@ struct FlashcardsView: View {
                 VStack(spacing: 0) {
                     // Type indicator
                     HStack {
-                        Text(currentType == .consonant ? "Consonant" : "Vowel")
+                        Text(typeLabel)
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .textCase(.uppercase)
@@ -89,7 +105,8 @@ struct FlashcardsView: View {
                     .padding(.top, 8)
 
                     // Current flashcard view
-                    if currentType == .consonant {
+                    switch currentType {
+                    case .consonant:
                         ConsonantFlashcardView(
                             consonants: consonants,
                             currentIndex: $consonantIndex,
@@ -102,7 +119,7 @@ struct FlashcardsView: View {
                                 currentType = .vowel
                             }
                         )
-                    } else {
+                    case .vowel:
                         VowelFlashcardView(
                             cards: vowelCards,
                             allVowels: vowels,
@@ -110,6 +127,18 @@ struct FlashcardsView: View {
                             startingVowel: $startingVowel,
                             onViewInReference: { vowel in
                                 highlightedVowel = vowel
+                                selectedTab = .reference
+                            },
+                            onNextCard: {
+                                currentType = .toneMark
+                            }
+                        )
+                    case .toneMark:
+                        ToneMarkFlashcardView(
+                            cards: toneMarkCards,
+                            currentIndex: $toneMarkIndex,
+                            startingToneMark: $startingToneMark,
+                            onViewInReference: { _ in
                                 selectedTab = .reference
                             },
                             onNextCard: {
@@ -128,6 +157,10 @@ struct FlashcardsView: View {
                 vowels = Vowel.loadAll()
                 vowelCards = VowelCard.allCards(from: vowels)
             }
+            if toneMarks.isEmpty {
+                toneMarks = ToneMark.loadAll()
+                toneMarkCards = ToneMarkCard.allCards(from: toneMarks)
+            }
         }
         .onChange(of: startingConsonant) { _, newValue in
             if newValue != nil {
@@ -137,6 +170,11 @@ struct FlashcardsView: View {
         .onChange(of: startingVowel) { _, newValue in
             if newValue != nil {
                 currentType = .vowel
+            }
+        }
+        .onChange(of: startingToneMark) { _, newValue in
+            if newValue != nil {
+                currentType = .toneMark
             }
         }
     }

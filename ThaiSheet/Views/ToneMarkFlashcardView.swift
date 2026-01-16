@@ -1,0 +1,352 @@
+//
+//  ToneMarkFlashcardView.swift
+//  ThaiSheet
+//
+
+import SwiftUI
+
+// Represents a single tone mark card (one consonant class variant)
+struct ToneMarkCard: Identifiable {
+    let toneMark: ToneMark
+    let consonantClass: ConsonantClassType
+    let display: String
+    let correctTone: String
+
+    var id: String { display }
+
+    enum ConsonantClassType: String, CaseIterable {
+        case low = "Low"
+        case midHigh = "Mid/High"
+    }
+
+    static func allCards(from toneMarks: [ToneMark]) -> [ToneMarkCard] {
+        var cards: [ToneMarkCard] = []
+        for toneMark in toneMarks {
+            // Add low consonant card if not n/a
+            if toneMark.onLowConsonant != "n/a" {
+                cards.append(ToneMarkCard(
+                    toneMark: toneMark,
+                    consonantClass: .low,
+                    display: toneMark.withLowConsonant,
+                    correctTone: toneMark.onLowConsonant
+                ))
+            }
+            // Add mid/high consonant card if not n/a
+            if toneMark.onMidHighConsonant != "n/a" {
+                cards.append(ToneMarkCard(
+                    toneMark: toneMark,
+                    consonantClass: .midHigh,
+                    display: toneMark.withMidHighConsonant,
+                    correctTone: toneMark.onMidHighConsonant
+                ))
+            }
+        }
+        return cards
+    }
+}
+
+struct ToneMarkFlashcardView: View {
+    let cards: [ToneMarkCard]
+    @Binding var currentIndex: Int
+    @Binding var startingToneMark: String?
+    var onViewInReference: ((String) -> Void)?
+    var onNextCard: (() -> Void)?
+
+    @State private var cardState = ToneMarkCardState()
+
+    // All possible tones for selection
+    private let toneOptions = ["Low", "Mid", "High", "Falling", "Rising"]
+
+    var currentCard: ToneMarkCard? {
+        guard currentIndex < cards.count else { return nil }
+        return cards[currentIndex]
+    }
+
+    var body: some View {
+        if let card = currentCard {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Tone mark display with status indicator
+                    toneMarkCardView(card: card)
+
+                    // Summary section
+                    summarySection(card: card)
+
+                    // Selection area
+                    selectionArea(card: card)
+
+                    // Progress indicator
+                    progressIndicator
+                }
+                .padding()
+            }
+            .onAppear {
+                if let startMark = startingToneMark,
+                   let index = cards.firstIndex(where: { $0.display == startMark }) {
+                    currentIndex = index
+                    startingToneMark = nil
+                }
+            }
+            .onChange(of: startingToneMark) { _, newValue in
+                if let startMark = newValue,
+                   let index = cards.firstIndex(where: { $0.display == startMark }) {
+                    currentIndex = index
+                    cardState = ToneMarkCardState()
+                    startingToneMark = nil
+                }
+            }
+        } else {
+            ContentUnavailableView(
+                "No Tone Marks",
+                systemImage: "character.book.closed",
+                description: Text("No tone marks available")
+            )
+        }
+    }
+
+    // MARK: - Tone Mark Card View
+
+    private func toneMarkCardView(card: ToneMarkCard) -> some View {
+        VStack(spacing: 12) {
+            ZStack {
+                // Status ring
+                if cardState.step == .completed {
+                    Circle()
+                        .stroke(cardState.hasError(for: card) ? Color.red : Color.green, lineWidth: 4)
+                        .frame(width: 160, height: 160)
+                }
+
+                Text(card.display)
+                    .font(.system(size: 100))
+                    .minimumScaleFactor(0.5)
+            }
+
+            // Consonant class label
+            Text(card.consonantClass.rawValue + " class consonant")
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+            // Action buttons
+            HStack(spacing: 20) {
+                // View in Reference button
+                Button {
+                    onViewInReference?(card.display)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "book")
+                        Text("Reference")
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.accentColor)
+                }
+
+                // Speaker button (only when completed)
+                if cardState.step == .completed {
+                    let hasSound = AudioPlayer.shared.hasToneMarkSound(for: card.display)
+                    Button {
+                        AudioPlayer.shared.playToneMarkSound(for: card.display)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                            Text("Play")
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(hasSound ? .accentColor : .secondary)
+                    }
+                    .disabled(!hasSound)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .background(Color(.systemGray6))
+        .cornerRadius(16)
+    }
+
+    // MARK: - Summary Section
+
+    private func summarySection(card: ToneMarkCard) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Summary")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .textCase(.uppercase)
+
+            VStack(spacing: 6) {
+                summaryRow(
+                    label: "Tone",
+                    selectedValue: cardState.selectedTone,
+                    correctValue: card.correctTone,
+                    isCorrect: cardState.selectedTone == card.correctTone,
+                    wasSelected: cardState.selectedTone != nil,
+                    showResult: cardState.step == .completed
+                )
+            }
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+        }
+    }
+
+    private func summaryRow(label: String, selectedValue: String?, correctValue: String, isCorrect: Bool, wasSelected: Bool, showResult: Bool) -> some View {
+        HStack {
+            Text(label)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .frame(width: 60, alignment: .leading)
+
+            if showResult {
+                if wasSelected {
+                    if isCorrect {
+                        Text(selectedValue ?? correctValue)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.green)
+                    } else {
+                        Text(correctValue)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.primary)
+                        Text(selectedValue ?? "")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.red.opacity(0.5))
+                            .strikethrough(color: .red.opacity(0.5))
+                    }
+                } else {
+                    Text(correctValue)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.primary)
+                }
+            } else if let selected = selectedValue {
+                Text(selected)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(.primary)
+            } else {
+                Text("—")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+        }
+    }
+
+    // MARK: - Selection Area
+
+    @ViewBuilder
+    private func selectionArea(card: ToneMarkCard) -> some View {
+        switch cardState.step {
+        case .selectTone:
+            toneSelectionView(card: card)
+        case .completed:
+            nextCardButton
+        }
+    }
+
+    // MARK: - Tone Selection
+
+    private func toneSelectionView(card: ToneMarkCard) -> some View {
+        VStack(spacing: 16) {
+            Text("Select the tone")
+                .font(.headline)
+
+            // 5 tone buttons in a row
+            HStack(spacing: 8) {
+                ForEach(toneOptions, id: \.self) { tone in
+                    Button {
+                        cardState.selectedTone = tone
+                        completeCard(card: card)
+                    } label: {
+                        Text(tone)
+                            .font(.body.weight(.medium))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color(.systemGray5))
+                            .foregroundColor(.primary)
+                            .cornerRadius(10)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Card Completion
+
+    private func completeCard(card: ToneMarkCard) {
+        cardState.step = .completed
+        if AudioPlayer.shared.hasToneMarkSound(for: card.display) {
+            AudioPlayer.shared.playToneMarkSound(for: card.display)
+        }
+    }
+
+    // MARK: - Next Card Button
+
+    private var nextCardButton: some View {
+        Button {
+            goToNextCard()
+        } label: {
+            HStack {
+                Text("Next Card")
+                Image(systemName: "arrow.right")
+            }
+            .font(.headline)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.accentColor)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+        }
+    }
+
+    // MARK: - Progress Indicator
+
+    private var progressIndicator: some View {
+        Text("\(currentIndex + 1) / \(cards.count)")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .padding(.top, 8)
+    }
+
+    // MARK: - Actions
+
+    private func goToNextCard() {
+        cardState = ToneMarkCardState()
+        currentIndex = (currentIndex + 1) % cards.count
+        onNextCard?()
+    }
+}
+
+// MARK: - Tone Mark Card State
+
+struct ToneMarkCardState {
+    enum Step {
+        case selectTone
+        case completed
+    }
+
+    var step: Step = .selectTone
+    var selectedTone: String? = nil
+}
+
+extension ToneMarkCardState {
+    func hasError(for card: ToneMarkCard) -> Bool {
+        if let selected = selectedTone, selected != card.correctTone {
+            return true
+        }
+        return false
+    }
+}
+
+#Preview {
+    NavigationStack {
+        ToneMarkFlashcardView(
+            cards: ToneMarkCard.allCards(from: ToneMark.loadAll()),
+            currentIndex: .constant(0),
+            startingToneMark: .constant(nil),
+            onViewInReference: { _ in },
+            onNextCard: { }
+        )
+    }
+}

@@ -18,6 +18,7 @@ struct CheatsheetBrowserView: View {
     @Binding var highlightedVowel: String?
     @Binding var flashcardStartingConsonant: String?
     @Binding var flashcardStartingVowel: String?
+    @Binding var flashcardStartingToneMark: String?
     @Binding var selectedTab: AppTab
 
     @State private var searchText = ""
@@ -295,7 +296,10 @@ struct CheatsheetBrowserView: View {
                                 ToneMarkHeaderView()
                                 Divider()
                                 ForEach(filteredToneMarks) { mark in
-                                    ToneMarkRowView(toneMark: mark)
+                                    ToneMarkRowView(toneMark: mark) { display in
+                                        flashcardStartingToneMark = display
+                                        selectedTab = .flashcards
+                                    }
                                     Divider()
                                 }
                             }
@@ -370,6 +374,7 @@ struct CheatsheetBrowserView: View {
         highlightedVowel: .constant(nil),
         flashcardStartingConsonant: .constant(nil),
         flashcardStartingVowel: .constant(nil),
+        flashcardStartingToneMark: .constant(nil),
         selectedTab: .constant(.reference)
     )
 }

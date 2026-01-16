@@ -34,6 +34,7 @@ struct ToneMarkHeaderView: View {
 
 struct ToneMarkRowView: View {
     let toneMark: ToneMark
+    var onPractice: ((String) -> Void)?
 
     private var hasLowSound: Bool {
         AudioPlayer.shared.hasToneMarkSound(for: toneMark.withLowConsonant)
@@ -78,6 +79,11 @@ struct ToneMarkRowView: View {
         } else {
             Text(text)
                 .font(.title2)
+                .foregroundColor(onPractice != nil ? .accentColor : .primary)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onPractice?(text)
+                }
         }
     }
 
