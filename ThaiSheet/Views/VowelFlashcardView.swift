@@ -50,7 +50,6 @@ struct VowelFlashcardView: View {
     @Binding var currentIndex: Int
     @Binding var startingVowel: String?
     var onViewInReference: ((String) -> Void)?
-    var onNextCard: (() -> Void)?
 
     @State private var cardState = VowelCardState()
 
@@ -359,7 +358,6 @@ struct VowelFlashcardView: View {
     private var nextCardButton: some View {
         FlashcardNextButton {
             goToNextCard()
-            onNextCard?()
         }
     }
 
@@ -434,8 +432,7 @@ extension VowelCardState {
             allVowels: Vowel.loadAll(),
             currentIndex: .constant(0),
             startingVowel: .constant(nil),
-            onViewInReference: { _ in },
-            onNextCard: { }
+            onViewInReference: { _ in }
         )
     }
 }

@@ -50,7 +50,6 @@ struct ToneMarkFlashcardView: View {
     @Binding var currentIndex: Int
     @Binding var startingToneMark: String?
     var onViewInReference: ((String) -> Void)?
-    var onNextCard: (() -> Void)?
 
     @State private var cardState = ToneMarkCardState()
 
@@ -244,7 +243,6 @@ struct ToneMarkFlashcardView: View {
     private var nextCardButton: some View {
         FlashcardNextButton {
             goToNextCard()
-            onNextCard?()
         }
     }
 
@@ -294,8 +292,7 @@ extension ToneMarkCardState {
             cards: ToneMarkCard.allCards(from: ToneMark.loadAll()),
             currentIndex: .constant(0),
             startingToneMark: .constant(nil),
-            onViewInReference: { _ in },
-            onNextCard: { }
+            onViewInReference: { _ in }
         )
     }
 }

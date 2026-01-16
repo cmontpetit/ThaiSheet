@@ -131,9 +131,6 @@ struct FlashcardsView: View {
                             onViewInReference: { character in
                                 highlightedConsonant = character
                                 selectedTab = .reference
-                            },
-                            onNextCard: {
-                                currentType = .vowel
                             }
                         )
                     case .vowel:
@@ -145,9 +142,6 @@ struct FlashcardsView: View {
                             onViewInReference: { vowel in
                                 highlightedVowel = vowel
                                 selectedTab = .reference
-                            },
-                            onNextCard: {
-                                currentType = .toneMark
                             }
                         )
                     case .toneMark:
@@ -158,9 +152,6 @@ struct FlashcardsView: View {
                             onViewInReference: { display in
                                 highlightedToneMark = display
                                 selectedTab = .reference
-                            },
-                            onNextCard: {
-                                currentType = .toneRule
                             }
                         )
                     case .toneRule:
@@ -171,9 +162,6 @@ struct FlashcardsView: View {
                             onViewInReference: { ruleId in
                                 highlightedToneRule = ruleId
                                 selectedTab = .reference
-                            },
-                            onNextCard: {
-                                currentType = .consonant
                             }
                         )
                     }

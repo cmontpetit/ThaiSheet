@@ -10,7 +10,6 @@ struct ConsonantFlashcardView: View {
     @Binding var currentIndex: Int
     @Binding var startingConsonant: String?
     var onViewInReference: ((String) -> Void)?
-    var onNextCard: (() -> Void)?
 
     @State private var cardState = CardState()
 
@@ -335,7 +334,6 @@ struct ConsonantFlashcardView: View {
     private var nextCardButton: some View {
         FlashcardNextButton {
             goToNextCard()
-            onNextCard?()
         }
     }
 
@@ -490,8 +488,7 @@ struct FlowLayout: Layout {
             consonants: Consonant.loadAll(),
             currentIndex: .constant(0),
             startingConsonant: .constant(nil),
-            onViewInReference: { _ in },
-            onNextCard: { }
+            onViewInReference: { _ in }
         )
     }
 }

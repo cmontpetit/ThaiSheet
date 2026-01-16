@@ -34,7 +34,6 @@ struct ToneRuleFlashcardView: View {
     @Binding var currentIndex: Int
     @Binding var startingRuleId: String?
     var onViewInReference: ((String) -> Void)?
-    var onNextCard: (() -> Void)?
 
     @State private var cardState = ToneRuleCardState()
 
@@ -338,7 +337,6 @@ struct ToneRuleFlashcardView: View {
     private var nextCardButton: some View {
         FlashcardNextButton {
             goToNextCard()
-            onNextCard?()
         }
     }
 
@@ -405,8 +403,7 @@ extension ToneRuleCardState {
             cards: ToneRuleCard.allCards(from: ToneRule.loadAll()),
             currentIndex: .constant(0),
             startingRuleId: .constant(nil),
-            onViewInReference: { _ in },
-            onNextCard: { }
+            onViewInReference: { _ in }
         )
     }
 }
