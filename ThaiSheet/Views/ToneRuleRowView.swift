@@ -61,8 +61,8 @@ struct ToneRuleRowView: View {
     let rule: ToneRule
 
     private var hasSound: Bool {
-        guard let sampleWord = rule.sampleWord else { return false }
-        return AudioPlayer.shared.hasToneRuleSound(for: sampleWord)
+        guard let sample = rule.primarySample else { return false }
+        return AudioPlayer.shared.hasToneRuleSound(for: sample.full)
     }
 
     var body: some View {
@@ -96,8 +96,8 @@ struct ToneRuleRowView: View {
                 .frame(width: 60)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    if let sampleWord = rule.sampleWord, hasSound {
-                        AudioPlayer.shared.playToneRuleSound(for: sampleWord)
+                    if let sample = rule.primarySample, hasSound {
+                        AudioPlayer.shared.playToneRuleSound(for: sample.full)
                     }
                 }
         }
@@ -118,7 +118,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Short",
             end: "Dead/None",
             tone: "High",
-            sampleWord: "คะ"
+            samples: [ToneSample(full: "คะ", focus: "คะ")]
         ))
         .listRowInsets(EdgeInsets())
         ToneRuleRowView(rule: ToneRule(
@@ -126,7 +126,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Any",
             end: "Live",
             tone: "Mid",
-            sampleWord: "กา"
+            samples: [ToneSample(full: "กา", focus: "กา")]
         ))
         .listRowInsets(EdgeInsets())
         ToneRuleRowView(rule: ToneRule(
@@ -134,7 +134,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Any",
             end: "Live",
             tone: "Rising",
-            sampleWord: "ขา"
+            samples: [ToneSample(full: "ขา", focus: "ขา")]
         ))
         .listRowInsets(EdgeInsets())
     }

@@ -1,53 +1,102 @@
 {
   "toneRules": [
-      {
-        "initialConsonant": "Low",
-        "vowelDuration": "Short",
-        "end": "Dead/None",
-        "tone": "High",
-        "sampleWord": "คะ"
-      },
-      {
-        "initialConsonant": "Low",
-        "vowelDuration": "Long",
-        "end": "Dead",
-        "tone": "Low",
-        "sampleWord": "พูด"
-      },
-      {
-        "initialConsonant": "Low",
-        "vowelDuration": "Any",
-        "end": "Live",
-        "tone": "Mid",
-        "sampleWord": "มา"
-      },
-      {
-        "initialConsonant": "Mid",
-        "vowelDuration": "Any",
-        "end": "Live",
-        "tone": "Mid",
-        "sampleWord": "กา"
-      },
-      {
-        "initialConsonant": "Mid",
-        "vowelDuration": "Any",
-        "end": "Dead",
-        "tone": "Low",
-        "sampleWord": "กัด"
-      },
-      {
-        "initialConsonant": "High",
-        "vowelDuration": "Any",
-        "end": "Live",
-        "tone": "Rising",
-        "sampleWord": "ขา"
-      },
-      {
-        "initialConsonant": "High",
-        "vowelDuration": "Any",
-        "end": "Dead",
-        "tone": "Low",
-        "sampleWord": "ขาด"
-      }
+    {
+      "initialConsonant": "Low",
+      "vowelDuration": "Short",
+      "end": "Dead/None",
+      "tone": "High",
+      "samples": [
+        { "full": "คะ", "focus": "คะ" },
+        { "full": "พะ", "focus": "พะ" },
+        { "full": "ชะ", "focus": "ชะ" },
+        { "full": "นะ", "focus": "นะ" },
+        { "full": "ละ", "focus": "ละ" },
+        { "full": "ชนะ", "focus": "ชะ" }
+      ]
+    },
+    {
+      "initialConsonant": "Low",
+      "vowelDuration": "Long",
+      "end": "Dead",
+      "tone": "Low",
+      "samples": [
+        { "full": "พูด", "focus": "พูด" },
+        { "full": "ลาก", "focus": "ลาก" },
+        { "full": "บาป", "focus": "บาป" },
+        { "full": "ชอบ", "focus": "ชอบ" },
+        { "full": "ทาน", "focus": "ทาน" },
+        { "full": "พลาดใจ", "focus": "พลาด" }
+      ]
+    },
+    {
+      "initialConsonant": "Low",
+      "vowelDuration": "Any",
+      "end": "Live",
+      "tone": "Mid",
+      "samples": [
+        { "full": "มา", "focus": "มา" },
+        { "full": "นา", "focus": "นา" },
+        { "full": "ลม", "focus": "ลม" },
+        { "full": "คน", "focus": "คน" },
+        { "full": "ยา", "focus": "ยา" },
+        { "full": "มานา", "focus": "มา" }
+      ]
+    },
+    {
+      "initialConsonant": "Mid",
+      "vowelDuration": "Any",
+      "end": "Live",
+      "tone": "Mid",
+      "samples": [
+        { "full": "กา", "focus": "กา" },
+        { "full": "ใจ", "focus": "ใจ" },
+        { "full": "ดี", "focus": "ดี" },
+        { "full": "ปลา", "focus": "ปลา" },
+        { "full": "มือ", "focus": "มือ" },
+        { "full": "ใจดี", "focus": "ใจ" }
+      ]
+    },
+    {
+      "initialConsonant": "Mid",
+      "vowelDuration": "Any",
+      "end": "Dead",
+      "tone": "Low",
+      "samples": [
+        { "full": "กัด", "focus": "กัด" },
+        { "full": "ปิด", "focus": "ปิด" },
+        { "full": "จบ", "focus": "จบ" },
+        { "full": "เด็ก", "focus": "เด็ก" },
+        { "full": "ตัด", "focus": "ตัด" },
+        { "full": "เด็กดี", "focus": "เด็ก" }
+      ]
+    },
+    {
+      "initialConsonant": "High",
+      "vowelDuration": "Any",
+      "end": "Live",
+      "tone": "Rising",
+      "samples": [
+        { "full": "ขา", "focus": "ขา" },
+        { "full": "ผม", "focus": "ผม" },
+        { "full": "หมี", "focus": "หมี" },
+        { "full": "ฝน", "focus": "ฝน" },
+        { "full": "ขาว", "focus": "ขาว" },
+        { "full": "ขาวดี", "focus": "ขาว" }
+      ]
+    },
+    {
+      "initialConsonant": "High",
+      "vowelDuration": "Any",
+      "end": "Dead",
+      "tone": "Low",
+      "samples": [
+        { "full": "ขาด", "focus": "ขาด" },
+        { "full": "ขับ", "focus": "ขับ" },
+        { "full": "ผัก", "focus": "ผัก" },
+        { "full": "สัก", "focus": "สัก" },
+        { "full": "หก", "focus": "หก" },
+        { "full": "ขาดใจ", "focus": "ขาด" }
+      ]
+    }
   ]
 }

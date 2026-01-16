@@ -6,14 +6,22 @@
 import Foundation
 import SwiftUI
 
+struct ToneSample: Codable {
+    let full: String
+    let focus: String
+}
+
 struct ToneRule: Codable, Identifiable {
     let initialConsonant: String
     let vowelDuration: String
     let end: String
     let tone: String
-    let sampleWord: String?
+    let samples: [ToneSample]?
 
     var id: String { "\(initialConsonant)-\(vowelDuration)-\(end)" }
+
+    // First sample for display in the tone rules table
+    var primarySample: ToneSample? { samples?.first }
 
     var consonantColor: Color {
         switch initialConsonant {

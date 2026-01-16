@@ -96,8 +96,10 @@ def generate_tone_rules(sounds_dir: Path, cheatsheet_dir: Path) -> None:
 
     count = 0
     for rule in data['toneRules']:
-        if 'sampleWord' in rule:
-            word = rule['sampleWord']
+        if 'samples' in rule and rule['samples']:
+            # Generate sound for the primary (first) sample
+            sample = rule['samples'][0]
+            word = sample['full']
             tone = rule['tone']
             filename = f"cheat_sheet_tone_rule_{word}.mp3"
             generate_sound(word, sounds_dir / filename, f"{tone} tone")
