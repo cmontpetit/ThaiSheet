@@ -46,8 +46,7 @@ struct ToneMarkRowView: View {
     var body: some View {
         HStack(spacing: 0) {
             // Low consonant column
-            Text(toneMark.withLowConsonant)
-                .font(.title2)
+            consonantCell(toneMark.withLowConsonant, isNA: toneMark.onLowConsonant == "n/a")
                 .frame(maxWidth: .infinity)
 
             toneCell(toneMark.onLowConsonant, hasSound: hasLowSound) {
@@ -59,8 +58,7 @@ struct ToneMarkRowView: View {
                 .frame(height: 30)
 
             // Mid/High consonant column
-            Text(toneMark.withMidHighConsonant)
-                .font(.title2)
+            consonantCell(toneMark.withMidHighConsonant, isNA: toneMark.onMidHighConsonant == "n/a")
                 .frame(maxWidth: .infinity)
 
             toneCell(toneMark.onMidHighConsonant, hasSound: hasMidHighSound) {
@@ -70,6 +68,17 @@ struct ToneMarkRowView: View {
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
+    }
+
+    @ViewBuilder
+    private func consonantCell(_ text: String, isNA: Bool) -> some View {
+        if isNA {
+            Text("")
+                .font(.title2)
+        } else {
+            Text(text)
+                .font(.title2)
+        }
     }
 
     @ViewBuilder
