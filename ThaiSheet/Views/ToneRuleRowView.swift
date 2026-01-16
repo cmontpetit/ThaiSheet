@@ -59,6 +59,8 @@ struct ToneRuleHeaderView: View {
 
 struct ToneRuleRowView: View {
     let rule: ToneRule
+    var isHighlighted: Bool = false
+    var onPractice: (() -> Void)? = nil
 
     private var hasSound: Bool {
         guard let sample = rule.primarySample else { return false }
@@ -67,30 +69,44 @@ struct ToneRuleRowView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Text(rule.initialConsonant)
-                .frame(width: 60)
-                .padding(.vertical, 6)
-                .background(rule.consonantColor)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+            // Highlight indicator
+            Circle()
+                .fill(isHighlighted ? Color.accentColor : Color.clear)
+                .frame(width: 8, height: 8)
+                .padding(.trailing, 4)
 
-            Text("+")
-                .foregroundStyle(.quaternary)
-                .frame(width: 20)
+            // Main content (tappable for practice)
+            HStack(spacing: 0) {
+                Text(rule.initialConsonant)
+                    .frame(width: 60)
+                    .padding(.vertical, 6)
+                    .background(rule.consonantColor)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
 
-            Text(rule.vowelDuration)
-                .frame(width: 70)
+                Text("+")
+                    .foregroundStyle(.quaternary)
+                    .frame(width: 20)
 
-            Text("+")
-                .foregroundStyle(.quaternary)
-                .frame(width: 20)
+                Text(rule.vowelDuration)
+                    .frame(width: 70)
 
-            Text(rule.end)
-                .frame(width: 80)
+                Text("+")
+                    .foregroundStyle(.quaternary)
+                    .frame(width: 20)
 
-            Text("=")
-                .foregroundStyle(.quaternary)
-                .frame(width: 20)
+                Text(rule.end)
+                    .frame(width: 80)
 
+                Text("=")
+                    .foregroundStyle(.quaternary)
+                    .frame(width: 20)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onPractice?()
+            }
+
+            // Tone column (tappable for sound)
             StyledToneText(tone: rule.tone)
                 .foregroundColor(hasSound ? .accentColor : .primary)
                 .frame(width: 60)
@@ -103,7 +119,9 @@ struct ToneRuleRowView: View {
         }
         .font(.subheadline)
         .padding(.vertical, 4)
-        .padding(.horizontal, 12)
+        .padding(.leading, 8)
+        .padding(.trailing, 12)
+        .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
     }
 }
 

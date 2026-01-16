@@ -34,6 +34,7 @@ struct ToneMarkHeaderView: View {
 
 struct ToneMarkRowView: View {
     let toneMark: ToneMark
+    var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
 
     private var hasLowSound: Bool {
@@ -46,6 +47,12 @@ struct ToneMarkRowView: View {
 
     var body: some View {
         HStack(spacing: 0) {
+            // Highlight indicator
+            Circle()
+                .fill(isHighlighted ? Color.accentColor : Color.clear)
+                .frame(width: 8, height: 8)
+                .padding(.trailing, 4)
+
             // Low consonant column
             consonantCell(toneMark.withLowConsonant, isNA: toneMark.onLowConsonant == "n/a")
                 .frame(maxWidth: .infinity)
@@ -68,7 +75,9 @@ struct ToneMarkRowView: View {
             .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)
-        .padding(.horizontal, 12)
+        .padding(.leading, 8)
+        .padding(.trailing, 12)
+        .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
     }
 
     @ViewBuilder

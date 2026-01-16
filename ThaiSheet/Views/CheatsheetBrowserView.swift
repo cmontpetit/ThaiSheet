@@ -19,6 +19,7 @@ struct CheatsheetBrowserView: View {
     @Binding var flashcardStartingConsonant: String?
     @Binding var flashcardStartingVowel: String?
     @Binding var flashcardStartingToneMark: String?
+    @Binding var flashcardStartingToneRule: String?
     @Binding var selectedTab: AppTab
 
     @State private var searchText = ""
@@ -311,7 +312,10 @@ struct CheatsheetBrowserView: View {
                                 ToneRuleHeaderView()
                                 Divider()
                                 ForEach(filteredToneRules) { rule in
-                                    ToneRuleRowView(rule: rule)
+                                    ToneRuleRowView(rule: rule) {
+                                        flashcardStartingToneRule = rule.id
+                                        selectedTab = .flashcards
+                                    }
                                     Divider()
                                 }
                             }
@@ -375,6 +379,7 @@ struct CheatsheetBrowserView: View {
         flashcardStartingConsonant: .constant(nil),
         flashcardStartingVowel: .constant(nil),
         flashcardStartingToneMark: .constant(nil),
+        flashcardStartingToneRule: .constant(nil),
         selectedTab: .constant(.reference)
     )
 }
