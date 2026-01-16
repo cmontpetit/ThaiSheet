@@ -6,11 +6,11 @@
 import SwiftUI
 
 struct ConsonantFlashcardView: View {
-    let consonants: [Consonant]
-    @Binding var currentIndex: Int
-    @Binding var startingConsonant: String?
+    let consonant: Consonant
+    let allConsonants: [Consonant]  // For generating quiz options
     var onViewInReference: ((String) -> Void)?
-    var onNextCard: (() -> Void)?
+    let onNext: () -> Void
+    let onPrevious: () -> Void
 
     @State private var cardState = CardState()
 
@@ -19,62 +19,36 @@ struct ConsonantFlashcardView: View {
     @State private var finalSoundOptions: [String] = []
     @State private var transcriptionOptions: [String] = []
 
-    var currentConsonant: Consonant? {
-        guard currentIndex < consonants.count else { return nil }
-        return consonants[currentIndex]
-    }
-
     var body: some View {
-        if let consonant = currentConsonant {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Consonant display with status indicator
-                    consonantCard(consonant: consonant)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Consonant display with status indicator
+                consonantCard
 
-                    // Summary section
-                    summarySection(consonant: consonant)
+                // Summary section
+                summarySection
 
-                    // Selection area (changes based on current step)
-                    selectionArea(consonant: consonant)
-                }
-                .padding()
+                // Selection area (changes based on current step)
+                selectionArea
             }
-            .onAppear {
-                // If starting at a specific consonant, find its index
-                if let startChar = startingConsonant,
-                   let index = consonants.firstIndex(where: { $0.character == startChar }) {
-                    currentIndex = index
-                    startingConsonant = nil  // Clear after using
-                }
-                generateOptions(for: consonant)
-            }
-            .onChange(of: startingConsonant) { _, newValue in
-                // Handle navigation from Reference while already visible
-                if let startChar = newValue,
-                   let index = consonants.firstIndex(where: { $0.character == startChar }) {
-                    currentIndex = index
-                    cardState = CardState()  // Reset card state
-                    startingConsonant = nil
-                    if let newConsonant = currentConsonant {
-                        generateOptions(for: newConsonant)
-                    }
-                }
-            }
-        } else {
-            ContentUnavailableView(
-                "No Consonants",
-                systemImage: "character.book.closed",
-                description: Text("No consonants available")
-            )
+            .padding()
+        }
+        .onAppear {
+            generateOptions()
+        }
+        .onChange(of: consonant.id) { _, _ in
+            // Reset state when card changes
+            cardState = CardState()
+            generateOptions()
         }
     }
 
     // MARK: - Consonant Card
 
-    private func consonantCard(consonant: Consonant) -> some View {
+    private var consonantCard: some View {
         VStack(spacing: 12) {
             // Main character with left/right tap zones for navigation
-            NavigableTapArea(onPrevious: goToPreviousCard, onNext: goToNextCard) {
+            NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
                 ZStack {
                     if cardState.step == .completed {
                         FlashcardStatusRing(hasError: cardState.hasError(for: consonant))
@@ -129,11 +103,11 @@ struct ConsonantFlashcardView: View {
 
     // MARK: - Summary Section
 
-    private func summarySection(consonant: Consonant) -> some View {
+    private var summarySection: some View {
         VStack(alignment: .leading, spacing: 8) {
             FlashcardSummaryHeader(
                 showReveal: cardState.step != .completed,
-                onReveal: { completeCardEarly(consonant: consonant) }
+                onReveal: { completeCardEarly() }
             )
 
             VStack(spacing: 6) {
@@ -171,16 +145,16 @@ struct ConsonantFlashcardView: View {
     // MARK: - Selection Area
 
     @ViewBuilder
-    private func selectionArea(consonant: Consonant) -> some View {
+    private var selectionArea: some View {
         switch cardState.step {
         case .selectClass:
-            classSelectionView(consonant: consonant)
+            classSelectionView
         case .selectInitial:
-            initialSoundSelectionView(consonant: consonant)
+            initialSoundSelectionView
         case .selectFinal:
-            finalSoundSelectionView(consonant: consonant)
+            finalSoundSelectionView
         case .selectTranscription:
-            transcriptionSelectionView(consonant: consonant)
+            transcriptionSelectionView
         case .completed:
             nextCardButton
         }
@@ -188,7 +162,7 @@ struct ConsonantFlashcardView: View {
 
     // MARK: - Class Selection
 
-    private func classSelectionView(consonant: Consonant) -> some View {
+    private var classSelectionView: some View {
         VStack(spacing: 16) {
             Text("Select the class")
                 .font(.headline)
@@ -218,7 +192,7 @@ struct ConsonantFlashcardView: View {
 
     // MARK: - Initial Sound Selection
 
-    private func initialSoundSelectionView(consonant: Consonant) -> some View {
+    private var initialSoundSelectionView: some View {
         VStack(spacing: 16) {
             selectionHeader(title: "Select the initial sound") {
                 cardState.selectedClass = nil
@@ -242,7 +216,7 @@ struct ConsonantFlashcardView: View {
 
     // MARK: - Final Sound Selection
 
-    private func finalSoundSelectionView(consonant: Consonant) -> some View {
+    private var finalSoundSelectionView: some View {
         VStack(spacing: 16) {
             selectionHeader(title: "Select the final sound") {
                 cardState.selectedInitial = nil
@@ -266,7 +240,7 @@ struct ConsonantFlashcardView: View {
 
     // MARK: - Transcription Selection
 
-    private func transcriptionSelectionView(consonant: Consonant) -> some View {
+    private var transcriptionSelectionView: some View {
         VStack(spacing: 16) {
             selectionHeader(title: "Select the transcription") {
                 cardState.selectedFinal = nil
@@ -278,7 +252,7 @@ struct ConsonantFlashcardView: View {
                 ForEach(transcriptionOptions, id: \.self) { transcription in
                     FlashcardGridButton(label: transcription) {
                         cardState.selectedTranscription = transcription
-                        completeCard(consonant: consonant)
+                        completeCard()
                     }
                 }
             }
@@ -322,12 +296,12 @@ struct ConsonantFlashcardView: View {
 
     // MARK: - Card Completion
 
-    private func completeCard(consonant: Consonant) {
+    private func completeCard() {
         cardState.step = .completed
         AudioPlayer.shared.playConsonantSound(for: consonant.character)
     }
 
-    private func completeCardEarly(consonant: Consonant) {
+    private func completeCardEarly() {
         cardState.step = .completed
         AudioPlayer.shared.playConsonantSound(for: consonant.character)
     }
@@ -336,58 +310,39 @@ struct ConsonantFlashcardView: View {
 
     private var nextCardButton: some View {
         FlashcardNextButton {
-            goToNextCard()
+            handleNext()
         }
     }
 
-    // MARK: - Actions
+    // MARK: - Navigation
 
-    private func goToNextCard() {
-        // Reset state
+    private func handleNext() {
         cardState = CardState()
-
-        // Let parent handle navigation if callback provided
-        if let onNextCard = onNextCard {
-            onNextCard()
-        } else {
-            // Fallback: move to next card (loop back to start if at end)
-            currentIndex = (currentIndex + 1) % consonants.count
-        }
-
-        // Generate new options
-        if let consonant = currentConsonant {
-            generateOptions(for: consonant)
-        }
+        onNext()
     }
 
-    private func goToPreviousCard() {
-        // Reset state
+    private func handlePrevious() {
         cardState = CardState()
-
-        // Move to previous card (loop to end if at start)
-        currentIndex = (currentIndex - 1 + consonants.count) % consonants.count
-
-        // Generate new options
-        if let consonant = currentConsonant {
-            generateOptions(for: consonant)
-        }
+        onPrevious()
     }
 
-    private func generateOptions(for consonant: Consonant) {
+    // MARK: - Option Generation
+
+    private func generateOptions() {
         // Get unique initial sounds from all consonants
-        let allInitialSounds = Set(consonants.map { $0.initialSound })
+        let allInitialSounds = Set(allConsonants.map { $0.initialSound })
         var initialOptions = Array(allInitialSounds.filter { $0 != consonant.initialSound }.shuffled().prefix(7))
         initialOptions.append(consonant.initialSound)
         initialSoundOptions = initialOptions.shuffled()
 
         // Get unique final sounds from all consonants
-        let allFinalSounds = Set(consonants.map { $0.finalSound })
+        let allFinalSounds = Set(allConsonants.map { $0.finalSound })
         var finalOptions = Array(allFinalSounds.filter { $0 != consonant.finalSound }.shuffled().prefix(3))
         finalOptions.append(consonant.finalSound)
         finalSoundOptions = finalOptions.shuffled()
 
         // Get transcriptions from other consonants (3 wrong + 1 correct = 4 total)
-        var transcriptionOpts = consonants
+        var transcriptionOpts = allConsonants
             .filter { $0.character != consonant.character }
             .shuffled()
             .prefix(3)
@@ -487,10 +442,11 @@ struct FlowLayout: Layout {
 #Preview {
     NavigationStack {
         ConsonantFlashcardView(
-            consonants: Consonant.loadAll(),
-            currentIndex: .constant(0),
-            startingConsonant: .constant(nil),
-            onViewInReference: { _ in }
+            consonant: Consonant.loadAll().first!,
+            allConsonants: Consonant.loadAll(),
+            onViewInReference: { _ in },
+            onNext: {},
+            onPrevious: {}
         )
     }
 }

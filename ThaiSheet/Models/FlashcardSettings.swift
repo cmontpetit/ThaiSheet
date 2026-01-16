@@ -88,23 +88,26 @@ class FlashcardSettings {
     // MARK: - Filter Functions
 
     func isConsonantEnabled(_ consonant: Consonant) -> Bool {
-        // First check usage
-        if consonant.usage != .common {
-            // Uncommon, rare, or ancient - only include if that setting is enabled
-            if !uncommonConsonants {
-                return false
+        // OR-based opt-in: include if ANY matching criterion is enabled
+
+        // Class-based filters apply to COMMON consonants
+        if consonant.usage == .common {
+            switch consonant.consonantClass {
+            case .high:
+                if highConsonants { return true }
+            case .mid:
+                if midConsonants { return true }
+            case .low:
+                if lowConsonants { return true }
             }
         }
 
-        // Check class
-        switch consonant.consonantClass {
-        case .high:
-            return highConsonants
-        case .mid:
-            return midConsonants
-        case .low:
-            return lowConsonants
+        // Uncommon/rare/ancient filter applies regardless of class
+        if consonant.usage != .common && uncommonConsonants {
+            return true
         }
+
+        return false
     }
 
     var hasAnyConsonantEnabled: Bool {

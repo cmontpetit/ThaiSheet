@@ -45,72 +45,47 @@ struct VowelCard: Identifiable {
 }
 
 struct VowelFlashcardView: View {
-    let cards: [VowelCard]
-    let allVowels: [Vowel]
-    @Binding var currentIndex: Int
-    @Binding var startingVowel: String?
+    let card: VowelCard
+    let allVowels: [Vowel]  // For generating quiz options
     var onViewInReference: ((String) -> Void)?
-    var onNextCard: (() -> Void)?
+    let onNext: () -> Void
+    let onPrevious: () -> Void
 
     @State private var cardState = VowelCardState()
 
     // Generated options for sound selection
     @State private var soundOptions: [String] = []
 
-    var currentCard: VowelCard? {
-        guard currentIndex < cards.count else { return nil }
-        return cards[currentIndex]
-    }
-
     var body: some View {
-        if let card = currentCard {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Vowel display with status indicator
-                    vowelCardView(card: card)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Vowel display with status indicator
+                vowelCardView
 
-                    // Summary section
-                    summarySection(card: card)
+                // Summary section
+                summarySection
 
-                    // Selection area (changes based on current step)
-                    selectionArea(card: card)
-                }
-                .padding()
+                // Selection area (changes based on current step)
+                selectionArea
             }
-            .onAppear {
-                if let startVowel = startingVowel,
-                   let index = cards.firstIndex(where: { $0.display == startVowel }) {
-                    currentIndex = index
-                    startingVowel = nil
-                }
-                generateOptions(for: card)
-            }
-            .onChange(of: startingVowel) { _, newValue in
-                if let startVowel = newValue,
-                   let index = cards.firstIndex(where: { $0.display == startVowel }) {
-                    currentIndex = index
-                    cardState = VowelCardState()
-                    startingVowel = nil
-                    if let newCard = currentCard {
-                        generateOptions(for: newCard)
-                    }
-                }
-            }
-        } else {
-            ContentUnavailableView(
-                "No Vowels",
-                systemImage: "character.book.closed",
-                description: Text("No vowels available")
-            )
+            .padding()
+        }
+        .onAppear {
+            generateOptions()
+        }
+        .onChange(of: card.id) { _, _ in
+            // Reset state when card changes
+            cardState = VowelCardState()
+            generateOptions()
         }
     }
 
     // MARK: - Vowel Card View
 
-    private func vowelCardView(card: VowelCard) -> some View {
+    private var vowelCardView: some View {
         VStack(spacing: 12) {
             // Main character with left/right tap zones for navigation
-            NavigableTapArea(onPrevious: goToPreviousCard, onNext: goToNextCard) {
+            NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
                 ZStack {
                     if cardState.step == .completed {
                         FlashcardStatusRing(hasError: cardState.hasError(for: card))
@@ -167,7 +142,7 @@ struct VowelFlashcardView: View {
 
     // MARK: - Summary Section
 
-    private func summarySection(card: VowelCard) -> some View {
+    private var summarySection: some View {
         VStack(alignment: .leading, spacing: 8) {
             FlashcardSummaryHeader(
                 showReveal: cardState.step != .completed,
@@ -206,14 +181,14 @@ struct VowelFlashcardView: View {
     // MARK: - Selection Area
 
     @ViewBuilder
-    private func selectionArea(card: VowelCard) -> some View {
+    private var selectionArea: some View {
         switch cardState.step {
         case .selectDuration:
-            durationSelectionView(card: card)
+            durationSelectionView
         case .selectForm:
-            formSelectionView(card: card)
+            formSelectionView
         case .selectSound:
-            soundSelectionView(card: card)
+            soundSelectionView
         case .completed:
             nextCardButton
         }
@@ -221,7 +196,7 @@ struct VowelFlashcardView: View {
 
     // MARK: - Duration Selection
 
-    private func durationSelectionView(card: VowelCard) -> some View {
+    private var durationSelectionView: some View {
         VStack(spacing: 16) {
             Text("Select the duration")
                 .font(.headline)
@@ -251,7 +226,7 @@ struct VowelFlashcardView: View {
 
     // MARK: - Form Selection
 
-    private func formSelectionView(card: VowelCard) -> some View {
+    private var formSelectionView: some View {
         VStack(spacing: 16) {
             selectionHeader(title: "Select the form") {
                 cardState.selectedDuration = nil
@@ -283,7 +258,7 @@ struct VowelFlashcardView: View {
 
     // MARK: - Sound Selection
 
-    private func soundSelectionView(card: VowelCard) -> some View {
+    private var soundSelectionView: some View {
         VStack(spacing: 16) {
             selectionHeader(title: "Select the sound") {
                 cardState.selectedForm = nil
@@ -349,8 +324,6 @@ struct VowelFlashcardView: View {
     }
 
     private func playVowelSound() {
-        guard let card = currentCard else { return }
-        // Try to play sound for the current form, or find one that exists
         if AudioPlayer.shared.hasVowelSound(for: card.display) {
             AudioPlayer.shared.playVowelSound(for: card.display)
         }
@@ -360,36 +333,25 @@ struct VowelFlashcardView: View {
 
     private var nextCardButton: some View {
         FlashcardNextButton {
-            goToNextCard()
+            handleNext()
         }
     }
 
-    // MARK: - Actions
+    // MARK: - Navigation
 
-    private func goToNextCard() {
+    private func handleNext() {
         cardState = VowelCardState()
-
-        // Let parent handle navigation if callback provided
-        if let onNextCard = onNextCard {
-            onNextCard()
-        } else {
-            currentIndex = (currentIndex + 1) % cards.count
-        }
-
-        if let newCard = currentCard {
-            generateOptions(for: newCard)
-        }
+        onNext()
     }
 
-    private func goToPreviousCard() {
+    private func handlePrevious() {
         cardState = VowelCardState()
-        currentIndex = (currentIndex - 1 + cards.count) % cards.count
-        if let newCard = currentCard {
-            generateOptions(for: newCard)
-        }
+        onPrevious()
     }
 
-    private func generateOptions(for card: VowelCard) {
+    // MARK: - Option Generation
+
+    private func generateOptions() {
         // Get unique sounds from all vowels
         let allSounds = Set(allVowels.map { $0.sound })
         var options = Array(allSounds.filter { $0 != card.vowel.sound }.shuffled().prefix(7))
@@ -432,11 +394,11 @@ extension VowelCardState {
 #Preview {
     NavigationStack {
         VowelFlashcardView(
-            cards: VowelCard.allCards(from: Vowel.loadAll()),
+            card: VowelCard.allCards(from: Vowel.loadAll()).first!,
             allVowels: Vowel.loadAll(),
-            currentIndex: .constant(0),
-            startingVowel: .constant(nil),
-            onViewInReference: { _ in }
+            onViewInReference: { _ in },
+            onNext: {},
+            onPrevious: {}
         )
     }
 }

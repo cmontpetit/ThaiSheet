@@ -30,11 +30,10 @@ struct ToneRuleCard: Identifiable {
 }
 
 struct ToneRuleFlashcardView: View {
-    let cards: [ToneRuleCard]
-    @Binding var currentIndex: Int
-    @Binding var startingRuleId: String?
+    let card: ToneRuleCard
     var onViewInReference: ((String) -> Void)?
-    var onNextCard: (() -> Void)?
+    let onNext: () -> Void
+    let onPrevious: () -> Void
 
     @State private var cardState = ToneRuleCardState()
 
@@ -44,56 +43,32 @@ struct ToneRuleFlashcardView: View {
     private let endOptions = ["Live", "Dead"]
     private let toneOptions = ["Low", "Mid", "High", "Falling", "Rising"]
 
-    var currentCard: ToneRuleCard? {
-        guard currentIndex < cards.count else { return nil }
-        return cards[currentIndex]
-    }
-
     var body: some View {
-        if let card = currentCard {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Sample word display with status indicator
-                    sampleWordCardView(card: card)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Sample word display with status indicator
+                sampleWordCardView
 
-                    // Summary section
-                    summarySection(card: card)
+                // Summary section
+                summarySection
 
-                    // Selection area
-                    selectionArea(card: card)
-                }
-                .padding()
+                // Selection area
+                selectionArea
             }
-            .onAppear {
-                if let startId = startingRuleId,
-                   let index = cards.firstIndex(where: { $0.rule.id == startId }) {
-                    currentIndex = index
-                    startingRuleId = nil
-                }
-            }
-            .onChange(of: startingRuleId) { _, newValue in
-                if let startId = newValue,
-                   let index = cards.firstIndex(where: { $0.rule.id == startId }) {
-                    currentIndex = index
-                    cardState = ToneRuleCardState()
-                    startingRuleId = nil
-                }
-            }
-        } else {
-            ContentUnavailableView(
-                "No Tone Rules",
-                systemImage: "character.book.closed",
-                description: Text("No tone rules available")
-            )
+            .padding()
+        }
+        .onChange(of: card.id) { _, _ in
+            // Reset state when card changes
+            cardState = ToneRuleCardState()
         }
     }
 
     // MARK: - Sample Word Card View
 
-    private func sampleWordCardView(card: ToneRuleCard) -> some View {
+    private var sampleWordCardView: some View {
         VStack(spacing: 12) {
             // Main character with left/right tap zones for navigation
-            NavigableTapArea(onPrevious: goToPreviousCard, onNext: goToNextCard) {
+            NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
                 ZStack {
                     // Status ring
                     if cardState.step == .completed {
@@ -101,7 +76,7 @@ struct ToneRuleFlashcardView: View {
                     }
 
                     // Display the sample word with focus highlighting
-                    sampleWordText(card: card)
+                    sampleWordText
                 }
             }
             .frame(height: 160)
@@ -149,7 +124,7 @@ struct ToneRuleFlashcardView: View {
     }
 
     @ViewBuilder
-    private func sampleWordText(card: ToneRuleCard) -> some View {
+    private var sampleWordText: some View {
         let full = card.sample.full
         let focus = card.sample.focus
 
@@ -190,11 +165,11 @@ struct ToneRuleFlashcardView: View {
 
     // MARK: - Summary Section
 
-    private func summarySection(card: ToneRuleCard) -> some View {
+    private var summarySection: some View {
         VStack(alignment: .leading, spacing: 8) {
             FlashcardSummaryHeader(
                 showReveal: cardState.step != .completed,
-                onReveal: { completeCard(card: card) }
+                onReveal: { completeCard() }
             )
 
             VStack(spacing: 6) {
@@ -241,7 +216,7 @@ struct ToneRuleFlashcardView: View {
     // MARK: - Selection Area
 
     @ViewBuilder
-    private func selectionArea(card: ToneRuleCard) -> some View {
+    private var selectionArea: some View {
         switch cardState.step {
         case .selectConsonantClass:
             selectionView(
@@ -273,7 +248,7 @@ struct ToneRuleFlashcardView: View {
                 options: toneOptions
             ) { selection in
                 cardState.selectedTone = selection
-                completeCard(card: card)
+                completeCard()
             }
         case .completed:
             nextCardButton
@@ -323,7 +298,7 @@ struct ToneRuleFlashcardView: View {
 
     // MARK: - Card Completion
 
-    private func completeCard(card: ToneRuleCard) {
+    private func completeCard() {
         cardState.step = .completed
         if AudioPlayer.shared.hasToneRuleSound(for: card.sample.full) {
             AudioPlayer.shared.playToneRuleSound(for: card.sample.full)
@@ -334,26 +309,20 @@ struct ToneRuleFlashcardView: View {
 
     private var nextCardButton: some View {
         FlashcardNextButton {
-            goToNextCard()
+            handleNext()
         }
     }
 
-    // MARK: - Actions
+    // MARK: - Navigation
 
-    private func goToNextCard() {
+    private func handleNext() {
         cardState = ToneRuleCardState()
-
-        // Let parent handle navigation if callback provided
-        if let onNextCard = onNextCard {
-            onNextCard()
-        } else {
-            currentIndex = (currentIndex + 1) % cards.count
-        }
+        onNext()
     }
 
-    private func goToPreviousCard() {
+    private func handlePrevious() {
         cardState = ToneRuleCardState()
-        currentIndex = (currentIndex - 1 + cards.count) % cards.count
+        onPrevious()
     }
 }
 
@@ -398,10 +367,10 @@ extension ToneRuleCardState {
 #Preview {
     NavigationStack {
         ToneRuleFlashcardView(
-            cards: ToneRuleCard.allCards(from: ToneRule.loadAll()),
-            currentIndex: .constant(0),
-            startingRuleId: .constant(nil),
-            onViewInReference: { _ in }
+            card: ToneRuleCard.allCards(from: ToneRule.loadAll()).first!,
+            onViewInReference: { _ in },
+            onNext: {},
+            onPrevious: {}
         )
     }
 }

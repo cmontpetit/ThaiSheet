@@ -53,67 +53,42 @@ struct ToneMarkCard: Identifiable {
 }
 
 struct ToneMarkFlashcardView: View {
-    let cards: [ToneMarkCard]
-    @Binding var currentIndex: Int
-    @Binding var startingToneMark: String?
+    let card: ToneMarkCard
     var onViewInReference: ((String) -> Void)?
-    var onNextCard: (() -> Void)?
+    let onNext: () -> Void
+    let onPrevious: () -> Void
 
     @State private var cardState = ToneMarkCardState()
 
     // All possible tones for selection
     private let toneOptions = ["Low", "Mid", "High", "Falling", "Rising"]
 
-    var currentCard: ToneMarkCard? {
-        guard currentIndex < cards.count else { return nil }
-        return cards[currentIndex]
-    }
-
     var body: some View {
-        if let card = currentCard {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Tone mark display with status indicator
-                    toneMarkCardView(card: card)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Tone mark display with status indicator
+                toneMarkCardView
 
-                    // Summary section
-                    summarySection(card: card)
+                // Summary section
+                summarySection
 
-                    // Selection area
-                    selectionArea(card: card)
-                }
-                .padding()
+                // Selection area
+                selectionArea
             }
-            .onAppear {
-                if let startMark = startingToneMark,
-                   let index = cards.firstIndex(where: { $0.display == startMark }) {
-                    currentIndex = index
-                    startingToneMark = nil
-                }
-            }
-            .onChange(of: startingToneMark) { _, newValue in
-                if let startMark = newValue,
-                   let index = cards.firstIndex(where: { $0.display == startMark }) {
-                    currentIndex = index
-                    cardState = ToneMarkCardState()
-                    startingToneMark = nil
-                }
-            }
-        } else {
-            ContentUnavailableView(
-                "No Tone Marks",
-                systemImage: "character.book.closed",
-                description: Text("No tone marks available")
-            )
+            .padding()
+        }
+        .onChange(of: card.id) { _, _ in
+            // Reset state when card changes
+            cardState = ToneMarkCardState()
         }
     }
 
     // MARK: - Tone Mark Card View
 
-    private func toneMarkCardView(card: ToneMarkCard) -> some View {
+    private var toneMarkCardView: some View {
         VStack(spacing: 12) {
             // Main character with left/right tap zones for navigation
-            NavigableTapArea(onPrevious: goToPreviousCard, onNext: goToNextCard) {
+            NavigableTapArea(onPrevious: handlePrevious, onNext: handleNext) {
                 ZStack {
                     if cardState.step == .completed {
                         FlashcardStatusRing(hasError: cardState.hasError(for: card))
@@ -170,11 +145,11 @@ struct ToneMarkFlashcardView: View {
 
     // MARK: - Summary Section
 
-    private func summarySection(card: ToneMarkCard) -> some View {
+    private var summarySection: some View {
         VStack(alignment: .leading, spacing: 8) {
             FlashcardSummaryHeader(
                 showReveal: cardState.step != .completed,
-                onReveal: { completeCard(card: card) }
+                onReveal: { completeCard() }
             )
 
             VStack(spacing: 6) {
@@ -200,12 +175,12 @@ struct ToneMarkFlashcardView: View {
     // MARK: - Selection Area
 
     @ViewBuilder
-    private func selectionArea(card: ToneMarkCard) -> some View {
+    private var selectionArea: some View {
         switch cardState.step {
         case .selectClass:
-            classSelectionView(card: card)
+            classSelectionView
         case .selectTone:
-            toneSelectionView(card: card)
+            toneSelectionView
         case .completed:
             nextCardButton
         }
@@ -215,7 +190,7 @@ struct ToneMarkFlashcardView: View {
 
     private let classOptions = ["Low", "Mid/High"]
 
-    private func classSelectionView(card: ToneMarkCard) -> some View {
+    private var classSelectionView: some View {
         VStack(spacing: 16) {
             Text("Select the consonant class")
                 .font(.headline)
@@ -245,7 +220,7 @@ struct ToneMarkFlashcardView: View {
 
     // MARK: - Tone Selection
 
-    private func toneSelectionView(card: ToneMarkCard) -> some View {
+    private var toneSelectionView: some View {
         VStack(spacing: 16) {
             Text("Select the tone")
                 .font(.headline)
@@ -255,7 +230,7 @@ struct ToneMarkFlashcardView: View {
                 ForEach(toneOptions, id: \.self) { tone in
                     Button {
                         cardState.selectedTone = tone
-                        completeCard(card: card)
+                        completeCard()
                     } label: {
                         Text(tone)
                             .font(.body.weight(.medium))
@@ -276,7 +251,7 @@ struct ToneMarkFlashcardView: View {
 
     // MARK: - Card Completion
 
-    private func completeCard(card: ToneMarkCard) {
+    private func completeCard() {
         cardState.step = .completed
         if AudioPlayer.shared.hasToneMarkSound(for: card.display) {
             AudioPlayer.shared.playToneMarkSound(for: card.display)
@@ -287,26 +262,20 @@ struct ToneMarkFlashcardView: View {
 
     private var nextCardButton: some View {
         FlashcardNextButton {
-            goToNextCard()
+            handleNext()
         }
     }
 
-    // MARK: - Actions
+    // MARK: - Navigation
 
-    private func goToNextCard() {
+    private func handleNext() {
         cardState = ToneMarkCardState()
-
-        // Let parent handle navigation if callback provided
-        if let onNextCard = onNextCard {
-            onNextCard()
-        } else {
-            currentIndex = (currentIndex + 1) % cards.count
-        }
+        onNext()
     }
 
-    private func goToPreviousCard() {
+    private func handlePrevious() {
         cardState = ToneMarkCardState()
-        currentIndex = (currentIndex - 1 + cards.count) % cards.count
+        onPrevious()
     }
 }
 
@@ -339,10 +308,10 @@ extension ToneMarkCardState {
 #Preview {
     NavigationStack {
         ToneMarkFlashcardView(
-            cards: ToneMarkCard.allCards(from: ToneMark.loadAll(), consonants: Consonant.loadAll()),
-            currentIndex: .constant(0),
-            startingToneMark: .constant(nil),
-            onViewInReference: { _ in }
+            card: ToneMarkCard.allCards(from: ToneMark.loadAll(), consonants: Consonant.loadAll()).first!,
+            onViewInReference: { _ in },
+            onNext: {},
+            onPrevious: {}
         )
     }
 }
