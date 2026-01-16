@@ -9,40 +9,43 @@
           "spellings": [
             { "pattern": "ไก" },
             { "pattern": "ไก-" },
-            { "pattern": "ใก" },
+            { "pattern": "ใก", "note": "Only 20 words use ใ" },
             { "pattern": "กาย" },
             { "pattern": "กัย" },
             { "pattern": "ไกย", "usage": "ancient" }
           ]
         },
         {
-          "familyType": "structural",
-          "groupKey": "glides_y_w",
+          "familyType": "sound",
+          "soundKey": "glides_y",
+          "sounds": {
+            "en": "vowel + y glide"
+          },
           "spellings": [
-            { "pattern": "ก็อย", "label": "aawy", "usage": "rare" },
-            { "pattern": "กอย", "label": "aawy" },
-            { "pattern": "เกย", "label": "eeuy" },
-            { "pattern": "โกย", "label": "oy/ohy" },
-            { "pattern": "กุย", "label": "uy" },
-            { "pattern": "เกือย", "label": "euuay" },
-            { "pattern": "กวย", "label": "uay" },
-            { "pattern": "กวาย", "label": "uay" }
+            { "pattern": "กอย", "sounds": { "en": "aawy" } },
+            { "pattern": "ก็อย", "sounds": { "en": "aawy" }, "usage": "rare" },
+            { "pattern": "เกย", "sounds": { "en": "euuy" } },
+            { "pattern": "โกย", "sounds": { "en": "ohy" } },
+            { "pattern": "กุย", "sounds": { "en": "uy" } },
+            { "pattern": "เกือย", "sounds": { "en": "euuay" } },
+            { "pattern": "กวย", "sounds": { "en": "uay" } },
+            { "pattern": "กวาย", "sounds": { "en": "uaay" } }
           ]
         },
         {
           "familyType": "sound",
-          "soundKey": "rue_ri",
-          "special": true,
+          "soundKey": "rue_lue",
           "sounds": {
-            "en": "rue/ri/reer"
+            "en": "rue/ri, lue/li"
           },
+          "note": "Sanskrit-derived vowel characters that include an inherent r or l sound",
           "spellings": [
-            { "pattern": "ฤ-", "label": "rue" },
-            { "pattern": "ฤ", "label": "rue" },
-            { "pattern": "ฤ-", "label": "ri/reer" },
-            { "pattern": "ฤๅ", "label": "ri/reer", "usage": "ancient" }
-          ],
-          "usage": "uncommon"
+            { "pattern": "ฤ", "sounds": { "en": "rue" } },
+            { "pattern": "ฤ-", "sounds": { "en": "ri" }, "note": "With final consonant" },
+            { "pattern": "ฤๅ", "sounds": { "en": "ruue" }, "usage": "rare" },
+            { "pattern": "ฦ", "sounds": { "en": "lue" }, "usage": "archaic" },
+            { "pattern": "ฦๅ", "sounds": { "en": "luue" }, "usage": "archaic", "note": "Only in ฦๅสาย" }
+          ]
         }
     ]
 }
