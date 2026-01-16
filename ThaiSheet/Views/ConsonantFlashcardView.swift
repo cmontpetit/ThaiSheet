@@ -10,6 +10,7 @@ struct ConsonantFlashcardView: View {
     @Binding var currentIndex: Int
     @Binding var startingConsonant: String?
     var onViewInReference: ((String) -> Void)?
+    var onNextCard: (() -> Void)?
 
     @State private var cardState = CardState()
 
@@ -345,8 +346,13 @@ struct ConsonantFlashcardView: View {
         // Reset state
         cardState = CardState()
 
-        // Move to next card (loop back to start if at end)
-        currentIndex = (currentIndex + 1) % consonants.count
+        // Let parent handle navigation if callback provided
+        if let onNextCard = onNextCard {
+            onNextCard()
+        } else {
+            // Fallback: move to next card (loop back to start if at end)
+            currentIndex = (currentIndex + 1) % consonants.count
+        }
 
         // Generate new options
         if let consonant = currentConsonant {

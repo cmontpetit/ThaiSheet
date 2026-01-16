@@ -57,6 +57,7 @@ struct ToneMarkFlashcardView: View {
     @Binding var currentIndex: Int
     @Binding var startingToneMark: String?
     var onViewInReference: ((String) -> Void)?
+    var onNextCard: (() -> Void)?
 
     @State private var cardState = ToneMarkCardState()
 
@@ -294,7 +295,13 @@ struct ToneMarkFlashcardView: View {
 
     private func goToNextCard() {
         cardState = ToneMarkCardState()
-        currentIndex = (currentIndex + 1) % cards.count
+
+        // Let parent handle navigation if callback provided
+        if let onNextCard = onNextCard {
+            onNextCard()
+        } else {
+            currentIndex = (currentIndex + 1) % cards.count
+        }
     }
 
     private func goToPreviousCard() {

@@ -50,6 +50,7 @@ struct VowelFlashcardView: View {
     @Binding var currentIndex: Int
     @Binding var startingVowel: String?
     var onViewInReference: ((String) -> Void)?
+    var onNextCard: (() -> Void)?
 
     @State private var cardState = VowelCardState()
 
@@ -367,7 +368,14 @@ struct VowelFlashcardView: View {
 
     private func goToNextCard() {
         cardState = VowelCardState()
-        currentIndex = (currentIndex + 1) % cards.count
+
+        // Let parent handle navigation if callback provided
+        if let onNextCard = onNextCard {
+            onNextCard()
+        } else {
+            currentIndex = (currentIndex + 1) % cards.count
+        }
+
         if let newCard = currentCard {
             generateOptions(for: newCard)
         }
