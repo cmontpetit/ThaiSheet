@@ -102,6 +102,8 @@ struct FlashcardsView: View {
 
     @State private var showingSettings = false
     @State private var showingStats = false
+    @State private var showingFilter = false
+    @State private var filterRefreshID = UUID()
 
     private var typeLabel: String {
         guard let card = manager.currentCard else { return "Flashcard" }
@@ -246,6 +248,14 @@ struct FlashcardsView: View {
                                 Image(systemName: "chart.bar")
                             }
                             Button {
+                                showingFilter = true
+                            } label: {
+                                Image(systemName: manager.settings.isAllSelected
+                                    ? "line.3.horizontal.decrease.circle"
+                                    : "line.3.horizontal.decrease.circle.fill")
+                            }
+                            .id(filterRefreshID)
+                            Button {
                                 showingSettings = true
                             } label: {
                                 Image(systemName: "gearshape")
@@ -253,6 +263,15 @@ struct FlashcardsView: View {
                         }
                     }
                 }
+            }
+        }
+        .sheet(isPresented: $showingFilter) {
+            FlashcardFilterView(settings: manager.settings)
+        }
+        .onChange(of: showingFilter) { _, isShowing in
+            if !isShowing {
+                // Refresh filter icon when sheet closes
+                filterRefreshID = UUID()
             }
         }
         .sheet(isPresented: $showingSettings) {

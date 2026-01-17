@@ -8,96 +8,31 @@ import SwiftUI
 struct FlashcardSettingsView: View {
     @Bindable var settings: FlashcardSettings
     @Environment(\.dismiss) private var dismiss
-    @State private var refreshID = UUID()
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    Toggle("Smart Selection", isOn: $settings.useIntelligentSelection)
-                } header: {
-                    Text("Card Selection Mode")
-                } footer: {
-                    Text(settings.useIntelligentSelection
-                        ? "Cards you struggle with appear more often."
-                        : "Cards appear in sequential order.")
-                }
-
-                Section {
-                    HStack {
-                        Button("Select All") {
-                            settings.selectAll()
-                            refreshID = UUID()
-                        }
-                        .disabled(settings.isAllSelected)
-
-                        Spacer()
-
-                        Button("Reset") {
-                            settings.resetToDefault()
-                            refreshID = UUID()
-                        }
-                        .disabled(settings.isDefault)
+                    strategyOption(
+                        title: "Smart (Wanikani-style SRS)",
+                        description: "Prioritizes cards due for review based on your progress. Uses spaced repetition to optimize learning.",
+                        isSelected: settings.useIntelligentSelection
+                    ) {
+                        settings.useIntelligentSelection = true
                     }
-                }
 
-                Section {
-                    settingToggle(
-                        title: "High consonants",
-                        isOn: $settings.highConsonants
-                    )
-                    settingToggle(
-                        title: "Mid consonants",
-                        isOn: $settings.midConsonants
-                    )
-                    settingToggle(
-                        title: "Low consonants",
-                        isOn: $settings.lowConsonants
-                    )
-                    settingToggle(
-                        title: "Uncommon, rare & ancient",
-                        isOn: $settings.uncommonConsonants
-                    )
+                    strategyOption(
+                        title: "Sequential",
+                        description: "Shows cards in fixed order. Good for systematic review of all cards.",
+                        isSelected: !settings.useIntelligentSelection
+                    ) {
+                        settings.useIntelligentSelection = false
+                    }
                 } header: {
-                    Text("Consonants")
-                }
-
-                Section {
-                    settingToggle(
-                        title: "Long vowels",
-                        isOn: $settings.longVowels
-                    )
-                    settingToggle(
-                        title: "Short vowels",
-                        isOn: $settings.shortVowels
-                    )
-                } header: {
-                    Text("Vowels")
-                }
-
-                Section {
-                    settingToggle(
-                        title: "High consonant tone rules",
-                        isOn: $settings.highToneRules
-                    )
-                    settingToggle(
-                        title: "Mid consonant tone rules",
-                        isOn: $settings.midToneRules
-                    )
-                    settingToggle(
-                        title: "Low consonant tone rules",
-                        isOn: $settings.lowToneRules
-                    )
-                    settingToggle(
-                        title: "Tone marks",
-                        isOn: $settings.toneMarks
-                    )
-                } header: {
-                    Text("Tones")
+                    Text("Learning Strategy")
                 }
             }
-            .id(refreshID)
-            .navigationTitle("Flashcard Settings")
+            .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -110,18 +45,34 @@ struct FlashcardSettingsView: View {
     }
 
     @ViewBuilder
-    private func settingToggle(title: String, isOn: Binding<Bool>) -> some View {
-        Toggle(title, isOn: Binding(
-            get: { isOn.wrappedValue },
-            set: { newValue in
-                // Prevent disabling if it's the last enabled option
-                if !newValue && settings.isLastEnabled && isOn.wrappedValue {
-                    // Don't allow turning off - it's the last one
-                    return
+    private func strategyOption(
+        title: String,
+        description: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(isSelected ? .accentColor : .secondary)
+                    .font(.title2)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.body.weight(.medium))
+                        .foregroundColor(.primary)
+
+                    Text(description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                isOn.wrappedValue = newValue
+
+                Spacer()
             }
-        ))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
