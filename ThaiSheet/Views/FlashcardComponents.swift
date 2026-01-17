@@ -255,64 +255,69 @@ struct FlashcardGridButton: View {
 
 /// Shows progress indicator for current card
 /// - Wanikani mode: 8 dots with stage name
-/// - Sequential mode: progress bar with position
+/// - Sequential mode: 8 dots with position and stage name
 struct StageIndicatorView: View {
     let mode: StageIndicatorMode
 
     enum StageIndicatorMode {
-        case wanikani(stage: SRSStage, isCapped: Bool)
-        case sequential(current: Int, total: Int)
+        case stage(stage: SRSStage, isCapped: Bool)
     }
 
     /// The stage at which partial testing caps advancement
     private static let cappedStage: SRSStage = .familiar2
 
     var body: some View {
-        VStack(spacing: 4) {
-            switch mode {
-            case .wanikani(let stage, let isCapped):
-                wanikaniIndicator(stage: stage, isCapped: isCapped)
-            case .sequential(let current, let total):
-                sequentialIndicator(current: current, total: total)
+        switch mode {
+        case .stage(let stage, let isCapped):
+            stageIndicator(stage: stage, isCapped: isCapped)
+        }
+    }
+
+    // MARK: - Stage Indicator
+
+    private func stageIndicator(stage: SRSStage, isCapped: Bool) -> some View {
+        VStack(spacing: 2) {
+            // 8 dots (Learning 1 through Mastered)
+            stageDots(stage: stage, isCapped: isCapped)
+
+            // Stage name with capped indicator
+            stageLabel(stage: stage, isCapped: isCapped)
+        }
+    }
+
+    // MARK: - Shared Components
+
+    private func stageDots(stage: SRSStage, isCapped: Bool) -> some View {
+        HStack(spacing: 4) {
+            ForEach(1...8, id: \.self) { dotIndex in
+                let isCurrent = dotIndex == stage.rawValue
+                let isBeyondCap = isCapped && dotIndex > Self.cappedStage.rawValue
+
+                Circle()
+                    .fill(dotFillColor(isCurrent: isCurrent, isBeyondCap: isBeyondCap))
+                    .frame(width: 8, height: 8)
+                    .overlay {
+                        // Show lock on capped dots
+                        if isBeyondCap && !isCurrent {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 5))
+                                .foregroundColor(.gray.opacity(0.6))
+                        }
+                    }
             }
         }
     }
 
-    // MARK: - Wanikani Indicator
+    private func stageLabel(stage: SRSStage, isCapped: Bool) -> some View {
+        HStack(spacing: 3) {
+            Text(stage.displayName)
+                .font(.caption2)
+                .foregroundColor(.secondary)
 
-    private func wanikaniIndicator(stage: SRSStage, isCapped: Bool) -> some View {
-        VStack(spacing: 2) {
-            // 8 dots (Learning 1 through Mastered)
-            HStack(spacing: 4) {
-                ForEach(1...8, id: \.self) { dotIndex in
-                    let isCurrent = dotIndex == stage.rawValue
-                    let isBeyondCap = isCapped && dotIndex > Self.cappedStage.rawValue
-
-                    Circle()
-                        .fill(dotFillColor(isCurrent: isCurrent, isBeyondCap: isBeyondCap))
-                        .frame(width: 8, height: 8)
-                        .overlay {
-                            // Show lock on capped dots
-                            if isBeyondCap && !isCurrent {
-                                Image(systemName: "lock.fill")
-                                    .font(.system(size: 5))
-                                    .foregroundColor(.gray.opacity(0.6))
-                            }
-                        }
-                }
-            }
-
-            // Stage name with capped indicator
-            HStack(spacing: 3) {
-                Text(stage.displayName)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-
-                if isCapped {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 8))
-                        .foregroundColor(.orange)
-                }
+            if isCapped {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 8))
+                    .foregroundColor(.orange)
             }
         }
     }
@@ -326,70 +331,25 @@ struct StageIndicatorView: View {
             return Color.gray.opacity(0.3)
         }
     }
-
-    // MARK: - Sequential Indicator
-
-    private func sequentialIndicator(current: Int, total: Int) -> some View {
-        VStack(spacing: 2) {
-            // Progress bar with position marker
-            GeometryReader { geometry in
-                let width = geometry.size.width
-                let progress = total > 1 ? CGFloat(current - 1) / CGFloat(total - 1) : 0.5
-                let markerX = width * progress
-
-                ZStack(alignment: .leading) {
-                    // Track
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 2)
-
-                    // Filled portion
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.5))
-                        .frame(width: markerX, height: 2)
-
-                    // Position marker
-                    Circle()
-                        .fill(Color.primary)
-                        .frame(width: 8, height: 8)
-                        .offset(x: markerX - 4)
-                }
-            }
-            .frame(width: 80, height: 8)
-
-            // Position text
-            Text("\(current) / \(total)")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-    }
 }
 
 // MARK: - Previews
 
 #Preview("Stage Indicators") {
     VStack(spacing: 30) {
-        // Wanikani indicators - not capped
+        // Stage indicators - not capped
         Text("Full Testing").font(.caption).foregroundColor(.secondary)
         ForEach([SRSStage.new, .learning1, .apprentice1, .familiar1, .confident, .mastered], id: \.rawValue) { stage in
-            StageIndicatorView(mode: .wanikani(stage: stage, isCapped: false))
+            StageIndicatorView(mode: .stage(stage: stage, isCapped: false))
         }
 
         Divider()
 
-        // Wanikani indicators - capped
+        // Stage indicators - capped
         Text("Partial Testing (Capped)").font(.caption).foregroundColor(.secondary)
         ForEach([SRSStage.learning1, .familiar1, .familiar2], id: \.rawValue) { stage in
-            StageIndicatorView(mode: .wanikani(stage: stage, isCapped: true))
+            StageIndicatorView(mode: .stage(stage: stage, isCapped: true))
         }
-
-        Divider()
-
-        // Sequential indicators
-        Text("Sequential Mode").font(.caption).foregroundColor(.secondary)
-        StageIndicatorView(mode: .sequential(current: 1, total: 44))
-        StageIndicatorView(mode: .sequential(current: 12, total: 44))
-        StageIndicatorView(mode: .sequential(current: 44, total: 44))
     }
     .padding()
 }

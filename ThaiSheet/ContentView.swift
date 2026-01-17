@@ -114,16 +114,20 @@ struct FlashcardsView: View {
 
     @ViewBuilder
     private func stageIndicator(for card: FlashcardItem) -> some View {
-        if manager.settings.useIntelligentSelection {
-            // Wanikani mode: show SRS stage
-            let stage = manager.learningModel.srsStage(for: card)
-            let isCapped = manager.settings.isPartialTesting(for: card.type)
-            StageIndicatorView(mode: .wanikani(stage: stage, isCapped: isCapped))
-        } else {
-            // Sequential mode: show position
+        let stage = manager.learningModel.srsStage(for: card)
+        let isCapped = manager.settings.isPartialTesting(for: card.type)
+        StageIndicatorView(mode: .stage(stage: stage, isCapped: isCapped))
+    }
+
+    /// Position indicator for sequential mode (e.g., "12 / 44")
+    @ViewBuilder
+    private var positionIndicator: some View {
+        if !manager.settings.useIntelligentSelection {
             let current = manager.currentIndex + 1
             let total = manager.filteredCards.count
-            StageIndicatorView(mode: .sequential(current: current, total: total))
+            Text("\(current) / \(total)")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
 
@@ -154,12 +158,14 @@ struct FlashcardsView: View {
                 }
             } else if let card = manager.currentCard {
                 VStack(spacing: 0) {
-                    // Type indicator and stage indicator
+                    // Type indicator, position (sequential mode), and stage indicator
                     HStack {
                         Text(typeLabel)
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .textCase(.uppercase)
+                        Spacer()
+                        positionIndicator
                         Spacer()
                         stageIndicator(for: card)
                     }
