@@ -64,6 +64,12 @@ class FlashcardSettings {
         set { defaults.set(newValue, forKey: "fc_toneMarks") }
     }
 
+    // Selection mode
+    var useIntelligentSelection: Bool {
+        get { defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false }
+        set { defaults.set(newValue, forKey: "fc_useIntelligentSelection") }
+    }
+
     // Count of enabled options
     var enabledCount: Int {
         var count = 0

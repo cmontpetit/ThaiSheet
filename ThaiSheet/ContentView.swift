@@ -21,6 +21,7 @@ enum FlashcardType {
 
 struct ContentView: View {
     @State private var settings = FlashcardSettings()
+    @State private var learningModel = LearningModel()
     @State private var manager: FlashcardManager?
     @State private var selectedTab: AppTab = .flashcards
     @State private var highlightedConsonant: String? = nil
@@ -81,7 +82,7 @@ struct ContentView: View {
         }
         .onAppear {
             if manager == nil {
-                manager = FlashcardManager(settings: settings)
+                manager = FlashcardManager(settings: settings, learningModel: learningModel)
             }
         }
     }
@@ -159,6 +160,9 @@ struct FlashcardsView: View {
                                 highlightedConsonant = character
                                 selectedTab = .reference
                             },
+                            onComplete: { correct in
+                                manager.learningModel.recordResult(for: card, correct: correct)
+                            },
                             onNext: { manager.nextCard() },
                             onPrevious: { manager.previousCard() }
                         )
@@ -170,6 +174,9 @@ struct FlashcardsView: View {
                                 highlightedVowel = vowel
                                 selectedTab = .reference
                             },
+                            onComplete: { correct in
+                                manager.learningModel.recordResult(for: card, correct: correct)
+                            },
                             onNext: { manager.nextCard() },
                             onPrevious: { manager.previousCard() }
                         )
@@ -180,6 +187,9 @@ struct FlashcardsView: View {
                                 highlightedToneMark = display
                                 selectedTab = .reference
                             },
+                            onComplete: { correct in
+                                manager.learningModel.recordResult(for: card, correct: correct)
+                            },
                             onNext: { manager.nextCard() },
                             onPrevious: { manager.previousCard() }
                         )
@@ -189,6 +199,9 @@ struct FlashcardsView: View {
                             onViewInReference: { ruleId in
                                 highlightedToneRule = ruleId
                                 selectedTab = .reference
+                            },
+                            onComplete: { correct in
+                                manager.learningModel.recordResult(for: card, correct: correct)
                             },
                             onNext: { manager.nextCard() },
                             onPrevious: { manager.previousCard() }

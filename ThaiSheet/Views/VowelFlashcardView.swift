@@ -48,6 +48,7 @@ struct VowelFlashcardView: View {
     let card: VowelCard
     let allVowels: [Vowel]  // For generating quiz options
     var onViewInReference: ((String) -> Void)?
+    var onComplete: ((Bool) -> Void)?
     let onNext: () -> Void
     let onPrevious: () -> Void
 
@@ -322,11 +323,16 @@ struct VowelFlashcardView: View {
 
     private func completeCard() {
         cardState.step = .completed
+        // Record result: correct if no errors were made
+        let wasCorrect = !cardState.hasError(for: card)
+        onComplete?(wasCorrect)
         playVowelSound()
     }
 
     private func completeCardEarly() {
         cardState.step = .completed
+        // Revealed early = not answered correctly
+        onComplete?(false)
         playVowelSound()
     }
 

@@ -14,6 +14,16 @@ struct FlashcardSettingsView: View {
         NavigationStack {
             Form {
                 Section {
+                    Toggle("Smart Selection", isOn: $settings.useIntelligentSelection)
+                } header: {
+                    Text("Card Selection Mode")
+                } footer: {
+                    Text(settings.useIntelligentSelection
+                        ? "Cards you struggle with appear more often."
+                        : "Cards appear in sequential order.")
+                }
+
+                Section {
                     HStack {
                         Button("Select All") {
                             settings.selectAll()

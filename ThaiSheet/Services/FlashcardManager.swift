@@ -20,8 +20,12 @@ class FlashcardManager {
     // Settings reference
     let settings: FlashcardSettings
 
-    // Current position in filtered cards
-    private(set) var currentIndex: Int = 0
+    // Learning model (shared, tracks progress)
+    let learningModel: LearningModel
+
+    // Selection strategies
+    private let sequentialStrategy = SequentialStrategy()
+    private let intelligentStrategy = IntelligentStrategy()
 
     // Override card (shown once when jumping from Reference, clears on navigation)
     private var overrideCard: FlashcardItem? = nil
@@ -29,13 +33,19 @@ class FlashcardManager {
     // Track settings state to detect changes
     private var lastSettingsHash: Int = 0
 
+    /// Current active strategy based on settings
+    private var activeStrategy: CardSelectionStrategy {
+        settings.useIntelligentSelection ? intelligentStrategy : sequentialStrategy
+    }
+
     var isLoaded: Bool {
         !allConsonants.isEmpty && !allVowelCards.isEmpty &&
         !allToneMarkCards.isEmpty && !allToneRuleCards.isEmpty
     }
 
-    init(settings: FlashcardSettings) {
+    init(settings: FlashcardSettings, learningModel: LearningModel) {
         self.settings = settings
+        self.learningModel = learningModel
         loadAllData()
     }
 
@@ -49,6 +59,16 @@ class FlashcardManager {
         allToneMarkCards = ToneMarkCard.allCards(from: allToneMarks, consonants: allConsonants)
         allToneRules = ToneRule.loadAll()
         allToneRuleCards = ToneRuleCard.allCards(from: allToneRules)
+
+        // Update strategies with initial cards
+        updateStrategies()
+    }
+
+    /// Update both strategies with current filtered cards
+    private func updateStrategies() {
+        let cards = filteredCards
+        sequentialStrategy.update(cards: cards, learningModel: learningModel)
+        intelligentStrategy.update(cards: cards, learningModel: learningModel)
     }
 
     // MARK: - Filtered Cards
@@ -111,13 +131,15 @@ class FlashcardManager {
         if let override = overrideCard {
             return override
         }
+        return activeStrategy.currentCard
+    }
 
-        let cards = filteredCards
-        guard !cards.isEmpty else { return nil }
-
-        // Ensure index is valid
-        let safeIndex = currentIndex % cards.count
-        return cards[safeIndex]
+    /// Current index (for sequential mode display)
+    var currentIndex: Int {
+        if let id = currentCard?.id {
+            return sequentialStrategy.indexOf(cardId: id) ?? 0
+        }
+        return 0
     }
 
     // MARK: - Navigation
@@ -125,114 +147,89 @@ class FlashcardManager {
     func nextCard() {
         // Clear override and resume normal navigation
         overrideCard = nil
-
-        let cards = filteredCards
-        guard !cards.isEmpty else { return }
-
-        currentIndex = (currentIndex + 1) % cards.count
+        activeStrategy.nextCard()
     }
 
     func previousCard() {
         // Clear override and resume normal navigation
         overrideCard = nil
-
-        let cards = filteredCards
-        guard !cards.isEmpty else { return }
-
-        currentIndex = (currentIndex - 1 + cards.count) % cards.count
+        activeStrategy.previousCard()
     }
 
     /// Jump to a specific card (e.g., from Reference view)
     func jumpTo(item: FlashcardItem) {
-        let cards = filteredCards
-        if let index = cards.firstIndex(where: { $0.id == item.id }) {
-            currentIndex = index
+        // Jump in both strategies to keep them in sync
+        if let index = sequentialStrategy.indexOf(cardId: item.id) {
+            sequentialStrategy.jumpTo(index: index)
         }
+        intelligentStrategy.jumpTo(card: item)
     }
 
     /// Jump to a consonant by character (sets override if not in filtered list)
     func jumpToConsonant(_ character: String) {
         guard let consonant = allConsonants.first(where: { $0.character == character }) else { return }
+        let item = FlashcardItem.consonant(consonant)
 
-        let cards = filteredCards
-        if let index = cards.firstIndex(where: {
-            if case .consonant(let c) = $0 {
-                return c.character == character
-            }
-            return false
-        }) {
+        if sequentialStrategy.indexOf(cardId: item.id) != nil {
             // Card is in filtered list, jump to it
             overrideCard = nil
-            currentIndex = index
+            jumpTo(item: item)
         } else {
             // Card not in filtered list, show as override
-            overrideCard = .consonant(consonant)
+            overrideCard = item
         }
     }
 
     /// Jump to a vowel by display string (sets override if not in filtered list)
     func jumpToVowel(_ display: String) {
         guard let vowelCard = allVowelCards.first(where: { $0.display == display }) else { return }
+        let item = FlashcardItem.vowel(vowelCard)
 
-        let cards = filteredCards
-        if let index = cards.firstIndex(where: {
-            if case .vowel(let v) = $0 {
-                return v.display == display
-            }
-            return false
-        }) {
+        if sequentialStrategy.indexOf(cardId: item.id) != nil {
             // Card is in filtered list, jump to it
             overrideCard = nil
-            currentIndex = index
+            jumpTo(item: item)
         } else {
             // Card not in filtered list, show as override
-            overrideCard = .vowel(vowelCard)
+            overrideCard = item
         }
     }
 
     /// Jump to a tone mark by display string (sets override if not in filtered list)
     func jumpToToneMark(_ display: String) {
         guard let toneMarkCard = allToneMarkCards.first(where: { $0.display == display }) else { return }
+        let item = FlashcardItem.toneMark(toneMarkCard)
 
-        let cards = filteredCards
-        if let index = cards.firstIndex(where: {
-            if case .toneMark(let t) = $0 {
-                return t.display == display
-            }
-            return false
-        }) {
+        if sequentialStrategy.indexOf(cardId: item.id) != nil {
             // Card is in filtered list, jump to it
             overrideCard = nil
-            currentIndex = index
+            jumpTo(item: item)
         } else {
             // Card not in filtered list, show as override
-            overrideCard = .toneMark(toneMarkCard)
+            overrideCard = item
         }
     }
 
     /// Jump to a tone rule by ID (sets override if not in filtered list)
     func jumpToToneRule(_ ruleId: String) {
         guard let ruleCard = allToneRuleCards.first(where: { $0.rule.id == ruleId }) else { return }
+        let item = FlashcardItem.toneRule(ruleCard)
 
-        let cards = filteredCards
-        if let index = cards.firstIndex(where: {
-            if case .toneRule(let t) = $0 {
-                return t.rule.id == ruleId
-            }
-            return false
-        }) {
+        if sequentialStrategy.indexOf(cardId: item.id) != nil {
             // Card is in filtered list, jump to it
             overrideCard = nil
-            currentIndex = index
+            jumpTo(item: item)
         } else {
             // Card not in filtered list, show as override
-            overrideCard = .toneRule(ruleCard)
+            overrideCard = item
         }
     }
 
-    /// Reset to first card (call when settings change)
+    /// Reset to first card and update strategies (call when settings change)
     func resetToStart() {
-        currentIndex = 0
+        updateStrategies()
+        sequentialStrategy.reset()
+        intelligentStrategy.reset()
     }
 
     // MARK: - For generating quiz options

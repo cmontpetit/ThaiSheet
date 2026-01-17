@@ -9,6 +9,7 @@ struct ConsonantFlashcardView: View {
     let consonant: Consonant
     let allConsonants: [Consonant]  // For generating quiz options
     var onViewInReference: ((String) -> Void)?
+    var onComplete: ((Bool) -> Void)?
     let onNext: () -> Void
     let onPrevious: () -> Void
 
@@ -295,11 +296,16 @@ struct ConsonantFlashcardView: View {
 
     private func completeCard() {
         cardState.step = .completed
+        // Record result: correct if no errors were made
+        let wasCorrect = !cardState.hasError(for: consonant)
+        onComplete?(wasCorrect)
         AudioPlayer.shared.playConsonantSound(for: consonant.character)
     }
 
     private func completeCardEarly() {
         cardState.step = .completed
+        // Revealed early = not answered correctly
+        onComplete?(false)
         AudioPlayer.shared.playConsonantSound(for: consonant.character)
     }
 

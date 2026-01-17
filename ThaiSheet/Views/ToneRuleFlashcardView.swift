@@ -32,6 +32,7 @@ struct ToneRuleCard: Identifiable {
 struct ToneRuleFlashcardView: View {
     let card: ToneRuleCard
     var onViewInReference: ((String) -> Void)?
+    var onComplete: ((Bool) -> Void)?
     let onNext: () -> Void
     let onPrevious: () -> Void
 
@@ -75,7 +76,7 @@ struct ToneRuleFlashcardView: View {
                 NavigableTapArea(
                     onPrevious: handlePrevious,
                     onNext: handleNext,
-                    onReveal: cardState.step != .completed ? { completeCard() } : nil
+                    onReveal: cardState.step != .completed ? { completeCardEarly() } : nil
                 ) {
                     // Display the sample word with focus highlighting
                     sampleWordText
@@ -165,7 +166,7 @@ struct ToneRuleFlashcardView: View {
         VStack(alignment: .leading, spacing: 8) {
             FlashcardSummaryHeader(
                 showReveal: cardState.step != .completed,
-                onReveal: { completeCard() }
+                onReveal: { completeCardEarly() }
             )
 
             VStack(spacing: 6) {
@@ -296,6 +297,18 @@ struct ToneRuleFlashcardView: View {
 
     private func completeCard() {
         cardState.step = .completed
+        // Record result: correct if no errors were made
+        let wasCorrect = !cardState.hasError(for: card)
+        onComplete?(wasCorrect)
+        if AudioPlayer.shared.hasToneRuleSound(for: card.sample.full) {
+            AudioPlayer.shared.playToneRuleSound(for: card.sample.full)
+        }
+    }
+
+    private func completeCardEarly() {
+        cardState.step = .completed
+        // Revealed early = not answered correctly
+        onComplete?(false)
         if AudioPlayer.shared.hasToneRuleSound(for: card.sample.full) {
             AudioPlayer.shared.playToneRuleSound(for: card.sample.full)
         }
