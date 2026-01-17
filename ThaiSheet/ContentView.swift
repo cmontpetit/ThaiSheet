@@ -101,6 +101,7 @@ struct FlashcardsView: View {
     @Binding var selectedTab: AppTab
 
     @State private var showingSettings = false
+    @State private var showingStats = false
 
     private var typeLabel: String {
         guard let card = manager.currentCard else { return "Flashcard" }
@@ -238,10 +239,17 @@ struct FlashcardsView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showingSettings = true
-                        } label: {
-                            Image(systemName: "gearshape")
+                        HStack(spacing: 16) {
+                            Button {
+                                showingStats = true
+                            } label: {
+                                Image(systemName: "chart.bar")
+                            }
+                            Button {
+                                showingSettings = true
+                            } label: {
+                                Image(systemName: "gearshape")
+                            }
                         }
                     }
                 }
@@ -249,6 +257,12 @@ struct FlashcardsView: View {
         }
         .sheet(isPresented: $showingSettings) {
             FlashcardSettingsView(settings: manager.settings)
+        }
+        .sheet(isPresented: $showingStats) {
+            SRSStatsView(
+                learningModel: manager.learningModel,
+                filteredCards: manager.filteredCards
+            )
         }
         .onChange(of: manager.settings.highConsonants) { _, _ in manager.resetToStart() }
         .onChange(of: manager.settings.midConsonants) { _, _ in manager.resetToStart() }
