@@ -112,6 +112,21 @@ struct FlashcardsView: View {
         }
     }
 
+    @ViewBuilder
+    private func stageIndicator(for card: FlashcardItem) -> some View {
+        if manager.settings.useIntelligentSelection {
+            // Wanikani mode: show SRS stage
+            let stage = manager.learningModel.srsStage(for: card)
+            let isCapped = manager.settings.isPartialTesting(for: card.type)
+            StageIndicatorView(mode: .wanikani(stage: stage, isCapped: isCapped))
+        } else {
+            // Sequential mode: show position
+            let current = manager.currentIndex + 1
+            let total = manager.filteredCards.count
+            StageIndicatorView(mode: .sequential(current: current, total: total))
+        }
+    }
+
     var body: some View {
         NavigationStack {
             if !manager.isLoaded {
@@ -139,13 +154,14 @@ struct FlashcardsView: View {
                 }
             } else if let card = manager.currentCard {
                 VStack(spacing: 0) {
-                    // Type indicator
+                    // Type indicator and stage indicator
                     HStack {
                         Text(typeLabel)
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .textCase(.uppercase)
                         Spacer()
+                        stageIndicator(for: card)
                     }
                     .padding(.horizontal)
                     .padding(.top, 8)
@@ -161,7 +177,8 @@ struct FlashcardsView: View {
                                 selectedTab = .reference
                             },
                             onComplete: { correct in
-                                manager.learningModel.recordResult(for: card, correct: correct)
+                                let fullTesting = !manager.settings.isPartialTesting(for: .consonant)
+                                manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
                             },
                             onNext: { manager.nextCard() },
                             onPrevious: { manager.previousCard() }
@@ -175,7 +192,8 @@ struct FlashcardsView: View {
                                 selectedTab = .reference
                             },
                             onComplete: { correct in
-                                manager.learningModel.recordResult(for: card, correct: correct)
+                                let fullTesting = !manager.settings.isPartialTesting(for: .vowel)
+                                manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
                             },
                             onNext: { manager.nextCard() },
                             onPrevious: { manager.previousCard() }
@@ -188,7 +206,8 @@ struct FlashcardsView: View {
                                 selectedTab = .reference
                             },
                             onComplete: { correct in
-                                manager.learningModel.recordResult(for: card, correct: correct)
+                                let fullTesting = !manager.settings.isPartialTesting(for: .toneMark)
+                                manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
                             },
                             onNext: { manager.nextCard() },
                             onPrevious: { manager.previousCard() }
@@ -201,7 +220,8 @@ struct FlashcardsView: View {
                                 selectedTab = .reference
                             },
                             onComplete: { correct in
-                                manager.learningModel.recordResult(for: card, correct: correct)
+                                let fullTesting = !manager.settings.isPartialTesting(for: .toneRule)
+                                manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
                             },
                             onNext: { manager.nextCard() },
                             onPrevious: { manager.previousCard() }

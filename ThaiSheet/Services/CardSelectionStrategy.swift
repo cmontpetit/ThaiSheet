@@ -71,11 +71,11 @@ class SequentialStrategy: CardSelectionStrategy {
     }
 }
 
-// MARK: - Intelligent Strategy
+// MARK: - Wanikani Strategy
 
-/// Selects cards based on learning progress using weighted random selection
+/// Selects cards using Wanikani-style SRS: prioritizes due cards, then new cards
 @Observable
-class IntelligentStrategy: CardSelectionStrategy {
+class WanikaniStrategy: CardSelectionStrategy {
     private var cards: [FlashcardItem] = []
     private var learningModel: LearningModel?
     private var current: FlashcardItem?
@@ -98,8 +98,8 @@ class IntelligentStrategy: CardSelectionStrategy {
             return
         }
 
-        // Select next card using weighted random
-        let next = selectWeightedCard()
+        // Select next card using SRS logic
+        let next = selectSRSCard()
         current = next
 
         // Add to history
@@ -147,34 +147,57 @@ class IntelligentStrategy: CardSelectionStrategy {
         }
     }
 
-    /// Select a card using weighted random selection
-    private func selectWeightedCard() -> FlashcardItem? {
+    /// Select a card using Wanikani-style SRS prioritization
+    private func selectSRSCard() -> FlashcardItem? {
         guard !cards.isEmpty, let model = learningModel else {
             return cards.first
         }
 
-        // Build weights
-        var weights: [Double] = []
+        // Categorize cards
+        var dueCards: [(card: FlashcardItem, overdueSeconds: TimeInterval)] = []
+        var newCards: [FlashcardItem] = []
+        var futureCards: [(card: FlashcardItem, nextReview: Date)] = []
+
         for card in cards {
-            weights.append(model.selectionWeight(for: card))
-        }
+            let progress = model.getProgress(for: card)
 
-        // Calculate total weight
-        let totalWeight = weights.reduce(0, +)
-        guard totalWeight > 0 else {
-            return cards.randomElement()
-        }
+            // Skip mastered cards
+            if progress.srsStage == .mastered {
+                continue
+            }
 
-        // Random selection
-        var randomValue = Double.random(in: 0..<totalWeight)
-        for (index, weight) in weights.enumerated() {
-            randomValue -= weight
-            if randomValue <= 0 {
-                return cards[index]
+            if progress.srsStage == .new {
+                newCards.append(card)
+            } else if progress.isDue {
+                dueCards.append((card, progress.overdueSeconds))
+            } else if let nextReview = progress.nextReviewDate {
+                futureCards.append((card, nextReview))
             }
         }
 
-        return cards.last
+        // Priority 1: Due cards (most overdue first, with some randomness)
+        if !dueCards.isEmpty {
+            // Sort by most overdue, then pick randomly from top candidates
+            let sorted = dueCards.sorted { $0.overdueSeconds > $1.overdueSeconds }
+            // Pick from top 3 most overdue (adds variety)
+            let topCount = min(3, sorted.count)
+            let topCards = Array(sorted.prefix(topCount))
+            return topCards.randomElement()?.card
+        }
+
+        // Priority 2: New cards (random selection to introduce variety)
+        if !newCards.isEmpty {
+            return newCards.randomElement()
+        }
+
+        // Priority 3: Future cards (show soonest upcoming, but only if nothing else available)
+        if !futureCards.isEmpty {
+            let sorted = futureCards.sorted { $0.nextReview < $1.nextReview }
+            return sorted.first?.card
+        }
+
+        // Fallback: all cards are mastered, show random from full list
+        return cards.randomElement()
     }
 
     /// Jump to a specific card (for FlashcardManager.jumpTo)

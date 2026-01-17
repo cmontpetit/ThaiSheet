@@ -171,4 +171,55 @@ class FlashcardSettings {
         !longVowels && !shortVowels &&
         !highToneRules && !midToneRules && !lowToneRules && !toneMarks
     }
+
+    // MARK: - Partial Testing Detection
+
+    /// Returns true if the current filters make any questions trivial for this card type.
+    /// Used to determine if SRS advancement should be capped.
+    func isPartialTesting(for cardType: FlashcardType) -> Bool {
+        switch cardType {
+        case .consonant:
+            // Class question is trivial if only one consonant class is enabled
+            return enabledConsonantClassCount == 1
+
+        case .vowel:
+            // Duration question is trivial if only one duration is enabled
+            return enabledVowelDurationCount == 1
+
+        case .toneMark:
+            // ToneMark cards always test class (Low vs Mid/High) - not affected by consonant filters
+            // since the cards use their own random consonants
+            return false
+
+        case .toneRule:
+            // Consonant class question is trivial if only one class is enabled
+            return enabledToneRuleClassCount == 1
+        }
+    }
+
+    /// Count of enabled consonant classes (high/mid/low, excluding uncommon)
+    private var enabledConsonantClassCount: Int {
+        var count = 0
+        if highConsonants { count += 1 }
+        if midConsonants { count += 1 }
+        if lowConsonants { count += 1 }
+        return count
+    }
+
+    /// Count of enabled vowel durations
+    private var enabledVowelDurationCount: Int {
+        var count = 0
+        if longVowels { count += 1 }
+        if shortVowels { count += 1 }
+        return count
+    }
+
+    /// Count of enabled tone rule consonant classes
+    private var enabledToneRuleClassCount: Int {
+        var count = 0
+        if highToneRules { count += 1 }
+        if midToneRules { count += 1 }
+        if lowToneRules { count += 1 }
+        return count
+    }
 }

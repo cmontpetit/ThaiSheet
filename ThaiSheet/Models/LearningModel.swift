@@ -5,7 +5,7 @@
 
 import Foundation
 
-/// Tracks learning progress for all flashcards, persisted to UserDefaults
+/// Tracks learning progress for all flashcards using Wanikani-style SRS
 @Observable
 class LearningModel {
     private static let storageKey = "learningProgress"
@@ -19,16 +19,40 @@ class LearningModel {
 
     // MARK: - Public API
 
-    /// Record a result for a card
-    func recordResult(for card: FlashcardItem, correct: Bool) {
+    /// Maximum stage allowed for partial testing (capped at Familiar 2)
+    private static let partialTestingMaxStage: SRSStage = .familiar2
+
+    /// Record a result for a card using Wanikani-style SRS
+    /// - Parameters:
+    ///   - card: The flashcard item
+    ///   - correct: Whether the answer was correct
+    ///   - fullTesting: If false, advancement is capped at Familiar 2 (can't reach Confident/Mastered)
+    func recordResult(for card: FlashcardItem, correct: Bool, fullTesting: Bool = true) {
         var progress = progressByCardId[card.id] ?? CardProgress(cardId: card.id)
 
         if correct {
             progress.correctCount += 1
+            var newStage = progress.srsStage.advance()
+
+            // Cap advancement for partial testing
+            if !fullTesting && newStage > LearningModel.partialTestingMaxStage {
+                newStage = LearningModel.partialTestingMaxStage
+            }
+
+            progress.srsStage = newStage
         } else {
             progress.incorrectCount += 1
+            progress.srsStage = progress.srsStage.demote()
         }
+
         progress.lastReviewed = Date()
+
+        // Calculate next review date based on new stage
+        if progress.srsStage == .mastered {
+            progress.nextReviewDate = nil  // Never review again
+        } else {
+            progress.nextReviewDate = Date().addingTimeInterval(progress.srsStage.intervalSeconds)
+        }
 
         progressByCardId[card.id] = progress
         save()
@@ -44,15 +68,20 @@ class LearningModel {
         progressByCardId[cardId] ?? CardProgress(cardId: cardId)
     }
 
-    /// Get selection weight for a card (for intelligent strategy)
-    func selectionWeight(for card: FlashcardItem) -> Double {
-        getProgress(for: card).selectionWeight
-    }
-
     /// Check if a card has ever been reviewed
     func hasBeenReviewed(_ card: FlashcardItem) -> Bool {
         guard let progress = progressByCardId[card.id] else { return false }
         return progress.totalReviews > 0
+    }
+
+    /// Check if a card is due for review
+    func isDue(_ card: FlashcardItem) -> Bool {
+        getProgress(for: card).isDue
+    }
+
+    /// Get the SRS stage for a card
+    func srsStage(for card: FlashcardItem) -> SRSStage {
+        getProgress(for: card).srsStage
     }
 
     // MARK: - Statistics
@@ -73,6 +102,29 @@ class LearningModel {
         guard total > 0 else { return nil }
         let correct = progressByCardId.values.reduce(0) { $0 + $1.correctCount }
         return Double(correct) / Double(total)
+    }
+
+    /// Count of cards at each SRS stage (for statistics display)
+    func cardCountByStage(in cards: [FlashcardItem]) -> [SRSStage: Int] {
+        var counts: [SRSStage: Int] = [:]
+        for stage in SRSStage.allCases {
+            counts[stage] = 0
+        }
+        for card in cards {
+            let stage = getProgress(for: card).srsStage
+            counts[stage, default: 0] += 1
+        }
+        return counts
+    }
+
+    /// Count of cards due for review
+    func dueCardCount(in cards: [FlashcardItem]) -> Int {
+        cards.filter { isDue($0) }.count
+    }
+
+    /// Count of mastered cards
+    func masteredCardCount(in cards: [FlashcardItem]) -> Int {
+        cards.filter { srsStage(for: $0) == .mastered }.count
     }
 
     // MARK: - Reset

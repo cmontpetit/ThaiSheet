@@ -25,7 +25,7 @@ class FlashcardManager {
 
     // Selection strategies
     private let sequentialStrategy = SequentialStrategy()
-    private let intelligentStrategy = IntelligentStrategy()
+    private let wanikaniStrategy = WanikaniStrategy()
 
     // Override card (shown once when jumping from Reference, clears on navigation)
     private var overrideCard: FlashcardItem? = nil
@@ -35,7 +35,7 @@ class FlashcardManager {
 
     /// Current active strategy based on settings
     private var activeStrategy: CardSelectionStrategy {
-        settings.useIntelligentSelection ? intelligentStrategy : sequentialStrategy
+        settings.useIntelligentSelection ? wanikaniStrategy : sequentialStrategy
     }
 
     var isLoaded: Bool {
@@ -68,7 +68,7 @@ class FlashcardManager {
     private func updateStrategies() {
         let cards = filteredCards
         sequentialStrategy.update(cards: cards, learningModel: learningModel)
-        intelligentStrategy.update(cards: cards, learningModel: learningModel)
+        wanikaniStrategy.update(cards: cards, learningModel: learningModel)
     }
 
     // MARK: - Filtered Cards
@@ -162,7 +162,7 @@ class FlashcardManager {
         if let index = sequentialStrategy.indexOf(cardId: item.id) {
             sequentialStrategy.jumpTo(index: index)
         }
-        intelligentStrategy.jumpTo(card: item)
+        wanikaniStrategy.jumpTo(card: item)
     }
 
     /// Jump to a consonant by character (sets override if not in filtered list)
@@ -229,7 +229,7 @@ class FlashcardManager {
     func resetToStart() {
         updateStrategies()
         sequentialStrategy.reset()
-        intelligentStrategy.reset()
+        wanikaniStrategy.reset()
     }
 
     // MARK: - For generating quiz options
