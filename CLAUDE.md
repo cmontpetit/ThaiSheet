@@ -9,7 +9,7 @@ iOS application for learning to read Thai, based on a comprehensive cheatsheet.
 **Target users:** Thai language learners (beginner to intermediate)
 
 **Key features:**
-- **Flashcard tab**: Cards showing Thai characters with multiple-choice questions about their characteristics. Includes spaced repetition scoring (Anki-style) to optimize learning frequency.
+- **Flashcard tab**: Cards showing Thai characters with multiple-choice questions about their characteristics. Uses Wanikani-style SRS (spaced repetition) to optimize learning.
 - **Reference tab**: Browse cheatsheet clips with search by character characteristics.
 
 **Platforms:** iPhone, iPad
@@ -77,9 +77,9 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 - For data, use `ก` as the consonant placeholder; display rendering TBD
 
 ### Project Structure
-- `ThaiSheet/Models/` - Data models (Consonant, Vowel, ToneRule, ToneMark, Cluster)
-- `ThaiSheet/Views/` - SwiftUI views (CheatsheetBrowserView, row views, FilterChipView)
-- `ThaiSheet/Services/` - AudioPlayer singleton for sound playback
+- `ThaiSheet/Models/` - Data models (Consonant, Vowel, ToneRule, ToneMark, Cluster, CardProgress, LearningModel, FlashcardSettings)
+- `ThaiSheet/Views/` - SwiftUI views (CheatsheetBrowserView, flashcard views, SRSStatsView, FilterView, SettingsView)
+- `ThaiSheet/Services/` - AudioPlayer, CardSelectionStrategy (Sequential/Wanikani), FlashcardManager
 - `ThaiSheet/Resources/` - JSON data files and sounds
 
 ### Sound Files
@@ -108,6 +108,39 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
   - Real vocabulary is more pedagogically useful
   - Combinatorial explosion would require thousands of sound files
   - `full` = complete word, `focus` = syllable demonstrating the rule
+
+### SRS System (Wanikani-style)
+The app uses a Wanikani-inspired spaced repetition system with 8 stages:
+
+| Stage | Name | Interval |
+|-------|------|----------|
+| 1 | Learning | 4 hours |
+| 2 | Learning | 8 hours |
+| 3 | Apprentice | 1 day |
+| 4 | Apprentice | 2 days |
+| 5 | Familiar | 1 week |
+| 6 | Familiar | 2 weeks |
+| 7 | Confident | 1 month |
+| 8 | Mastered | Never shown again |
+
+**Progression rules:**
+- Correct answer: advance 1 stage
+- Incorrect answer: drop 2 stages (minimum Apprentice 1)
+- Stage 0 (New) = never reviewed
+
+**Capped advancement:**
+- When filters make questions trivial (e.g., only one consonant class enabled), advancement is capped at Familiar 2 (stage 6)
+- This prevents "gaming" the system by using narrow filters
+- Full testing (multiple options per question) required to reach Confident/Mastered
+
+**Selection strategies:**
+- **Smart (Wanikani)**: Prioritizes due cards, then new cards, then future cards
+- **Sequential**: Shows cards in fixed order (still tracks SRS progress)
+
+**UI indicators:**
+- Stage shown as 8 dots with current stage filled
+- Lock icon appears when advancement is capped
+- Filter icon filled when not all card types selected
 
 ### Build Notes
 - **Deployment target:** iOS 17.0 (supports iPhone XR and newer)
