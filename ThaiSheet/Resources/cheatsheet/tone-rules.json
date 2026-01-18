@@ -9,36 +9,62 @@
         { "full": "คะ", "focus": "คะ" },
         { "full": "นะ", "focus": "นะ" },
         { "full": "ละ", "focus": "ละ" },
-        { "full": "พระ", "focus": "พระ" },
-        { "full": "มะลิ", "focus": "มะ" },
-        { "full": "มะม่วง", "focus": "มะ" },
-        { "full": "มะพร้าว", "focus": "มะ" },
-        { "full": "มะนาว", "focus": "มะ" },
-        { "full": "มะเขือ", "focus": "มะ" },
-        { "full": "ทะเล", "focus": "ทะ" },
-        { "full": "ชนะ", "focus": "ชะ" },
-        { "full": "ระวัง", "focus": "ระ" },
-        { "full": "ลำพัง", "focus": "ลำ" },
-        { "full": "รถ", "focus": "รถ" },
-        { "full": "วัด", "focus": "วัด" }
+        {
+          "full": "วัด",
+          "focus": "วัด",
+          "note": "Short dead syllable with low-class consonant; produces high tone (often counter-intuitive)."
+        },
+        {
+          "full": "พระ",
+          "focus": "พระ",
+          "note": "Unstressed syllable in natural speech; tone movement may sound reduced."
+        },
+        {
+          "full": "มะลิ",
+          "focus": "มะ",
+          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+        },
+        {
+          "full": "มะม่วง",
+          "focus": "มะ",
+          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+        },
+        {
+          "full": "มะพร้าว",
+          "focus": "มะ",
+          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+        },
+        {
+          "full": "มะนาว",
+          "focus": "มะ",
+          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+        },
+        {
+          "full": "มะเขือ",
+          "focus": "มะ",
+          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+        },
+        {
+          "full": "ทะเล",
+          "focus": "ทะ",
+          "note": "First syllable is unstressed; tone is correct but reduced."
+        }
       ]
     },
+
     {
       "initialConsonant": "Low",
       "vowelDuration": "Long",
       "end": "Dead",
-      "tone": "Low",
+      "tone": "Falling",
       "samples": [
-        { "full": "พูด", "focus": "พูด" },
-        { "full": "ลาก", "focus": "ลาก" },
-        { "full": "ชอบ", "focus": "ชอบ" },
-        { "full": "ทอด", "focus": "ทอด" },
         { "full": "มาก", "focus": "มาก" },
+        { "full": "ลาก", "focus": "ลาก" },
+        { "full": "พูด", "focus": "พูด" },
         { "full": "ลูก", "focus": "ลูก" },
         { "full": "นาก", "focus": "นาก" },
         { "full": "ราก", "focus": "ราก" },
-        { "full": "ชาติ", "focus": "ชาติ" },
-        { "full": "ทราบ", "focus": "ทราบ" },
+        { "full": "ทอด", "focus": "ทอด" },
         { "full": "พลาด", "focus": "พลาด" },
         { "full": "ซาก", "focus": "ซาก" },
         { "full": "ยาก", "focus": "ยาก" },
@@ -46,6 +72,32 @@
         { "full": "เมือก", "focus": "เมือก" }
       ]
     },
+
+    {
+      "initialConsonant": "High",
+      "vowelDuration": "Long",
+      "end": "Dead",
+      "tone": "Falling",
+      "samples": [
+        { "full": "ชอบ", "focus": "ชอบ" },
+        {
+          "full": "ชาติ",
+          "focus": "ชาติ",
+          "note": "High-class initial; long dead syllable → falling tone."
+        },
+        {
+          "full": "ขาด",
+          "focus": "ขาด",
+          "note": "High-class consonant with long dead syllable → falling tone."
+        },
+        {
+          "full": "สอบ",
+          "focus": "สอบ",
+          "note": "High-class consonant; long dead syllable → falling tone."
+        }
+      ]
+    },
+
     {
       "initialConsonant": "Low",
       "vowelDuration": "Any",
@@ -54,9 +106,9 @@
       "samples": [
         { "full": "มา", "focus": "มา" },
         { "full": "นา", "focus": "นา" },
+        { "full": "ยา", "focus": "ยา" },
         { "full": "ลม", "focus": "ลม" },
         { "full": "คน", "focus": "คน" },
-        { "full": "ยา", "focus": "ยา" },
         { "full": "ทาง", "focus": "ทาง" },
         { "full": "ลาน", "focus": "ลาน" },
         { "full": "ยาว", "focus": "ยาว" },
@@ -64,11 +116,11 @@
         { "full": "นม", "focus": "นม" },
         { "full": "งาม", "focus": "งาม" },
         { "full": "ยาม", "focus": "ยาม" },
-        { "full": "ชาม", "focus": "ชาม" },
         { "full": "งู", "focus": "งู" },
         { "full": "รู", "focus": "รู" }
       ]
     },
+
     {
       "initialConsonant": "Mid",
       "vowelDuration": "Any",
@@ -76,10 +128,10 @@
       "tone": "Mid",
       "samples": [
         { "full": "กา", "focus": "กา" },
-        { "full": "ใจ", "focus": "ใจ" },
-        { "full": "ดี", "focus": "ดี" },
-        { "full": "ปลา", "focus": "ปลา" },
         { "full": "ตา", "focus": "ตา" },
+        { "full": "ดี", "focus": "ดี" },
+        { "full": "ใจ", "focus": "ใจ" },
+        { "full": "ปลา", "focus": "ปลา" },
         { "full": "จาน", "focus": "จาน" },
         { "full": "กิน", "focus": "กิน" },
         { "full": "ดาว", "focus": "ดาว" },
@@ -92,6 +144,7 @@
         { "full": "บิน", "focus": "บิน" }
       ]
     },
+
     {
       "initialConsonant": "Mid",
       "vowelDuration": "Any",
@@ -115,6 +168,7 @@
         { "full": "ปะ", "focus": "ปะ" }
       ]
     },
+
     {
       "initialConsonant": "High",
       "vowelDuration": "Any",
@@ -122,43 +176,85 @@
       "tone": "Rising",
       "samples": [
         { "full": "ขา", "focus": "ขา" },
-        { "full": "ผม", "focus": "ผม" },
-        { "full": "หมี", "focus": "หมี" },
-        { "full": "ฝน", "focus": "ฝน" },
         { "full": "ขาว", "focus": "ขาว" },
-        { "full": "สอง", "focus": "สอง" },
-        { "full": "สาม", "focus": "สาม" },
-        { "full": "หา", "focus": "หา" },
-        { "full": "สาย", "focus": "สาย" },
+        { "full": "ฝน", "focus": "ฝน" },
+        {
+          "full": "หมี",
+          "focus": "หมี",
+          "note": "Uses leading ห; tone class determined by ห."
+        },
+        {
+          "full": "หา",
+          "focus": "หา",
+          "note": "Leading ห; behaves as high-class for tone."
+        },
+        {
+          "full": "หนา",
+          "focus": "หนา",
+          "note": "Leading ห; tone class determined by ห."
+        },
+        {
+          "full": "ถาม",
+          "focus": "ถาม",
+          "note": "Leading ห; tone class determined by ห."
+        },
+        {
+          "full": "เขา",
+          "focus": "เขา",
+          "note": "Leading ห; tone class determined by ห."
+        },
+        {
+          "full": "ผม",
+          "focus": "ผม",
+          "note": "Common spoken exception; pronounced rising in everyday Thai."
+        },
+        {
+          "full": "สอง",
+          "focus": "สอง",
+          "note": "Low-class consonant; rising tone is lexical outcome."
+        },
+        {
+          "full": "สาม",
+          "focus": "สาม",
+          "note": "Low-class consonant; rising tone is lexical outcome."
+        },
+        {
+          "full": "สาย",
+          "focus": "สาย",
+          "note": "Low-class consonant; rising tone is lexical outcome."
+        },
         { "full": "ขาย", "focus": "ขาย" },
         { "full": "สวย", "focus": "สวย" },
-        { "full": "ไหม", "focus": "ไหม" },
-        { "full": "เขา", "focus": "เขา" },
-        { "full": "หนา", "focus": "หนา" },
-        { "full": "ถาม", "focus": "ถาม" }
+        { "full": "ไหม", "focus": "ไหม" }
       ]
     },
+
     {
       "initialConsonant": "High",
-      "vowelDuration": "Any",
+      "vowelDuration": "Short",
       "end": "Dead",
       "tone": "Low",
       "samples": [
-        { "full": "ขาด", "focus": "ขาด" },
         { "full": "ขับ", "focus": "ขับ" },
         { "full": "ผัก", "focus": "ผัก" },
         { "full": "สัก", "focus": "สัก" },
         { "full": "หก", "focus": "หก" },
-        { "full": "สอบ", "focus": "สอบ" },
         { "full": "ขุด", "focus": "ขุด" },
         { "full": "ผิด", "focus": "ผิด" },
         { "full": "สด", "focus": "สด" },
-        { "full": "ถูก", "focus": "ถูก" },
         { "full": "หัก", "focus": "หัก" },
         { "full": "ขัด", "focus": "ขัด" },
-        { "full": "สะอาด", "focus": "สะ" },
-        { "full": "เสร็จ", "focus": "เสร็จ" },
-        { "full": "สุก", "focus": "สุก" }
+        {
+          "full": "เสร็จ",
+          "focus": "เสร็จ",
+          "note": "Complex vowel + final stop; still short dead syllable."
+        },
+        { "full": "สุก", "focus": "สุก" },
+        {
+          "full": "สะอาด",
+          "focus": "สะ",
+          "note": "Unstressed prefix syllable; tone reduced in speech."
+        }
       ]
     }
   ]
