@@ -45,8 +45,8 @@ Other useful docs in that folder:
 ## Build & Run
 
 ```bash
-# Build
-xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -configuration Debug build
+# Build for simulator (use iPhone 17 - available on this system)
+xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 17' build
 
 # Run tests
 xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
@@ -144,10 +144,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 
 ### Build Notes
 - **Deployment target:** iOS 17.0 (supports iPhone XR and newer)
-- If provisioning errors occur, build for simulator:
-  ```bash
-  xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 17' build
-  ```
+- **Simulator:** Use `iPhone 17` (available on this system)
 
 ### Reference Tab Status
 - Implemented: Consonants, Vowels, Tone Rules, Tone Marks, Clusters
