@@ -255,6 +255,16 @@ struct CheatsheetBrowserView: View {
                                 .id(consonant.character)
                             }
                             .listStyle(.plain)
+                            .onAppear {
+                                // Scroll to highlighted consonant when view appears (e.g., after tab switch)
+                                if let character = highlightedConsonant {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                        withAnimation {
+                                            proxy.scrollTo(character, anchor: .center)
+                                        }
+                                    }
+                                }
+                            }
                             .onChange(of: highlightedConsonant) { _, newValue in
                                 if let character = newValue {
                                     withAnimation {
@@ -284,6 +294,20 @@ struct CheatsheetBrowserView: View {
                                 .id(vowel.id)
                             }
                             .listStyle(.plain)
+                            .onAppear {
+                                // Scroll to highlighted vowel when view appears (e.g., after tab switch)
+                                if let vowelForm = highlightedVowel,
+                                   let vowel = vowels.first(where: { v in
+                                       [v.short.closed, v.short.open, v.long.closed, v.long.open]
+                                           .compactMap { $0 }.contains(vowelForm)
+                                   }) {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                        withAnimation {
+                                            proxy.scrollTo(vowel.id, anchor: .center)
+                                        }
+                                    }
+                                }
+                            }
                             .onChange(of: highlightedVowel) { _, newValue in
                                 if let vowelForm = newValue,
                                    let vowel = vowels.first(where: { v in
@@ -344,6 +368,25 @@ struct CheatsheetBrowserView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                             .padding(.horizontal)
+                        }
+                        .onAppear {
+                            // Scroll to highlighted tone mark when view appears (e.g., after tab switch)
+                            if let display = highlightedToneMark,
+                               let mark = toneMarks.first(where: { $0.withLowConsonant == display || $0.withMidHighConsonant == display }) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    withAnimation {
+                                        proxy.scrollTo("tonemark-\(mark.id)", anchor: .center)
+                                    }
+                                }
+                            }
+                            // Scroll to highlighted tone rule when view appears
+                            if let ruleId = highlightedToneRule {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    withAnimation {
+                                        proxy.scrollTo("tonerule-\(ruleId)", anchor: .center)
+                                    }
+                                }
+                            }
                         }
                         .onChange(of: highlightedToneMark) { _, newValue in
                             if let display = newValue,

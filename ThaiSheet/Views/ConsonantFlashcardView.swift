@@ -345,13 +345,59 @@ struct ConsonantFlashcardView: View {
         finalSoundOptions = finalOptions.shuffled()
 
         // Get transcriptions from other consonants (3 wrong + 1 correct = 4 total)
-        var transcriptionOpts = allConsonants
+        // Prioritize confusers with the same prefix (e.g., "saaw" for both ส and ซ)
+        transcriptionOptions = generateTranscriptionOptions()
+    }
+
+    /// Extracts the prefix from a transcription (first word, normalized without tone markers)
+    private func transcriptionPrefix(_ transcription: String) -> String {
+        // Get first word (before space)
+        let firstWord = transcription.split(separator: " ").first.map(String.init) ?? transcription
+        // Remove superscript tone markers: ᴹ ᴴ ᶠ ᴿ ᴸ
+        return firstWord.replacingOccurrences(of: "[ᴹᴴᶠᴿᴸ]", with: "", options: .regularExpression)
+    }
+
+    /// Generates transcription options, prioritizing confusers with the same prefix
+    private func generateTranscriptionOptions() -> [String] {
+        let correctPrefix = transcriptionPrefix(consonant.transcription)
+
+        // Find other consonants with the same prefix (confusers)
+        let samePrefix = allConsonants
             .filter { $0.character != consonant.character }
+            .filter { transcriptionPrefix($0.transcription) == correctPrefix }
             .shuffled()
-            .prefix(3)
-            .map { $0.transcription }
-        transcriptionOpts.append(consonant.transcription)
-        transcriptionOptions = Array(transcriptionOpts).shuffled()
+
+        // Find other consonants with different prefixes
+        let differentPrefix = allConsonants
+            .filter { $0.character != consonant.character }
+            .filter { transcriptionPrefix($0.transcription) != correctPrefix }
+            .shuffled()
+
+        var wrongOptions: [String] = []
+
+        // Add at least one confuser with the same prefix if available
+        if let confuser = samePrefix.first {
+            wrongOptions.append(confuser.transcription)
+        }
+
+        // Fill remaining slots (need 3 wrong answers total)
+        let remaining = differentPrefix.map { $0.transcription }
+        for transcription in remaining {
+            if wrongOptions.count >= 3 { break }
+            wrongOptions.append(transcription)
+        }
+
+        // If we still need more and have more same-prefix options, add them
+        for consonant in samePrefix.dropFirst() {
+            if wrongOptions.count >= 3 { break }
+            wrongOptions.append(consonant.transcription)
+        }
+
+        // Add the correct answer
+        var options = wrongOptions
+        options.append(consonant.transcription)
+
+        return options.shuffled()
     }
 }
 
