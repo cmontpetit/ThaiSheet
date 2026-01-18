@@ -5,6 +5,10 @@
 
 import SwiftUI
 
+enum VowelFormType {
+    case shortClosed, shortOpen, longClosed, longOpen
+}
+
 struct VowelHeaderView: View {
     var body: some View {
         HStack(spacing: 0) {
@@ -65,6 +69,8 @@ struct VowelRowView: View {
     var searchQuery: String? = nil
     var onPractice: ((String) -> Void)? = nil
 
+    @State private var selectedFormType: VowelFormType? = nil
+
     private var allForms: [String?] {
         [vowel.short.closed, vowel.short.open, vowel.long.closed, vowel.long.open]
     }
@@ -99,33 +105,27 @@ struct VowelRowView: View {
 
             // SHORT section
             HStack(spacing: 0) {
-                vowelCell(vowel.short.closed)
-                vowelCell(vowel.short.open)
+                vowelCell(vowel.short.closed, formType: .shortClosed)
+                vowelCell(vowel.short.open, formType: .shortOpen)
             }
             .frame(maxWidth: .infinity)
 
             Divider()
                 .frame(height: 30)
 
-            // Sound (center, tappable to go to practice)
+            // Sound (center, display only)
             Text(vowel.sound)
                 .font(.caption)
                 .foregroundColor(.primary)
                 .frame(width: 60)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if let form = soundForm {
-                        onPractice?(form)
-                    }
-                }
 
             Divider()
                 .frame(height: 30)
 
             // LONG section
             HStack(spacing: 0) {
-                vowelCell(vowel.long.closed)
-                vowelCell(vowel.long.open)
+                vowelCell(vowel.long.closed, formType: .longClosed)
+                vowelCell(vowel.long.open, formType: .longOpen)
             }
             .frame(maxWidth: .infinity)
         }
@@ -145,22 +145,39 @@ struct VowelRowView: View {
     }
 
     @ViewBuilder
-    private func vowelCell(_ text: String?) -> some View {
+    private func vowelCell(_ text: String?, formType: VowelFormType) -> some View {
         if let text = text {
             let matches = formMatchesSearch(text)
             let hasSound = AudioPlayer.shared.hasVowelSound(for: text)
-            Text(text)
-                .font(.title2)
-                .foregroundColor(matches ? (hasSound ? .accentColor : .primary) : .secondary)
-                .frame(maxWidth: .infinity)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if hasSound {
-                        AudioPlayer.shared.playVowelSound(for: text)
-                    }
+            let isSelected = highlightedForm == text
+            Button {
+                selectedFormType = formType
+            } label: {
+                Text(text)
+                    .font(.title2)
+                    .foregroundColor(matches ? .primary : .secondary)
+                    .frame(maxWidth: .infinity)
+                    .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
+                    .cornerRadius(4)
+            }
+            .buttonStyle(.plain)
+            .confirmationDialog(
+                text,
+                isPresented: Binding(
+                    get: { selectedFormType == formType },
+                    set: { if !$0 { selectedFormType = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Play Sound") {
+                    AudioPlayer.shared.playVowelSound(for: text)
                 }
-                .background(highlightedForm == text ? Color.accentColor.opacity(0.2) : Color.clear)
-                .cornerRadius(4)
+                .disabled(!hasSound)
+
+                Button("Practice") {
+                    onPractice?(text)
+                }
+            }
         } else {
             Text("-")
                 .font(.title2)
