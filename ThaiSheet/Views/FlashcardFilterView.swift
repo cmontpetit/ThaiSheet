@@ -8,7 +8,6 @@ import SwiftUI
 struct FlashcardFilterView: View {
     @Bindable var settings: FlashcardSettings
     @Environment(\.dismiss) private var dismiss
-    @State private var refreshID = UUID()
 
     var body: some View {
         NavigationStack {
@@ -17,7 +16,6 @@ struct FlashcardFilterView: View {
                     HStack {
                         Button("Select All") {
                             settings.selectAll()
-                            refreshID = UUID()
                         }
                         .disabled(settings.isAllSelected)
 
@@ -25,7 +23,6 @@ struct FlashcardFilterView: View {
 
                         Button("Reset") {
                             settings.resetToDefault()
-                            refreshID = UUID()
                         }
                         .disabled(settings.isDefault)
                     }
@@ -126,7 +123,6 @@ struct FlashcardFilterView: View {
                     }
                 }
             }
-            .id(refreshID)
             .navigationTitle("Filter")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -158,7 +154,6 @@ struct FlashcardFilterView: View {
                 } else {
                     onDisable()
                 }
-                refreshID = UUID()
             }
         ))
     }
