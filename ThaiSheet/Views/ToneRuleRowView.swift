@@ -137,7 +137,7 @@ struct ToneRuleRowView: View {
             ReferenceItemSheet(
                 title: rule.primarySample?.full ?? rule.tone,
                 stage: lowestStage,
-                note: nil,
+                note: rule.primarySample?.note,
                 hasSound: hasSound,
                 onPlaySound: {
                     if let sample = rule.primarySample {
@@ -161,7 +161,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Short",
             end: "Dead/None",
             tone: "High",
-            samples: [ToneSample(full: "คะ", focus: "คะ")]
+            samples: [ToneSample(full: "คะ", focus: "คะ", note: nil)]
         ))
         .listRowInsets(EdgeInsets())
         ToneRuleRowView(rule: ToneRule(
@@ -169,7 +169,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Any",
             end: "Live",
             tone: "Mid",
-            samples: [ToneSample(full: "กา", focus: "กา")]
+            samples: [ToneSample(full: "กา", focus: "กา", note: nil)]
         ))
         .listRowInsets(EdgeInsets())
         ToneRuleRowView(rule: ToneRule(
@@ -177,7 +177,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Any",
             end: "Live",
             tone: "Rising",
-            samples: [ToneSample(full: "ขา", focus: "ขา")]
+            samples: [ToneSample(full: "ขา", focus: "ขา", note: "Sample with a note")]
         ))
         .listRowInsets(EdgeInsets())
     }
