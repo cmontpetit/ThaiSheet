@@ -4,37 +4,123 @@
     { "cluster": "กล-", "sound": "kl-", "type": "smooth" },
     { "cluster": "กว-", "sound": "kw-", "type": "smooth" },
 
-    { "cluster": "ขร-", "sound": "kr-", "type": "smooth" },
-    { "cluster": "ขล-", "sound": "kl-", "type": "smooth" },
+    { "cluster": "ขร-", "sound": "kr-", "type": "smooth", "usage": "uncommon" },
+    { "cluster": "ขล-", "sound": "kl-", "type": "smooth", "usage": "uncommon" },
     { "cluster": "ขว-", "sound": "kw-", "type": "smooth" },
 
     { "cluster": "คร-", "sound": "kr-", "type": "smooth" },
     { "cluster": "คล-", "sound": "kl-", "type": "smooth" },
     { "cluster": "คว-", "sound": "kw-", "type": "smooth" },
 
-    { "cluster": "ตร-", "sound": "dtr-", "type": "smooth" },
-    { "cluster": "ปร-", "sound": "bpr-", "type": "smooth" },
-    { "cluster": "ปล-", "sound": "bpl-", "type": "smooth" },
+    {
+      "cluster": "ตร-",
+      "sound": "tr-",
+      "type": "smooth",
+      "usage": "uncommon",
+      "note": "Pronounced with an unvoiced stop; often sounds softer than English 'tr'."
+    },
 
-    { "cluster": "ผล-", "sound": "pl-", "type": "smooth" },
+    { "cluster": "ปร-", "sound": "pr-", "type": "smooth" },
+    { "cluster": "ปล-", "sound": "pl-", "type": "smooth" },
+
+    {
+      "cluster": "ผล-",
+      "sound": "pl-",
+      "type": "smooth",
+      "usage": "uncommon",
+      "note": "Not a true consonant cluster; vowel is suppressed. Pronounced like 'พล-'."
+    },
+
     { "cluster": "พร-", "sound": "pr-", "type": "smooth" },
     { "cluster": "พล-", "sound": "pl-", "type": "smooth" },
 
-    { "cluster": "บร-", "sound": "pr-", "type": "smooth" },
-    { "cluster": "บล-", "sound": "pl-", "type": "smooth" },
+    {
+      "cluster": "บร-",
+      "sound": "br-",
+      "type": "smooth",
+      "usage": "rare",
+      "note": "Mostly found in loanwords; not productive in modern Thai."
+    },
 
-    { "cluster": "ดร-", "sound": "dr-", "type": "smooth" },
+    {
+      "cluster": "บล-",
+      "sound": "pl-",
+      "type": "smooth",
+      "usage": "rare"
+    },
 
-    { "cluster": "ทร-", "sound": "s-", "type": "irregular" },
-    { "cluster": "สร-", "sound": "s-", "type": "irregular" },
-    { "cluster": "จร-", "sound": "j-", "type": "irregular" },
+    {
+      "cluster": "ดร-",
+      "sound": "dr-",
+      "type": "smooth",
+      "usage": "rare",
+      "note": "Mostly appears in loanwords or formal vocabulary."
+    },
 
-    { "cluster": "หง-", "sound": "ng-", "type": "silent" },
-    { "cluster": "หน-", "sound": "n-", "type": "silent" },
-    { "cluster": "หม-", "sound": "m-", "type": "silent" },
-    { "cluster": "หย-", "sound": "y-", "type": "silent" },
-    { "cluster": "หร-", "sound": "r-", "type": "silent" },
-    { "cluster": "หล-", "sound": "l-", "type": "silent" },
-    { "cluster": "หว-", "sound": "w-", "type": "silent" }
+    {
+      "cluster": "ทร-",
+      "sound": "s-",
+      "type": "irregular",
+      "usage": "ancient",
+      "note": "Historical spelling; pronounced as 's-', not 'thr-'."
+    },
+    {
+      "cluster": "สร-",
+      "sound": "s-",
+      "type": "irregular",
+      "usage": "ancient",
+      "note": "Initial ร is silent; cluster pronounced as 's-'."
+    },
+    {
+      "cluster": "จร-",
+      "sound": "j-",
+      "type": "irregular",
+      "usage": "ancient",
+      "note": "Historical spelling; ร is not pronounced."
+    },
+
+    {
+      "cluster": "หง-",
+      "sound": "ng-",
+      "type": "silent",
+      "note": "Leading ห is silent but determines tone class."
+    },
+    {
+      "cluster": "หน-",
+      "sound": "n-",
+      "type": "silent",
+      "note": "Leading ห is silent but determines tone class."
+    },
+    {
+      "cluster": "หม-",
+      "sound": "m-",
+      "type": "silent",
+      "note": "Leading ห is silent but determines tone class."
+    },
+    {
+      "cluster": "หย-",
+      "sound": "y-",
+      "type": "silent",
+      "note": "Leading ห is silent but determines tone class."
+    },
+    {
+      "cluster": "หร-",
+      "sound": "r-",
+      "type": "silent",
+      "note": "Leading ห is silent but determines tone class."
+    },
+    {
+      "cluster": "หล-",
+      "sound": "l-",
+      "type": "silent",
+      "note": "Leading ห is silent but determines tone class."
+    },
+    {
+      "cluster": "หว-",
+      "sound": "w-",
+      "type": "silent",
+      "note": "Leading ห is silent but determines tone class."
+    }
   ]
 }
+

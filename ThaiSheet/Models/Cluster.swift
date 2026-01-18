@@ -27,12 +27,42 @@ enum ClusterType: String, Codable, CaseIterable {
     }
 }
 
+enum ClusterUsage: String, Codable {
+    case common
+    case uncommon
+    case rare
+    case ancient
+}
+
 struct Cluster: Codable, Identifiable {
     let cluster: String
     let sound: String?
     let type: ClusterType
+    let usage: ClusterUsage?
+    let note: String?
 
-    var id: String { cluster + (sound ?? "") + type.rawValue }
+    var id: String { cluster }
+
+    /// The first consonant of the cluster (e.g., "ก" from "กร-")
+    var firstConsonant: String {
+        guard let first = cluster.first else { return "" }
+        return String(first)
+    }
+
+    /// The blend consonant (e.g., "ร" from "กร-")
+    var blendConsonant: String {
+        guard cluster.count >= 2 else { return "" }
+        return String(cluster[cluster.index(after: cluster.startIndex)])
+    }
+
+    var usageLabel: String? {
+        switch usage {
+        case .uncommon: return "uncommon"
+        case .rare: return "rare"
+        case .ancient: return "ancient"
+        case .common, .none: return nil
+        }
+    }
 }
 
 struct ClustersData: Codable {

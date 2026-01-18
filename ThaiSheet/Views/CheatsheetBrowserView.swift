@@ -408,8 +408,17 @@ struct CheatsheetBrowserView: View {
                 case .clusters:
                     ScrollView {
                         VStack(spacing: 16) {
-                            ForEach(Cluster.grouped(filteredClusters), id: \.type) { group in
-                                ClusterSectionView(type: group.type, clusters: group.clusters)
+                            // Matrix view for smooth clusters
+                            if filteredClusters.contains(where: { $0.type == .smooth }) {
+                                ClusterMatrixView(clusters: filteredClusters)
+                            }
+                            // Compact grid for silent clusters
+                            if filteredClusters.contains(where: { $0.type == .silent }) {
+                                SilentClustersView(clusters: filteredClusters)
+                            }
+                            // List for irregular clusters
+                            if filteredClusters.contains(where: { $0.type == .irregular }) {
+                                IrregularClustersView(clusters: filteredClusters)
                             }
                         }
                         .padding(.horizontal)
