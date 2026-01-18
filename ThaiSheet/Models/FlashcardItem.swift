@@ -11,6 +11,7 @@ enum FlashcardItem: Identifiable {
     case vowel(VowelCard)
     case toneMark(ToneMarkCard)
     case toneRule(ToneRuleCard)
+    case cluster(Cluster)
 
     var id: String {
         switch self {
@@ -18,6 +19,7 @@ enum FlashcardItem: Identifiable {
         case .vowel(let v): return "vowel-\(v.id)"
         case .toneMark(let t): return "toneMark-\(t.id)"
         case .toneRule(let t): return "toneRule-\(t.id)"
+        case .cluster(let c): return "cluster-\(c.id)"
         }
     }
 
@@ -27,6 +29,7 @@ enum FlashcardItem: Identifiable {
         case .vowel: return .vowel
         case .toneMark: return .toneMark
         case .toneRule: return .toneRule
+        case .cluster: return .cluster
         }
     }
 }

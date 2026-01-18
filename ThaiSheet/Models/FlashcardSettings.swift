@@ -8,69 +8,74 @@ import SwiftUI
 
 @Observable
 class FlashcardSettings {
-    // Use UserDefaults directly with manual observation
     private let defaults = UserDefaults.standard
 
-    // Consonants
+    // Consonants - stored properties for proper @Observable support
     var highConsonants: Bool {
-        get { defaults.object(forKey: "fc_highConsonants") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "fc_highConsonants") }
+        didSet { defaults.set(highConsonants, forKey: "fc_highConsonants") }
     }
 
     var midConsonants: Bool {
-        get { defaults.object(forKey: "fc_midConsonants") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_midConsonants") }
+        didSet { defaults.set(midConsonants, forKey: "fc_midConsonants") }
     }
 
     var lowConsonants: Bool {
-        get { defaults.object(forKey: "fc_lowConsonants") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_lowConsonants") }
+        didSet { defaults.set(lowConsonants, forKey: "fc_lowConsonants") }
     }
 
     var uncommonConsonants: Bool {
-        get { defaults.object(forKey: "fc_uncommonConsonants") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_uncommonConsonants") }
+        didSet { defaults.set(uncommonConsonants, forKey: "fc_uncommonConsonants") }
     }
 
     // Vowels
     var longVowels: Bool {
-        get { defaults.object(forKey: "fc_longVowels") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_longVowels") }
+        didSet { defaults.set(longVowels, forKey: "fc_longVowels") }
     }
 
     var shortVowels: Bool {
-        get { defaults.object(forKey: "fc_shortVowels") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_shortVowels") }
+        didSet { defaults.set(shortVowels, forKey: "fc_shortVowels") }
     }
 
     // Tones
     var highToneRules: Bool {
-        get { defaults.object(forKey: "fc_highToneRules") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_highToneRules") }
+        didSet { defaults.set(highToneRules, forKey: "fc_highToneRules") }
     }
 
     var midToneRules: Bool {
-        get { defaults.object(forKey: "fc_midToneRules") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_midToneRules") }
+        didSet { defaults.set(midToneRules, forKey: "fc_midToneRules") }
     }
 
     var lowToneRules: Bool {
-        get { defaults.object(forKey: "fc_lowToneRules") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_lowToneRules") }
+        didSet { defaults.set(lowToneRules, forKey: "fc_lowToneRules") }
     }
 
     var toneMarks: Bool {
-        get { defaults.object(forKey: "fc_toneMarks") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_toneMarks") }
+        didSet { defaults.set(toneMarks, forKey: "fc_toneMarks") }
     }
 
-    // Selection mode - uses stored property for proper @Observable support
+    // Clusters
+    var clusters: Bool {
+        didSet { defaults.set(clusters, forKey: "fc_clusters") }
+    }
+
+    // Selection mode
     var useIntelligentSelection: Bool {
         didSet { defaults.set(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
     }
 
     init() {
-        // Load persisted value
+        // Load persisted values from UserDefaults
+        self.highConsonants = UserDefaults.standard.object(forKey: "fc_highConsonants") as? Bool ?? true
+        self.midConsonants = UserDefaults.standard.object(forKey: "fc_midConsonants") as? Bool ?? false
+        self.lowConsonants = UserDefaults.standard.object(forKey: "fc_lowConsonants") as? Bool ?? false
+        self.uncommonConsonants = UserDefaults.standard.object(forKey: "fc_uncommonConsonants") as? Bool ?? false
+        self.longVowels = UserDefaults.standard.object(forKey: "fc_longVowels") as? Bool ?? false
+        self.shortVowels = UserDefaults.standard.object(forKey: "fc_shortVowels") as? Bool ?? false
+        self.highToneRules = UserDefaults.standard.object(forKey: "fc_highToneRules") as? Bool ?? false
+        self.midToneRules = UserDefaults.standard.object(forKey: "fc_midToneRules") as? Bool ?? false
+        self.lowToneRules = UserDefaults.standard.object(forKey: "fc_lowToneRules") as? Bool ?? false
+        self.toneMarks = UserDefaults.standard.object(forKey: "fc_toneMarks") as? Bool ?? false
+        self.clusters = UserDefaults.standard.object(forKey: "fc_clusters") as? Bool ?? false
         self.useIntelligentSelection = UserDefaults.standard.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
     }
 
@@ -87,6 +92,7 @@ class FlashcardSettings {
         if midToneRules { count += 1 }
         if lowToneRules { count += 1 }
         if toneMarks { count += 1 }
+        if clusters { count += 1 }
         return count
     }
 
@@ -149,6 +155,7 @@ class FlashcardSettings {
         midToneRules = true
         lowToneRules = true
         toneMarks = true
+        clusters = true
     }
 
     func resetToDefault() {
@@ -162,18 +169,23 @@ class FlashcardSettings {
         midToneRules = false
         lowToneRules = false
         toneMarks = false
+        clusters = false
     }
 
     var isAllSelected: Bool {
         highConsonants && midConsonants && lowConsonants && uncommonConsonants &&
         longVowels && shortVowels &&
-        highToneRules && midToneRules && lowToneRules && toneMarks
+        highToneRules && midToneRules && lowToneRules && toneMarks && clusters
     }
 
     var isDefault: Bool {
         highConsonants && !midConsonants && !lowConsonants && !uncommonConsonants &&
         !longVowels && !shortVowels &&
-        !highToneRules && !midToneRules && !lowToneRules && !toneMarks
+        !highToneRules && !midToneRules && !lowToneRules && !toneMarks && !clusters
+    }
+
+    var areClustersEnabled: Bool {
+        clusters
     }
 
     // MARK: - Partial Testing Detection
@@ -198,6 +210,10 @@ class FlashcardSettings {
         case .toneRule:
             // Consonant class question is trivial if only one class is enabled
             return enabledToneRuleClassCount == 1
+
+        case .cluster:
+            // Cluster questions always test type and sound - not affected by filters
+            return false
         }
     }
 

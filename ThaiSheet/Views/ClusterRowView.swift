@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ClusterMatrixView: View {
     let clusters: [Cluster]
+    var onPractice: ((String) -> Void)?
 
     // Column headers (blend consonants)
     private let blendColumns = ["ร", "ล", "ว"]
@@ -59,7 +60,7 @@ struct ClusterMatrixView: View {
 
                         // Cells for each blend
                         ForEach(blendColumns, id: \.self) { blend in
-                            ClusterMatrixCell(cluster: cluster(for: consonant, blend: blend))
+                            ClusterMatrixCell(cluster: cluster(for: consonant, blend: blend), onPractice: onPractice)
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -76,6 +77,7 @@ struct ClusterMatrixView: View {
 
 struct ClusterMatrixCell: View {
     let cluster: Cluster?
+    var onPractice: ((String) -> Void)?
     @State private var showingSheet = false
 
     var body: some View {
@@ -97,7 +99,7 @@ struct ClusterMatrixCell: View {
             }
             .buttonStyle(.plain)
             .sheet(isPresented: $showingSheet) {
-                ClusterDetailSheet(cluster: cluster)
+                ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
             }
         } else {
             Text("—")
@@ -111,6 +113,7 @@ struct ClusterMatrixCell: View {
 
 struct SilentClustersView: View {
     let clusters: [Cluster]
+    var onPractice: ((String) -> Void)?
 
     private var silentClusters: [Cluster] {
         clusters.filter { $0.type == .silent }
@@ -128,7 +131,7 @@ struct SilentClustersView: View {
                 GridItem(.flexible())
             ], spacing: 8) {
                 ForEach(silentClusters) { cluster in
-                    ClusterCompactCell(cluster: cluster)
+                    ClusterCompactCell(cluster: cluster, onPractice: onPractice)
                 }
             }
             .padding(12)
@@ -142,6 +145,7 @@ struct SilentClustersView: View {
 
 struct IrregularClustersView: View {
     let clusters: [Cluster]
+    var onPractice: ((String) -> Void)?
 
     private var irregularClusters: [Cluster] {
         clusters.filter { $0.type == .irregular }
@@ -153,7 +157,7 @@ struct IrregularClustersView: View {
 
             VStack(spacing: 0) {
                 ForEach(irregularClusters) { cluster in
-                    ClusterDetailRow(cluster: cluster)
+                    ClusterDetailRow(cluster: cluster, onPractice: onPractice)
                     Divider()
                 }
             }
@@ -167,6 +171,7 @@ struct IrregularClustersView: View {
 
 struct ClusterCompactCell: View {
     let cluster: Cluster
+    var onPractice: ((String) -> Void)?
     @State private var showingSheet = false
 
     var body: some View {
@@ -189,7 +194,7 @@ struct ClusterCompactCell: View {
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showingSheet) {
-            ClusterDetailSheet(cluster: cluster)
+            ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
         }
     }
 }
@@ -198,6 +203,7 @@ struct ClusterCompactCell: View {
 
 struct ClusterDetailRow: View {
     let cluster: Cluster
+    var onPractice: ((String) -> Void)?
     @State private var showingSheet = false
 
     var body: some View {
@@ -234,7 +240,7 @@ struct ClusterDetailRow: View {
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showingSheet) {
-            ClusterDetailSheet(cluster: cluster)
+            ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
         }
     }
 }
@@ -243,9 +249,17 @@ struct ClusterDetailRow: View {
 
 struct ClusterDetailSheet: View {
     let cluster: Cluster
+    var onPractice: ((String) -> Void)?
+    @Environment(\.learningModel) var learningModel
+    @Environment(\.dismiss) var dismiss
 
     private var hasSound: Bool {
         AudioPlayer.shared.hasClusterSound(for: cluster.displayWithVowel)
+    }
+
+    private var stage: SRSStage {
+        let cardId = "cluster-\(cluster.id)"
+        return learningModel.getProgress(forId: cardId).srsStage
     }
 
     // Build note text combining usage, type description, and note
@@ -268,13 +282,16 @@ struct ClusterDetailSheet: View {
     var body: some View {
         ReferenceItemSheet(
             title: cluster.displayWithVowel,
-            stage: .new,  // No flashcards yet
+            stage: stage,
             note: combinedNote,
             hasSound: hasSound,
             onPlaySound: {
                 AudioPlayer.shared.playClusterSound(for: cluster.displayWithVowel)
             },
-            onPractice: { }  // No flashcards yet
+            onPractice: {
+                dismiss()
+                onPractice?(cluster.id)
+            }
         )
     }
 }

@@ -18,10 +18,12 @@ struct CheatsheetBrowserView: View {
     @Binding var highlightedVowel: String?
     @Binding var highlightedToneMark: String?
     @Binding var highlightedToneRule: String?
+    @Binding var highlightedCluster: String?
     @Binding var flashcardStartingConsonant: String?
     @Binding var flashcardStartingVowel: String?
     @Binding var flashcardStartingToneMark: String?
     @Binding var flashcardStartingToneRule: String?
+    @Binding var flashcardStartingCluster: String?
     @Binding var selectedTab: AppTab
 
     @State private var searchText = ""
@@ -410,15 +412,27 @@ struct CheatsheetBrowserView: View {
                         VStack(spacing: 16) {
                             // Matrix view for smooth clusters
                             if filteredClusters.contains(where: { $0.type == .smooth }) {
-                                ClusterMatrixView(clusters: filteredClusters)
+                                ClusterMatrixView(clusters: filteredClusters) { clusterId in
+                                    flashcardStartingCluster = clusterId
+                                    highlightedCluster = nil
+                                    selectedTab = .flashcards
+                                }
                             }
                             // Compact grid for silent clusters
                             if filteredClusters.contains(where: { $0.type == .silent }) {
-                                SilentClustersView(clusters: filteredClusters)
+                                SilentClustersView(clusters: filteredClusters) { clusterId in
+                                    flashcardStartingCluster = clusterId
+                                    highlightedCluster = nil
+                                    selectedTab = .flashcards
+                                }
                             }
                             // List for irregular clusters
                             if filteredClusters.contains(where: { $0.type == .irregular }) {
-                                IrregularClustersView(clusters: filteredClusters)
+                                IrregularClustersView(clusters: filteredClusters) { clusterId in
+                                    flashcardStartingCluster = clusterId
+                                    highlightedCluster = nil
+                                    selectedTab = .flashcards
+                                }
                             }
                         }
                         .padding(.horizontal)
@@ -479,10 +493,12 @@ struct CheatsheetBrowserView: View {
         highlightedVowel: .constant(nil),
         highlightedToneMark: .constant(nil),
         highlightedToneRule: .constant(nil),
+        highlightedCluster: .constant(nil),
         flashcardStartingConsonant: .constant(nil),
         flashcardStartingVowel: .constant(nil),
         flashcardStartingToneMark: .constant(nil),
         flashcardStartingToneRule: .constant(nil),
+        flashcardStartingCluster: .constant(nil),
         selectedTab: .constant(.reference)
     )
 }

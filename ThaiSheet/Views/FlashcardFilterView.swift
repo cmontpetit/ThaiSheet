@@ -79,6 +79,13 @@ struct FlashcardFilterView: View {
                         isOn: $settings.toneMarks
                     )
                 }
+
+                Section("Clusters") {
+                    filterToggle(
+                        title: "Consonant clusters",
+                        isOn: $settings.clusters
+                    )
+                }
             }
             .id(refreshID)
             .navigationTitle("Filter")

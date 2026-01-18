@@ -16,6 +16,7 @@ class FlashcardManager {
     private var allToneMarkCards: [ToneMarkCard] = []
     private var allToneRules: [ToneRule] = []
     private var allToneRuleCards: [ToneRuleCard] = []
+    private var allClusters: [Cluster] = []
 
     // Settings reference
     let settings: FlashcardSettings
@@ -40,7 +41,7 @@ class FlashcardManager {
 
     var isLoaded: Bool {
         !allConsonants.isEmpty && !allVowelCards.isEmpty &&
-        !allToneMarkCards.isEmpty && !allToneRuleCards.isEmpty
+        !allToneMarkCards.isEmpty && !allToneRuleCards.isEmpty && !allClusters.isEmpty
     }
 
     init(settings: FlashcardSettings, learningModel: LearningModel) {
@@ -59,6 +60,7 @@ class FlashcardManager {
         allToneMarkCards = ToneMarkCard.allCards(from: allToneMarks, consonants: allConsonants)
         allToneRules = ToneRule.loadAll()
         allToneRuleCards = ToneRuleCard.allCards(from: allToneRules)
+        allClusters = Cluster.loadAll()
 
         // Update strategies with initial cards
         updateStrategies()
@@ -102,6 +104,13 @@ class FlashcardManager {
         if settings.toneMarks {
             for card in allToneMarkCards {
                 cards.append(.toneMark(card))
+            }
+        }
+
+        // Add clusters (all or none)
+        if settings.clusters {
+            for cluster in allClusters {
+                cards.append(.cluster(cluster))
             }
         }
 
@@ -232,6 +241,21 @@ class FlashcardManager {
         wanikaniStrategy.reset()
     }
 
+    /// Jump to a cluster by ID (sets override if not in filtered list)
+    func jumpToCluster(_ clusterId: String) {
+        guard let cluster = allClusters.first(where: { $0.id == clusterId }) else { return }
+        let item = FlashcardItem.cluster(cluster)
+
+        if sequentialStrategy.indexOf(cardId: item.id) != nil {
+            // Card is in filtered list, jump to it
+            overrideCard = nil
+            jumpTo(item: item)
+        } else {
+            // Card not in filtered list, show as override
+            overrideCard = item
+        }
+    }
+
     // MARK: - For generating quiz options
 
     var allConsonantsForOptions: [Consonant] {
@@ -240,5 +264,9 @@ class FlashcardManager {
 
     var allVowelsForOptions: [Vowel] {
         allVowels
+    }
+
+    var allClustersForOptions: [Cluster] {
+        allClusters
     }
 }
