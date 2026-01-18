@@ -97,17 +97,17 @@ class FlashcardSettings {
     // MARK: - Initialization
 
     init() {
-        // Parent toggles
+        // Parent toggles - all enabled by default
         self.consonantsEnabled = UserDefaults.standard.object(forKey: "fc_consonantsEnabled") as? Bool ?? true
-        self.vowelsEnabled = UserDefaults.standard.object(forKey: "fc_vowelsEnabled") as? Bool ?? false
-        self.tonesEnabled = UserDefaults.standard.object(forKey: "fc_tonesEnabled") as? Bool ?? false
-        self.clusters = UserDefaults.standard.object(forKey: "fc_clusters") as? Bool ?? false
+        self.vowelsEnabled = UserDefaults.standard.object(forKey: "fc_vowelsEnabled") as? Bool ?? true
+        self.tonesEnabled = UserDefaults.standard.object(forKey: "fc_tonesEnabled") as? Bool ?? true
+        self.clusters = UserDefaults.standard.object(forKey: "fc_clusters") as? Bool ?? true
 
-        // Consonant filters
+        // Consonant filters - all enabled by default
         self.highConsonants = UserDefaults.standard.object(forKey: "fc_highConsonants") as? Bool ?? true
         self.midConsonants = UserDefaults.standard.object(forKey: "fc_midConsonants") as? Bool ?? true
         self.lowConsonants = UserDefaults.standard.object(forKey: "fc_lowConsonants") as? Bool ?? true
-        self.uncommonConsonants = UserDefaults.standard.object(forKey: "fc_uncommonConsonants") as? Bool ?? false
+        self.uncommonConsonants = UserDefaults.standard.object(forKey: "fc_uncommonConsonants") as? Bool ?? true
 
         // Vowel filters
         self.longVowels = UserDefaults.standard.object(forKey: "fc_longVowels") as? Bool ?? true
@@ -278,33 +278,33 @@ class FlashcardSettings {
         irregularClusters = true
     }
 
-    func resetToDefault() {
-        // Parents - only consonants enabled by default
-        consonantsEnabled = true
+    func deselectAll() {
+        // Parents
+        consonantsEnabled = false
         vowelsEnabled = false
         tonesEnabled = false
         clusters = false
 
-        // Consonants - only high by default
-        highConsonants = true
+        // Consonants
+        highConsonants = false
         midConsonants = false
         lowConsonants = false
         uncommonConsonants = false
 
-        // Vowels - all enabled when category is enabled
-        longVowels = true
-        shortVowels = true
+        // Vowels
+        longVowels = false
+        shortVowels = false
 
-        // Tones - all enabled when category is enabled
-        highToneRules = true
-        midToneRules = true
-        lowToneRules = true
-        toneMarks = true
+        // Tones
+        highToneRules = false
+        midToneRules = false
+        lowToneRules = false
+        toneMarks = false
 
-        // Clusters - all enabled when category is enabled
-        smoothClusters = true
-        silentClusters = true
-        irregularClusters = true
+        // Clusters
+        smoothClusters = false
+        silentClusters = false
+        irregularClusters = false
     }
 
     var isAllSelected: Bool {
@@ -315,12 +315,8 @@ class FlashcardSettings {
         smoothClusters && silentClusters && irregularClusters
     }
 
-    var isDefault: Bool {
-        consonantsEnabled && !vowelsEnabled && !tonesEnabled && !clusters &&
-        highConsonants && !midConsonants && !lowConsonants && !uncommonConsonants &&
-        longVowels && shortVowels &&
-        highToneRules && midToneRules && lowToneRules && toneMarks &&
-        smoothClusters && silentClusters && irregularClusters
+    var isNoneSelected: Bool {
+        !consonantsEnabled && !vowelsEnabled && !tonesEnabled && !clusters
     }
 
     // MARK: - Legacy Compatibility

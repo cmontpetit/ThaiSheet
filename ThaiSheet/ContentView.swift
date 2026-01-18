@@ -251,9 +251,7 @@ struct FlashcardsView: View {
         ContentUnavailableView {
             Label("No Cards", systemImage: "rectangle.on.rectangle")
         } description: {
-            Text("Enable some options in ") +
-            Text("Filters")
-                .foregroundColor(.accentColor)
+            Text("Enable some options in Filters")
         } actions: {
             Button("Open Filters") {
                 showingFilter = true

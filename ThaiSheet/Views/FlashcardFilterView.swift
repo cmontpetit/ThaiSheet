@@ -21,10 +21,10 @@ struct FlashcardFilterView: View {
 
                         Spacer()
 
-                        Button("Reset") {
-                            settings.resetToDefault()
+                        Button("Deselect All") {
+                            settings.deselectAll()
                         }
-                        .disabled(settings.isDefault)
+                        .disabled(settings.isNoneSelected)
                     }
                 }
 
