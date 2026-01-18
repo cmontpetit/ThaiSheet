@@ -80,6 +80,11 @@ struct ToneRuleRowView: View {
         return stages.min() ?? .new
     }
 
+    /// First note found among all samples
+    private var firstNote: String? {
+        rule.samples?.first(where: { $0.note != nil })?.note
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Highlight indicator
@@ -137,7 +142,7 @@ struct ToneRuleRowView: View {
             ReferenceItemSheet(
                 title: rule.primarySample?.full ?? rule.tone,
                 stage: lowestStage,
-                note: rule.primarySample?.note,
+                note: firstNote,
                 hasSound: hasSound,
                 onPlaySound: {
                     if let sample = rule.primarySample {
