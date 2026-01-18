@@ -75,6 +75,7 @@ struct ContentView: View {
                 flashcardStartingToneRule: $flashcardStartingToneRule,
                 selectedTab: $selectedTab
             )
+            .environment(\.learningModel, learningModel)
             .tabItem {
                 Label("Reference", systemImage: "book")
             }

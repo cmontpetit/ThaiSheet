@@ -37,12 +37,19 @@ struct ToneMarkRowView: View {
     var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
 
+    @Environment(\.learningModel) var learningModel
+    @State private var selectedDisplay: String? = nil
+
     private var hasLowSound: Bool {
         AudioPlayer.shared.hasToneMarkSound(for: toneMark.withLowConsonant)
     }
 
     private var hasMidHighSound: Bool {
         AudioPlayer.shared.hasToneMarkSound(for: toneMark.withMidHighConsonant)
+    }
+
+    private func stage(for display: String) -> SRSStage {
+        learningModel.getProgress(forId: "toneMark-\(display)").srsStage
     }
 
     var body: some View {
@@ -54,25 +61,31 @@ struct ToneMarkRowView: View {
                 .padding(.trailing, 4)
 
             // Low consonant column
-            consonantCell(toneMark.withLowConsonant, isNA: toneMark.onLowConsonant == "n/a")
-                .frame(maxWidth: .infinity)
-
-            toneCell(toneMark.onLowConsonant, hasSound: hasLowSound) {
-                AudioPlayer.shared.playToneMarkSound(for: toneMark.withLowConsonant)
-            }
+            toneMarkCell(
+                display: toneMark.withLowConsonant,
+                tone: toneMark.onLowConsonant,
+                hasSound: hasLowSound,
+                isNA: toneMark.onLowConsonant == "n/a"
+            )
             .frame(maxWidth: .infinity)
+
+            toneLabelCell(toneMark.onLowConsonant)
+                .frame(maxWidth: .infinity)
 
             Divider()
                 .frame(height: 30)
 
             // Mid/High consonant column
-            consonantCell(toneMark.withMidHighConsonant, isNA: toneMark.onMidHighConsonant == "n/a")
-                .frame(maxWidth: .infinity)
-
-            toneCell(toneMark.onMidHighConsonant, hasSound: hasMidHighSound) {
-                AudioPlayer.shared.playToneMarkSound(for: toneMark.withMidHighConsonant)
-            }
+            toneMarkCell(
+                display: toneMark.withMidHighConsonant,
+                tone: toneMark.onMidHighConsonant,
+                hasSound: hasMidHighSound,
+                isNA: toneMark.onMidHighConsonant == "n/a"
+            )
             .frame(maxWidth: .infinity)
+
+            toneLabelCell(toneMark.onMidHighConsonant)
+                .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)
         .padding(.leading, 8)
@@ -81,36 +94,46 @@ struct ToneMarkRowView: View {
     }
 
     @ViewBuilder
-    private func consonantCell(_ text: String, isNA: Bool) -> some View {
+    private func toneMarkCell(display: String, tone: String, hasSound: Bool, isNA: Bool) -> some View {
         if isNA {
             Text("")
                 .font(.title2)
         } else {
-            Text(text)
-                .font(.title2)
-                .foregroundColor(.primary)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    onPractice?(text)
-                }
+            Button {
+                selectedDisplay = display
+            } label: {
+                Text(display)
+                    .font(.title2)
+                    .foregroundColor(.primary)
+            }
+            .buttonStyle(.plain)
+            .sheet(
+                isPresented: Binding(
+                    get: { selectedDisplay == display },
+                    set: { if !$0 { selectedDisplay = nil } }
+                )
+            ) {
+                ReferenceItemSheet(
+                    title: display,
+                    stage: stage(for: display),
+                    note: nil,
+                    hasSound: hasSound,
+                    onPlaySound: { AudioPlayer.shared.playToneMarkSound(for: display) },
+                    onPractice: { onPractice?(display) }
+                )
+            }
         }
     }
 
     @ViewBuilder
-    private func toneCell(_ tone: String, hasSound: Bool, onTap: @escaping () -> Void) -> some View {
+    private func toneLabelCell(_ tone: String) -> some View {
         if tone == "n/a" {
             Text("")
                 .font(.subheadline)
         } else {
             StyledToneText(tone: tone)
                 .font(.subheadline)
-                .foregroundColor(hasSound ? .accentColor : .primary)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if hasSound {
-                        onTap()
-                    }
-                }
+                .foregroundColor(.secondary)
         }
     }
 }

@@ -83,7 +83,9 @@ struct VowelRowView: View {
     var searchQuery: String? = nil
     var onPractice: ((String) -> Void)? = nil
 
+    @Environment(\.learningModel) var learningModel
     @State private var selectedFormType: VowelFormType? = nil
+    @State private var selectedText: String? = nil
 
     private var allForms: [String?] {
         [vowel.short.closed, vowel.short.open, vowel.long.closed, vowel.long.open]
@@ -162,10 +164,10 @@ struct VowelRowView: View {
     private func vowelCell(_ text: String?, formType: VowelFormType) -> some View {
         if let text = text {
             let matches = formMatchesSearch(text)
-            let hasSound = AudioPlayer.shared.hasVowelSound(for: text)
             let isSelected = highlightedForm == text
             Button {
                 selectedFormType = formType
+                selectedText = text
             } label: {
                 Text(text)
                     .font(.title2)
@@ -175,26 +177,20 @@ struct VowelRowView: View {
                     .cornerRadius(4)
             }
             .buttonStyle(.plain)
-            .confirmationDialog(
-                text,
+            .sheet(
                 isPresented: Binding(
                     get: { selectedFormType == formType },
-                    set: { if !$0 { selectedFormType = nil } }
-                ),
-                titleVisibility: .visible
+                    set: { if !$0 { selectedFormType = nil; selectedText = nil } }
+                )
             ) {
-                Button("Play Sound") {
-                    AudioPlayer.shared.playVowelSound(for: text)
-                }
-                .disabled(!hasSound)
-
-                Button("Practice") {
-                    onPractice?(text)
-                }
-            } message: {
-                if let note = vowel.note(for: formType.duration, form: formType.form) {
-                    Text(note)
-                }
+                ReferenceItemSheet(
+                    title: text,
+                    stage: learningModel.getProgress(forId: "vowel-\(text)").srsStage,
+                    note: vowel.note(for: formType.duration, form: formType.form),
+                    hasSound: AudioPlayer.shared.hasVowelSound(for: text),
+                    onPlaySound: { AudioPlayer.shared.playVowelSound(for: text) },
+                    onPractice: { onPractice?(text) }
+                )
             }
         } else {
             Text("-")

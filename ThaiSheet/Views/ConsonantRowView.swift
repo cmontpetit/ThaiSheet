@@ -68,8 +68,15 @@ struct ConsonantRowView: View {
     var isHighlighted: Bool = false
     var onPractice: (() -> Void)? = nil
 
+    @Environment(\.learningModel) var learningModel
+    @State private var showingSheet = false
+
     private var hasSound: Bool {
         AudioPlayer.shared.hasConsonantSound(for: consonant.character)
+    }
+
+    private var stage: SRSStage {
+        learningModel.getProgress(forId: "consonant-\(consonant.id)").srsStage
     }
 
     var body: some View {
@@ -80,7 +87,7 @@ struct ConsonantRowView: View {
                 .frame(width: 8, height: 8)
                 .padding(.trailing, 8)
 
-            // Main row content (tappable for practice)
+            // Main row content (tappable for sheet)
             HStack(alignment: .center, spacing: 12) {
                 ClassIndicatorView(activeClass: consonant.consonantClass)
 
@@ -95,7 +102,7 @@ struct ConsonantRowView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                onPractice?()
+                showingSheet = true
             }
 
             // Sound area (tappable to play sound)
@@ -121,15 +128,23 @@ struct ConsonantRowView: View {
             .padding(.horizontal, 8)
             .contentShape(Rectangle())
             .onTapGesture {
-                if hasSound {
-                    AudioPlayer.shared.playConsonantSound(for: consonant.character)
-                }
+                showingSheet = true
             }
         }
         .padding(.vertical, 4)
         .padding(.leading, 8)
         .padding(.trailing, 4)
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
+        .sheet(isPresented: $showingSheet) {
+            ReferenceItemSheet(
+                title: consonant.character,
+                stage: stage,
+                note: nil,
+                hasSound: hasSound,
+                onPlaySound: { AudioPlayer.shared.playConsonantSound(for: consonant.character) },
+                onPractice: { onPractice?() }
+            )
+        }
     }
 }
 

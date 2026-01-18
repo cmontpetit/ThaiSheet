@@ -62,9 +62,22 @@ struct ToneRuleRowView: View {
     var isHighlighted: Bool = false
     var onPractice: (() -> Void)? = nil
 
+    @Environment(\.learningModel) var learningModel
+    @State private var showingSheet = false
+
     private var hasSound: Bool {
         guard let sample = rule.primarySample else { return false }
         return AudioPlayer.shared.hasToneRuleSound(for: sample.full)
+    }
+
+    /// Lowest stage among all sample cards for this rule
+    private var lowestStage: SRSStage {
+        guard let samples = rule.samples else { return .new }
+        let stages = samples.map { sample in
+            let cardId = "toneRule-\(rule.id)-\(sample.full)"
+            return learningModel.getProgress(forId: cardId).srsStage
+        }
+        return stages.min() ?? .new
     }
 
     var body: some View {
@@ -75,7 +88,7 @@ struct ToneRuleRowView: View {
                 .frame(width: 8, height: 8)
                 .padding(.trailing, 4)
 
-            // Main content (tappable for practice)
+            // Main content (tappable for sheet)
             HStack(spacing: 0) {
                 Text(rule.initialConsonant)
                     .frame(width: 60)
@@ -103,18 +116,16 @@ struct ToneRuleRowView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                onPractice?()
+                showingSheet = true
             }
 
-            // Tone column (tappable for sound)
+            // Tone column (tappable for sheet)
             StyledToneText(tone: rule.tone)
                 .foregroundColor(hasSound ? .accentColor : .primary)
                 .frame(width: 60)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    if let sample = rule.primarySample, hasSound {
-                        AudioPlayer.shared.playToneRuleSound(for: sample.full)
-                    }
+                    showingSheet = true
                 }
         }
         .font(.subheadline)
@@ -122,6 +133,20 @@ struct ToneRuleRowView: View {
         .padding(.leading, 8)
         .padding(.trailing, 12)
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
+        .sheet(isPresented: $showingSheet) {
+            ReferenceItemSheet(
+                title: rule.primarySample?.full ?? rule.tone,
+                stage: lowestStage,
+                note: nil,
+                hasSound: hasSound,
+                onPlaySound: {
+                    if let sample = rule.primarySample {
+                        AudioPlayer.shared.playToneRuleSound(for: sample.full)
+                    }
+                },
+                onPractice: { onPractice?() }
+            )
+        }
     }
 }
 

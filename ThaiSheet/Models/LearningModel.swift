@@ -4,6 +4,20 @@
 //
 
 import Foundation
+import SwiftUI
+
+// MARK: - Environment Key
+
+private struct LearningModelKey: EnvironmentKey {
+    static let defaultValue = LearningModel()
+}
+
+extension EnvironmentValues {
+    var learningModel: LearningModel {
+        get { self[LearningModelKey.self] }
+        set { self[LearningModelKey.self] = newValue }
+    }
+}
 
 /// Tracks learning progress for all flashcards using Wanikani-style SRS
 @Observable
