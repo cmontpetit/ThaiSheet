@@ -187,7 +187,7 @@
       "class": "low",
       "usage": "common",
       "sounds": {
-        "en": { "initial": "y-", "final": "[vowel]" }
+        "en": { "initial": "y-", "final": "-y" }
       }
     },
     {
@@ -217,7 +217,7 @@
       "class": "low",
       "usage": "common",
       "sounds": {
-        "en": { "initial": "w-", "final": "[vowel]" }
+        "en": { "initial": "w-", "final": "-w" }
       }
     },
     {

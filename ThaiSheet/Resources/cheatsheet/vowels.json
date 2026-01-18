@@ -288,6 +288,67 @@
         "short_closed": "◌ำ includes the final /m/ sound; treat as a single unit (vowel+final).",
         "long_open": "◌ำ includes the final /m/ sound; open vs closed behaves differently here."
       }
+    },
+    {
+      "short": {
+        "closed": null,
+        "open": null
+      },
+      "long": {
+        "closed": "ไก-",
+        "open": "ไก"
+      },
+      "sounds": {
+        "en": "ai"
+      },
+      "notes": {
+        "long_open": "Also spelled ใก for exactly 20 common words (ใช้, ใน, ใจ, etc.)"
+      }
+    },
+    {
+      "short": {
+        "closed": null,
+        "open": "ฤ"
+      },
+      "long": {
+        "closed": null,
+        "open": "ฤๅ"
+      },
+      "sounds": {
+        "en": "rue"
+      },
+      "usage": "rare",
+      "note": "Sanskrit-derived, includes inherent r sound"
+    },
+    {
+      "short": {
+        "closed": "ฤ-",
+        "open": null
+      },
+      "long": {
+        "closed": null,
+        "open": null
+      },
+      "sounds": {
+        "en": "ri"
+      },
+      "usage": "rare",
+      "note": "Sanskrit-derived ฤ in closed syllables"
+    },
+    {
+      "short": {
+        "closed": null,
+        "open": "ฦ"
+      },
+      "long": {
+        "closed": null,
+        "open": "ฦๅ"
+      },
+      "sounds": {
+        "en": "lue"
+      },
+      "usage": "archaic",
+      "note": "Sanskrit-derived, includes inherent l sound. ฦๅ only in ฦๅสาย."
     }
   ]
 }
