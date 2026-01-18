@@ -198,6 +198,16 @@ struct ToneRuleFlashcardView: View {
                     showResult: cardState.step == .completed,
                     labelWidth: 50
                 )
+
+                // Show note when completed
+                if cardState.step == .completed, let note = card.sample.note {
+                    Divider()
+                        .padding(.vertical, 4)
+                    Text(note)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .padding()
             .background(Color(.systemGray6))
