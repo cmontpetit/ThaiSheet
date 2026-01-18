@@ -11,6 +11,7 @@ struct VowelCard: Identifiable {
     let duration: VowelDuration
     let form: VowelFormType
     let display: String
+    let acceptsBothDurations: Bool  // True if this form appears in both short and long
 
     var id: String { display }
 
@@ -24,26 +25,34 @@ struct VowelCard: Identifiable {
         case open = "Open"
     }
 
+    /// Returns the alternative duration if this card accepts both, nil otherwise
+    var alternativeDuration: VowelDuration? {
+        guard acceptsBothDurations else { return nil }
+        return duration == .short ? .long : .short
+    }
+
     static func allCards(from vowels: [Vowel]) -> [VowelCard] {
         var cards: [VowelCard] = []
         var seenDisplays: Set<String> = []
         for vowel in vowels {
-            // Skip duplicates - if a form appears in both short and long,
-            // only create one card (hasError accepts both durations)
             if let form = vowel.short.closed, !seenDisplays.contains(form) {
-                cards.append(VowelCard(vowel: vowel, duration: .short, form: .closed, display: form))
+                let isDuplicate = vowel.isDuplicate(form: form)
+                cards.append(VowelCard(vowel: vowel, duration: .short, form: .closed, display: form, acceptsBothDurations: isDuplicate))
                 seenDisplays.insert(form)
             }
             if let form = vowel.short.open, !seenDisplays.contains(form) {
-                cards.append(VowelCard(vowel: vowel, duration: .short, form: .open, display: form))
+                let isDuplicate = vowel.isDuplicate(form: form)
+                cards.append(VowelCard(vowel: vowel, duration: .short, form: .open, display: form, acceptsBothDurations: isDuplicate))
                 seenDisplays.insert(form)
             }
             if let form = vowel.long.closed, !seenDisplays.contains(form) {
-                cards.append(VowelCard(vowel: vowel, duration: .long, form: .closed, display: form))
+                let isDuplicate = vowel.isDuplicate(form: form)
+                cards.append(VowelCard(vowel: vowel, duration: .long, form: .closed, display: form, acceptsBothDurations: isDuplicate))
                 seenDisplays.insert(form)
             }
             if let form = vowel.long.open, !seenDisplays.contains(form) {
-                cards.append(VowelCard(vowel: vowel, duration: .long, form: .open, display: form))
+                let isDuplicate = vowel.isDuplicate(form: form)
+                cards.append(VowelCard(vowel: vowel, duration: .long, form: .open, display: form, acceptsBothDurations: isDuplicate))
                 seenDisplays.insert(form)
             }
         }
@@ -161,9 +170,7 @@ struct VowelFlashcardView: View {
                     correctValue: card.duration.rawValue,
                     showResult: cardState.step == .completed,
                     labelWidth: 70,
-                    alternativeCorrectValue: card.vowel.isDuplicate(form: card.display)
-                        ? (card.duration == .short ? "Long" : "Short")
-                        : nil
+                    alternativeCorrectValue: card.alternativeDuration?.rawValue
                 )
                 FlashcardSummaryRow(
                     label: "Form",
@@ -401,9 +408,9 @@ struct VowelCardState {
 
 extension VowelCardState {
     func hasError(for card: VowelCard) -> Bool {
-        // For duration: accept both if form appears in both short and long
+        // For duration: accept both if card accepts both durations
         if let selected = selectedDuration, selected != card.duration {
-            if !card.vowel.isDuplicate(form: card.display) {
+            if !card.acceptsBothDurations {
                 return true
             }
         }
