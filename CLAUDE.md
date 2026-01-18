@@ -54,7 +54,11 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 
 ## Project Conventions
 
-<!-- Add your coding style, architecture patterns, and conventions here -->
+### @Observable and UserDefaults
+- `FlashcardSettings` uses `@Observable` with stored properties and `didSet` for persistence
+- **Important:** Computed properties bypass `@Observable` tracking - always use stored properties
+- Pattern: `var setting: Bool { didSet { defaults.set(setting, forKey: "key") } }`
+- Initialize from UserDefaults in `init()`, not via computed getters
 
 ### Interpreting the cheatsheet and clip files
 - The cheatsheet is interpreted and stored as a data model in the app using UTF characters, with all of their characteristics.
