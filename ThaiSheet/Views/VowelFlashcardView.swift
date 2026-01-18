@@ -425,13 +425,19 @@ extension VowelCardState {
 }
 
 #Preview {
-    NavigationStack {
-        VowelFlashcardView(
-            card: VowelCard.allCards(from: Vowel.loadAll()).first!,
-            allVowels: Vowel.loadAll(),
-            onViewInReference: { _ in },
-            onNext: {},
-            onPrevious: {}
-        )
+    let vowels = Vowel.loadAll()
+    let cards = VowelCard.allCards(from: vowels)
+    return NavigationStack {
+        if let first = cards.first {
+            VowelFlashcardView(
+                card: first,
+                allVowels: vowels,
+                onViewInReference: { _ in },
+                onNext: {},
+                onPrevious: {}
+            )
+        } else {
+            Text("No vowel data")
+        }
     }
 }

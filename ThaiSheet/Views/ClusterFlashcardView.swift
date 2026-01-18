@@ -265,13 +265,18 @@ extension ClusterCardState {
 }
 
 #Preview {
-    NavigationStack {
-        ClusterFlashcardView(
-            cluster: Cluster.loadAll().first!,
-            allClusters: Cluster.loadAll(),
-            onViewInReference: { _ in },
-            onNext: {},
-            onPrevious: {}
-        )
+    let clusters = Cluster.loadAll()
+    return NavigationStack {
+        if let first = clusters.first {
+            ClusterFlashcardView(
+                cluster: first,
+                allClusters: clusters,
+                onViewInReference: { _ in },
+                onNext: {},
+                onPrevious: {}
+            )
+        } else {
+            Text("No cluster data")
+        }
     }
 }

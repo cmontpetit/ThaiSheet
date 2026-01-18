@@ -156,58 +156,43 @@ struct FlashcardResultCard<Content: View>: View {
     let hasError: Bool
     @ViewBuilder let content: () -> Content
 
-    @State private var shakeOffset: CGFloat = 0
+    @State private var shakeTrigger = 0
+
+    private enum ShakePhase: CaseIterable {
+        case start, right, left, rightSmall, leftSmall, end
+
+        var offset: CGFloat {
+            switch self {
+            case .start, .end: return 0
+            case .right: return 10
+            case .left: return -10
+            case .rightSmall: return 5
+            case .leftSmall: return -5
+            }
+        }
+    }
 
     var body: some View {
-        content()
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(backgroundColor)
-            )
-            .offset(x: shakeOffset)
-            .onChange(of: showResult) { _, isCompleted in
-                if isCompleted && hasError {
-                    triggerShake()
-                }
+        PhaseAnimator(ShakePhase.allCases, trigger: shakeTrigger) { phase in
+            content()
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(backgroundColor)
+                )
+                .offset(x: phase.offset)
+        } animation: { _ in
+            .easeInOut(duration: 0.08)
+        }
+        .onChange(of: showResult) { _, isCompleted in
+            if isCompleted && hasError {
+                shakeTrigger += 1
             }
+        }
     }
 
     private var backgroundColor: Color {
         guard showResult else { return Color(.systemGray6) }
         return hasError ? Color.red.opacity(0.15) : Color.green.opacity(0.15)
-    }
-
-    private func triggerShake() {
-        let shakeDistance: CGFloat = 10
-        let shakeDuration: Double = 0.08
-
-        withAnimation(.easeInOut(duration: shakeDuration)) {
-            shakeOffset = shakeDistance
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + shakeDuration) {
-            withAnimation(.easeInOut(duration: shakeDuration)) {
-                shakeOffset = -shakeDistance
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + shakeDuration * 2) {
-            withAnimation(.easeInOut(duration: shakeDuration)) {
-                shakeOffset = shakeDistance * 0.5
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + shakeDuration * 3) {
-            withAnimation(.easeInOut(duration: shakeDuration)) {
-                shakeOffset = -shakeDistance * 0.5
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + shakeDuration * 4) {
-            withAnimation(.easeInOut(duration: shakeDuration)) {
-                shakeOffset = 0
-            }
-        }
     }
 }
 

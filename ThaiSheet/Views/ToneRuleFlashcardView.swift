@@ -384,12 +384,17 @@ extension ToneRuleCardState {
 }
 
 #Preview {
-    NavigationStack {
-        ToneRuleFlashcardView(
-            card: ToneRuleCard.allCards(from: ToneRule.loadAll()).first!,
-            onViewInReference: { _ in },
-            onNext: {},
-            onPrevious: {}
-        )
+    let cards = ToneRuleCard.allCards(from: ToneRule.loadAll())
+    return NavigationStack {
+        if let first = cards.first {
+            ToneRuleFlashcardView(
+                card: first,
+                onViewInReference: { _ in },
+                onNext: {},
+                onPrevious: {}
+            )
+        } else {
+            Text("No tone rule data")
+        }
     }
 }

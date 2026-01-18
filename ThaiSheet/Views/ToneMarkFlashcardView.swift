@@ -316,12 +316,17 @@ extension ToneMarkCardState {
 }
 
 #Preview {
-    NavigationStack {
-        ToneMarkFlashcardView(
-            card: ToneMarkCard.allCards(from: ToneMark.loadAll(), consonants: Consonant.loadAll()).first!,
-            onViewInReference: { _ in },
-            onNext: {},
-            onPrevious: {}
-        )
+    let cards = ToneMarkCard.allCards(from: ToneMark.loadAll(), consonants: Consonant.loadAll())
+    return NavigationStack {
+        if let first = cards.first {
+            ToneMarkFlashcardView(
+                card: first,
+                onViewInReference: { _ in },
+                onNext: {},
+                onPrevious: {}
+            )
+        } else {
+            Text("No tone mark data")
+        }
     }
 }

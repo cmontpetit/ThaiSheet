@@ -489,13 +489,18 @@ struct FlowLayout: Layout {
 }
 
 #Preview {
-    NavigationStack {
-        ConsonantFlashcardView(
-            consonant: Consonant.loadAll().first!,
-            allConsonants: Consonant.loadAll(),
-            onViewInReference: { _ in },
-            onNext: {},
-            onPrevious: {}
-        )
+    let consonants = Consonant.loadAll()
+    return NavigationStack {
+        if let first = consonants.first {
+            ConsonantFlashcardView(
+                consonant: first,
+                allConsonants: consonants,
+                onViewInReference: { _ in },
+                onNext: {},
+                onPrevious: {}
+            )
+        } else {
+            Text("No consonant data")
+        }
     }
 }

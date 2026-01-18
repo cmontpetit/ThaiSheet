@@ -257,13 +257,12 @@ struct CheatsheetBrowserView: View {
                                 .id(consonant.character)
                             }
                             .listStyle(.plain)
-                            .onAppear {
+                            .task {
                                 // Scroll to highlighted consonant when view appears (e.g., after tab switch)
                                 if let character = highlightedConsonant {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                        withAnimation {
-                                            proxy.scrollTo(character, anchor: .center)
-                                        }
+                                    try? await Task.sleep(for: .milliseconds(100))
+                                    withAnimation {
+                                        proxy.scrollTo(character, anchor: .center)
                                     }
                                 }
                             }
@@ -296,17 +295,16 @@ struct CheatsheetBrowserView: View {
                                 .id(vowel.id)
                             }
                             .listStyle(.plain)
-                            .onAppear {
+                            .task {
                                 // Scroll to highlighted vowel when view appears (e.g., after tab switch)
                                 if let vowelForm = highlightedVowel,
                                    let vowel = vowels.first(where: { v in
                                        [v.short.closed, v.short.open, v.long.closed, v.long.open]
                                            .compactMap { $0 }.contains(vowelForm)
                                    }) {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                        withAnimation {
-                                            proxy.scrollTo(vowel.id, anchor: .center)
-                                        }
+                                    try? await Task.sleep(for: .milliseconds(100))
+                                    withAnimation {
+                                        proxy.scrollTo(vowel.id, anchor: .center)
                                     }
                                 }
                             }
@@ -371,22 +369,20 @@ struct CheatsheetBrowserView: View {
                             }
                             .padding(.horizontal)
                         }
-                        .onAppear {
+                        .task {
                             // Scroll to highlighted tone mark when view appears (e.g., after tab switch)
                             if let display = highlightedToneMark,
                                let mark = toneMarks.first(where: { $0.withLowConsonant == display || $0.withMidHighConsonant == display }) {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    withAnimation {
-                                        proxy.scrollTo("tonemark-\(mark.id)", anchor: .center)
-                                    }
+                                try? await Task.sleep(for: .milliseconds(100))
+                                withAnimation {
+                                    proxy.scrollTo("tonemark-\(mark.id)", anchor: .center)
                                 }
                             }
                             // Scroll to highlighted tone rule when view appears
                             if let ruleId = highlightedToneRule {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    withAnimation {
-                                        proxy.scrollTo("tonerule-\(ruleId)", anchor: .center)
-                                    }
+                                try? await Task.sleep(for: .milliseconds(100))
+                                withAnimation {
+                                    proxy.scrollTo("tonerule-\(ruleId)", anchor: .center)
                                 }
                             }
                         }
@@ -447,12 +443,11 @@ struct CheatsheetBrowserView: View {
                             }
                             .padding(.horizontal)
                         }
-                        .onAppear {
+                        .task {
                             if let clusterId = highlightedCluster {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    withAnimation {
-                                        proxy.scrollTo(clusterId, anchor: .center)
-                                    }
+                                try? await Task.sleep(for: .milliseconds(100))
+                                withAnimation {
+                                    proxy.scrollTo(clusterId, anchor: .center)
                                 }
                             }
                         }
