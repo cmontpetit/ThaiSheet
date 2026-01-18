@@ -153,12 +153,17 @@ class WanikaniStrategy: CardSelectionStrategy {
             return cards.first
         }
 
-        // Categorize cards
+        // Categorize cards, excluding the current card to ensure we show a different one
         var dueCards: [(card: FlashcardItem, overdueSeconds: TimeInterval)] = []
         var newCards: [FlashcardItem] = []
         var futureCards: [(card: FlashcardItem, nextReview: Date)] = []
 
         for card in cards {
+            // Skip the current card to ensure navigation shows a different card
+            if card.id == current?.id {
+                continue
+            }
+
             let progress = model.getProgress(for: card)
 
             // Skip mastered cards
@@ -196,8 +201,10 @@ class WanikaniStrategy: CardSelectionStrategy {
             return sorted.first?.card
         }
 
-        // Fallback: all cards are mastered, show random from full list
-        return cards.randomElement()
+        // Fallback: all cards are mastered or only current card remains
+        // Pick a different card if possible, otherwise stay on current
+        let otherCards = cards.filter { $0.id != current?.id }
+        return otherCards.randomElement() ?? current
     }
 
     /// Jump to a specific card (for FlashcardManager.jumpTo)

@@ -338,10 +338,10 @@ struct FlashcardsView: View {
     private var mainContent: some View {
         if !manager.isLoaded {
             loadingView
-        } else if manager.filteredCards.isEmpty {
-            emptyStateView
         } else if let card = manager.currentCard {
             cardView(for: card)
+        } else {
+            emptyStateView
         }
     }
 
@@ -393,7 +393,9 @@ struct FlashcardsSheetModifier: ViewModifier {
             .sheet(isPresented: $showingStats) {
                 SRSStatsView(
                     learningModel: manager.learningModel,
-                    filteredCards: manager.filteredCards
+                    filteredCards: manager.filteredCards,
+                    allCards: manager.allCards,
+                    hasActiveFilters: manager.hasActiveFilters
                 )
             }
     }

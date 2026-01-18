@@ -117,6 +117,38 @@ class FlashcardManager {
         return cards
     }
 
+    /// Returns all cards (unfiltered)
+    var allCards: [FlashcardItem] {
+        var cards: [FlashcardItem] = []
+
+        for consonant in allConsonants {
+            cards.append(.consonant(consonant))
+        }
+
+        for card in allVowelCards {
+            cards.append(.vowel(card))
+        }
+
+        for card in allToneRuleCards {
+            cards.append(.toneRule(card))
+        }
+
+        for card in allToneMarkCards {
+            cards.append(.toneMark(card))
+        }
+
+        for cluster in allClusters {
+            cards.append(.cluster(cluster))
+        }
+
+        return cards
+    }
+
+    /// Whether current filters exclude some cards
+    var hasActiveFilters: Bool {
+        filteredCards.count < allCards.count
+    }
+
     private func isVowelCardEnabled(_ card: VowelCard) -> Bool {
         settings.isVowelCardEnabled(duration: card.duration)
     }

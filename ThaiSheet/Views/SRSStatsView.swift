@@ -8,8 +8,16 @@ import SwiftUI
 struct SRSStatsView: View {
     let learningModel: LearningModel
     let filteredCards: [FlashcardItem]
+    let allCards: [FlashcardItem]
+    let hasActiveFilters: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var showingResetConfirmation = false
+    @State private var showAllCards = false
+
+    /// The cards to display stats for (filtered or all based on toggle)
+    private var displayedCards: [FlashcardItem] {
+        showAllCards ? allCards : filteredCards
+    }
 
     var body: some View {
         NavigationStack {
@@ -42,9 +50,18 @@ struct SRSStatsView: View {
                     }
                 }
             }
-            .navigationTitle("Progress")
+            .navigationTitle(showAllCards ? "Progress (All)" : "Progress")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if hasActiveFilters {
+                        Button {
+                            showAllCards.toggle()
+                        } label: {
+                            Image(systemName: showAllCards ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
@@ -146,9 +163,9 @@ struct SRSStatsView: View {
     // MARK: - Summary Stats
 
     private var summaryStats: some View {
-        let dueCount = learningModel.dueCardCount(in: filteredCards)
-        let masteredCount = learningModel.masteredCardCount(in: filteredCards)
-        let totalCards = filteredCards.count
+        let dueCount = learningModel.dueCardCount(in: displayedCards)
+        let masteredCount = learningModel.masteredCardCount(in: displayedCards)
+        let totalCards = displayedCards.count
         let masteredPercent = totalCards > 0 ? Int(Double(masteredCount) / Double(totalCards) * 100) : 0
         let successRate = learningModel.overallSuccessRate
 
@@ -183,7 +200,7 @@ struct SRSStatsView: View {
         ]
 
         return ForEach(types, id: \.0) { type, name in
-            let cardsOfType = filteredCards.filter { $0.type == type }
+            let cardsOfType = displayedCards.filter { $0.type == type }
             let dueCount = learningModel.dueCardCount(in: cardsOfType)
             let masteredCount = learningModel.masteredCardCount(in: cardsOfType)
             let totalCount = cardsOfType.count
@@ -212,7 +229,7 @@ struct SRSStatsView: View {
         for stage in SRSStage.allCases {
             counts[stage] = 0
         }
-        for card in filteredCards {
+        for card in displayedCards {
             let stage = learningModel.srsStage(for: card)
             counts[stage, default: 0] += 1
         }
@@ -246,6 +263,8 @@ private struct StatBox: View {
 #Preview {
     SRSStatsView(
         learningModel: LearningModel(),
-        filteredCards: []
+        filteredCards: [],
+        allCards: [],
+        hasActiveFilters: true
     )
 }
