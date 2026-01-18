@@ -64,10 +64,14 @@ class FlashcardSettings {
         set { defaults.set(newValue, forKey: "fc_toneMarks") }
     }
 
-    // Selection mode
+    // Selection mode - uses stored property for proper @Observable support
     var useIntelligentSelection: Bool {
-        get { defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "fc_useIntelligentSelection") }
+        didSet { defaults.set(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
+    }
+
+    init() {
+        // Load persisted value
+        self.useIntelligentSelection = UserDefaults.standard.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
     }
 
     // Count of enabled options

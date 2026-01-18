@@ -14,7 +14,7 @@ struct FlashcardSettingsView: View {
             Form {
                 Section {
                     strategyOption(
-                        title: "Smart (Wanikani-style SRS)",
+                        title: "Wanikani-style SRS",
                         description: "Prioritizes cards due for review based on your progress. Uses spaced repetition to optimize learning.",
                         isSelected: settings.useIntelligentSelection
                     ) {

@@ -59,10 +59,10 @@ enum SRSStage: Int, Codable, CaseIterable, Comparable {
         return next
     }
 
-    /// Drop back stages (on incorrect answer) - drops 2 stages minimum to apprentice1
+    /// Drop back stages (on incorrect answer) - drops 2 stages, minimum learning1
     func demote() -> SRSStage {
-        let newRaw = max(SRSStage.apprentice1.rawValue, rawValue - 2)
-        return SRSStage(rawValue: newRaw) ?? .apprentice1
+        let newRaw = max(SRSStage.learning1.rawValue, rawValue - 2)
+        return SRSStage(rawValue: newRaw) ?? .learning1
     }
 }
 

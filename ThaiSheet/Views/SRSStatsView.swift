@@ -68,15 +68,48 @@ struct SRSStatsView: View {
 
     // MARK: - Stage Distribution Chart
 
+    /// Grouped stage for display (combines stages with same display name)
+    private enum StageGroup: String, CaseIterable {
+        case new = "New"
+        case learning = "Learning"
+        case apprentice = "Apprentice"
+        case familiar = "Familiar"
+        case confident = "Confident"
+        case mastered = "Mastered"
+
+        var color: Color {
+            switch self {
+            case .new: return .gray
+            case .learning: return .blue
+            case .apprentice: return .pink
+            case .familiar: return .purple
+            case .confident: return .indigo
+            case .mastered: return .yellow
+            }
+        }
+
+        var stages: [SRSStage] {
+            switch self {
+            case .new: return [.new]
+            case .learning: return [.learning1, .learning2]
+            case .apprentice: return [.apprentice1, .apprentice2]
+            case .familiar: return [.familiar1, .familiar2]
+            case .confident: return [.confident]
+            case .mastered: return [.mastered]
+            }
+        }
+    }
+
     private var stageDistributionChart: some View {
         let stageCounts = calculateStageCounts()
-        let maxCount = stageCounts.values.max() ?? 1
+        let groupedCounts = calculateGroupedCounts(from: stageCounts)
+        let maxCount = groupedCounts.values.max() ?? 1
 
         return VStack(alignment: .leading, spacing: 8) {
-            ForEach(SRSStage.allCases, id: \.rawValue) { stage in
-                let count = stageCounts[stage] ?? 0
+            ForEach(StageGroup.allCases, id: \.rawValue) { group in
+                let count = groupedCounts[group] ?? 0
                 HStack(spacing: 8) {
-                    Text(stage.displayName)
+                    Text(group.rawValue)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .frame(width: 70, alignment: .leading)
@@ -87,7 +120,7 @@ struct SRSStatsView: View {
                             : 0
 
                         RoundedRectangle(cornerRadius: 3)
-                            .fill(stageColor(stage))
+                            .fill(group.color)
                             .frame(width: max(barWidth, count > 0 ? 4 : 0), height: 16)
                     }
                     .frame(height: 16)
@@ -102,15 +135,12 @@ struct SRSStatsView: View {
         .padding(.vertical, 4)
     }
 
-    private func stageColor(_ stage: SRSStage) -> Color {
-        switch stage {
-        case .new: return .gray
-        case .learning1, .learning2: return .blue
-        case .apprentice1, .apprentice2: return .pink
-        case .familiar1, .familiar2: return .purple
-        case .confident: return .indigo
-        case .mastered: return .yellow
+    private func calculateGroupedCounts(from stageCounts: [SRSStage: Int]) -> [StageGroup: Int] {
+        var grouped: [StageGroup: Int] = [:]
+        for group in StageGroup.allCases {
+            grouped[group] = group.stages.reduce(0) { $0 + (stageCounts[$1] ?? 0) }
         }
+        return grouped
     }
 
     // MARK: - Summary Stats
