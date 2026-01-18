@@ -62,15 +62,18 @@ struct FlashcardFilterView: View {
                         onEnable: {
                             settings.longVowels = true
                             settings.shortVowels = true
+                            settings.uncommonVowels = true
                         },
                         onDisable: {
                             settings.longVowels = false
                             settings.shortVowels = false
+                            settings.uncommonVowels = false
                         }
                     )
                     if settings.vowelsEnabled {
                         childToggle(title: "Long", isOn: $settings.longVowels)
                         childToggle(title: "Short", isOn: $settings.shortVowels)
+                        childToggle(title: "Uncommon, rare & archaic", isOn: $settings.uncommonVowels)
                     }
                 }
 

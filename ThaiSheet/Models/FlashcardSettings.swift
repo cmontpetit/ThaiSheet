@@ -56,6 +56,10 @@ class FlashcardSettings {
         didSet { defaults.set(shortVowels, forKey: "fc_shortVowels") }
     }
 
+    var uncommonVowels: Bool {
+        didSet { defaults.set(uncommonVowels, forKey: "fc_uncommonVowels") }
+    }
+
     // MARK: - Tone Filters
 
     var highToneRules: Bool {
@@ -112,6 +116,7 @@ class FlashcardSettings {
         // Vowel filters
         self.longVowels = UserDefaults.standard.object(forKey: "fc_longVowels") as? Bool ?? true
         self.shortVowels = UserDefaults.standard.object(forKey: "fc_shortVowels") as? Bool ?? true
+        self.uncommonVowels = UserDefaults.standard.object(forKey: "fc_uncommonVowels") as? Bool ?? true
 
         // Tone filters
         self.highToneRules = UserDefaults.standard.object(forKey: "fc_highToneRules") as? Bool ?? true
@@ -143,6 +148,7 @@ class FlashcardSettings {
         var count = 0
         if longVowels { count += 1 }
         if shortVowels { count += 1 }
+        if uncommonVowels { count += 1 }
         return count
     }
 
@@ -216,8 +222,15 @@ class FlashcardSettings {
         return false
     }
 
-    func isVowelCardEnabled(duration: VowelCard.VowelDuration) -> Bool {
+    func isVowelCardEnabled(duration: VowelCard.VowelDuration, isUncommon: Bool) -> Bool {
         guard vowelsEnabled else { return false }
+
+        // Check usage filter first - uncommon vowels need the toggle enabled
+        if isUncommon && !uncommonVowels {
+            return false
+        }
+
+        // Then check duration filter
         switch duration {
         case .long: return longVowels
         case .short: return shortVowels
@@ -265,6 +278,7 @@ class FlashcardSettings {
         // Vowels
         longVowels = true
         shortVowels = true
+        uncommonVowels = true
 
         // Tones
         highToneRules = true
@@ -294,6 +308,7 @@ class FlashcardSettings {
         // Vowels
         longVowels = false
         shortVowels = false
+        uncommonVowels = false
 
         // Tones
         highToneRules = false
@@ -310,7 +325,7 @@ class FlashcardSettings {
     var isAllSelected: Bool {
         consonantsEnabled && vowelsEnabled && tonesEnabled && clusters &&
         highConsonants && midConsonants && lowConsonants && uncommonConsonants &&
-        longVowels && shortVowels &&
+        longVowels && shortVowels && uncommonVowels &&
         highToneRules && midToneRules && lowToneRules && toneMarks &&
         smoothClusters && silentClusters && irregularClusters
     }

@@ -25,13 +25,27 @@ struct VowelNotes: Codable {
     }
 }
 
+enum VowelUsage: String, Codable {
+    case common
+    case uncommon
+    case rare
+    case archaic
+}
+
 struct Vowel: Codable, Identifiable {
     let short: VowelForm
     let long: VowelForm
     let sounds: VowelSounds
     let notes: VowelNotes?
+    let usage: VowelUsage?
 
     var id: String { sounds.en + (short.closed ?? "") + (short.open ?? "") }
+
+    /// Returns true if this vowel is uncommon, rare, or archaic
+    var isUncommon: Bool {
+        guard let usage = usage else { return false }
+        return usage != .common
+    }
 
     var sound: String { sounds.en }
 
