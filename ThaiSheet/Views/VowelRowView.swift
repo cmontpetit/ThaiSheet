@@ -7,6 +7,20 @@ import SwiftUI
 
 enum VowelFormType {
     case shortClosed, shortOpen, longClosed, longOpen
+
+    var duration: String {
+        switch self {
+        case .shortClosed, .shortOpen: return "Short"
+        case .longClosed, .longOpen: return "Long"
+        }
+    }
+
+    var form: String {
+        switch self {
+        case .shortClosed, .longClosed: return "Closed"
+        case .shortOpen, .longOpen: return "Open"
+        }
+    }
 }
 
 struct VowelHeaderView: View {
@@ -176,6 +190,10 @@ struct VowelRowView: View {
 
                 Button("Practice") {
                     onPractice?(text)
+                }
+            } message: {
+                if let note = vowel.note(for: formType.duration, form: formType.form) {
+                    Text(note)
                 }
             }
         } else {

@@ -26,18 +26,25 @@ struct VowelCard: Identifiable {
 
     static func allCards(from vowels: [Vowel]) -> [VowelCard] {
         var cards: [VowelCard] = []
+        var seenDisplays: Set<String> = []
         for vowel in vowels {
-            if let form = vowel.short.closed {
+            // Skip duplicates - if a form appears in both short and long,
+            // only create one card (hasError accepts both durations)
+            if let form = vowel.short.closed, !seenDisplays.contains(form) {
                 cards.append(VowelCard(vowel: vowel, duration: .short, form: .closed, display: form))
+                seenDisplays.insert(form)
             }
-            if let form = vowel.short.open {
+            if let form = vowel.short.open, !seenDisplays.contains(form) {
                 cards.append(VowelCard(vowel: vowel, duration: .short, form: .open, display: form))
+                seenDisplays.insert(form)
             }
-            if let form = vowel.long.closed {
+            if let form = vowel.long.closed, !seenDisplays.contains(form) {
                 cards.append(VowelCard(vowel: vowel, duration: .long, form: .closed, display: form))
+                seenDisplays.insert(form)
             }
-            if let form = vowel.long.open {
+            if let form = vowel.long.open, !seenDisplays.contains(form) {
                 cards.append(VowelCard(vowel: vowel, duration: .long, form: .open, display: form))
+                seenDisplays.insert(form)
             }
         }
         return cards
@@ -153,7 +160,10 @@ struct VowelFlashcardView: View {
                     selectedValue: cardState.selectedDuration?.rawValue,
                     correctValue: card.duration.rawValue,
                     showResult: cardState.step == .completed,
-                    labelWidth: 70
+                    labelWidth: 70,
+                    alternativeCorrectValue: card.vowel.isDuplicate(form: card.display)
+                        ? (card.duration == .short ? "Long" : "Short")
+                        : nil
                 )
                 FlashcardSummaryRow(
                     label: "Form",
@@ -391,8 +401,11 @@ struct VowelCardState {
 
 extension VowelCardState {
     func hasError(for card: VowelCard) -> Bool {
+        // For duration: accept both if form appears in both short and long
         if let selected = selectedDuration, selected != card.duration {
-            return true
+            if !card.vowel.isDuplicate(form: card.display) {
+                return true
+            }
         }
         if let selected = selectedForm, selected != card.form {
             return true

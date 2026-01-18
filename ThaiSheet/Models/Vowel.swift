@@ -51,6 +51,13 @@ struct Vowel: Codable, Identifiable {
         let allForms = [short.closed, short.open, long.closed, long.open].compactMap { $0 }
         return allForms.contains { $0.contains("ฤ") }
     }
+
+    /// Returns true if the given form appears in both short and long positions
+    func isDuplicate(form: String) -> Bool {
+        let shortForms = [short.closed, short.open].compactMap { $0 }
+        let longForms = [long.closed, long.open].compactMap { $0 }
+        return shortForms.contains(form) && longForms.contains(form)
+    }
 }
 
 struct VowelsData: Codable {

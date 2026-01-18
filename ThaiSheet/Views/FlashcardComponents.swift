@@ -95,9 +95,11 @@ struct FlashcardSummaryRow: View {
     let correctValue: String
     let showResult: Bool
     var labelWidth: CGFloat = 60
+    var alternativeCorrectValue: String? = nil
 
     private var isCorrect: Bool {
-        selectedValue == correctValue
+        selectedValue == correctValue ||
+        (alternativeCorrectValue != nil && selectedValue == alternativeCorrectValue)
     }
 
     private var wasSelected: Bool {
