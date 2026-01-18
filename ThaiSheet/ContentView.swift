@@ -93,6 +93,18 @@ struct ContentView: View {
                 manager = FlashcardManager(settings: settings, learningModel: learningModel)
             }
         }
+        .onChange(of: selectedTab) { oldTab, _ in
+            // Clear all highlights when leaving Reference tab
+            // This ensures tab bar navigation shows default state,
+            // while "View in Reference" links still work (they set highlight before tab switch)
+            if oldTab == .reference {
+                highlightedConsonant = nil
+                highlightedVowel = nil
+                highlightedToneMark = nil
+                highlightedToneRule = nil
+                highlightedCluster = nil
+            }
+        }
     }
 }
 
