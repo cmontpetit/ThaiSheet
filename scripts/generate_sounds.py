@@ -187,6 +187,34 @@ def generate_vowels(sounds_dir: Path, cheatsheet_dir: Path) -> None:
 
 
 # =============================================================================
+# CLUSTERS
+# =============================================================================
+
+def generate_clusters(sounds_dir: Path, cheatsheet_dir: Path) -> None:
+    """Generate cluster sound files using cluster + า."""
+    print("\n[Clusters]")
+
+    json_path = cheatsheet_dir / "clusters.json"
+    with open(json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    count = 0
+    for cluster in data['clusters']:
+        cluster_text = cluster['cluster']
+        # Remove trailing dash and add า for pronunciation
+        # e.g., "กร-" → "กรา"
+        base = cluster_text.rstrip('-')
+        display = base + "า"
+
+        filename = f"cheat_sheet_cluster_{display}.mp3"
+        sound_type = cluster.get('type', '')
+        generate_sound(display, sounds_dir / filename, sound_type)
+        count += 1
+
+    print(f"  Generated {count} cluster sounds")
+
+
+# =============================================================================
 # MAIN
 # =============================================================================
 
@@ -199,11 +227,12 @@ def main():
     parser.add_argument('--tone-rules', action='store_true', help='Generate tone rule sample word sounds')
     parser.add_argument('--consonants', action='store_true', help='Generate consonant sounds')
     parser.add_argument('--vowels', action='store_true', help='Generate vowel sounds')
+    parser.add_argument('--clusters', action='store_true', help='Generate cluster sounds')
 
     args = parser.parse_args()
 
     # Default to --all if no specific option provided
-    if not any([args.all, args.tone_marks, args.tone_rules, args.consonants, args.vowels]):
+    if not any([args.all, args.tone_marks, args.tone_rules, args.consonants, args.vowels, args.clusters]):
         args.all = True
 
     project_root, sounds_dir, cheatsheet_dir = get_project_paths()
@@ -225,6 +254,9 @@ def main():
 
     if args.all or args.vowels:
         generate_vowels(sounds_dir, cheatsheet_dir)
+
+    if args.all or args.clusters:
+        generate_clusters(sounds_dir, cheatsheet_dir)
 
     print("\nDone!")
     return 0

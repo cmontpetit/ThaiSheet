@@ -244,6 +244,10 @@ struct ClusterDetailRow: View {
 struct ClusterDetailSheet: View {
     let cluster: Cluster
 
+    private var hasSound: Bool {
+        AudioPlayer.shared.hasClusterSound(for: cluster.displayWithVowel)
+    }
+
     // Build note text combining usage, type description, and note
     private var combinedNote: String? {
         var parts: [String] = []
@@ -263,11 +267,13 @@ struct ClusterDetailSheet: View {
 
     var body: some View {
         ReferenceItemSheet(
-            title: cluster.cluster,
+            title: cluster.displayWithVowel,
             stage: .new,  // No flashcards yet
             note: combinedNote,
-            hasSound: false,  // No sounds yet
-            onPlaySound: { },
+            hasSound: hasSound,
+            onPlaySound: {
+                AudioPlayer.shared.playClusterSound(for: cluster.displayWithVowel)
+            },
             onPractice: { }  // No flashcards yet
         )
     }

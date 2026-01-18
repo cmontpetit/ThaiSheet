@@ -63,6 +63,12 @@ struct Cluster: Codable, Identifiable {
         case .common, .none: return nil
         }
     }
+
+    /// Display form with า vowel for pronunciation (e.g., "กร-" → "กรา")
+    var displayWithVowel: String {
+        let base = cluster.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        return base + "า"
+    }
 }
 
 struct ClustersData: Codable {
