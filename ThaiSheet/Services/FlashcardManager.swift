@@ -100,16 +100,16 @@ class FlashcardManager {
             }
         }
 
-        // Add tone marks (all or none)
-        if settings.toneMarks {
+        // Add tone marks
+        if settings.areToneMarksEnabled {
             for card in allToneMarkCards {
                 cards.append(.toneMark(card))
             }
         }
 
-        // Add clusters (all or none)
-        if settings.clusters {
-            for cluster in allClusters {
+        // Add filtered clusters
+        for cluster in allClusters {
+            if settings.isClusterEnabled(cluster) {
                 cards.append(.cluster(cluster))
             }
         }
@@ -118,19 +118,11 @@ class FlashcardManager {
     }
 
     private func isVowelCardEnabled(_ card: VowelCard) -> Bool {
-        switch card.duration {
-        case .long: return settings.longVowels
-        case .short: return settings.shortVowels
-        }
+        settings.isVowelCardEnabled(duration: card.duration)
     }
 
     private func isToneRuleCardEnabled(_ card: ToneRuleCard) -> Bool {
-        switch card.rule.initialConsonant {
-        case "High": return settings.highToneRules
-        case "Mid": return settings.midToneRules
-        case "Low": return settings.lowToneRules
-        default: return false
-        }
+        settings.isToneRuleEnabled(initialConsonant: card.rule.initialConsonant)
     }
 
     // MARK: - Current Card

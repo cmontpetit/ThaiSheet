@@ -236,19 +236,33 @@ struct FlashcardsView: View {
 
     /// Empty state view when no cards match filters
     private var emptyStateView: some View {
-        ContentUnavailableView(
-            "No Cards",
-            systemImage: "rectangle.on.rectangle",
-            description: Text("Enable some options in settings")
-        )
+        ContentUnavailableView {
+            Label("No Cards", systemImage: "rectangle.on.rectangle")
+        } description: {
+            Text("Enable some options in ") +
+            Text("Filters")
+                .foregroundColor(.accentColor)
+        } actions: {
+            Button("Open Filters") {
+                showingFilter = true
+            }
+            .buttonStyle(.borderedProminent)
+        }
         .navigationTitle("Flashcards")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingSettings = true
-                } label: {
-                    Image(systemName: "gearshape")
+                HStack(spacing: 16) {
+                    Button {
+                        showingFilter = true
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                    }
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
                 }
             }
         }
@@ -375,8 +389,21 @@ struct FlashcardsSheetModifier: ViewModifier {
     }
 }
 
-/// Modifier for settings change observers
-struct FlashcardsSettingsModifier: ViewModifier {
+/// Modifier for parent category setting changes
+struct ParentSettingsModifier: ViewModifier {
+    var manager: FlashcardManager
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: manager.settings.consonantsEnabled) { _, _ in manager.resetToStart() }
+            .onChange(of: manager.settings.vowelsEnabled) { _, _ in manager.resetToStart() }
+            .onChange(of: manager.settings.tonesEnabled) { _, _ in manager.resetToStart() }
+            .onChange(of: manager.settings.clusters) { _, _ in manager.resetToStart() }
+    }
+}
+
+/// Modifier for consonant and vowel filter changes
+struct ConsonantVowelSettingsModifier: ViewModifier {
     var manager: FlashcardManager
 
     func body(content: Content) -> some View {
@@ -387,11 +414,34 @@ struct FlashcardsSettingsModifier: ViewModifier {
             .onChange(of: manager.settings.uncommonConsonants) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.longVowels) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.shortVowels) { _, _ in manager.resetToStart() }
+    }
+}
+
+/// Modifier for tone and cluster filter changes
+struct ToneClusterSettingsModifier: ViewModifier {
+    var manager: FlashcardManager
+
+    func body(content: Content) -> some View {
+        content
             .onChange(of: manager.settings.highToneRules) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.midToneRules) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.lowToneRules) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.toneMarks) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.clusters) { _, _ in manager.resetToStart() }
+            .onChange(of: manager.settings.smoothClusters) { _, _ in manager.resetToStart() }
+            .onChange(of: manager.settings.silentClusters) { _, _ in manager.resetToStart() }
+            .onChange(of: manager.settings.irregularClusters) { _, _ in manager.resetToStart() }
+    }
+}
+
+/// Combined modifier for all settings change observers
+struct FlashcardsSettingsModifier: ViewModifier {
+    var manager: FlashcardManager
+
+    func body(content: Content) -> some View {
+        content
+            .modifier(ParentSettingsModifier(manager: manager))
+            .modifier(ConsonantVowelSettingsModifier(manager: manager))
+            .modifier(ToneClusterSettingsModifier(manager: manager))
     }
 }
 

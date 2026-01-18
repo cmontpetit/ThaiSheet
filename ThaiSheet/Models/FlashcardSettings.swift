@@ -10,7 +10,26 @@ import SwiftUI
 class FlashcardSettings {
     private let defaults = UserDefaults.standard
 
-    // Consonants - stored properties for proper @Observable support
+    // MARK: - Parent Category Toggles
+
+    var consonantsEnabled: Bool {
+        didSet { defaults.set(consonantsEnabled, forKey: "fc_consonantsEnabled") }
+    }
+
+    var vowelsEnabled: Bool {
+        didSet { defaults.set(vowelsEnabled, forKey: "fc_vowelsEnabled") }
+    }
+
+    var tonesEnabled: Bool {
+        didSet { defaults.set(tonesEnabled, forKey: "fc_tonesEnabled") }
+    }
+
+    var clusters: Bool {
+        didSet { defaults.set(clusters, forKey: "fc_clusters") }
+    }
+
+    // MARK: - Consonant Filters
+
     var highConsonants: Bool {
         didSet { defaults.set(highConsonants, forKey: "fc_highConsonants") }
     }
@@ -27,7 +46,8 @@ class FlashcardSettings {
         didSet { defaults.set(uncommonConsonants, forKey: "fc_uncommonConsonants") }
     }
 
-    // Vowels
+    // MARK: - Vowel Filters
+
     var longVowels: Bool {
         didSet { defaults.set(longVowels, forKey: "fc_longVowels") }
     }
@@ -36,7 +56,8 @@ class FlashcardSettings {
         didSet { defaults.set(shortVowels, forKey: "fc_shortVowels") }
     }
 
-    // Tones
+    // MARK: - Tone Filters
+
     var highToneRules: Bool {
         didSet { defaults.set(highToneRules, forKey: "fc_highToneRules") }
     }
@@ -53,58 +74,127 @@ class FlashcardSettings {
         didSet { defaults.set(toneMarks, forKey: "fc_toneMarks") }
     }
 
-    // Clusters
-    var clusters: Bool {
-        didSet { defaults.set(clusters, forKey: "fc_clusters") }
+    // MARK: - Cluster Filters
+
+    var smoothClusters: Bool {
+        didSet { defaults.set(smoothClusters, forKey: "fc_smoothClusters") }
     }
 
-    // Selection mode
+    var silentClusters: Bool {
+        didSet { defaults.set(silentClusters, forKey: "fc_silentClusters") }
+    }
+
+    var irregularClusters: Bool {
+        didSet { defaults.set(irregularClusters, forKey: "fc_irregularClusters") }
+    }
+
+    // MARK: - Other Settings
+
     var useIntelligentSelection: Bool {
         didSet { defaults.set(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
     }
 
+    // MARK: - Initialization
+
     init() {
-        // Load persisted values from UserDefaults
-        self.highConsonants = UserDefaults.standard.object(forKey: "fc_highConsonants") as? Bool ?? true
-        self.midConsonants = UserDefaults.standard.object(forKey: "fc_midConsonants") as? Bool ?? false
-        self.lowConsonants = UserDefaults.standard.object(forKey: "fc_lowConsonants") as? Bool ?? false
-        self.uncommonConsonants = UserDefaults.standard.object(forKey: "fc_uncommonConsonants") as? Bool ?? false
-        self.longVowels = UserDefaults.standard.object(forKey: "fc_longVowels") as? Bool ?? false
-        self.shortVowels = UserDefaults.standard.object(forKey: "fc_shortVowels") as? Bool ?? false
-        self.highToneRules = UserDefaults.standard.object(forKey: "fc_highToneRules") as? Bool ?? false
-        self.midToneRules = UserDefaults.standard.object(forKey: "fc_midToneRules") as? Bool ?? false
-        self.lowToneRules = UserDefaults.standard.object(forKey: "fc_lowToneRules") as? Bool ?? false
-        self.toneMarks = UserDefaults.standard.object(forKey: "fc_toneMarks") as? Bool ?? false
+        // Parent toggles
+        self.consonantsEnabled = UserDefaults.standard.object(forKey: "fc_consonantsEnabled") as? Bool ?? true
+        self.vowelsEnabled = UserDefaults.standard.object(forKey: "fc_vowelsEnabled") as? Bool ?? false
+        self.tonesEnabled = UserDefaults.standard.object(forKey: "fc_tonesEnabled") as? Bool ?? false
         self.clusters = UserDefaults.standard.object(forKey: "fc_clusters") as? Bool ?? false
+
+        // Consonant filters
+        self.highConsonants = UserDefaults.standard.object(forKey: "fc_highConsonants") as? Bool ?? true
+        self.midConsonants = UserDefaults.standard.object(forKey: "fc_midConsonants") as? Bool ?? true
+        self.lowConsonants = UserDefaults.standard.object(forKey: "fc_lowConsonants") as? Bool ?? true
+        self.uncommonConsonants = UserDefaults.standard.object(forKey: "fc_uncommonConsonants") as? Bool ?? false
+
+        // Vowel filters
+        self.longVowels = UserDefaults.standard.object(forKey: "fc_longVowels") as? Bool ?? true
+        self.shortVowels = UserDefaults.standard.object(forKey: "fc_shortVowels") as? Bool ?? true
+
+        // Tone filters
+        self.highToneRules = UserDefaults.standard.object(forKey: "fc_highToneRules") as? Bool ?? true
+        self.midToneRules = UserDefaults.standard.object(forKey: "fc_midToneRules") as? Bool ?? true
+        self.lowToneRules = UserDefaults.standard.object(forKey: "fc_lowToneRules") as? Bool ?? true
+        self.toneMarks = UserDefaults.standard.object(forKey: "fc_toneMarks") as? Bool ?? true
+
+        // Cluster filters
+        self.smoothClusters = UserDefaults.standard.object(forKey: "fc_smoothClusters") as? Bool ?? true
+        self.silentClusters = UserDefaults.standard.object(forKey: "fc_silentClusters") as? Bool ?? true
+        self.irregularClusters = UserDefaults.standard.object(forKey: "fc_irregularClusters") as? Bool ?? true
+
+        // Other
         self.useIntelligentSelection = UserDefaults.standard.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
     }
 
-    // Count of enabled options
-    var enabledCount: Int {
+    // MARK: - Filter Counts
+
+    var enabledConsonantFilterCount: Int {
         var count = 0
         if highConsonants { count += 1 }
         if midConsonants { count += 1 }
         if lowConsonants { count += 1 }
         if uncommonConsonants { count += 1 }
+        return count
+    }
+
+    var enabledVowelFilterCount: Int {
+        var count = 0
         if longVowels { count += 1 }
         if shortVowels { count += 1 }
+        return count
+    }
+
+    var enabledToneFilterCount: Int {
+        var count = 0
         if highToneRules { count += 1 }
         if midToneRules { count += 1 }
         if lowToneRules { count += 1 }
         if toneMarks { count += 1 }
+        return count
+    }
+
+    var enabledClusterTypeCount: Int {
+        var count = 0
+        if smoothClusters { count += 1 }
+        if silentClusters { count += 1 }
+        if irregularClusters { count += 1 }
+        return count
+    }
+
+    // MARK: - Category State Helpers
+
+    /// Count of enabled parent categories
+    var enabledCategoryCount: Int {
+        var count = 0
+        if consonantsEnabled { count += 1 }
+        if vowelsEnabled { count += 1 }
+        if tonesEnabled { count += 1 }
         if clusters { count += 1 }
         return count
     }
 
-    // At least one must be enabled
-    var isLastEnabled: Bool {
-        enabledCount == 1
+    var isOnlyConsonantsEnabled: Bool {
+        consonantsEnabled && !vowelsEnabled && !tonesEnabled && !clusters
+    }
+
+    var isOnlyVowelsEnabled: Bool {
+        !consonantsEnabled && vowelsEnabled && !tonesEnabled && !clusters
+    }
+
+    var isOnlyTonesEnabled: Bool {
+        !consonantsEnabled && !vowelsEnabled && tonesEnabled && !clusters
+    }
+
+    var isOnlyClustersEnabled: Bool {
+        !consonantsEnabled && !vowelsEnabled && !tonesEnabled && clusters
     }
 
     // MARK: - Filter Functions
 
     func isConsonantEnabled(_ consonant: Consonant) -> Bool {
-        // OR-based opt-in: include if ANY matching criterion is enabled
+        guard consonantsEnabled else { return false }
 
         // Class-based filters apply to COMMON consonants
         if consonant.usage == .common {
@@ -126,72 +216,133 @@ class FlashcardSettings {
         return false
     }
 
-    var hasAnyConsonantEnabled: Bool {
-        highConsonants || midConsonants || lowConsonants || uncommonConsonants
+    func isVowelCardEnabled(duration: VowelCard.VowelDuration) -> Bool {
+        guard vowelsEnabled else { return false }
+        switch duration {
+        case .long: return longVowels
+        case .short: return shortVowels
+        }
     }
 
-    var hasAnyVowelEnabled: Bool {
-        longVowels || shortVowels
-    }
-
-    var hasAnyToneRuleEnabled: Bool {
-        highToneRules || midToneRules || lowToneRules
+    func isToneRuleEnabled(initialConsonant: String) -> Bool {
+        guard tonesEnabled else { return false }
+        switch initialConsonant {
+        case "High": return highToneRules
+        case "Mid": return midToneRules
+        case "Low": return lowToneRules
+        default: return false
+        }
     }
 
     var areToneMarksEnabled: Bool {
-        toneMarks
+        tonesEnabled && toneMarks
+    }
+
+    func isClusterEnabled(_ cluster: Cluster) -> Bool {
+        guard clusters else { return false }
+        switch cluster.type {
+        case .smooth: return smoothClusters
+        case .silent: return silentClusters
+        case .irregular: return irregularClusters
+        }
     }
 
     // MARK: - Bulk Actions
 
     func selectAll() {
+        // Parents
+        consonantsEnabled = true
+        vowelsEnabled = true
+        tonesEnabled = true
+        clusters = true
+
+        // Consonants
         highConsonants = true
         midConsonants = true
         lowConsonants = true
         uncommonConsonants = true
+
+        // Vowels
         longVowels = true
         shortVowels = true
+
+        // Tones
         highToneRules = true
         midToneRules = true
         lowToneRules = true
         toneMarks = true
-        clusters = true
+
+        // Clusters
+        smoothClusters = true
+        silentClusters = true
+        irregularClusters = true
     }
 
     func resetToDefault() {
+        // Parents - only consonants enabled by default
+        consonantsEnabled = true
+        vowelsEnabled = false
+        tonesEnabled = false
+        clusters = false
+
+        // Consonants - only high by default
         highConsonants = true
         midConsonants = false
         lowConsonants = false
         uncommonConsonants = false
-        longVowels = false
-        shortVowels = false
-        highToneRules = false
-        midToneRules = false
-        lowToneRules = false
-        toneMarks = false
-        clusters = false
+
+        // Vowels - all enabled when category is enabled
+        longVowels = true
+        shortVowels = true
+
+        // Tones - all enabled when category is enabled
+        highToneRules = true
+        midToneRules = true
+        lowToneRules = true
+        toneMarks = true
+
+        // Clusters - all enabled when category is enabled
+        smoothClusters = true
+        silentClusters = true
+        irregularClusters = true
     }
 
     var isAllSelected: Bool {
+        consonantsEnabled && vowelsEnabled && tonesEnabled && clusters &&
         highConsonants && midConsonants && lowConsonants && uncommonConsonants &&
         longVowels && shortVowels &&
-        highToneRules && midToneRules && lowToneRules && toneMarks && clusters
+        highToneRules && midToneRules && lowToneRules && toneMarks &&
+        smoothClusters && silentClusters && irregularClusters
     }
 
     var isDefault: Bool {
+        consonantsEnabled && !vowelsEnabled && !tonesEnabled && !clusters &&
         highConsonants && !midConsonants && !lowConsonants && !uncommonConsonants &&
-        !longVowels && !shortVowels &&
-        !highToneRules && !midToneRules && !lowToneRules && !toneMarks && !clusters
+        longVowels && shortVowels &&
+        highToneRules && midToneRules && lowToneRules && toneMarks &&
+        smoothClusters && silentClusters && irregularClusters
+    }
+
+    // MARK: - Legacy Compatibility
+
+    var hasAnyConsonantEnabled: Bool {
+        consonantsEnabled && enabledConsonantFilterCount > 0
+    }
+
+    var hasAnyVowelEnabled: Bool {
+        vowelsEnabled && enabledVowelFilterCount > 0
+    }
+
+    var hasAnyToneRuleEnabled: Bool {
+        tonesEnabled && (highToneRules || midToneRules || lowToneRules)
     }
 
     var areClustersEnabled: Bool {
-        clusters
+        clusters && enabledClusterTypeCount > 0
     }
 
     // MARK: - Partial Testing Detection
 
-    /// Returns true if the current filters make any questions trivial for this card type.
-    /// Used to determine if SRS advancement should be capped.
     func isPartialTesting(for cardType: FlashcardType) -> Bool {
         switch cardType {
         case .consonant:
@@ -200,19 +351,15 @@ class FlashcardSettings {
 
         case .vowel:
             // Duration question is trivial if only one duration is enabled
-            return enabledVowelDurationCount == 1
+            return enabledVowelFilterCount == 1
 
         case .toneMark:
-            // ToneMark cards always test class (Low vs Mid/High) - not affected by consonant filters
-            // since the cards use their own random consonants
             return false
 
         case .toneRule:
-            // Consonant class question is trivial if only one class is enabled
             return enabledToneRuleClassCount == 1
 
         case .cluster:
-            // Cluster questions always test type and sound - not affected by filters
             return false
         }
     }
@@ -223,14 +370,6 @@ class FlashcardSettings {
         if highConsonants { count += 1 }
         if midConsonants { count += 1 }
         if lowConsonants { count += 1 }
-        return count
-    }
-
-    /// Count of enabled vowel durations
-    private var enabledVowelDurationCount: Int {
-        var count = 0
-        if longVowels { count += 1 }
-        if shortVowels { count += 1 }
         return count
     }
 

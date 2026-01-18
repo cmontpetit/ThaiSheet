@@ -408,34 +408,61 @@ struct CheatsheetBrowserView: View {
                     }
                     .background(Color(.secondarySystemBackground))
                 case .clusters:
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            // Matrix view for smooth clusters
-                            if filteredClusters.contains(where: { $0.type == .smooth }) {
-                                ClusterMatrixView(clusters: filteredClusters) { clusterId in
-                                    flashcardStartingCluster = clusterId
-                                    highlightedCluster = nil
-                                    selectedTab = .flashcards
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(spacing: 16) {
+                                // Matrix view for smooth clusters
+                                if filteredClusters.contains(where: { $0.type == .smooth }) {
+                                    ClusterMatrixView(
+                                        clusters: filteredClusters,
+                                        highlightedClusterId: highlightedCluster
+                                    ) { clusterId in
+                                        flashcardStartingCluster = clusterId
+                                        highlightedCluster = nil
+                                        selectedTab = .flashcards
+                                    }
+                                }
+                                // Compact grid for silent clusters
+                                if filteredClusters.contains(where: { $0.type == .silent }) {
+                                    SilentClustersView(
+                                        clusters: filteredClusters,
+                                        highlightedClusterId: highlightedCluster
+                                    ) { clusterId in
+                                        flashcardStartingCluster = clusterId
+                                        highlightedCluster = nil
+                                        selectedTab = .flashcards
+                                    }
+                                }
+                                // List for irregular clusters
+                                if filteredClusters.contains(where: { $0.type == .irregular }) {
+                                    IrregularClustersView(
+                                        clusters: filteredClusters,
+                                        highlightedClusterId: highlightedCluster
+                                    ) { clusterId in
+                                        flashcardStartingCluster = clusterId
+                                        highlightedCluster = nil
+                                        selectedTab = .flashcards
+                                    }
                                 }
                             }
-                            // Compact grid for silent clusters
-                            if filteredClusters.contains(where: { $0.type == .silent }) {
-                                SilentClustersView(clusters: filteredClusters) { clusterId in
-                                    flashcardStartingCluster = clusterId
-                                    highlightedCluster = nil
-                                    selectedTab = .flashcards
-                                }
-                            }
-                            // List for irregular clusters
-                            if filteredClusters.contains(where: { $0.type == .irregular }) {
-                                IrregularClustersView(clusters: filteredClusters) { clusterId in
-                                    flashcardStartingCluster = clusterId
-                                    highlightedCluster = nil
-                                    selectedTab = .flashcards
+                            .padding(.horizontal)
+                        }
+                        .onAppear {
+                            if let clusterId = highlightedCluster {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    withAnimation {
+                                        proxy.scrollTo(clusterId, anchor: .center)
+                                    }
                                 }
                             }
                         }
-                        .padding(.horizontal)
+                        .onChange(of: highlightedCluster) { _, newValue in
+                            if let clusterId = newValue {
+                                withAnimation {
+                                    proxy.scrollTo(clusterId, anchor: .center)
+                                }
+                            }
+                        }
                     }
                     .background(Color(.secondarySystemBackground))
                 }
@@ -482,6 +509,13 @@ struct CheatsheetBrowserView: View {
             // Switch to tones tab when a tone rule is highlighted
             if newValue != nil {
                 selectedType = .tones
+            }
+        }
+        .onChange(of: highlightedCluster) { _, newValue in
+            // Switch to clusters tab when a cluster is highlighted
+            if newValue != nil {
+                selectedType = .clusters
+                selectedClusterType = nil  // Clear filter to ensure cluster is visible
             }
         }
     }

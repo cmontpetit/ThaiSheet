@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ClusterMatrixView: View {
     let clusters: [Cluster]
+    var highlightedClusterId: String?
     var onPractice: ((String) -> Void)?
 
     // Column headers (blend consonants)
@@ -60,8 +61,14 @@ struct ClusterMatrixView: View {
 
                         // Cells for each blend
                         ForEach(blendColumns, id: \.self) { blend in
-                            ClusterMatrixCell(cluster: cluster(for: consonant, blend: blend), onPractice: onPractice)
-                                .frame(maxWidth: .infinity)
+                            let cellCluster = cluster(for: consonant, blend: blend)
+                            ClusterMatrixCell(
+                                cluster: cellCluster,
+                                isHighlighted: cellCluster?.id == highlightedClusterId,
+                                onPractice: onPractice
+                            )
+                            .frame(maxWidth: .infinity)
+                            .id(cellCluster?.id)
                         }
                     }
                     .padding(.vertical, 6)
@@ -77,6 +84,7 @@ struct ClusterMatrixView: View {
 
 struct ClusterMatrixCell: View {
     let cluster: Cluster?
+    var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
     @State private var showingSheet = false
 
@@ -96,6 +104,9 @@ struct ClusterMatrixCell: View {
                     }
                 }
                 .foregroundColor(cluster.usageLabel != nil ? .secondary : .primary)
+                .padding(4)
+                .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color.clear)
+                .cornerRadius(6)
             }
             .buttonStyle(.plain)
             .sheet(isPresented: $showingSheet) {
@@ -113,6 +124,7 @@ struct ClusterMatrixCell: View {
 
 struct SilentClustersView: View {
     let clusters: [Cluster]
+    var highlightedClusterId: String?
     var onPractice: ((String) -> Void)?
 
     private var silentClusters: [Cluster] {
@@ -131,7 +143,12 @@ struct SilentClustersView: View {
                 GridItem(.flexible())
             ], spacing: 8) {
                 ForEach(silentClusters) { cluster in
-                    ClusterCompactCell(cluster: cluster, onPractice: onPractice)
+                    ClusterCompactCell(
+                        cluster: cluster,
+                        isHighlighted: cluster.id == highlightedClusterId,
+                        onPractice: onPractice
+                    )
+                    .id(cluster.id)
                 }
             }
             .padding(12)
@@ -145,6 +162,7 @@ struct SilentClustersView: View {
 
 struct IrregularClustersView: View {
     let clusters: [Cluster]
+    var highlightedClusterId: String?
     var onPractice: ((String) -> Void)?
 
     private var irregularClusters: [Cluster] {
@@ -157,7 +175,12 @@ struct IrregularClustersView: View {
 
             VStack(spacing: 0) {
                 ForEach(irregularClusters) { cluster in
-                    ClusterDetailRow(cluster: cluster, onPractice: onPractice)
+                    ClusterDetailRow(
+                        cluster: cluster,
+                        isHighlighted: cluster.id == highlightedClusterId,
+                        onPractice: onPractice
+                    )
+                    .id(cluster.id)
                     Divider()
                 }
             }
@@ -171,6 +194,7 @@ struct IrregularClustersView: View {
 
 struct ClusterCompactCell: View {
     let cluster: Cluster
+    var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
     @State private var showingSheet = false
 
@@ -189,8 +213,12 @@ struct ClusterCompactCell: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
-            .background(Color(.systemGray6))
+            .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color(.systemGray6))
             .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isHighlighted ? Color.accentColor : Color.clear, lineWidth: 2)
+            )
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showingSheet) {
@@ -203,6 +231,7 @@ struct ClusterCompactCell: View {
 
 struct ClusterDetailRow: View {
     let cluster: Cluster
+    var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
     @State private var showingSheet = false
 
@@ -236,6 +265,7 @@ struct ClusterDetailRow: View {
             }
             .padding(.vertical, 10)
             .padding(.horizontal, 12)
+            .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color.clear)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
