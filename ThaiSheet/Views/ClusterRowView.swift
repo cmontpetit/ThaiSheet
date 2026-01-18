@@ -173,17 +173,23 @@ struct IrregularClustersView: View {
         VStack(spacing: 0) {
             ClusterSectionHeaderView(type: .irregular)
 
-            VStack(spacing: 0) {
+            // Compact grid of irregular clusters (same layout as silent)
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible()),
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 8) {
                 ForEach(irregularClusters) { cluster in
-                    ClusterDetailRow(
+                    ClusterCompactCell(
                         cluster: cluster,
                         isHighlighted: cluster.id == highlightedClusterId,
                         onPractice: onPractice
                     )
                     .id(cluster.id)
-                    Divider()
                 }
             }
+            .padding(12)
             .background(Color(.systemBackground))
         }
         .clipShape(RoundedRectangle(cornerRadius: 8))
