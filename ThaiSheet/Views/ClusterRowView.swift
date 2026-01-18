@@ -84,7 +84,7 @@ struct ClusterMatrixCell: View {
                 showingSheet = true
             } label: {
                 VStack(spacing: 2) {
-                    Text(cluster.cluster)
+                    Text(cluster.displayWithVowel)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     if let sound = cluster.sound {
@@ -174,7 +174,7 @@ struct ClusterCompactCell: View {
             showingSheet = true
         } label: {
             VStack(spacing: 2) {
-                Text(cluster.cluster)
+                Text(cluster.displayWithVowel)
                     .font(.title3)
                 if let sound = cluster.sound {
                     Text(sound)
@@ -205,7 +205,7 @@ struct ClusterDetailRow: View {
             showingSheet = true
         } label: {
             HStack(spacing: 12) {
-                Text(cluster.cluster)
+                Text(cluster.displayWithVowel)
                     .font(.title2)
                     .frame(width: 50, alignment: .leading)
 
