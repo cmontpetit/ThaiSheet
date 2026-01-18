@@ -243,51 +243,33 @@ struct ClusterDetailRow: View {
 
 struct ClusterDetailSheet: View {
     let cluster: Cluster
-    @Environment(\.dismiss) var dismiss
+
+    // Build note text combining usage, type description, and note
+    private var combinedNote: String? {
+        var parts: [String] = []
+
+        if let usage = cluster.usageLabel {
+            parts.append("Usage: \(usage)")
+        }
+
+        parts.append(cluster.type.description)
+
+        if let note = cluster.note {
+            parts.append(note)
+        }
+
+        return parts.isEmpty ? nil : parts.joined(separator: "\n\n")
+    }
 
     var body: some View {
-        VStack(spacing: 24) {
-            // Cluster display
-            Text(cluster.cluster)
-                .font(.system(size: 56))
-                .padding(.top, 20)
-
-            // Sound
-            if let sound = cluster.sound {
-                Text(sound)
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-            }
-
-            // Usage badge
-            if let usage = cluster.usageLabel {
-                Text(usage.uppercased())
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(4)
-            }
-
-            // Type description
-            Text(cluster.type.description)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            // Note
-            if let note = cluster.note {
-                Text(note)
-                    .font(.callout)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-
-            Spacer()
-        }
-        .presentationDetents([.medium])
-        .presentationDragIndicator(.visible)
+        ReferenceItemSheet(
+            title: cluster.cluster,
+            stage: .new,  // No flashcards yet
+            note: combinedNote,
+            hasSound: false,  // No sounds yet
+            onPlaySound: { },
+            onPractice: { }  // No flashcards yet
+        )
     }
 }
 
