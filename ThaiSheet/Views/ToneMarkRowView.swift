@@ -69,7 +69,7 @@ struct ToneMarkRowView: View {
             )
             .frame(maxWidth: .infinity)
 
-            toneLabelCell(toneMark.onLowConsonant)
+            toneLabelCell(toneMark.onLowConsonant, display: toneMark.withLowConsonant, hasSound: hasLowSound)
                 .frame(maxWidth: .infinity)
 
             Divider()
@@ -84,7 +84,7 @@ struct ToneMarkRowView: View {
             )
             .frame(maxWidth: .infinity)
 
-            toneLabelCell(toneMark.onMidHighConsonant)
+            toneLabelCell(toneMark.onMidHighConsonant, display: toneMark.withMidHighConsonant, hasSound: hasMidHighSound)
                 .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)
@@ -126,14 +126,20 @@ struct ToneMarkRowView: View {
     }
 
     @ViewBuilder
-    private func toneLabelCell(_ tone: String) -> some View {
+    private func toneLabelCell(_ tone: String, display: String, hasSound: Bool) -> some View {
         if tone == "n/a" {
             Text("")
                 .font(.subheadline)
         } else {
             StyledToneText(tone: tone)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(hasSound ? .accentColor : .secondary)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if hasSound {
+                        AudioPlayer.shared.playToneMarkSound(for: display)
+                    }
+                }
         }
     }
 }

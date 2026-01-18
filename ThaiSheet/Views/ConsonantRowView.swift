@@ -105,7 +105,7 @@ struct ConsonantRowView: View {
                 showingSheet = true
             }
 
-            // Sound area (tappable to play sound)
+            // Sound area (tappable to play sound directly)
             VStack(alignment: .trailing, spacing: 2) {
                 HStack(spacing: 8) {
                     Text(consonant.initialSound)
@@ -128,7 +128,9 @@ struct ConsonantRowView: View {
             .padding(.horizontal, 8)
             .contentShape(Rectangle())
             .onTapGesture {
-                showingSheet = true
+                if hasSound {
+                    AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                }
             }
         }
         .padding(.vertical, 4)

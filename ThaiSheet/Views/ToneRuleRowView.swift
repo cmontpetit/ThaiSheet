@@ -119,13 +119,15 @@ struct ToneRuleRowView: View {
                 showingSheet = true
             }
 
-            // Tone column (tappable for sheet)
+            // Tone column (tappable to play sound directly)
             StyledToneText(tone: rule.tone)
                 .foregroundColor(hasSound ? .accentColor : .primary)
                 .frame(width: 60)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    showingSheet = true
+                    if hasSound, let sample = rule.primarySample {
+                        AudioPlayer.shared.playToneRuleSound(for: sample.full)
+                    }
                 }
         }
         .font(.subheadline)
