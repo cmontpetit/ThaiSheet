@@ -141,6 +141,14 @@ class LearningModel {
         cards.filter { srsStage(for: $0) == .mastered }.count
     }
 
+    /// Count of cards at familiar stage (familiar1 or familiar2)
+    func familiarCardCount(in cards: [FlashcardItem]) -> Int {
+        cards.filter {
+            let stage = srsStage(for: $0)
+            return stage == .familiar1 || stage == .familiar2
+        }.count
+    }
+
     // MARK: - Reset
 
     /// Clear all learning progress

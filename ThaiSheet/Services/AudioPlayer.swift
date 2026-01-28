@@ -9,7 +9,19 @@ class AudioPlayer {
     static let shared = AudioPlayer()
     private var player: AVAudioPlayer?
 
-    private init() {}
+    private init() {
+        configureAudioSession()
+    }
+
+    private func configureAudioSession() {
+        do {
+            // Use .playback to play sounds even when silent switch is on
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error)")
+        }
+    }
 
     func playConsonantSound(for character: String) {
         let filename = "cheat_sheet_consonant_\(character)"

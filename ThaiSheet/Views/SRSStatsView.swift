@@ -164,8 +164,10 @@ struct SRSStatsView: View {
 
     private var summaryStats: some View {
         let dueCount = learningModel.dueCardCount(in: displayedCards)
+        let familiarCount = learningModel.familiarCardCount(in: displayedCards)
         let masteredCount = learningModel.masteredCardCount(in: displayedCards)
         let totalCards = displayedCards.count
+        let familiarPercent = totalCards > 0 ? Int(Double(familiarCount) / Double(totalCards) * 100) : 0
         let masteredPercent = totalCards > 0 ? Int(Double(masteredCount) / Double(totalCards) * 100) : 0
         let successRate = learningModel.overallSuccessRate
 
@@ -175,15 +177,15 @@ struct SRSStatsView: View {
                 StatBox(title: "Total Cards", value: "\(totalCards)", color: .blue)
             }
             HStack {
+                StatBox(title: "Familiar", value: "\(familiarCount) (\(familiarPercent)%)", color: .purple)
                 StatBox(title: "Mastered", value: "\(masteredCount) (\(masteredPercent)%)", color: .yellow)
+            }
+            HStack {
                 StatBox(
                     title: "Success Rate",
                     value: successRate.map { "\(Int($0 * 100))%" } ?? "—",
                     color: .green
                 )
-            }
-            HStack {
-                StatBox(title: "Total Reviews", value: "\(learningModel.totalReviews)", color: .purple)
                 StatBox(title: "Cards Reviewed", value: "\(learningModel.reviewedCardCount)", color: .indigo)
             }
         }
@@ -202,6 +204,7 @@ struct SRSStatsView: View {
         return ForEach(types, id: \.0) { type, name in
             let cardsOfType = displayedCards.filter { $0.type == type }
             let dueCount = learningModel.dueCardCount(in: cardsOfType)
+            let familiarCount = learningModel.familiarCardCount(in: cardsOfType)
             let masteredCount = learningModel.masteredCardCount(in: cardsOfType)
             let totalCount = cardsOfType.count
 
@@ -209,9 +212,12 @@ struct SRSStatsView: View {
                 HStack {
                     Text(name)
                     Spacer()
-                    Text("\(masteredCount)/\(totalCount) mastered")
+                    Text("\(familiarCount)/\(totalCount) familiar")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    Text("\(masteredCount) mastered")
+                        .font(.caption)
+                        .foregroundColor(.yellow)
                     if dueCount > 0 {
                         Text("\(dueCount) due")
                             .font(.caption)
