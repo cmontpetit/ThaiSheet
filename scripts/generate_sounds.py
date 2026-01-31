@@ -49,25 +49,21 @@ def generate_sound(text: str, filepath: Path, description: str = "") -> None:
 # =============================================================================
 
 def generate_tone_marks(sounds_dir: Path, cheatsheet_dir: Path) -> None:
-    """Generate tone mark sound files for all common consonants."""
+    """Generate tone mark sound files using fixed consonants matching the reference.
+
+    Uses ค (low class) and ก (mid class) to match the reference display.
+    Generates 8 total files: 3 for low class + 5 for mid/high class.
+    """
     print("\n[Tone Marks]")
-
-    # Load consonants
-    consonants_path = cheatsheet_dir / "consonants.json"
-    with open(consonants_path, 'r', encoding='utf-8') as f:
-        consonants_data = json.load(f)
-
-    # Filter for common consonants only
-    common_consonants = [
-        c for c in consonants_data['consonants']
-        if c['usage'] == 'common'
-    ]
-    print(f"  Found {len(common_consonants)} common consonants")
 
     # Load tone marks
     tone_marks_path = cheatsheet_dir / "tone-marks.json"
     with open(tone_marks_path, 'r', encoding='utf-8') as f:
         tone_marks_data = json.load(f)
+
+    # Fixed consonants matching the reference
+    LOW_CONSONANT = "ค"      # Used for low class examples
+    MID_CONSONANT = "ก"      # Used for mid/high class examples
 
     count = 0
     for tone_mark in tone_marks_data['toneMarks']:
@@ -75,22 +71,18 @@ def generate_tone_marks(sounds_dir: Path, cheatsheet_dir: Path) -> None:
         on_low = tone_mark['onLowConsonant']
         on_mid_high = tone_mark['onMidHighConsonant']
 
-        for consonant in common_consonants:
-            char = consonant['character']
-            consonant_class = consonant['class']
-
-            # Determine if this consonant is low class
-            is_low_class = consonant_class == 'low'
-            correct_tone = on_low if is_low_class else on_mid_high
-
-            # Skip if this tone mark doesn't apply to this consonant class
-            if correct_tone == 'n/a':
-                continue
-
-            # Display: consonant + tone mark + า
-            display = char + mark + "า"
+        # Generate low class sound (using ค)
+        if on_low != 'n/a':
+            display = LOW_CONSONANT + mark + "า"
             filename = f"cheat_sheet_tone_mark_{display}.mp3"
-            generate_sound(display, sounds_dir / filename, f"{correct_tone} tone")
+            generate_sound(display, sounds_dir / filename, f"{on_low} tone (low class)")
+            count += 1
+
+        # Generate mid/high class sound (using ก)
+        if on_mid_high != 'n/a':
+            display = MID_CONSONANT + mark + "า"
+            filename = f"cheat_sheet_tone_mark_{display}.mp3"
+            generate_sound(display, sounds_dir / filename, f"{on_mid_high} tone (mid/high class)")
             count += 1
 
     print(f"  Generated {count} tone mark sounds")

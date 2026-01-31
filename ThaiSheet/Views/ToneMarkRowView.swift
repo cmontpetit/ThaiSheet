@@ -41,11 +41,11 @@ struct ToneMarkRowView: View {
     @State private var selectedDisplay: String? = nil
 
     private var hasLowSound: Bool {
-        AudioPlayer.shared.hasToneMarkSound(for: toneMark.withLowConsonant)
+        AudioPlayer.shared.hasToneMarkSound(for: toneMark.soundKeyLow)
     }
 
     private var hasMidHighSound: Bool {
-        AudioPlayer.shared.hasToneMarkSound(for: toneMark.withMidHighConsonant)
+        AudioPlayer.shared.hasToneMarkSound(for: toneMark.soundKeyMidHigh)
     }
 
     private func stage(for display: String) -> SRSStage {
@@ -63,13 +63,14 @@ struct ToneMarkRowView: View {
             // Low consonant column
             toneMarkCell(
                 display: toneMark.withLowConsonant,
+                soundKey: toneMark.soundKeyLow,
                 tone: toneMark.onLowConsonant,
                 hasSound: hasLowSound,
                 isNA: toneMark.onLowConsonant == "n/a"
             )
             .frame(maxWidth: .infinity)
 
-            toneLabelCell(toneMark.onLowConsonant, display: toneMark.withLowConsonant, hasSound: hasLowSound)
+            toneLabelCell(toneMark.onLowConsonant, soundKey: toneMark.soundKeyLow, hasSound: hasLowSound)
                 .frame(maxWidth: .infinity)
 
             Divider()
@@ -78,13 +79,14 @@ struct ToneMarkRowView: View {
             // Mid/High consonant column
             toneMarkCell(
                 display: toneMark.withMidHighConsonant,
+                soundKey: toneMark.soundKeyMidHigh,
                 tone: toneMark.onMidHighConsonant,
                 hasSound: hasMidHighSound,
                 isNA: toneMark.onMidHighConsonant == "n/a"
             )
             .frame(maxWidth: .infinity)
 
-            toneLabelCell(toneMark.onMidHighConsonant, display: toneMark.withMidHighConsonant, hasSound: hasMidHighSound)
+            toneLabelCell(toneMark.onMidHighConsonant, soundKey: toneMark.soundKeyMidHigh, hasSound: hasMidHighSound)
                 .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)
@@ -94,7 +96,7 @@ struct ToneMarkRowView: View {
     }
 
     @ViewBuilder
-    private func toneMarkCell(display: String, tone: String, hasSound: Bool, isNA: Bool) -> some View {
+    private func toneMarkCell(display: String, soundKey: String, tone: String, hasSound: Bool, isNA: Bool) -> some View {
         if isNA {
             Text("")
                 .font(.title2)
@@ -115,18 +117,18 @@ struct ToneMarkRowView: View {
             ) {
                 ReferenceItemSheet(
                     title: display,
-                    stage: stage(for: display),
+                    stage: stage(for: soundKey),
                     note: nil,
                     hasSound: hasSound,
-                    onPlaySound: { AudioPlayer.shared.playToneMarkSound(for: display) },
-                    onPractice: { onPractice?(display) }
+                    onPlaySound: { AudioPlayer.shared.playToneMarkSound(for: soundKey) },
+                    onPractice: { onPractice?(soundKey) }
                 )
             }
         }
     }
 
     @ViewBuilder
-    private func toneLabelCell(_ tone: String, display: String, hasSound: Bool) -> some View {
+    private func toneLabelCell(_ tone: String, soundKey: String, hasSound: Bool) -> some View {
         if tone == "n/a" {
             Text("")
                 .font(.subheadline)
@@ -137,7 +139,7 @@ struct ToneMarkRowView: View {
                 .contentShape(Rectangle())
                 .onTapGesture {
                     if hasSound {
-                        AudioPlayer.shared.playToneMarkSound(for: display)
+                        AudioPlayer.shared.playToneMarkSound(for: soundKey)
                     }
                 }
         }

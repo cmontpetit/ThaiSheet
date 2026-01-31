@@ -57,7 +57,7 @@ class FlashcardManager {
         allVowels = Vowel.loadAll()
         allVowelCards = VowelCard.allCards(from: allVowels)
         allToneMarks = ToneMark.loadAll()
-        allToneMarkCards = ToneMarkCard.allCards(from: allToneMarks, consonants: allConsonants)
+        allToneMarkCards = ToneMarkCard.allCards(from: allToneMarks)
         allToneRules = ToneRule.loadAll()
         allToneRuleCards = ToneRuleCard.allCards(from: allToneRules)
         allClusters = Cluster.loadAll()

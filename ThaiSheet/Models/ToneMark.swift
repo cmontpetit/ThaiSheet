@@ -13,11 +13,15 @@ struct ToneMark: Codable, Identifiable {
 
     var id: String { mark.isEmpty ? "none" : mark }
 
-    // Display with low class consonant (ค)
+    // Display with low class consonant (ค) - no vowel for compact reference display
     var withLowConsonant: String { "ค" + mark }
 
-    // Display with mid class consonant (ก)
+    // Display with mid class consonant (ก) - no vowel for compact reference display
     var withMidHighConsonant: String { "ก" + mark }
+
+    // Sound lookup key with vowel า for pronunciation
+    var soundKeyLow: String { "ค" + mark + "า" }
+    var soundKeyMidHigh: String { "ก" + mark + "า" }
 
     func toneColor(for tone: String) -> Color {
         switch tone {

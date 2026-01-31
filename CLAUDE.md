@@ -102,12 +102,12 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
   source scripts/venv/bin/activate && python3 scripts/generate_sounds.py --all
   # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
   ```
-- Tone mark sounds: Generated for all common consonant + tone mark + า combinations (134 files)
+- Tone mark sounds: 8 files using fixed consonants (ค for low class, ก for mid/high class) + า vowel
 
 ### Flashcard Design Decisions
-- **Tone Marks**: Use random common consonants (not fixed ค/ก) with า vowel for variety
-  - 2-step selection: consonant class first, then tone
-  - Display shows full syllable: ค่า, ม้า, etc.
+- **Tone Marks**: Use fixed consonants matching the reference (ค for low, ก for mid/high)
+  - 8 total cards: 3 low class (คา, ค่า, ค้า) + 5 mid/high class (กา, ก่า, ก้า, ก๊า, ก๋า)
+  - Display shows full syllable with า vowel for proper pronunciation
 - **Tone Rules**: Use predefined sample words (not random combinations) because:
   - Real vocabulary is more pedagogically useful
   - Combinatorial explosion would require thousands of sound files

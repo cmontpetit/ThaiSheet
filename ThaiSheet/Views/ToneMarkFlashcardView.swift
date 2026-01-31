@@ -5,10 +5,9 @@
 
 import SwiftUI
 
-// Represents a single tone mark card with a random consonant
+// Represents a single tone mark card using fixed consonants (ค for low, ก for mid/high)
 struct ToneMarkCard: Identifiable {
     let toneMark: ToneMark
-    let consonant: Consonant
     let consonantClass: ConsonantClassType
     let display: String
     let correctTone: String
@@ -20,31 +19,28 @@ struct ToneMarkCard: Identifiable {
         case midHigh = "Mid/High"
     }
 
-    static func allCards(from toneMarks: [ToneMark], consonants: [Consonant]) -> [ToneMarkCard] {
-        // Filter for common consonants only
-        let commonConsonants = consonants.filter { $0.usage == .common }
-
+    /// Creates 8 cards matching the reference: 3 for low class (ค) + 5 for mid/high class (ก)
+    static func allCards(from toneMarks: [ToneMark]) -> [ToneMarkCard] {
         var cards: [ToneMarkCard] = []
+
         for toneMark in toneMarks {
-            for consonant in commonConsonants {
-                // Determine if this consonant is low or mid/high class
-                let isLowClass = consonant.consonantClass == .low
-                let correctTone = isLowClass ? toneMark.onLowConsonant : toneMark.onMidHighConsonant
-
-                // Skip if this tone mark doesn't apply to this consonant class
-                if correctTone == "n/a" {
-                    continue
-                }
-
-                // Display: consonant + tone mark + า
-                let display = consonant.character + toneMark.mark + "า"
-
+            // Low class card (using ค)
+            if toneMark.onLowConsonant != "n/a" {
                 cards.append(ToneMarkCard(
                     toneMark: toneMark,
-                    consonant: consonant,
-                    consonantClass: isLowClass ? .low : .midHigh,
-                    display: display,
-                    correctTone: correctTone
+                    consonantClass: .low,
+                    display: toneMark.soundKeyLow,
+                    correctTone: toneMark.onLowConsonant
+                ))
+            }
+
+            // Mid/High class card (using ก)
+            if toneMark.onMidHighConsonant != "n/a" {
+                cards.append(ToneMarkCard(
+                    toneMark: toneMark,
+                    consonantClass: .midHigh,
+                    display: toneMark.soundKeyMidHigh,
+                    correctTone: toneMark.onMidHighConsonant
                 ))
             }
         }
@@ -316,7 +312,7 @@ extension ToneMarkCardState {
 }
 
 #Preview {
-    let cards = ToneMarkCard.allCards(from: ToneMark.loadAll(), consonants: Consonant.loadAll())
+    let cards = ToneMarkCard.allCards(from: ToneMark.loadAll())
     return NavigationStack {
         if let first = cards.first {
             ToneMarkFlashcardView(
