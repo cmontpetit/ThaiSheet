@@ -6,22 +6,22 @@
         "onMidHighConsonant": "Mid"
       },
       {
-        "mark": "\u0E48",
+        "mark": "่",
         "onLowConsonant": "Falling",
         "onMidHighConsonant": "Low"
       },
       {
-        "mark": "\u0E49",
+        "mark": "้",
         "onLowConsonant": "High",
         "onMidHighConsonant": "Falling"
       },
       {
-        "mark": "\u0E4A",
+        "mark": "๊",
         "onLowConsonant": "n/a",
         "onMidHighConsonant": "High"
       },
       {
-        "mark": "\u0E4B",
+        "mark": "๋",
         "onLowConsonant": "n/a",
         "onMidHighConsonant": "Rising"
       }
