@@ -5,49 +5,6 @@
 
 import SwiftUI
 
-// Represents a single tone mark card using fixed consonants (ค for low, ก for mid/high)
-struct ToneMarkCard: Identifiable {
-    let toneMark: ToneMark
-    let consonantClass: ConsonantClassType
-    let display: String
-    let correctTone: String
-
-    var id: String { display }
-
-    enum ConsonantClassType: String, CaseIterable {
-        case low = "Low"
-        case midHigh = "Mid/High"
-    }
-
-    /// Creates 8 cards matching the reference: 3 for low class (ค) + 5 for mid/high class (ก)
-    static func allCards(from toneMarks: [ToneMark]) -> [ToneMarkCard] {
-        var cards: [ToneMarkCard] = []
-
-        for toneMark in toneMarks {
-            // Low class card (using ค)
-            if toneMark.onLowConsonant != "n/a" {
-                cards.append(ToneMarkCard(
-                    toneMark: toneMark,
-                    consonantClass: .low,
-                    display: toneMark.soundKeyLow,
-                    correctTone: toneMark.onLowConsonant
-                ))
-            }
-
-            // Mid/High class card (using ก)
-            if toneMark.onMidHighConsonant != "n/a" {
-                cards.append(ToneMarkCard(
-                    toneMark: toneMark,
-                    consonantClass: .midHigh,
-                    display: toneMark.soundKeyMidHigh,
-                    correctTone: toneMark.onMidHighConsonant
-                ))
-            }
-        }
-        return cards.shuffled()
-    }
-}
-
 struct ToneMarkFlashcardView: View {
     let card: ToneMarkCard
     var onViewInReference: ((String) -> Void)?
@@ -55,6 +12,7 @@ struct ToneMarkFlashcardView: View {
     let onNext: () -> Void
     let onPrevious: () -> Void
 
+    @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneMarkCardState()
 
     // All possible tones for selection
@@ -116,9 +74,9 @@ struct ToneMarkFlashcardView: View {
 
                     // Speaker button (only when completed)
                     if cardState.step == .completed {
-                        let hasSound = AudioPlayer.shared.hasToneMarkSound(for: card.display)
+                        let hasSound = audioPlayer.hasSound(.toneMark, key: card.display)
                         Button {
-                            AudioPlayer.shared.playToneMarkSound(for: card.display)
+                            audioPlayer.play(.toneMark, key: card.display)
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
@@ -250,8 +208,8 @@ struct ToneMarkFlashcardView: View {
         // Record result: correct if no errors were made
         let wasCorrect = !cardState.hasError(for: card)
         onComplete?(wasCorrect)
-        if AudioPlayer.shared.hasToneMarkSound(for: card.display) {
-            AudioPlayer.shared.playToneMarkSound(for: card.display)
+        if audioPlayer.hasSound(.toneMark, key: card.display) {
+            audioPlayer.play(.toneMark, key: card.display)
         }
     }
 
@@ -259,8 +217,8 @@ struct ToneMarkFlashcardView: View {
         cardState.step = .completed
         // Revealed early = not answered correctly
         onComplete?(false)
-        if AudioPlayer.shared.hasToneMarkSound(for: card.display) {
-            AudioPlayer.shared.playToneMarkSound(for: card.display)
+        if audioPlayer.hasSound(.toneMark, key: card.display) {
+            audioPlayer.play(.toneMark, key: card.display)
         }
     }
 

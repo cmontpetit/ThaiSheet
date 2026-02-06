@@ -25,23 +25,14 @@ struct ToneRule: Codable, Identifiable {
     var primarySample: ToneSample? { samples?.first }
 
     var consonantColor: Color {
-        switch initialConsonant {
-        case "Low": return Color.green.opacity(0.3)
-        case "Mid": return Color.yellow.opacity(0.3)
-        case "High": return Color.red.opacity(0.3)
-        default: return Color.clear
+        guard let cls = ConsonantClass(rawValue: initialConsonant.lowercased()) else {
+            return Color.clear
         }
+        return cls.color
     }
 
     var toneColor: Color {
-        switch tone {
-        case "High": return Color.red.opacity(0.2)
-        case "Rising": return Color.red.opacity(0.2)
-        case "Mid": return Color.clear
-        case "Low": return Color.green.opacity(0.2)
-        case "Falling": return Color.green.opacity(0.2)
-        default: return Color.clear
-        }
+        ThaiColors.forTone(tone)
     }
 }
 
@@ -51,11 +42,6 @@ struct ToneRulesData: Codable {
 
 extension ToneRule {
     static func loadAll() -> [ToneRule] {
-        guard let url = Bundle.main.url(forResource: "tone-rules", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode(ToneRulesData.self, from: data) else {
-            return []
-        }
-        return decoded.toneRules
+        BundleLoader.load("tone-rules", as: ToneRulesData.self, keyPath: \.toneRules)
     }
 }

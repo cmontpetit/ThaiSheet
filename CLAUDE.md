@@ -54,8 +54,12 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 
 ## Project Conventions
 
+### Architecture
+- See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture documentation
+
 ### @Observable and UserDefaults
 - `FlashcardSettings` uses `@Observable` with stored properties and `didSet` for persistence
+- `FlashcardSettings` accepts `UserDefaults` as init param (default `.standard`) for testability
 - **Important:** Computed properties bypass `@Observable` tracking - always use stored properties
 - Pattern: `var setting: Bool { didSet { defaults.set(setting, forKey: "key") } }`
 - Initialize from UserDefaults in `init()`, not via computed getters
@@ -81,15 +85,16 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 - For data, use `ก` as the consonant placeholder; display rendering TBD
 
 ### Project Structure
-- `ThaiSheet/Models/` - Data models (Consonant, Vowel, ToneRule, ToneMark, Cluster, CardProgress, LearningModel, FlashcardSettings)
-- `ThaiSheet/Views/` - SwiftUI views (CheatsheetBrowserView, flashcard views, SRSStatsView, FilterView, SettingsView)
-- `ThaiSheet/Services/` - AudioPlayer, CardSelectionStrategy (Sequential/Wanikani), FlashcardManager
+- `ThaiSheet/Models/` - Data models (Consonant, Vowel, ToneRule, ToneMark, Cluster, VowelCard, ToneMarkCard, ToneRuleCard), FlashcardItem, FlashcardSettings, LearningModel, CardProgress, ThaiColors
+- `ThaiSheet/Views/` - SwiftUI views (CheatsheetBrowserView, flashcard views, row views, FlashcardComponents, SRSStatsView, FilterView, SettingsView)
+- `ThaiSheet/Services/` - AudioPlayer (protocol + environment injection), BundleLoader, CardSelectionStrategy (Sequential/Wanikani), FlashcardManager
 - `ThaiSheet/Resources/` - JSON data files and sounds
 
 ### Sound Files
 - Location: `ThaiSheet/Resources/sounds/`
-- Naming: `cheat_sheet_consonant_ก.mp3`, `cheat_sheet_vowel_กา.mp3`, etc.
-- Consonant sounds are ready; vowel sounds need review before enabling
+- Naming: `cheat_sheet_{type}_{key}.mp3` (e.g., `cheat_sheet_consonant_ก.mp3`, `cheat_sheet_vowel_กา.mp3`)
+- Types: `consonant`, `vowel`, `tone_mark`, `tone_rule`, `cluster`
+- Audio injection: `AudioPlaying` protocol via `@Environment(\.audioPlayer)` — never use `AudioPlayer.shared` directly in views
 
 ### Sound File Generation
 - Script: `scripts/generate_sounds.py` (uses Google Text-to-Speech)
@@ -153,5 +158,5 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 ### Reference Tab Status
 - Implemented: Consonants, Vowels, Tone Rules, Tone Marks, Clusters
 - Each type has search filtering and type-specific filter chips
-- Sound playback enabled for consonants only
+- Sound playback enabled for all types
 

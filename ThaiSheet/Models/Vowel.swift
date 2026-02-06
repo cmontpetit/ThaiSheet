@@ -80,11 +80,6 @@ struct VowelsData: Codable {
 
 extension Vowel {
     static func loadAll() -> [Vowel] {
-        guard let url = Bundle.main.url(forResource: "vowels", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode(VowelsData.self, from: data) else {
-            return []
-        }
-        return decoded.vowels
+        BundleLoader.load("vowels", as: VowelsData.self, keyPath: \.vowels)
     }
 }

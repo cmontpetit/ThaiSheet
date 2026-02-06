@@ -8,7 +8,7 @@ import SwiftUI
 
 @Observable
 class FlashcardSettings {
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
 
     // MARK: - Parent Category Toggles
 
@@ -100,37 +100,39 @@ class FlashcardSettings {
 
     // MARK: - Initialization
 
-    init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+
         // Parent toggles - all enabled by default
-        self.consonantsEnabled = UserDefaults.standard.object(forKey: "fc_consonantsEnabled") as? Bool ?? true
-        self.vowelsEnabled = UserDefaults.standard.object(forKey: "fc_vowelsEnabled") as? Bool ?? true
-        self.tonesEnabled = UserDefaults.standard.object(forKey: "fc_tonesEnabled") as? Bool ?? true
-        self.clusters = UserDefaults.standard.object(forKey: "fc_clusters") as? Bool ?? true
+        self.consonantsEnabled = defaults.object(forKey: "fc_consonantsEnabled") as? Bool ?? true
+        self.vowelsEnabled = defaults.object(forKey: "fc_vowelsEnabled") as? Bool ?? true
+        self.tonesEnabled = defaults.object(forKey: "fc_tonesEnabled") as? Bool ?? true
+        self.clusters = defaults.object(forKey: "fc_clusters") as? Bool ?? true
 
         // Consonant filters - all enabled by default
-        self.highConsonants = UserDefaults.standard.object(forKey: "fc_highConsonants") as? Bool ?? true
-        self.midConsonants = UserDefaults.standard.object(forKey: "fc_midConsonants") as? Bool ?? true
-        self.lowConsonants = UserDefaults.standard.object(forKey: "fc_lowConsonants") as? Bool ?? true
-        self.uncommonConsonants = UserDefaults.standard.object(forKey: "fc_uncommonConsonants") as? Bool ?? true
+        self.highConsonants = defaults.object(forKey: "fc_highConsonants") as? Bool ?? true
+        self.midConsonants = defaults.object(forKey: "fc_midConsonants") as? Bool ?? true
+        self.lowConsonants = defaults.object(forKey: "fc_lowConsonants") as? Bool ?? true
+        self.uncommonConsonants = defaults.object(forKey: "fc_uncommonConsonants") as? Bool ?? true
 
         // Vowel filters
-        self.longVowels = UserDefaults.standard.object(forKey: "fc_longVowels") as? Bool ?? true
-        self.shortVowels = UserDefaults.standard.object(forKey: "fc_shortVowels") as? Bool ?? true
-        self.uncommonVowels = UserDefaults.standard.object(forKey: "fc_uncommonVowels") as? Bool ?? true
+        self.longVowels = defaults.object(forKey: "fc_longVowels") as? Bool ?? true
+        self.shortVowels = defaults.object(forKey: "fc_shortVowels") as? Bool ?? true
+        self.uncommonVowels = defaults.object(forKey: "fc_uncommonVowels") as? Bool ?? true
 
         // Tone filters
-        self.highToneRules = UserDefaults.standard.object(forKey: "fc_highToneRules") as? Bool ?? true
-        self.midToneRules = UserDefaults.standard.object(forKey: "fc_midToneRules") as? Bool ?? true
-        self.lowToneRules = UserDefaults.standard.object(forKey: "fc_lowToneRules") as? Bool ?? true
-        self.toneMarks = UserDefaults.standard.object(forKey: "fc_toneMarks") as? Bool ?? true
+        self.highToneRules = defaults.object(forKey: "fc_highToneRules") as? Bool ?? true
+        self.midToneRules = defaults.object(forKey: "fc_midToneRules") as? Bool ?? true
+        self.lowToneRules = defaults.object(forKey: "fc_lowToneRules") as? Bool ?? true
+        self.toneMarks = defaults.object(forKey: "fc_toneMarks") as? Bool ?? true
 
         // Cluster filters
-        self.smoothClusters = UserDefaults.standard.object(forKey: "fc_smoothClusters") as? Bool ?? true
-        self.silentClusters = UserDefaults.standard.object(forKey: "fc_silentClusters") as? Bool ?? true
-        self.irregularClusters = UserDefaults.standard.object(forKey: "fc_irregularClusters") as? Bool ?? true
+        self.smoothClusters = defaults.object(forKey: "fc_smoothClusters") as? Bool ?? true
+        self.silentClusters = defaults.object(forKey: "fc_silentClusters") as? Bool ?? true
+        self.irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
 
         // Other
-        self.useIntelligentSelection = UserDefaults.standard.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
+        self.useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
     }
 
     // MARK: - Filter Counts

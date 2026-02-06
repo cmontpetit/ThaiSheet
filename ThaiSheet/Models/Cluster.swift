@@ -77,12 +77,7 @@ struct ClustersData: Codable {
 
 extension Cluster {
     static func loadAll() -> [Cluster] {
-        guard let url = Bundle.main.url(forResource: "clusters", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode(ClustersData.self, from: data) else {
-            return []
-        }
-        return decoded.clusters
+        BundleLoader.load("clusters", as: ClustersData.self, keyPath: \.clusters)
     }
 
     static func grouped(_ clusters: [Cluster]) -> [(type: ClusterType, clusters: [Cluster])] {

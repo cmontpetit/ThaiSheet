@@ -5,30 +5,6 @@
 
 import SwiftUI
 
-// Represents a single tone rule flashcard (one sample from a rule)
-struct ToneRuleCard: Identifiable {
-    let rule: ToneRule
-    let sample: ToneSample
-    let correctTone: String
-
-    var id: String { "\(rule.id)-\(sample.full)" }
-
-    static func allCards(from rules: [ToneRule]) -> [ToneRuleCard] {
-        var cards: [ToneRuleCard] = []
-        for rule in rules {
-            guard let samples = rule.samples else { continue }
-            for sample in samples {
-                cards.append(ToneRuleCard(
-                    rule: rule,
-                    sample: sample,
-                    correctTone: rule.tone
-                ))
-            }
-        }
-        return cards.shuffled()
-    }
-}
-
 struct ToneRuleFlashcardView: View {
     let card: ToneRuleCard
     var onViewInReference: ((String) -> Void)?
@@ -36,6 +12,7 @@ struct ToneRuleFlashcardView: View {
     let onNext: () -> Void
     let onPrevious: () -> Void
 
+    @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneRuleCardState()
 
     // Selection options
@@ -99,9 +76,9 @@ struct ToneRuleFlashcardView: View {
 
                     // Speaker button (only when completed)
                     if cardState.step == .completed {
-                        let hasSound = AudioPlayer.shared.hasToneRuleSound(for: card.sample.full)
+                        let hasSound = audioPlayer.hasSound(.toneRule, key: card.sample.full)
                         Button {
-                            AudioPlayer.shared.playToneRuleSound(for: card.sample.full)
+                            audioPlayer.play(.toneRule, key: card.sample.full)
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
@@ -310,8 +287,8 @@ struct ToneRuleFlashcardView: View {
         // Record result: correct if no errors were made
         let wasCorrect = !cardState.hasError(for: card)
         onComplete?(wasCorrect)
-        if AudioPlayer.shared.hasToneRuleSound(for: card.sample.full) {
-            AudioPlayer.shared.playToneRuleSound(for: card.sample.full)
+        if audioPlayer.hasSound(.toneRule, key: card.sample.full) {
+            audioPlayer.play(.toneRule, key: card.sample.full)
         }
     }
 
@@ -319,8 +296,8 @@ struct ToneRuleFlashcardView: View {
         cardState.step = .completed
         // Revealed early = not answered correctly
         onComplete?(false)
-        if AudioPlayer.shared.hasToneRuleSound(for: card.sample.full) {
-            AudioPlayer.shared.playToneRuleSound(for: card.sample.full)
+        if audioPlayer.hasSound(.toneRule, key: card.sample.full) {
+            audioPlayer.play(.toneRule, key: card.sample.full)
         }
     }
 

@@ -65,11 +65,6 @@ struct ConsonantsData: Codable {
 
 extension Consonant {
     static func loadAll() -> [Consonant] {
-        guard let url = Bundle.main.url(forResource: "consonants", withExtension: "json"),
-              let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode(ConsonantsData.self, from: data) else {
-            return []
-        }
-        return decoded.consonants
+        BundleLoader.load("consonants", as: ConsonantsData.self, keyPath: \.consonants)
     }
 }

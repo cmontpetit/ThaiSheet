@@ -13,6 +13,7 @@ struct ConsonantFlashcardView: View {
     let onNext: () -> Void
     let onPrevious: () -> Void
 
+    @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = CardState()
 
     // Generated options for current card
@@ -81,7 +82,7 @@ struct ConsonantFlashcardView: View {
                     // Speaker button (only when completed)
                     if cardState.step == .completed {
                         Button {
-                            AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                            audioPlayer.play(.consonant, key: consonant.character)
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "speaker.wave.2.fill")
@@ -299,14 +300,14 @@ struct ConsonantFlashcardView: View {
         // Record result: correct if no errors were made
         let wasCorrect = !cardState.hasError(for: consonant)
         onComplete?(wasCorrect)
-        AudioPlayer.shared.playConsonantSound(for: consonant.character)
+        audioPlayer.play(.consonant, key: consonant.character)
     }
 
     private func completeCardEarly() {
         cardState.step = .completed
         // Revealed early = not answered correctly
         onComplete?(false)
-        AudioPlayer.shared.playConsonantSound(for: consonant.character)
+        audioPlayer.play(.consonant, key: consonant.character)
     }
 
     // MARK: - Next Card Button

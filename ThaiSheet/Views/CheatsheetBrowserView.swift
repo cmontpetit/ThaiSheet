@@ -13,17 +13,9 @@ enum CheatsheetEntryType: String, CaseIterable {
 }
 
 struct CheatsheetBrowserView: View {
-    // Navigation bindings
-    @Binding var highlightedConsonant: String?
-    @Binding var highlightedVowel: String?
-    @Binding var highlightedToneMark: String?
-    @Binding var highlightedToneRule: String?
-    @Binding var highlightedCluster: String?
-    @Binding var flashcardStartingConsonant: String?
-    @Binding var flashcardStartingVowel: String?
-    @Binding var flashcardStartingToneMark: String?
-    @Binding var flashcardStartingToneRule: String?
-    @Binding var flashcardStartingCluster: String?
+    // Navigation bindings (dictionaries keyed by FlashcardType)
+    @Binding var highlighted: [FlashcardType: String]
+    @Binding var flashcardStarting: [FlashcardType: String]
     @Binding var selectedTab: AppTab
 
     @State private var searchText = ""
@@ -37,6 +29,20 @@ struct CheatsheetBrowserView: View {
     // Filters
     @State private var selectedConsonantClass: ConsonantClass? = nil
     @State private var selectedClusterType: ClusterType? = nil
+
+    // Convenience accessors for highlighted values
+    private var highlightedConsonant: String? { highlighted[.consonant] }
+    private var highlightedVowel: String? { highlighted[.vowel] }
+    private var highlightedToneMark: String? { highlighted[.toneMark] }
+    private var highlightedToneRule: String? { highlighted[.toneRule] }
+    private var highlightedCluster: String? { highlighted[.cluster] }
+
+    /// Start practicing a card: set the starting value and switch to flashcards
+    private func startPractice(_ key: String, type: FlashcardType) {
+        flashcardStarting[type] = key
+        highlighted[type] = nil
+        selectedTab = .flashcards
+    }
 
     var filteredConsonants: [Consonant] {
         var result = consonants
@@ -248,9 +254,7 @@ struct CheatsheetBrowserView: View {
                                     consonant: consonant,
                                     isHighlighted: highlightedConsonant == consonant.character,
                                     onPractice: {
-                                        flashcardStartingConsonant = consonant.character
-                                        highlightedConsonant = nil
-                                        selectedTab = .flashcards
+                                        startPractice(consonant.character, type: .consonant)
                                     }
                                 )
                                 .listRowInsets(EdgeInsets())
@@ -258,7 +262,6 @@ struct CheatsheetBrowserView: View {
                             }
                             .listStyle(.plain)
                             .task {
-                                // Scroll to highlighted consonant when view appears (e.g., after tab switch)
                                 if let character = highlightedConsonant {
                                     try? await Task.sleep(for: .milliseconds(100))
                                     withAnimation {
@@ -286,9 +289,7 @@ struct CheatsheetBrowserView: View {
                                     highlightedForm: highlightedVowel,
                                     searchQuery: normalizedVowelSearch,
                                     onPractice: { form in
-                                        flashcardStartingVowel = form
-                                        highlightedVowel = nil
-                                        selectedTab = .flashcards
+                                        startPractice(form, type: .vowel)
                                     }
                                 )
                                 .listRowInsets(EdgeInsets())
@@ -296,7 +297,6 @@ struct CheatsheetBrowserView: View {
                             }
                             .listStyle(.plain)
                             .task {
-                                // Scroll to highlighted vowel when view appears (e.g., after tab switch)
                                 if let vowelForm = highlightedVowel,
                                    let vowel = vowels.first(where: { v in
                                        [v.short.closed, v.short.open, v.long.closed, v.long.open]
@@ -336,9 +336,7 @@ struct CheatsheetBrowserView: View {
                                             toneMark: mark,
                                             isHighlighted: isMarkHighlighted
                                         ) { display in
-                                            flashcardStartingToneMark = display
-                                            highlightedToneMark = nil
-                                            selectedTab = .flashcards
+                                            startPractice(display, type: .toneMark)
                                         }
                                         .id("tonemark-\(mark.id)")
                                         Divider()
@@ -356,9 +354,7 @@ struct CheatsheetBrowserView: View {
                                             rule: rule,
                                             isHighlighted: highlightedToneRule == rule.id
                                         ) {
-                                            flashcardStartingToneRule = rule.id
-                                            highlightedToneRule = nil
-                                            selectedTab = .flashcards
+                                            startPractice(rule.id, type: .toneRule)
                                         }
                                         .id("tonerule-\(rule.id)")
                                         Divider()
@@ -370,7 +366,6 @@ struct CheatsheetBrowserView: View {
                             .padding(.horizontal)
                         }
                         .task {
-                            // Scroll to highlighted tone mark when view appears (e.g., after tab switch)
                             if let display = highlightedToneMark,
                                let mark = toneMarks.first(where: { $0.withLowConsonant == display || $0.withMidHighConsonant == display }) {
                                 try? await Task.sleep(for: .milliseconds(100))
@@ -378,7 +373,6 @@ struct CheatsheetBrowserView: View {
                                     proxy.scrollTo("tonemark-\(mark.id)", anchor: .center)
                                 }
                             }
-                            // Scroll to highlighted tone rule when view appears
                             if let ruleId = highlightedToneRule {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 withAnimation {
@@ -413,9 +407,7 @@ struct CheatsheetBrowserView: View {
                                         clusters: filteredClusters,
                                         highlightedClusterId: highlightedCluster
                                     ) { clusterId in
-                                        flashcardStartingCluster = clusterId
-                                        highlightedCluster = nil
-                                        selectedTab = .flashcards
+                                        startPractice(clusterId, type: .cluster)
                                     }
                                 }
                                 // Compact grid for silent clusters
@@ -424,9 +416,7 @@ struct CheatsheetBrowserView: View {
                                         clusters: filteredClusters,
                                         highlightedClusterId: highlightedCluster
                                     ) { clusterId in
-                                        flashcardStartingCluster = clusterId
-                                        highlightedCluster = nil
-                                        selectedTab = .flashcards
+                                        startPractice(clusterId, type: .cluster)
                                     }
                                 }
                                 // List for irregular clusters
@@ -435,9 +425,7 @@ struct CheatsheetBrowserView: View {
                                         clusters: filteredClusters,
                                         highlightedClusterId: highlightedCluster
                                     ) { clusterId in
-                                        flashcardStartingCluster = clusterId
-                                        highlightedCluster = nil
-                                        selectedTab = .flashcards
+                                        startPractice(clusterId, type: .cluster)
                                     }
                                 }
                             }
@@ -482,35 +470,30 @@ struct CheatsheetBrowserView: View {
             }
         }
         .onChange(of: highlightedConsonant) { _, newValue in
-            // Switch to consonants tab when a consonant is highlighted
             if newValue != nil {
                 selectedType = .consonants
-                selectedConsonantClass = nil  // Clear filter to ensure consonant is visible
+                selectedConsonantClass = nil
             }
         }
         .onChange(of: highlightedVowel) { _, newValue in
-            // Switch to vowels tab when a vowel is highlighted
             if newValue != nil {
                 selectedType = .vowels
             }
         }
         .onChange(of: highlightedToneMark) { _, newValue in
-            // Switch to tones tab when a tone mark is highlighted
             if newValue != nil {
                 selectedType = .tones
             }
         }
         .onChange(of: highlightedToneRule) { _, newValue in
-            // Switch to tones tab when a tone rule is highlighted
             if newValue != nil {
                 selectedType = .tones
             }
         }
         .onChange(of: highlightedCluster) { _, newValue in
-            // Switch to clusters tab when a cluster is highlighted
             if newValue != nil {
                 selectedType = .clusters
-                selectedClusterType = nil  // Clear filter to ensure cluster is visible
+                selectedClusterType = nil
             }
         }
     }
@@ -518,16 +501,8 @@ struct CheatsheetBrowserView: View {
 
 #Preview {
     CheatsheetBrowserView(
-        highlightedConsonant: .constant(nil),
-        highlightedVowel: .constant(nil),
-        highlightedToneMark: .constant(nil),
-        highlightedToneRule: .constant(nil),
-        highlightedCluster: .constant(nil),
-        flashcardStartingConsonant: .constant(nil),
-        flashcardStartingVowel: .constant(nil),
-        flashcardStartingToneMark: .constant(nil),
-        flashcardStartingToneRule: .constant(nil),
-        flashcardStartingCluster: .constant(nil),
+        highlighted: .constant([:]),
+        flashcardStarting: .constant([:]),
         selectedTab: .constant(.reference)
     )
 }

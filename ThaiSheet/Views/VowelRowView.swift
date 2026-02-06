@@ -83,6 +83,7 @@ struct VowelRowView: View {
     var searchQuery: String? = nil
     var onPractice: ((String) -> Void)? = nil
 
+    @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
     @State private var selectedFormType: VowelFormType? = nil
     @State private var selectedText: String? = nil
@@ -104,7 +105,7 @@ struct VowelRowView: View {
     // Find a form that has a sound file (prefer closed forms)
     private var soundForm: String? {
         let formsToTry = [vowel.long.closed, vowel.short.closed, vowel.long.open, vowel.short.open]
-        return formsToTry.compactMap { $0 }.first { AudioPlayer.shared.hasVowelSound(for: $0) }
+        return formsToTry.compactMap { $0 }.first { audioPlayer.hasSound(.vowel, key: $0) }
     }
 
     private var hasSound: Bool {
@@ -187,8 +188,8 @@ struct VowelRowView: View {
                     title: text,
                     stage: learningModel.getProgress(forId: "vowel-\(text)").srsStage,
                     note: vowel.note(for: formType.duration, form: formType.form),
-                    hasSound: AudioPlayer.shared.hasVowelSound(for: text),
-                    onPlaySound: { AudioPlayer.shared.playVowelSound(for: text) },
+                    hasSound: audioPlayer.hasSound(.vowel, key: text),
+                    onPlaySound: { audioPlayer.play(.vowel, key: text) },
                     onPractice: { onPractice?(text) }
                 )
             }

@@ -31,9 +31,6 @@ class FlashcardManager {
     // Override card (shown once when jumping from Reference, clears on navigation)
     private var overrideCard: FlashcardItem? = nil
 
-    // Track settings state to detect changes
-    private var lastSettingsHash: Int = 0
-
     /// Current active strategy based on settings
     private var activeStrategy: CardSelectionStrategy {
         settings.useIntelligentSelection ? wanikaniStrategy : sequentialStrategy
@@ -198,64 +195,44 @@ class FlashcardManager {
         wanikaniStrategy.jumpTo(card: item)
     }
 
-    /// Jump to a consonant by character (sets override if not in filtered list)
+    /// Jump to a card, using override if not in the filtered list
+    private func jumpOrOverride(to item: FlashcardItem) {
+        if sequentialStrategy.indexOf(cardId: item.id) != nil {
+            overrideCard = nil
+            jumpTo(item: item)
+        } else {
+            overrideCard = item
+        }
+    }
+
+    /// Jump to a consonant by character
     func jumpToConsonant(_ character: String) {
         guard let consonant = allConsonants.first(where: { $0.character == character }) else { return }
-        let item = FlashcardItem.consonant(consonant)
-
-        if sequentialStrategy.indexOf(cardId: item.id) != nil {
-            // Card is in filtered list, jump to it
-            overrideCard = nil
-            jumpTo(item: item)
-        } else {
-            // Card not in filtered list, show as override
-            overrideCard = item
-        }
+        jumpOrOverride(to: .consonant(consonant))
     }
 
-    /// Jump to a vowel by display string (sets override if not in filtered list)
+    /// Jump to a vowel by display string
     func jumpToVowel(_ display: String) {
         guard let vowelCard = allVowelCards.first(where: { $0.display == display }) else { return }
-        let item = FlashcardItem.vowel(vowelCard)
-
-        if sequentialStrategy.indexOf(cardId: item.id) != nil {
-            // Card is in filtered list, jump to it
-            overrideCard = nil
-            jumpTo(item: item)
-        } else {
-            // Card not in filtered list, show as override
-            overrideCard = item
-        }
+        jumpOrOverride(to: .vowel(vowelCard))
     }
 
-    /// Jump to a tone mark by display string (sets override if not in filtered list)
+    /// Jump to a tone mark by display string
     func jumpToToneMark(_ display: String) {
         guard let toneMarkCard = allToneMarkCards.first(where: { $0.display == display }) else { return }
-        let item = FlashcardItem.toneMark(toneMarkCard)
-
-        if sequentialStrategy.indexOf(cardId: item.id) != nil {
-            // Card is in filtered list, jump to it
-            overrideCard = nil
-            jumpTo(item: item)
-        } else {
-            // Card not in filtered list, show as override
-            overrideCard = item
-        }
+        jumpOrOverride(to: .toneMark(toneMarkCard))
     }
 
-    /// Jump to a tone rule by ID (sets override if not in filtered list)
+    /// Jump to a tone rule by ID
     func jumpToToneRule(_ ruleId: String) {
         guard let ruleCard = allToneRuleCards.first(where: { $0.rule.id == ruleId }) else { return }
-        let item = FlashcardItem.toneRule(ruleCard)
+        jumpOrOverride(to: .toneRule(ruleCard))
+    }
 
-        if sequentialStrategy.indexOf(cardId: item.id) != nil {
-            // Card is in filtered list, jump to it
-            overrideCard = nil
-            jumpTo(item: item)
-        } else {
-            // Card not in filtered list, show as override
-            overrideCard = item
-        }
+    /// Jump to a cluster by ID
+    func jumpToCluster(_ clusterId: String) {
+        guard let cluster = allClusters.first(where: { $0.id == clusterId }) else { return }
+        jumpOrOverride(to: .cluster(cluster))
     }
 
     /// Reset to first card and update strategies (call when settings change)
@@ -263,21 +240,6 @@ class FlashcardManager {
         updateStrategies()
         sequentialStrategy.reset()
         wanikaniStrategy.reset()
-    }
-
-    /// Jump to a cluster by ID (sets override if not in filtered list)
-    func jumpToCluster(_ clusterId: String) {
-        guard let cluster = allClusters.first(where: { $0.id == clusterId }) else { return }
-        let item = FlashcardItem.cluster(cluster)
-
-        if sequentialStrategy.indexOf(cardId: item.id) != nil {
-            // Card is in filtered list, jump to it
-            overrideCard = nil
-            jumpTo(item: item)
-        } else {
-            // Card not in filtered list, show as override
-            overrideCard = item
-        }
     }
 
     // MARK: - For generating quiz options

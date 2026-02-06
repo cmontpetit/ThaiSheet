@@ -68,11 +68,12 @@ struct ConsonantRowView: View {
     var isHighlighted: Bool = false
     var onPractice: (() -> Void)? = nil
 
+    @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
     @State private var showingSheet = false
 
     private var hasSound: Bool {
-        AudioPlayer.shared.hasConsonantSound(for: consonant.character)
+        audioPlayer.hasSound(.consonant, key: consonant.character)
     }
 
     private var stage: SRSStage {
@@ -129,7 +130,7 @@ struct ConsonantRowView: View {
             .contentShape(Rectangle())
             .onTapGesture {
                 if hasSound {
-                    AudioPlayer.shared.playConsonantSound(for: consonant.character)
+                    audioPlayer.play(.consonant, key: consonant.character)
                 }
             }
         }
@@ -143,7 +144,7 @@ struct ConsonantRowView: View {
                 stage: stage,
                 note: nil,
                 hasSound: hasSound,
-                onPlaySound: { AudioPlayer.shared.playConsonantSound(for: consonant.character) },
+                onPlaySound: { audioPlayer.play(.consonant, key: consonant.character) },
                 onPractice: { onPractice?() }
             )
         }

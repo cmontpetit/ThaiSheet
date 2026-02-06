@@ -286,11 +286,12 @@ struct ClusterDetailRow: View {
 struct ClusterDetailSheet: View {
     let cluster: Cluster
     var onPractice: ((String) -> Void)?
+    @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
     @Environment(\.dismiss) var dismiss
 
     private var hasSound: Bool {
-        AudioPlayer.shared.hasClusterSound(for: cluster.displayWithVowel)
+        audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel)
     }
 
     private var stage: SRSStage {
@@ -322,7 +323,7 @@ struct ClusterDetailSheet: View {
             note: combinedNote,
             hasSound: hasSound,
             onPlaySound: {
-                AudioPlayer.shared.playClusterSound(for: cluster.displayWithVowel)
+                audioPlayer.play(.cluster, key: cluster.displayWithVowel)
             },
             onPractice: {
                 dismiss()

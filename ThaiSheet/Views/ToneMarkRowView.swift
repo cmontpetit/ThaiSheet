@@ -37,15 +37,16 @@ struct ToneMarkRowView: View {
     var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
 
+    @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
     @State private var selectedDisplay: String? = nil
 
     private var hasLowSound: Bool {
-        AudioPlayer.shared.hasToneMarkSound(for: toneMark.soundKeyLow)
+        audioPlayer.hasSound(.toneMark, key: toneMark.soundKeyLow)
     }
 
     private var hasMidHighSound: Bool {
-        AudioPlayer.shared.hasToneMarkSound(for: toneMark.soundKeyMidHigh)
+        audioPlayer.hasSound(.toneMark, key: toneMark.soundKeyMidHigh)
     }
 
     private func stage(for display: String) -> SRSStage {
@@ -120,7 +121,7 @@ struct ToneMarkRowView: View {
                     stage: stage(for: soundKey),
                     note: nil,
                     hasSound: hasSound,
-                    onPlaySound: { AudioPlayer.shared.playToneMarkSound(for: soundKey) },
+                    onPlaySound: { audioPlayer.play(.toneMark, key: soundKey) },
                     onPractice: { onPractice?(soundKey) }
                 )
             }
@@ -139,7 +140,7 @@ struct ToneMarkRowView: View {
                 .contentShape(Rectangle())
                 .onTapGesture {
                     if hasSound {
-                        AudioPlayer.shared.playToneMarkSound(for: soundKey)
+                        audioPlayer.play(.toneMark, key: soundKey)
                     }
                 }
         }

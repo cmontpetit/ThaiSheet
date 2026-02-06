@@ -194,14 +194,8 @@ struct SRSStatsView: View {
     // MARK: - Card Type Breakdown
 
     private var cardTypeBreakdown: some View {
-        let types: [(FlashcardType, String)] = [
-            (.consonant, "Consonants"),
-            (.vowel, "Vowels"),
-            (.toneMark, "Tone Marks"),
-            (.toneRule, "Tone Rules")
-        ]
-
-        return ForEach(types, id: \.0) { type, name in
+        return ForEach(FlashcardType.allCases, id: \.self) { type in
+            let name = type.label + "s"
             let cardsOfType = displayedCards.filter { $0.type == type }
             let dueCount = learningModel.dueCardCount(in: cardsOfType)
             let familiarCount = learningModel.familiarCardCount(in: cardsOfType)

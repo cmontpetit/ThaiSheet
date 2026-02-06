@@ -13,6 +13,7 @@ struct ClusterFlashcardView: View {
     let onNext: () -> Void
     let onPrevious: () -> Void
 
+    @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ClusterCardState()
     @State private var soundOptions: [String] = []
 
@@ -75,9 +76,9 @@ struct ClusterFlashcardView: View {
                     }
 
                     if cardState.step == .completed {
-                        let hasSound = AudioPlayer.shared.hasClusterSound(for: cluster.displayWithVowel)
+                        let hasSound = audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel)
                         Button {
-                            AudioPlayer.shared.playClusterSound(for: cluster.displayWithVowel)
+                            audioPlayer.play(.cluster, key: cluster.displayWithVowel)
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
@@ -193,16 +194,16 @@ struct ClusterFlashcardView: View {
         cardState.step = .completed
         let wasCorrect = !cardState.hasError(for: cluster)
         onComplete?(wasCorrect)
-        if AudioPlayer.shared.hasClusterSound(for: cluster.displayWithVowel) {
-            AudioPlayer.shared.playClusterSound(for: cluster.displayWithVowel)
+        if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
+            audioPlayer.play(.cluster, key: cluster.displayWithVowel)
         }
     }
 
     private func completeCardEarly() {
         cardState.step = .completed
         onComplete?(false)
-        if AudioPlayer.shared.hasClusterSound(for: cluster.displayWithVowel) {
-            AudioPlayer.shared.playClusterSound(for: cluster.displayWithVowel)
+        if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
+            audioPlayer.play(.cluster, key: cluster.displayWithVowel)
         }
     }
 

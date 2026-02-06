@@ -62,12 +62,13 @@ struct ToneRuleRowView: View {
     var isHighlighted: Bool = false
     var onPractice: (() -> Void)? = nil
 
+    @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
     @State private var showingSheet = false
 
     private var hasSound: Bool {
         guard let sample = rule.primarySample else { return false }
-        return AudioPlayer.shared.hasToneRuleSound(for: sample.full)
+        return audioPlayer.hasSound(.toneRule, key: sample.full)
     }
 
     /// Lowest stage among all sample cards for this rule
@@ -126,7 +127,7 @@ struct ToneRuleRowView: View {
                 .contentShape(Rectangle())
                 .onTapGesture {
                     if hasSound, let sample = rule.primarySample {
-                        AudioPlayer.shared.playToneRuleSound(for: sample.full)
+                        audioPlayer.play(.toneRule, key: sample.full)
                     }
                 }
         }
@@ -143,7 +144,7 @@ struct ToneRuleRowView: View {
                 hasSound: hasSound,
                 onPlaySound: {
                     if let sample = rule.primarySample {
-                        AudioPlayer.shared.playToneRuleSound(for: sample.full)
+                        audioPlayer.play(.toneRule, key: sample.full)
                     }
                 },
                 onPractice: { onPractice?() }

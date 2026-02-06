@@ -12,12 +12,22 @@ enum AppTab: Int {
     case reference = 1
 }
 
-enum FlashcardType {
+enum FlashcardType: CaseIterable {
     case consonant
     case vowel
     case toneMark
     case toneRule
     case cluster
+
+    var label: String {
+        switch self {
+        case .consonant: "Consonant"
+        case .vowel: "Vowel"
+        case .toneMark: "Tone Mark"
+        case .toneRule: "Tone Rule"
+        case .cluster: "Cluster"
+        }
+    }
 }
 
 struct ContentView: View {
@@ -25,32 +35,27 @@ struct ContentView: View {
     @State private var learningModel = LearningModel()
     @State private var manager: FlashcardManager?
     @State private var selectedTab: AppTab = .flashcards
-    @State private var highlightedConsonant: String? = nil
-    @State private var highlightedVowel: String? = nil
-    @State private var highlightedToneMark: String? = nil
-    @State private var highlightedToneRule: String? = nil
-    @State private var highlightedCluster: String? = nil
-    @State private var flashcardStartingConsonant: String? = nil
-    @State private var flashcardStartingVowel: String? = nil
-    @State private var flashcardStartingToneMark: String? = nil
-    @State private var flashcardStartingToneRule: String? = nil
-    @State private var flashcardStartingCluster: String? = nil
+    @State private var highlighted: [FlashcardType: String] = [:]
+    @State private var flashcardStarting: [FlashcardType: String] = [:]
+
+    /// Creates a Binding<String?> into a dictionary for a given key
+    private func binding(
+        for type: FlashcardType,
+        in dict: Binding<[FlashcardType: String]>
+    ) -> Binding<String?> {
+        Binding(
+            get: { dict.wrappedValue[type] },
+            set: { dict.wrappedValue[type] = $0 }
+        )
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
             if let manager = manager {
                 FlashcardsView(
                     manager: manager,
-                    highlightedConsonant: $highlightedConsonant,
-                    highlightedVowel: $highlightedVowel,
-                    highlightedToneMark: $highlightedToneMark,
-                    highlightedToneRule: $highlightedToneRule,
-                    highlightedCluster: $highlightedCluster,
-                    startingConsonant: $flashcardStartingConsonant,
-                    startingVowel: $flashcardStartingVowel,
-                    startingToneMark: $flashcardStartingToneMark,
-                    startingToneRule: $flashcardStartingToneRule,
-                    startingCluster: $flashcardStartingCluster,
+                    highlighted: $highlighted,
+                    flashcardStarting: $flashcardStarting,
                     selectedTab: $selectedTab
                 )
                 .tabItem {
@@ -70,16 +75,8 @@ struct ContentView: View {
             }
 
             CheatsheetBrowserView(
-                highlightedConsonant: $highlightedConsonant,
-                highlightedVowel: $highlightedVowel,
-                highlightedToneMark: $highlightedToneMark,
-                highlightedToneRule: $highlightedToneRule,
-                highlightedCluster: $highlightedCluster,
-                flashcardStartingConsonant: $flashcardStartingConsonant,
-                flashcardStartingVowel: $flashcardStartingVowel,
-                flashcardStartingToneMark: $flashcardStartingToneMark,
-                flashcardStartingToneRule: $flashcardStartingToneRule,
-                flashcardStartingCluster: $flashcardStartingCluster,
+                highlighted: $highlighted,
+                flashcardStarting: $flashcardStarting,
                 selectedTab: $selectedTab
             )
             .environment(\.learningModel, learningModel)
@@ -94,15 +91,8 @@ struct ContentView: View {
             }
         }
         .onChange(of: selectedTab) { oldTab, _ in
-            // Clear all highlights when leaving Reference tab
-            // This ensures tab bar navigation shows default state,
-            // while "View in Reference" links still work (they set highlight before tab switch)
             if oldTab == .reference {
-                highlightedConsonant = nil
-                highlightedVowel = nil
-                highlightedToneMark = nil
-                highlightedToneRule = nil
-                highlightedCluster = nil
+                highlighted.removeAll()
             }
         }
     }
@@ -110,16 +100,8 @@ struct ContentView: View {
 
 struct FlashcardsView: View {
     var manager: FlashcardManager
-    @Binding var highlightedConsonant: String?
-    @Binding var highlightedVowel: String?
-    @Binding var highlightedToneMark: String?
-    @Binding var highlightedToneRule: String?
-    @Binding var highlightedCluster: String?
-    @Binding var startingConsonant: String?
-    @Binding var startingVowel: String?
-    @Binding var startingToneMark: String?
-    @Binding var startingToneRule: String?
-    @Binding var startingCluster: String?
+    @Binding var highlighted: [FlashcardType: String]
+    @Binding var flashcardStarting: [FlashcardType: String]
     @Binding var selectedTab: AppTab
 
     @State private var showingSettings = false
@@ -128,14 +110,7 @@ struct FlashcardsView: View {
     @State private var filterRefreshID = UUID()
 
     private var typeLabel: String {
-        guard let card = manager.currentCard else { return "Flashcard" }
-        switch card.type {
-        case .consonant: return "Consonant"
-        case .vowel: return "Vowel"
-        case .toneMark: return "Tone Mark"
-        case .toneRule: return "Tone Rule"
-        case .cluster: return "Cluster"
-        }
+        manager.currentCard?.type.label ?? "Flashcard"
     }
 
     @ViewBuilder
@@ -143,6 +118,12 @@ struct FlashcardsView: View {
         let stage = manager.learningModel.srsStage(for: card)
         let isCapped = manager.settings.isPartialTesting(for: card.type)
         StageIndicatorView(mode: .stage(stage: stage, isCapped: isCapped))
+    }
+
+    /// Helper to set highlight and switch to Reference tab
+    private func viewInReference(_ value: String, type: FlashcardType) {
+        highlighted[type] = value
+        selectedTab = .reference
     }
 
     /// Flashcard content view for the current card - extracted to reduce body complexity
@@ -153,10 +134,7 @@ struct FlashcardsView: View {
             ConsonantFlashcardView(
                 consonant: consonant,
                 allConsonants: manager.allConsonantsForOptions,
-                onViewInReference: { character in
-                    highlightedConsonant = character
-                    selectedTab = .reference
-                },
+                onViewInReference: { viewInReference($0, type: .consonant) },
                 onComplete: { correct in
                     let fullTesting = !manager.settings.isPartialTesting(for: .consonant)
                     manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
@@ -168,10 +146,7 @@ struct FlashcardsView: View {
             VowelFlashcardView(
                 card: vowelCard,
                 allVowels: manager.allVowelsForOptions,
-                onViewInReference: { vowel in
-                    highlightedVowel = vowel
-                    selectedTab = .reference
-                },
+                onViewInReference: { viewInReference($0, type: .vowel) },
                 onComplete: { correct in
                     let fullTesting = !manager.settings.isPartialTesting(for: .vowel)
                     manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
@@ -182,10 +157,7 @@ struct FlashcardsView: View {
         case .toneMark(let toneMarkCard):
             ToneMarkFlashcardView(
                 card: toneMarkCard,
-                onViewInReference: { display in
-                    highlightedToneMark = display
-                    selectedTab = .reference
-                },
+                onViewInReference: { viewInReference($0, type: .toneMark) },
                 onComplete: { correct in
                     let fullTesting = !manager.settings.isPartialTesting(for: .toneMark)
                     manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
@@ -196,10 +168,7 @@ struct FlashcardsView: View {
         case .toneRule(let toneRuleCard):
             ToneRuleFlashcardView(
                 card: toneRuleCard,
-                onViewInReference: { ruleId in
-                    highlightedToneRule = ruleId
-                    selectedTab = .reference
-                },
+                onViewInReference: { viewInReference($0, type: .toneRule) },
                 onComplete: { correct in
                     let fullTesting = !manager.settings.isPartialTesting(for: .toneRule)
                     manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
@@ -211,10 +180,7 @@ struct FlashcardsView: View {
             ClusterFlashcardView(
                 cluster: cluster,
                 allClusters: manager.allClustersForOptions,
-                onViewInReference: { clusterId in
-                    highlightedCluster = clusterId
-                    selectedTab = .reference
-                },
+                onViewInReference: { viewInReference($0, type: .cluster) },
                 onComplete: { correct in
                     let fullTesting = !manager.settings.isPartialTesting(for: .cluster)
                     manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
@@ -358,11 +324,7 @@ struct FlashcardsView: View {
         ))
         .modifier(FlashcardsNavigationModifier(
             manager: manager,
-            startingConsonant: $startingConsonant,
-            startingVowel: $startingVowel,
-            startingToneMark: $startingToneMark,
-            startingToneRule: $startingToneRule,
-            startingCluster: $startingCluster
+            flashcardStarting: $flashcardStarting
         ))
     }
 }
@@ -460,44 +422,28 @@ struct FlashcardsSettingsModifier: ViewModifier {
 /// Modifier for navigation jump handling
 struct FlashcardsNavigationModifier: ViewModifier {
     var manager: FlashcardManager
-    @Binding var startingConsonant: String?
-    @Binding var startingVowel: String?
-    @Binding var startingToneMark: String?
-    @Binding var startingToneRule: String?
-    @Binding var startingCluster: String?
+    @Binding var flashcardStarting: [FlashcardType: String]
+
+    private typealias JumpFunc = (String) -> Void
+
+    private var jumpFunctions: [FlashcardType: JumpFunc] {
+        [
+            .consonant: manager.jumpToConsonant,
+            .vowel: manager.jumpToVowel,
+            .toneMark: manager.jumpToToneMark,
+            .toneRule: manager.jumpToToneRule,
+            .cluster: manager.jumpToCluster,
+        ]
+    }
 
     func body(content: Content) -> some View {
         content
             .modifier(FlashcardsSettingsModifier(manager: manager))
-            .onChange(of: startingConsonant) { _, newValue in
-                if let character = newValue {
-                    manager.jumpToConsonant(character)
-                    startingConsonant = nil
+            .onChange(of: flashcardStarting) { _, newValue in
+                for (type, key) in newValue {
+                    jumpFunctions[type]?(key)
                 }
-            }
-            .onChange(of: startingVowel) { _, newValue in
-                if let display = newValue {
-                    manager.jumpToVowel(display)
-                    startingVowel = nil
-                }
-            }
-            .onChange(of: startingToneMark) { _, newValue in
-                if let display = newValue {
-                    manager.jumpToToneMark(display)
-                    startingToneMark = nil
-                }
-            }
-            .onChange(of: startingToneRule) { _, newValue in
-                if let ruleId = newValue {
-                    manager.jumpToToneRule(ruleId)
-                    startingToneRule = nil
-                }
-            }
-            .onChange(of: startingCluster) { _, newValue in
-                if let clusterId = newValue {
-                    manager.jumpToCluster(clusterId)
-                    startingCluster = nil
-                }
+                flashcardStarting.removeAll()
             }
     }
 }

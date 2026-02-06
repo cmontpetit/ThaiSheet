@@ -4,8 +4,38 @@
 //
 
 import AVFoundation
+import SwiftUI
 
-class AudioPlayer {
+enum SoundType: String {
+    case consonant
+    case vowel
+    case cluster
+    case toneMark = "tone_mark"
+    case toneRule = "tone_rule"
+}
+
+/// Protocol for audio playback, enabling test mocking
+protocol AudioPlaying {
+    func play(_ type: SoundType, key: String)
+    func hasSound(_ type: SoundType, key: String) -> Bool
+}
+
+// MARK: - Environment Key
+
+private struct AudioPlayerKey: EnvironmentKey {
+    static let defaultValue: AudioPlaying = AudioPlayer.shared
+}
+
+extension EnvironmentValues {
+    var audioPlayer: AudioPlaying {
+        get { self[AudioPlayerKey.self] }
+        set { self[AudioPlayerKey.self] = newValue }
+    }
+}
+
+// MARK: - AudioPlayer Implementation
+
+class AudioPlayer: AudioPlaying {
     static let shared = AudioPlayer()
     private var player: AVAudioPlayer?
 
@@ -23,32 +53,18 @@ class AudioPlayer {
         }
     }
 
-    func playConsonantSound(for character: String) {
-        let filename = "cheat_sheet_consonant_\(character)"
-        play(filename: filename)
+    func play(_ type: SoundType, key: String) {
+        let filename = "cheat_sheet_\(type.rawValue)_\(key)"
+        playFile(filename: filename)
     }
 
-    func playVowelSound(for form: String) {
-        let filename = "cheat_sheet_vowel_\(form)"
-        play(filename: filename)
+    func hasSound(_ type: SoundType, key: String) -> Bool {
+        let filename = "cheat_sheet_\(type.rawValue)_\(key)"
+        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
+               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
     }
 
-    func playClusterSound(for cluster: String) {
-        let filename = "cheat_sheet_cluster_\(cluster)"
-        play(filename: filename)
-    }
-
-    func playToneMarkSound(for mark: String) {
-        let filename = "cheat_sheet_tone_mark_\(mark)"
-        play(filename: filename)
-    }
-
-    func playToneRuleSound(for sampleWord: String) {
-        let filename = "cheat_sheet_tone_rule_\(sampleWord)"
-        play(filename: filename)
-    }
-
-    private func play(filename: String) {
+    private func playFile(filename: String) {
         guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") else {
             // Try without subdirectory
             guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3") else {
@@ -68,35 +84,5 @@ class AudioPlayer {
         } catch {
             print("Error playing sound: \(error)")
         }
-    }
-
-    func hasConsonantSound(for character: String) -> Bool {
-        let filename = "cheat_sheet_consonant_\(character)"
-        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
-               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
-    }
-
-    func hasVowelSound(for form: String) -> Bool {
-        let filename = "cheat_sheet_vowel_\(form)"
-        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
-               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
-    }
-
-    func hasToneMarkSound(for mark: String) -> Bool {
-        let filename = "cheat_sheet_tone_mark_\(mark)"
-        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
-               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
-    }
-
-    func hasToneRuleSound(for sampleWord: String) -> Bool {
-        let filename = "cheat_sheet_tone_rule_\(sampleWord)"
-        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
-               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
-    }
-
-    func hasClusterSound(for display: String) -> Bool {
-        let filename = "cheat_sheet_cluster_\(display)"
-        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
-               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
     }
 }
