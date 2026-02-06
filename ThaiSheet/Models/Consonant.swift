@@ -19,6 +19,14 @@ enum ConsonantClass: String, Codable, CaseIterable {
         }
     }
 
+    var displayName: String {
+        switch self {
+        case .low: return String(localized: "Low")
+        case .mid: return String(localized: "Mid")
+        case .high: return String(localized: "High")
+        }
+    }
+
     var color: Color {
         switch self {
         case .low: return Color.green.opacity(0.3)

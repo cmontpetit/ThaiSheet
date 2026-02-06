@@ -31,6 +31,26 @@ struct FlashcardSettingsView: View {
                 } header: {
                     Text("Learning Strategy")
                 }
+
+                Section {
+                    Picker(selection: $settings.appLanguage) {
+                        ForEach(FlashcardSettings.supportedLanguages, id: \.code) { lang in
+                            Text(lang.name).tag(lang.code)
+                        }
+                    } label: {
+                        Text("Language")
+                    }
+                } header: {
+                    Text("Language")
+                }
+
+                Section {
+                    NavigationLink {
+                        AboutView()
+                    } label: {
+                        Text("About")
+                    }
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -46,8 +66,8 @@ struct FlashcardSettingsView: View {
 
     @ViewBuilder
     private func strategyOption(
-        title: String,
-        description: String,
+        title: LocalizedStringKey,
+        description: LocalizedStringKey,
         isSelected: Bool,
         action: @escaping () -> Void
     ) -> some View {

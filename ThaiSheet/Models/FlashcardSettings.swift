@@ -98,6 +98,25 @@ class FlashcardSettings {
         didSet { defaults.set(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
     }
 
+    var appLanguage: String {
+        didSet { defaults.set(appLanguage, forKey: "fc_appLanguage") }
+    }
+
+    /// Supported languages for the in-app picker
+    static let supportedLanguages: [(code: String, name: String)] = [
+        ("system", "System"),
+        ("en", "English"),
+        ("fr", "Français"),
+    ]
+
+    /// Resolved locale based on the app language setting
+    var resolvedLocale: Locale {
+        if appLanguage == "system" {
+            return .current
+        }
+        return Locale(identifier: appLanguage)
+    }
+
     // MARK: - Initialization
 
     init(defaults: UserDefaults = .standard) {
@@ -133,6 +152,7 @@ class FlashcardSettings {
 
         // Other
         self.useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
+        self.appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
     }
 
     // MARK: - Filter Counts

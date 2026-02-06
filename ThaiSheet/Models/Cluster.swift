@@ -12,17 +12,25 @@ enum ClusterType: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .smooth: return "Smooth Clusters"
-        case .irregular: return "Irregular Clusters"
-        case .silent: return "Silent ห Combinations"
+        case .smooth: return String(localized: "Smooth Clusters")
+        case .irregular: return String(localized: "Irregular Clusters")
+        case .silent: return String(localized: "Silent ห Combinations")
+        }
+    }
+
+    var chipLabel: String {
+        switch self {
+        case .smooth: return String(localized: "Smooth")
+        case .irregular: return String(localized: "Irregular")
+        case .silent: return String(localized: "Silent ห")
         }
     }
 
     var description: String {
         switch self {
-        case .smooth: return "Standard consonant + r/l/w"
-        case .irregular: return "Special pronunciation rules"
-        case .silent: return "ห makes syllable high-class"
+        case .smooth: return String(localized: "Standard consonant + r/l/w")
+        case .irregular: return String(localized: "Special pronunciation rules")
+        case .silent: return String(localized: "ห makes syllable high-class")
         }
     }
 }

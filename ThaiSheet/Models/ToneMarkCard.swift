@@ -17,6 +17,13 @@ struct ToneMarkCard: Identifiable {
     enum ConsonantClassType: String, CaseIterable {
         case low = "Low"
         case midHigh = "Mid/High"
+
+        var label: String {
+            switch self {
+            case .low: return String(localized: "Low")
+            case .midHigh: return String(localized: "Mid/High")
+            }
+        }
     }
 
     /// Creates 8 cards matching the reference: 3 for low class (ค) + 5 for mid/high class (ก)

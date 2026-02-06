@@ -15,11 +15,31 @@ struct ToneRuleFlashcardView: View {
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneRuleCardState()
 
-    // Selection options
-    private let consonantClassOptions = ["Low", "Mid", "High"]
-    private let vowelDurationOptions = ["Short", "Long", "Any"]
-    private let endOptions = ["Live", "Dead"]
-    private let toneOptions = ["Low", "Mid", "High", "Falling", "Rising"]
+    // Selection options (value = data identifier matching JSON, label = localized display)
+    private struct Option: Identifiable {
+        let value: String
+        var label: String { String(localized: String.LocalizationValue(value)) }
+        var id: String { value }
+    }
+
+    private let consonantClassOptions: [Option] = [
+        Option(value: "Low"), Option(value: "Mid"), Option(value: "High"),
+    ]
+    private let vowelDurationOptions: [Option] = [
+        Option(value: "Short"), Option(value: "Long"), Option(value: "Any"),
+    ]
+    private let endOptions: [Option] = [
+        Option(value: "Live"), Option(value: "Dead"),
+    ]
+    private let toneOptions: [Option] = [
+        Option(value: "Low"), Option(value: "Mid"), Option(value: "High"),
+        Option(value: "Falling"), Option(value: "Rising"),
+    ]
+
+    /// Localize a data identifier for display
+    private func localized(_ value: String) -> String {
+        String(localized: String.LocalizationValue(value))
+    }
 
     var body: some View {
         ScrollView {
@@ -149,29 +169,29 @@ struct ToneRuleFlashcardView: View {
             VStack(spacing: 6) {
                 FlashcardSummaryRow(
                     label: "Class",
-                    selectedValue: cardState.selectedConsonantClass,
-                    correctValue: card.rule.initialConsonant,
+                    selectedValue: cardState.selectedConsonantClass.map { localized($0) },
+                    correctValue: localized(card.rule.initialConsonant),
                     showResult: cardState.step == .completed,
                     labelWidth: 50
                 )
                 FlashcardSummaryRow(
                     label: "Vowel",
-                    selectedValue: cardState.selectedVowelDuration,
-                    correctValue: card.rule.vowelDuration,
+                    selectedValue: cardState.selectedVowelDuration.map { localized($0) },
+                    correctValue: localized(card.rule.vowelDuration),
                     showResult: cardState.step == .completed,
                     labelWidth: 50
                 )
                 FlashcardSummaryRow(
                     label: "End",
-                    selectedValue: cardState.selectedEnd,
-                    correctValue: normalizedEnd(card.rule.end),
+                    selectedValue: cardState.selectedEnd.map { localized($0) },
+                    correctValue: localized(normalizedEnd(card.rule.end)),
                     showResult: cardState.step == .completed,
                     labelWidth: 50
                 )
                 FlashcardSummaryRow(
                     label: "Tone",
-                    selectedValue: cardState.selectedTone,
-                    correctValue: card.correctTone,
+                    selectedValue: cardState.selectedTone.map { localized($0) },
+                    correctValue: localized(card.correctTone),
                     showResult: cardState.step == .completed,
                     labelWidth: 50
                 )
@@ -241,7 +261,7 @@ struct ToneRuleFlashcardView: View {
 
     // MARK: - Generic Selection View
 
-    private func selectionView(title: String, options: [String], onSelect: @escaping (String) -> Void) -> some View {
+    private func selectionView(title: LocalizedStringKey, options: [Option], onSelect: @escaping (String) -> Void) -> some View {
         VStack(spacing: 16) {
             Text(title)
                 .font(.headline)
@@ -249,7 +269,7 @@ struct ToneRuleFlashcardView: View {
             // Flexible layout based on number of options
             if options.count <= 3 {
                 HStack(spacing: 8) {
-                    ForEach(options, id: \.self) { option in
+                    ForEach(options) { option in
                         selectionButton(option, onSelect: onSelect)
                     }
                 }
@@ -257,12 +277,12 @@ struct ToneRuleFlashcardView: View {
                 // Two rows for more options
                 VStack(spacing: 8) {
                     HStack(spacing: 8) {
-                        ForEach(options.prefix(3), id: \.self) { option in
+                        ForEach(Array(options.prefix(3))) { option in
                             selectionButton(option, onSelect: onSelect)
                         }
                     }
                     HStack(spacing: 8) {
-                        ForEach(options.dropFirst(3), id: \.self) { option in
+                        ForEach(Array(options.dropFirst(3))) { option in
                             selectionButton(option, onSelect: onSelect)
                         }
                     }
@@ -274,9 +294,9 @@ struct ToneRuleFlashcardView: View {
         .cornerRadius(12)
     }
 
-    private func selectionButton(_ option: String, onSelect: @escaping (String) -> Void) -> some View {
-        FlashcardSelectionButton(label: option) {
-            onSelect(option)
+    private func selectionButton(_ option: Option, onSelect: @escaping (String) -> Void) -> some View {
+        FlashcardSelectionButton(label: option.label) {
+            onSelect(option.value)
         }
     }
 

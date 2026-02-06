@@ -87,12 +87,23 @@ struct SRSStatsView: View {
 
     /// Grouped stage for display (combines stages with same display name)
     private enum StageGroup: String, CaseIterable {
-        case new = "New"
-        case learning = "Learning"
-        case apprentice = "Apprentice"
-        case familiar = "Familiar"
-        case confident = "Confident"
-        case mastered = "Mastered"
+        case new
+        case learning
+        case apprentice
+        case familiar
+        case confident
+        case mastered
+
+        var label: String {
+            switch self {
+            case .new: return String(localized: "New")
+            case .learning: return String(localized: "Learning")
+            case .apprentice: return String(localized: "Apprentice")
+            case .familiar: return String(localized: "Familiar")
+            case .confident: return String(localized: "Confident")
+            case .mastered: return String(localized: "Mastered")
+            }
+        }
 
         var color: Color {
             switch self {
@@ -126,7 +137,7 @@ struct SRSStatsView: View {
             ForEach(StageGroup.allCases, id: \.rawValue) { group in
                 let count = groupedCounts[group] ?? 0
                 HStack(spacing: 8) {
-                    Text(group.rawValue)
+                    Text(group.label)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .frame(width: 70, alignment: .leading)

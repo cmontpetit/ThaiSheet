@@ -15,8 +15,17 @@ struct ToneMarkFlashcardView: View {
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneMarkCardState()
 
-    // All possible tones for selection
-    private let toneOptions = ["Low", "Mid", "High", "Falling", "Rising"]
+    // All possible tones for selection (value = data identifier, label = localized display)
+    private struct ToneOption: Identifiable {
+        let value: String
+        var label: String { String(localized: String.LocalizationValue(value)) }
+        var id: String { value }
+    }
+
+    private let toneOptions: [ToneOption] = [
+        ToneOption(value: "Low"), ToneOption(value: "Mid"), ToneOption(value: "High"),
+        ToneOption(value: "Falling"), ToneOption(value: "Rising"),
+    ]
 
     var body: some View {
         ScrollView {
@@ -107,14 +116,14 @@ struct ToneMarkFlashcardView: View {
             VStack(spacing: 6) {
                 FlashcardSummaryRow(
                     label: "Class",
-                    selectedValue: cardState.selectedClass,
-                    correctValue: card.consonantClass.rawValue,
+                    selectedValue: cardState.selectedClass?.label,
+                    correctValue: card.consonantClass.label,
                     showResult: cardState.step == .completed
                 )
                 FlashcardSummaryRow(
                     label: "Tone",
-                    selectedValue: cardState.selectedTone,
-                    correctValue: card.correctTone,
+                    selectedValue: cardState.selectedTone.map { String(localized: String.LocalizationValue($0)) },
+                    correctValue: String(localized: String.LocalizationValue(card.correctTone)),
                     showResult: cardState.step == .completed
                 )
             }
@@ -140,20 +149,18 @@ struct ToneMarkFlashcardView: View {
 
     // MARK: - Class Selection
 
-    private let classOptions = ["Low", "Mid/High"]
-
     private var classSelectionView: some View {
         VStack(spacing: 16) {
             Text("Select the consonant class")
                 .font(.headline)
 
             HStack(spacing: 12) {
-                ForEach(classOptions, id: \.self) { classOption in
+                ForEach(ToneMarkCard.ConsonantClassType.allCases, id: \.self) { classType in
                     Button {
-                        cardState.selectedClass = classOption
+                        cardState.selectedClass = classType
                         cardState.step = .selectTone
                     } label: {
-                        Text(classOption)
+                        Text(classType.label)
                             .font(.body.weight(.medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
@@ -179,12 +186,12 @@ struct ToneMarkFlashcardView: View {
 
             // 5 tone buttons in a row
             HStack(spacing: 8) {
-                ForEach(toneOptions, id: \.self) { tone in
+                ForEach(toneOptions) { tone in
                     Button {
-                        cardState.selectedTone = tone
+                        cardState.selectedTone = tone.value
                         completeCard()
                     } label: {
-                        Text(tone)
+                        Text(tone.label)
                             .font(.body.weight(.medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
@@ -253,13 +260,13 @@ struct ToneMarkCardState {
     }
 
     var step: Step = .selectClass
-    var selectedClass: String? = nil
+    var selectedClass: ToneMarkCard.ConsonantClassType? = nil
     var selectedTone: String? = nil
 }
 
 extension ToneMarkCardState {
     func hasError(for card: ToneMarkCard) -> Bool {
-        if let selected = selectedClass, selected != card.consonantClass.rawValue {
+        if let selected = selectedClass, selected != card.consonantClass {
             return true
         }
         if let selected = selectedTone, selected != card.correctTone {

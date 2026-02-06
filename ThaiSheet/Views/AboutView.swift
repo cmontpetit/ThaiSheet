@@ -1,0 +1,86 @@
+//
+//  AboutView.swift
+//  ThaiSheet
+//
+
+import SwiftUI
+
+struct AboutView: View {
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    }
+
+    var body: some View {
+        List {
+            Section {
+                VStack(spacing: 8) {
+                    Image(systemName: "character.book.closed.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(.accentColor)
+                    Text("ThaiSheet")
+                        .font(.title2.weight(.semibold))
+                    Text("Version \(appVersion) (\(buildNumber))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("An open-source iOS app for learning to read Thai")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+            }
+
+            Section("Open Source") {
+                Link(destination: URL(string: "https://github.com/montpetit/ThaiSheet")!) {
+                    HStack {
+                        Label("GitHub Repository", systemImage: "link")
+                        Spacer()
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
+            Section("Credits") {
+                HStack {
+                    Text("Author")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("Claude Montpetit")
+                }
+                HStack {
+                    Text("Sound Generation")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("Google Cloud TTS")
+                }
+                HStack {
+                    Text("Built with")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("SwiftUI")
+                }
+            }
+
+            Section("Privacy") {
+                Text("This app does not collect, store, or transmit any personal data. All learning progress is stored locally on your device.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .navigationTitle("About")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+#Preview {
+    NavigationStack {
+        AboutView()
+    }
+}

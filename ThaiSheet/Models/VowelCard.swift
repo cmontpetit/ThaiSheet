@@ -18,11 +18,25 @@ struct VowelCard: Identifiable {
     enum VowelDuration: String, CaseIterable {
         case short = "Short"
         case long = "Long"
+
+        var label: String {
+            switch self {
+            case .short: return String(localized: "Short")
+            case .long: return String(localized: "Long")
+            }
+        }
     }
 
     enum VowelFormType: String, CaseIterable {
         case closed = "Closed"
         case open = "Open"
+
+        var label: String {
+            switch self {
+            case .closed: return String(localized: "Closed")
+            case .open: return String(localized: "Open")
+            }
+        }
     }
 
     /// Returns the alternative duration if this card accepts both, nil otherwise

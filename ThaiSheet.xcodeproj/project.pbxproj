@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		517586462F143A0600443EAD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 517586252F1432FD00443EAD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5175862C2F1432FD00443EAD;
+			remoteInfo = ThaiSheet;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		5175862D2F1432FD00443EAD /* ThaiSheet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThaiSheet.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		517586402F143A0000443EAD /* ThaiSheetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThaiSheetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = ThaiSheet;
 			sourceTree = "<group>";
 		};
+		517586412F143A0100443EAD /* ThaiSheetTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ThaiSheetTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		5175862A2F1432FD00443EAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		517586422F143A0200443EAD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				5175862F2F1432FD00443EAD /* ThaiSheet */,
+				517586412F143A0100443EAD /* ThaiSheetTests */,
 				5175862E2F1432FD00443EAD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				5175862D2F1432FD00443EAD /* ThaiSheet.app */,
+				517586402F143A0000443EAD /* ThaiSheetTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = 5175862D2F1432FD00443EAD /* ThaiSheet.app */;
 			productType = "com.apple.product-type.application";
 		};
+		517586452F143A0500443EAD /* ThaiSheetTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5175864A2F143A0A00443EAD /* Build configuration list for PBXNativeTarget "ThaiSheetTests" */;
+			buildPhases = (
+				517586432F143A0300443EAD /* Sources */,
+				517586422F143A0200443EAD /* Frameworks */,
+				517586442F143A0400443EAD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				517586472F143A0700443EAD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				517586412F143A0100443EAD /* ThaiSheetTests */,
+			);
+			name = ThaiSheetTests;
+			packageProductDependencies = (
+			);
+			productName = ThaiSheetTests;
+			productReference = 517586402F143A0000443EAD /* ThaiSheetTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -83,6 +131,10 @@
 					5175862C2F1432FD00443EAD = {
 						CreatedOnToolsVersion = 26.2;
 					};
+					517586452F143A0500443EAD = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 5175862C2F1432FD00443EAD;
+					};
 				};
 			};
 			buildConfigurationList = 517586282F1432FD00443EAD /* Build configuration list for PBXProject "ThaiSheet" */;
@@ -90,6 +142,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				fr,
 				Base,
 			);
 			mainGroup = 517586242F1432FD00443EAD;
@@ -100,12 +153,20 @@
 			projectRoot = "";
 			targets = (
 				5175862C2F1432FD00443EAD /* ThaiSheet */,
+				517586452F143A0500443EAD /* ThaiSheetTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		5175862B2F1432FD00443EAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		517586442F143A0400443EAD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +183,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		517586432F143A0300443EAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		517586472F143A0700443EAD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5175862C2F1432FD00443EAD /* ThaiSheet */;
+			targetProxy = 517586462F143A0600443EAD /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		517586362F1432FD00443EAD /* Debug */ = {
@@ -310,6 +386,50 @@
 			};
 			name = Release;
 		};
+		517586482F143A0800443EAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X8XE26US93;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.montpetit.thaisheet.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ThaiSheet.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ThaiSheet";
+			};
+			name = Debug;
+		};
+		517586492F143A0900443EAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X8XE26US93;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.montpetit.thaisheet.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ThaiSheet.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ThaiSheet";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -327,6 +447,15 @@
 			buildConfigurations = (
 				517586392F1432FD00443EAD /* Debug */,
 				5175863A2F1432FD00443EAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5175864A2F143A0A00443EAD /* Build configuration list for PBXNativeTarget "ThaiSheetTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				517586482F143A0800443EAD /* Debug */,
+				517586492F143A0900443EAD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

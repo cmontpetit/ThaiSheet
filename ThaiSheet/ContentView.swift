@@ -21,17 +21,17 @@ enum FlashcardType: CaseIterable {
 
     var label: String {
         switch self {
-        case .consonant: "Consonant"
-        case .vowel: "Vowel"
-        case .toneMark: "Tone Mark"
-        case .toneRule: "Tone Rule"
-        case .cluster: "Cluster"
+        case .consonant: String(localized: "Consonant")
+        case .vowel: String(localized: "Vowel")
+        case .toneMark: String(localized: "Tone Mark")
+        case .toneRule: String(localized: "Tone Rule")
+        case .cluster: String(localized: "Cluster")
         }
     }
 }
 
 struct ContentView: View {
-    @State private var settings = FlashcardSettings()
+    var settings: FlashcardSettings
     @State private var learningModel = LearningModel()
     @State private var manager: FlashcardManager?
     @State private var selectedTab: AppTab = .flashcards
@@ -449,5 +449,5 @@ struct FlashcardsNavigationModifier: ViewModifier {
 }
 
 #Preview {
-    ContentView()
+    ContentView(settings: FlashcardSettings())
 }

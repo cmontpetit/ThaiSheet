@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct ThaiSheetApp: App {
+    @State private var settings = FlashcardSettings()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(settings: settings)
+                .environment(\.locale, settings.resolvedLocale)
         }
     }
 }

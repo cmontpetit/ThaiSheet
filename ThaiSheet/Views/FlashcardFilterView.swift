@@ -149,7 +149,7 @@ struct FlashcardFilterView: View {
     /// Parent category toggle - controls visibility and enables/disables all children via .onChange
     @ViewBuilder
     private func parentToggle(
-        title: String,
+        title: LocalizedStringKey,
         isOn: Binding<Bool>
     ) -> some View {
         Toggle(title, isOn: isOn)
@@ -158,7 +158,7 @@ struct FlashcardFilterView: View {
     /// Child filter toggle
     @ViewBuilder
     private func childToggle(
-        title: String,
+        title: LocalizedStringKey,
         isOn: Binding<Bool>
     ) -> some View {
         Toggle(title, isOn: isOn)

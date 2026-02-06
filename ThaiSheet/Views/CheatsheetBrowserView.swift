@@ -6,10 +6,19 @@
 import SwiftUI
 
 enum CheatsheetEntryType: String, CaseIterable {
-    case consonants = "Consonants"
-    case vowels = "Vowels"
-    case tones = "Tones"
-    case clusters = "Clusters"
+    case consonants
+    case vowels
+    case tones
+    case clusters
+
+    var label: String {
+        switch self {
+        case .consonants: return String(localized: "Consonants")
+        case .vowels: return String(localized: "Vowels")
+        case .tones: return String(localized: "Tones")
+        case .clusters: return String(localized: "Clusters")
+        }
+    }
 }
 
 struct CheatsheetBrowserView: View {
@@ -162,7 +171,7 @@ struct CheatsheetBrowserView: View {
             result = result.filter { cluster in
                 cluster.cluster.contains(searchText) ||
                 (cluster.sound?.lowercased().contains(query) ?? false) ||
-                cluster.type.rawValue.lowercased().contains(query)
+                cluster.type.displayName.lowercased().contains(query)
             }
         }
 
@@ -170,7 +179,7 @@ struct CheatsheetBrowserView: View {
     }
 
     private func tabLabel(for type: CheatsheetEntryType) -> String {
-        guard !searchText.isEmpty else { return type.rawValue }
+        guard !searchText.isEmpty else { return type.label }
 
         let count: Int
         switch type {
@@ -183,7 +192,7 @@ struct CheatsheetBrowserView: View {
         case .clusters:
             count = filteredClusters.count
         }
-        return "\(type.rawValue) (\(count))"
+        return "\(type.label) (\(count))"
     }
 
     var body: some View {
@@ -232,7 +241,7 @@ struct CheatsheetBrowserView: View {
                             )
                             ForEach(ClusterType.allCases, id: \.self) { type in
                                 FilterChipView(
-                                    label: type.displayName.replacingOccurrences(of: " Clusters", with: "").replacingOccurrences(of: " ห Combinations", with: ""),
+                                    label: type.chipLabel,
                                     isSelected: selectedClusterType == type,
                                     action: { selectedClusterType = type }
                                 )

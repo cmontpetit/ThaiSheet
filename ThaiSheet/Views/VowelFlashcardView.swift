@@ -112,16 +112,16 @@ struct VowelFlashcardView: View {
             VStack(spacing: 6) {
                 FlashcardSummaryRow(
                     label: "Duration",
-                    selectedValue: cardState.selectedDuration?.rawValue,
-                    correctValue: card.duration.rawValue,
+                    selectedValue: cardState.selectedDuration?.label,
+                    correctValue: card.duration.label,
                     showResult: cardState.step == .completed,
                     labelWidth: 70,
-                    alternativeCorrectValue: card.alternativeDuration?.rawValue
+                    alternativeCorrectValue: card.alternativeDuration?.label
                 )
                 FlashcardSummaryRow(
                     label: "Form",
-                    selectedValue: cardState.selectedForm?.rawValue,
-                    correctValue: card.form.rawValue,
+                    selectedValue: cardState.selectedForm?.label,
+                    correctValue: card.form.label,
                     showResult: cardState.step == .completed,
                     labelWidth: 70
                 )
@@ -178,7 +178,7 @@ struct VowelFlashcardView: View {
                         cardState.selectedDuration = duration
                         cardState.step = .selectForm
                     } label: {
-                        Text(duration.rawValue)
+                        Text(duration.label)
                             .font(.body.weight(.medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
@@ -210,7 +210,7 @@ struct VowelFlashcardView: View {
                         cardState.selectedForm = form
                         cardState.step = .selectSound
                     } label: {
-                        Text(form.rawValue)
+                        Text(form.label)
                             .font(.body.weight(.medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)

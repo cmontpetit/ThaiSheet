@@ -40,7 +40,10 @@ class AudioPlayer: AudioPlaying {
     private var player: AVAudioPlayer?
 
     private init() {
-        configureAudioSession()
+        // Skip audio session configuration during unit tests to avoid CoreAudio crashes
+        if NSClassFromString("XCTestCase") == nil {
+            configureAudioSession()
+        }
     }
 
     private func configureAudioSession() {

@@ -112,8 +112,8 @@ struct ConsonantFlashcardView: View {
             VStack(spacing: 6) {
                 FlashcardSummaryRow(
                     label: "Class",
-                    selectedValue: cardState.selectedClass?.rawValue.capitalized,
-                    correctValue: consonant.consonantClass.rawValue.capitalized,
+                    selectedValue: cardState.selectedClass?.displayName,
+                    correctValue: consonant.consonantClass.displayName,
                     showResult: cardState.step == .completed
                 )
                 FlashcardSummaryRow(
@@ -172,7 +172,7 @@ struct ConsonantFlashcardView: View {
                         cardState.selectedClass = classType
                         cardState.step = .selectInitial
                     } label: {
-                        Text(classType.rawValue.capitalized)
+                        Text(classType.displayName)
                             .font(.body.weight(.medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
