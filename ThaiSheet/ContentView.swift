@@ -32,11 +32,19 @@ enum FlashcardType: CaseIterable {
 
 struct ContentView: View {
     var settings: FlashcardSettings
-    @State private var learningModel = LearningModel()
+    var syncedStore: SyncedKeyValueStore?
+    @State private var learningModel: LearningModel
     @State private var manager: FlashcardManager?
     @State private var selectedTab: AppTab = .flashcards
     @State private var highlighted: [FlashcardType: String] = [:]
     @State private var flashcardStarting: [FlashcardType: String] = [:]
+
+    init(settings: FlashcardSettings, syncedStore: SyncedKeyValueStore? = nil) {
+        self.settings = settings
+        self.syncedStore = syncedStore
+        let store: KeyValueStore = syncedStore ?? UserDefaults.standard
+        _learningModel = State(initialValue: LearningModel(store: store))
+    }
 
     /// Creates a Binding<String?> into a dictionary for a given key
     private func binding(
@@ -54,6 +62,7 @@ struct ContentView: View {
             if let manager = manager {
                 FlashcardsView(
                     manager: manager,
+                    syncedStore: syncedStore,
                     highlighted: $highlighted,
                     flashcardStarting: $flashcardStarting,
                     selectedTab: $selectedTab
@@ -95,11 +104,16 @@ struct ContentView: View {
                 highlighted.removeAll()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .syncedStoreDidChange)) { _ in
+            settings.reload()
+            learningModel.reload()
+        }
     }
 }
 
 struct FlashcardsView: View {
     var manager: FlashcardManager
+    var syncedStore: SyncedKeyValueStore?
     @Binding var highlighted: [FlashcardType: String]
     @Binding var flashcardStarting: [FlashcardType: String]
     @Binding var selectedTab: AppTab
@@ -320,7 +334,8 @@ struct FlashcardsView: View {
             showingSettings: $showingSettings,
             showingStats: $showingStats,
             filterRefreshID: $filterRefreshID,
-            manager: manager
+            manager: manager,
+            syncedStore: syncedStore
         ))
         .modifier(FlashcardsNavigationModifier(
             manager: manager,
@@ -338,6 +353,7 @@ struct FlashcardsSheetModifier: ViewModifier {
     @Binding var showingStats: Bool
     @Binding var filterRefreshID: UUID
     var manager: FlashcardManager
+    var syncedStore: SyncedKeyValueStore?
 
     func body(content: Content) -> some View {
         content
@@ -350,7 +366,7 @@ struct FlashcardsSheetModifier: ViewModifier {
                 }
             }
             .sheet(isPresented: $showingSettings) {
-                FlashcardSettingsView(settings: manager.settings)
+                FlashcardSettingsView(settings: manager.settings, syncedStore: syncedStore)
             }
             .sheet(isPresented: $showingStats) {
                 SRSStatsView(

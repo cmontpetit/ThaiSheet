@@ -9,11 +9,18 @@ import SwiftUI
 
 @main
 struct ThaiSheetApp: App {
-    @State private var settings = FlashcardSettings()
+    private let syncedStore: SyncedKeyValueStore
+    @State private var settings: FlashcardSettings
+
+    init() {
+        let store = SyncedKeyValueStore()
+        self.syncedStore = store
+        _settings = State(initialValue: FlashcardSettings(defaults: store))
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView(settings: settings)
+            ContentView(settings: settings, syncedStore: syncedStore)
                 .environment(\.locale, settings.resolvedLocale)
         }
     }

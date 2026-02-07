@@ -22,12 +22,15 @@ extension EnvironmentValues {
 /// Tracks learning progress for all flashcards using Wanikani-style SRS
 @Observable
 class LearningModel {
-    private static let storageKey = "learningProgress"
+    static let storageKey = "learningProgress"
 
     /// Progress data keyed by card ID
     private var progressByCardId: [String: CardProgress] = [:]
 
-    init() {
+    private let store: KeyValueStore
+
+    init(store: KeyValueStore = UserDefaults.standard) {
+        self.store = store
         load()
     }
 
@@ -168,17 +171,22 @@ class LearningModel {
     private func save() {
         let encoder = JSONEncoder()
         if let data = try? encoder.encode(progressByCardId) {
-            UserDefaults.standard.set(data, forKey: LearningModel.storageKey)
+            store.set(data, forKey: LearningModel.storageKey)
         }
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: LearningModel.storageKey) else {
+        guard let data = store.data(forKey: LearningModel.storageKey) else {
             return
         }
         let decoder = JSONDecoder()
         if let loaded = try? decoder.decode([String: CardProgress].self, from: data) {
             progressByCardId = loaded
         }
+    }
+
+    /// Reload progress from the store (called when external sync updates arrive)
+    func reload() {
+        load()
     }
 }

@@ -11,12 +11,14 @@ final class LearningModelTests: XCTestCase {
 
     private var model: LearningModel!
     private var testCards: [FlashcardItem]!
+    private var testDefaults: UserDefaults!
+    private var suiteName: String!
 
     override func setUp() {
         super.setUp()
-        // Clear any persisted progress from previous test runs
-        UserDefaults.standard.removeObject(forKey: "learningProgress")
-        model = LearningModel()
+        suiteName = "LearningModelTests_\(UUID().uuidString)"
+        testDefaults = UserDefaults(suiteName: suiteName)!
+        model = LearningModel(store: testDefaults)
 
         // Load real data from bundle for FlashcardItem instances
         let consonants = Consonant.loadAll()
@@ -25,9 +27,11 @@ final class LearningModelTests: XCTestCase {
     }
 
     override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: "learningProgress")
         model = nil
         testCards = nil
+        testDefaults = nil
+        UserDefaults.standard.removePersistentDomain(forName: suiteName)
+        suiteName = nil
         super.tearDown()
     }
 

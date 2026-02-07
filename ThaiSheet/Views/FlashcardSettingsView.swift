@@ -7,6 +7,7 @@ import SwiftUI
 
 struct FlashcardSettingsView: View {
     @Bindable var settings: FlashcardSettings
+    var syncedStore: SyncedKeyValueStore?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -42,6 +43,25 @@ struct FlashcardSettingsView: View {
                     }
                 } header: {
                     Text("Language")
+                }
+
+                Section {
+                    Toggle("Sync across devices", isOn: $settings.iCloudSyncEnabled)
+                    if settings.iCloudSyncEnabled, let syncedStore {
+                        HStack {
+                            Text("Last synced")
+                            Spacer()
+                            if let date = syncedStore.lastSyncDate {
+                                Text(date, style: .relative)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("Never")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("iCloud Sync")
                 }
 
                 Section {

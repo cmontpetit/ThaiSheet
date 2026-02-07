@@ -8,7 +8,7 @@ import SwiftUI
 
 @Observable
 class FlashcardSettings {
-    private let defaults: UserDefaults
+    private let defaults: KeyValueStore
 
     // MARK: - Parent Category Toggles
 
@@ -117,9 +117,13 @@ class FlashcardSettings {
         return Locale(identifier: appLanguage)
     }
 
+    var iCloudSyncEnabled: Bool {
+        didSet { defaults.set(iCloudSyncEnabled, forKey: "fc_iCloudSyncEnabled") }
+    }
+
     // MARK: - Initialization
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: KeyValueStore = UserDefaults.standard) {
         self.defaults = defaults
 
         // Parent toggles - all enabled by default
@@ -153,6 +157,37 @@ class FlashcardSettings {
         // Other
         self.useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
         self.appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
+        self.iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
+    }
+
+    /// Reload all settings from the store (called when external sync updates arrive)
+    func reload() {
+        consonantsEnabled = defaults.object(forKey: "fc_consonantsEnabled") as? Bool ?? true
+        vowelsEnabled = defaults.object(forKey: "fc_vowelsEnabled") as? Bool ?? true
+        tonesEnabled = defaults.object(forKey: "fc_tonesEnabled") as? Bool ?? true
+        clusters = defaults.object(forKey: "fc_clusters") as? Bool ?? true
+
+        highConsonants = defaults.object(forKey: "fc_highConsonants") as? Bool ?? true
+        midConsonants = defaults.object(forKey: "fc_midConsonants") as? Bool ?? true
+        lowConsonants = defaults.object(forKey: "fc_lowConsonants") as? Bool ?? true
+        uncommonConsonants = defaults.object(forKey: "fc_uncommonConsonants") as? Bool ?? true
+
+        longVowels = defaults.object(forKey: "fc_longVowels") as? Bool ?? true
+        shortVowels = defaults.object(forKey: "fc_shortVowels") as? Bool ?? true
+        uncommonVowels = defaults.object(forKey: "fc_uncommonVowels") as? Bool ?? true
+
+        highToneRules = defaults.object(forKey: "fc_highToneRules") as? Bool ?? true
+        midToneRules = defaults.object(forKey: "fc_midToneRules") as? Bool ?? true
+        lowToneRules = defaults.object(forKey: "fc_lowToneRules") as? Bool ?? true
+        toneMarks = defaults.object(forKey: "fc_toneMarks") as? Bool ?? true
+
+        smoothClusters = defaults.object(forKey: "fc_smoothClusters") as? Bool ?? true
+        silentClusters = defaults.object(forKey: "fc_silentClusters") as? Bool ?? true
+        irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
+
+        useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
+        appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
+        iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
     }
 
     // MARK: - Filter Counts
