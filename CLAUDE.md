@@ -151,6 +151,12 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - Lock icon appears when advancement is capped
 - Filter icon filled when not all card types selected
 
+### Testing Gotchas
+- Creating `FlashcardSettings` or `LearningModel` instances in **new** test files causes CoreAudio malloc crashes in the test host
+- Existing test files (e.g., `LearningModelTests`) work because they were part of the original target setup
+- For new test files, test pure data logic only — avoid instantiating `@Observable` model classes
+- The project uses `PBXFileSystemSynchronizedRootGroup` — new source files are auto-discovered, no pbxproj edits needed
+
 ### Build Notes
 - **Deployment target:** iOS 17.0 (supports iPhone XR and newer)
 - **Simulator:** Use `iPhone 17` (available on this system)
