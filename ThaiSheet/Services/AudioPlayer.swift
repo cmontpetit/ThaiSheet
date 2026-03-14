@@ -35,11 +35,12 @@ extension EnvironmentValues {
 
 // MARK: - AudioPlayer Implementation
 
-class AudioPlayer: AudioPlaying {
+class AudioPlayer: NSObject, AudioPlaying {
     static let shared = AudioPlayer()
     private var player: AVAudioPlayer?
 
-    private init() {
+    private override init() {
+        super.init()
         // Skip audio session configuration during unit tests to avoid CoreAudio crashes
         if NSClassFromString("XCTestCase") == nil {
             configureAudioSession()
@@ -48,9 +49,9 @@ class AudioPlayer: AudioPlaying {
 
     private func configureAudioSession() {
         do {
-            // Use .playback to play sounds even when silent switch is on
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-            try AVAudioSession.sharedInstance().setActive(true)
+            // Mix with background audio (music) rather than interrupting it.
+            // The session is activated on-demand when playing and deactivated after.
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .duckOthers)
         } catch {
             print("Failed to configure audio session: \(error)")
         }
@@ -82,10 +83,21 @@ class AudioPlayer: AudioPlaying {
 
     private func playURL(_ url: URL) {
         do {
+            try AVAudioSession.sharedInstance().setActive(true)
             player = try AVAudioPlayer(contentsOf: url)
+            player?.delegate = self
             player?.play()
         } catch {
             print("Error playing sound: \(error)")
         }
+    }
+}
+
+// MARK: - AVAudioPlayerDelegate
+
+extension AudioPlayer: AVAudioPlayerDelegate {
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        // Deactivate session so background music can resume
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 }
