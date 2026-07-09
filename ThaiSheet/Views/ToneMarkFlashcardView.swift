@@ -108,7 +108,7 @@ struct ToneMarkFlashcardView: View {
         FlashcardStepSection(title: "Select the consonant class") {
             HStack(spacing: 12) {
                 ForEach(ToneMarkCard.ConsonantClassType.allCases, id: \.self) { classType in
-                    FlashcardSelectionButton(label: classType.label) {
+                    FlashcardSelectionButton(label: classType.label, background: classType.buttonBackground) {
                         cardState.selectedClass = classType
                         cardState.step = .selectTone
                     }
@@ -121,10 +121,13 @@ struct ToneMarkFlashcardView: View {
 
     private var toneSelectionView: some View {
         FlashcardStepSection(title: "Select the tone") {
-            // 5 tone buttons in a row
+            // 5 tone buttons in a row, abbreviated like the ᴸᴹᴴᶠᴿ transcription markers
             HStack(spacing: 8) {
                 ForEach(toneOptions) { tone in
-                    FlashcardSelectionButton(label: tone.label) {
+                    FlashcardSelectionButton(
+                        label: ThaiColors.toneAbbreviation(tone.value),
+                        background: ThaiColors.toneButtonBackground(tone.value)
+                    ) {
                         cardState.selectedTone = tone.value
                         completeCard()
                     }
@@ -192,6 +195,22 @@ extension ToneMarkCardState {
             return true
         }
         return false
+    }
+}
+
+private extension ToneMarkCard.ConsonantClassType {
+    /// Class colors matching the consonant reference; Mid/High blends both
+    var buttonBackground: AnyShapeStyle {
+        switch self {
+        case .low:
+            return AnyShapeStyle(ConsonantClass.low.color)
+        case .midHigh:
+            return AnyShapeStyle(LinearGradient(
+                colors: [ConsonantClass.mid.color, ConsonantClass.high.color],
+                startPoint: .leading,
+                endPoint: .trailing
+            ))
+        }
     }
 }
 

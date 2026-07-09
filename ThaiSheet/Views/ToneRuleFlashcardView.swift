@@ -180,7 +180,10 @@ struct ToneRuleFlashcardView: View {
         case .selectConsonantClass:
             selectionView(
                 title: "Select the consonant class",
-                options: consonantClassOptions
+                options: consonantClassOptions,
+                background: { option in
+                    AnyShapeStyle(ConsonantClass(rawValue: option.value.lowercased())?.color ?? Color(.systemGray5))
+                }
             ) { selection in
                 cardState.selectedConsonantClass = selection
                 cardState.step = .selectVowelDuration
@@ -202,9 +205,12 @@ struct ToneRuleFlashcardView: View {
                 cardState.step = .selectTone
             }
         case .selectTone:
+            // Abbreviated like the ᴸᴹᴴᶠᴿ transcription markers, tone-colored
             selectionView(
                 title: "Select the tone",
-                options: toneOptions
+                options: toneOptions,
+                label: { ThaiColors.toneAbbreviation($0.value) },
+                background: { ThaiColors.toneButtonBackground($0.value) }
             ) { selection in
                 cardState.selectedTone = selection
                 completeCard()
@@ -216,13 +222,19 @@ struct ToneRuleFlashcardView: View {
 
     // MARK: - Generic Selection View
 
-    private func selectionView(title: LocalizedStringKey, options: [LocalizedOption], onSelect: @escaping (String) -> Void) -> some View {
+    private func selectionView(
+        title: LocalizedStringKey,
+        options: [LocalizedOption],
+        label: ((LocalizedOption) -> String)? = nil,
+        background: ((LocalizedOption) -> AnyShapeStyle)? = nil,
+        onSelect: @escaping (String) -> Void
+    ) -> some View {
         FlashcardStepSection(title: title) {
-            // Flexible layout based on number of options
-            if options.count <= 3 {
+            // Abbreviated single-row options fit on one line; otherwise wrap at 3
+            if options.count <= 3 || label != nil {
                 HStack(spacing: 8) {
                     ForEach(options) { option in
-                        selectionButton(option, onSelect: onSelect)
+                        selectionButton(option, label: label, background: background, onSelect: onSelect)
                     }
                 }
             } else {
@@ -230,12 +242,12 @@ struct ToneRuleFlashcardView: View {
                 VStack(spacing: 8) {
                     HStack(spacing: 8) {
                         ForEach(Array(options.prefix(3))) { option in
-                            selectionButton(option, onSelect: onSelect)
+                            selectionButton(option, label: label, background: background, onSelect: onSelect)
                         }
                     }
                     HStack(spacing: 8) {
                         ForEach(Array(options.dropFirst(3))) { option in
-                            selectionButton(option, onSelect: onSelect)
+                            selectionButton(option, label: label, background: background, onSelect: onSelect)
                         }
                     }
                 }
@@ -243,8 +255,16 @@ struct ToneRuleFlashcardView: View {
         }
     }
 
-    private func selectionButton(_ option: LocalizedOption, onSelect: @escaping (String) -> Void) -> some View {
-        FlashcardSelectionButton(label: option.label) {
+    private func selectionButton(
+        _ option: LocalizedOption,
+        label: ((LocalizedOption) -> String)? = nil,
+        background: ((LocalizedOption) -> AnyShapeStyle)? = nil,
+        onSelect: @escaping (String) -> Void
+    ) -> some View {
+        FlashcardSelectionButton(
+            label: label?(option) ?? option.label,
+            background: background?(option) ?? AnyShapeStyle(Color(.systemGray5))
+        ) {
             onSelect(option.value)
         }
     }

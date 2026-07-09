@@ -128,19 +128,13 @@ struct ConsonantFlashcardView: View {
         FlashcardStepSection(title: "Select the class") {
             HStack(spacing: 12) {
                 ForEach(ConsonantClass.allCases, id: \.self) { classType in
-                    Button {
+                    FlashcardSelectionButton(
+                        label: classType.displayName,
+                        background: AnyShapeStyle(classType.color)
+                    ) {
                         cardState.selectedClass = classType
                         cardState.step = .selectInitial
-                    } label: {
-                        Text(classType.displayName)
-                            .font(.body.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(classType.color)
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }

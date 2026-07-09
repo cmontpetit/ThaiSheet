@@ -16,4 +16,15 @@ enum ThaiColors {
         default: return Color.clear
         }
     }
+
+    /// Selection-button background for a tone value (gray when the tone has no color)
+    static func toneButtonBackground(_ tone: String) -> AnyShapeStyle {
+        let color = forTone(tone)
+        return AnyShapeStyle(color == .clear ? Color(.systemGray5) : color)
+    }
+
+    /// One-letter tone code matching the transcription markers (ᴸ ᴹ ᴴ ᶠ ᴿ)
+    static func toneAbbreviation(_ tone: String) -> String {
+        String(tone.prefix(1))
+    }
 }

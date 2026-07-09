@@ -341,6 +341,7 @@ struct FlashcardResultCard<Content: View>: View {
 /// Standard button style for flashcard selection options
 struct FlashcardSelectionButton: View {
     let label: String
+    var background: AnyShapeStyle = AnyShapeStyle(Color(.systemGray5))
     let action: () -> Void
 
     var body: some View {
@@ -349,7 +350,7 @@ struct FlashcardSelectionButton: View {
                 .font(.body.weight(.medium))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color(.systemGray5))
+                .background(background)
                 .foregroundColor(.primary)
                 .cornerRadius(10)
         }
