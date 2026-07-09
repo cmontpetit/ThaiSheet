@@ -170,7 +170,7 @@ struct VowelRowView: View {
                 selectedFormType = formType
                 selectedText = text
             } label: {
-                Text(text)
+                Text(ThaiDisplay.vowelPlaceholder(text))
                     .font(.title2)
                     .foregroundColor(matches ? .primary : .secondary)
                     .frame(maxWidth: .infinity)
@@ -185,7 +185,7 @@ struct VowelRowView: View {
                 )
             ) {
                 ReferenceItemSheet(
-                    title: text,
+                    title: ThaiDisplay.vowelPlaceholder(text),
                     stage: learningModel.getProgress(forId: "vowel-\(text)").srsStage,
                     note: vowel.note(for: formType.duration, form: formType.form),
                     hasSound: audioPlayer.hasSound(.vowel, key: text),

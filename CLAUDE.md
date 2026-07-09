@@ -78,11 +78,12 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 - Example: short closed `กั-` (needs final consonant), short open `กะ` (vowel terminates)
 
 ### Thai character rendering on iOS
-- The dotted circle `◌` (U+25CC) causes double-circle rendering on iOS when combined with vowel marks that go above/below (e.g., `◌ิ` shows two circles)
-- This is because ◌ is a combining placeholder - marks attach to it visibly
-- Alternative `○` (U+25CB white circle) positions marks beside it rather than on it
-- Different fonts (Thonburi, SukhumvitSet) may render differently
-- For data, use `ก` as the consonant placeholder; display rendering TBD
+- The dotted circle `◌` (U+25CC) causes double-circle rendering on iOS when combined with vowel marks that go above/below (e.g., `◌ิ` shows two circles) — in every font tested (system, Thonburi, SukhumvitSet)
+- For data, use `ก` as the consonant placeholder; for display, `ThaiDisplay.vowelPlaceholder` (Models/ThaiDisplay.swift) converts it:
+  - ก before an above/below combining mark → hair space (U+200A): the shaper auto-inserts a single dotted circle under the orphaned mark
+  - ก elsewhere → explicit `◌` (U+25CC)
+  - Zero-width characters (ZWSP/ZWJ) do NOT work as the mark's stand-in base — the Thai shaper deletes them and glues the mark onto the preceding letter (e.g. onto preposed เ/แ/โ)
+- Swift gotcha: `replacingOccurrences(of: "ก")` will not match ก followed by a combining mark (grapheme-cluster search); replace at the `unicodeScalars` level instead
 
 ### Project Structure
 - `ThaiSheet/Models/` - Data models (Consonant, Vowel, ToneRule, ToneMark, Cluster, VowelCard, ToneMarkCard, ToneRuleCard), FlashcardItem, FlashcardSettings, LearningModel, CardProgress, ThaiColors
