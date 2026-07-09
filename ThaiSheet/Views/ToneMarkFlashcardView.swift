@@ -77,8 +77,8 @@ struct ToneMarkFlashcardView: View {
                 )
                 FlashcardSummaryRow(
                     label: "Tone",
-                    selectedValue: cardState.selectedTone.map { String(localized: String.LocalizationValue($0), bundle: .appLanguage) },
-                    correctValue: String(localized: String.LocalizationValue(card.correctTone), bundle: .appLanguage),
+                    selectedValue: cardState.selectedTone.map { ThaiColors.toneDisplay($0) },
+                    correctValue: ThaiColors.toneDisplay(card.correctTone),
                     showResult: cardState.step == .completed
                 )
             }
@@ -121,12 +121,15 @@ struct ToneMarkFlashcardView: View {
 
     private var toneSelectionView: some View {
         FlashcardStepSection(title: "Select the tone") {
-            // 5 tone buttons in a row, abbreviated like the ᴸᴹᴴᶠᴿ transcription markers
+            // 5 tone buttons in a row, shown as tone diacritics (à a á â ǎ)
+            // matching the transcription convention
             HStack(spacing: 8) {
                 ForEach(toneOptions) { tone in
                     FlashcardSelectionButton(
-                        label: ThaiColors.toneAbbreviation(tone.value),
-                        background: ThaiColors.toneButtonBackground(tone.value)
+                        label: ThaiColors.toneDiacritic(tone.value),
+                        background: ThaiColors.toneButtonBackground(tone.value),
+                        font: .title2,
+                        accessibilityLabel: tone.label
                     ) {
                         cardState.selectedTone = tone.value
                         completeCard()

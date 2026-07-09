@@ -72,7 +72,7 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 - Data identifiers from JSON ("Low", "Falling", "Dead/None", …) are displayed via `String(localized: String.LocalizationValue(value), bundle: .appLanguage)` (see `LocalizedOption`); comparison/quiz logic always uses the raw values, only display localizes
 - Dynamic keys are not auto-extracted: add them to the xcstrings by hand (extractionState `"manual"`). CLI builds don't sync the catalog
 - The Settings language picker is DEV-ONLY (`#if DEBUG`); release always follows the system language (`resolvedLocale` ignores the override, since a value could arrive via iCloud sync from a debug build). Two mechanisms switch together: `.environment(\.locale, settings.resolvedLocale)` for `Text`, and `Bundle.appLanguage` (kept in sync by `appLanguage.didSet` in FlashcardSettings.swift) for `String(localized:)`
-- Tone abbreviations (L/M/H/F/R) are intentionally NOT localized — they match the ᴸᴹᴴᶠᴿ transcription markers in the data
+- Tone annotations use Paiboon-style diacritics everywhere (grave = low, unmarked = mid, acute = high, circumflex = falling, caron = rising) — in the consonant transcriptions (khǎaw khài), on the tone answer buttons, and in the reference tone tables (`ThaiColors.toneDiacritic` / `StyledToneText`, shown on the ◌ placeholder). Language-neutral by design, nothing to translate. Code matching transcription prefixes must fold diacritics (`.folding(options: .diacriticInsensitive)`)
 - Reference tab labels use `shortLabel` abbreviations when search counts are appended ("Cons. (12)") — the segmented control gives every segment equal width, so full names would truncate
 - NOT yet localized: the pedagogical notes (~55 English prose strings in `Resources/cheatsheet/*.json`) and the `sounds.en` columns. Decision: translate them in the data model with per-language subkeys (like `sounds.en`), not via the UI catalog
 
@@ -189,7 +189,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 `xcrun simctl` cannot tap or scroll, so to see a specific screen:
 - Temporarily change `@State` defaults and rebuild — e.g. `selectedTab: AppTab = .reference` in ContentView.swift, `selectedType: CheatsheetEntryType = .vowels` in CheatsheetBrowserView.swift — then `simctl install`/`launch` and `simctl io <device> screenshot`. Revert afterward
 - Persisted settings can be injected as launch arguments (NSArgumentDomain overrides the plist): `xcrun simctl launch <device> net.montpetit.thaisheet -fc_appLanguage en -AppleLanguages "(fr)"`. Writing the container plist by hand does NOT work (cfprefsd ignores it), and `defaults write` only works after the app has created its prefs domain
-- **Stale-build trap:** xcodebuild sometimes reports BUILD SUCCEEDED without recompiling a just-edited file. If a screenshot contradicts the code, add an unmistakable marker string to a `body` literal and rebuild: marker visible = pipeline fresh
+- **Stale-build trap:** xcodebuild sometimes reports BUILD SUCCEEDED without recompiling a just-edited file — and fresh file mtimes can hide stale content (the debug dylib gets relinked from stale objects). Definitive check: `nm ThaiSheet.app/ThaiSheet.debug.dylib | grep <aNewSymbolName>` (the real code is in the dylib; the main executable is a stub). If the symbol is missing, `xcodebuild clean build`. Alternatively add an unmistakable marker string to a `body` literal and rebuild: marker visible = pipeline fresh
 - Zoom screenshots before judging Thai glyph details — small renderings mislead
 
 ### Reference Tab Status

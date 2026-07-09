@@ -6,16 +6,22 @@
 import SwiftUI
 
 struct StyledToneText: View {
-    /// Tone data identifier from JSON (e.g. "Falling"); localized for display
+    /// Tone data identifier from JSON (e.g. "Falling"); shown as the
+    /// Paiboon-style diacritic on ◌ over a tone-colored chip, matching the
+    /// transcriptions and flashcard answer buttons. Language-neutral.
     let tone: String
 
     var body: some View {
         if tone.isEmpty {
             Text("")
         } else {
-            let displayTone = String(localized: String.LocalizationValue(tone), bundle: .appLanguage)
-            Text(String(displayTone.prefix(1))).fontWeight(.bold) +
-            Text(String(displayTone.dropFirst())).foregroundColor(.secondary)
+            Text(ThaiColors.toneDiacritic(tone))
+                .font(.title2)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 3)
+                .background(ThaiColors.toneButtonBackground(tone))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .accessibilityLabel(ThaiColors.toneName(tone))
         }
     }
 }

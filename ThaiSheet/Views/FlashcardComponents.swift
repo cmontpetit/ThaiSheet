@@ -342,12 +342,15 @@ struct FlashcardResultCard<Content: View>: View {
 struct FlashcardSelectionButton: View {
     let label: String
     var background: AnyShapeStyle = AnyShapeStyle(Color(.systemGray5))
+    var font: Font = .body.weight(.medium)
+    /// Spoken name when the visual label is a symbol (e.g. tone diacritics)
+    var accessibilityLabel: String? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.body.weight(.medium))
+                .font(font)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
                 .background(background)
@@ -355,6 +358,7 @@ struct FlashcardSelectionButton: View {
                 .cornerRadius(10)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel ?? label)
     }
 }
 

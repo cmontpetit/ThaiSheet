@@ -48,6 +48,7 @@ struct CheatsheetBrowserView: View {
     @State private var searchText = ""
     @State private var selectedType: CheatsheetEntryType = .consonants
     @State private var showingSettings = false
+    @State private var showingToneLegend = false
 
     private var consonants: [Consonant] { thaiData.consonants }
     private var vowels: [Vowel] { thaiData.vowels }
@@ -418,10 +419,24 @@ struct CheatsheetBrowserView: View {
             .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
+                    HStack(spacing: 16) {
+                        if selectedType == .tones {
+                            Button {
+                                showingToneLegend = true
+                            } label: {
+                                Image(systemName: "info.circle")
+                            }
+                            .accessibilityLabel(String(localized: "Tone legend", bundle: .appLanguage))
+                            .popover(isPresented: $showingToneLegend) {
+                                ToneLegendView()
+                                    .presentationCompactAdaptation(.popover)
+                            }
+                        }
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
                     }
                 }
             }

@@ -157,7 +157,7 @@ struct ConsonantRowView: View {
         ConsonantRowView(consonant: Consonant(
             character: "ฮ",
             name: "ฮอ นกฮูก",
-            transcription: "háawᴹ nòhkᴴ hùukᶠ",
+            transcription: "haaw nók-hûuk",
             class: .low,
             usage: .uncommon,
             sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "h-", final: "n/a"))
@@ -165,7 +165,7 @@ struct ConsonantRowView: View {
         ConsonantRowView(consonant: Consonant(
             character: "ก",
             name: "กอ ไก่",
-            transcription: "gaawᴹ gaiᴸ",
+            transcription: "gaaw gài",
             class: .mid,
             usage: .common,
             sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "g-", final: "-k"))
@@ -173,7 +173,7 @@ struct ConsonantRowView: View {
         ConsonantRowView(consonant: Consonant(
             character: "ข",
             name: "ขอ ไข่",
-            transcription: "khaawᴿ khaiᴸ",
+            transcription: "khǎaw khài",
             class: .high,
             usage: .common,
             sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "kh-", final: "-k"))

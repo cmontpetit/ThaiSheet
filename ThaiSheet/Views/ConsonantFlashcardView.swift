@@ -249,12 +249,12 @@ struct ConsonantFlashcardView: View {
         transcriptionOptions = generateTranscriptionOptions()
     }
 
-    /// Extracts the prefix from a transcription (first word, normalized without tone markers)
+    /// Extracts the prefix from a transcription (first word, normalized without tone marks)
     private func transcriptionPrefix(_ transcription: String) -> String {
         // Get first word (before space)
         let firstWord = transcription.split(separator: " ").first.map(String.init) ?? transcription
-        // Remove superscript tone markers: ᴹ ᴴ ᶠ ᴿ ᴸ
-        return firstWord.replacingOccurrences(of: "[ᴹᴴᶠᴿᴸ]", with: "", options: .regularExpression)
+        // Fold away the tone diacritics (khǎaw → khaaw) so tonal variants match
+        return firstWord.folding(options: .diacriticInsensitive, locale: nil)
     }
 
     /// Generates transcription options, prioritizing confusers with the same prefix

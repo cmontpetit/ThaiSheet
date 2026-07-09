@@ -3,7 +3,7 @@
     {
       "character": "ค",
       "name": "คอ ควาย",
-      "transcription": "khaawᴹ khwaaiᴹ",
+      "transcription": "khaaw khwaai",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -13,7 +13,7 @@
     {
       "character": "ฅ",
       "name": "ฅอ คน",
-      "transcription": "khaawᴹ khonᴹ",
+      "transcription": "khaaw khon",
       "class": "low",
       "usage": "ancient",
       "sounds": {
@@ -23,7 +23,7 @@
     {
       "character": "ฆ",
       "name": "ฆอ ระฆัง",
-      "transcription": "khaawᴹ raᴴ khangᴹ",
+      "transcription": "khaaw rá khang",
       "class": "low",
       "usage": "uncommon",
       "sounds": {
@@ -33,7 +33,7 @@
     {
       "character": "ง",
       "name": "งอ งู",
-      "transcription": "ngaawᴹ nguuᴹ",
+      "transcription": "ngaaw nguu",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -43,7 +43,7 @@
     {
       "character": "ช",
       "name": "ชอ ช้าง",
-      "transcription": "chaawᴹ chaangᴴ",
+      "transcription": "chaaw cháang",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -53,7 +53,7 @@
     {
       "character": "ซ",
       "name": "ซอ โซ่",
-      "transcription": "saawᴹ sohᶠ",
+      "transcription": "saaw sôh",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -63,7 +63,7 @@
     {
       "character": "ฌ",
       "name": "ฌอ เฌอ",
-      "transcription": "chaawᴹ chuuhrᴹ",
+      "transcription": "chaaw chuuhr",
       "class": "low",
       "usage": "rare",
       "sounds": {
@@ -73,7 +73,7 @@
     {
       "character": "ญ",
       "name": "ญอ หญิง",
-      "transcription": "yaawᴹ yingᴿ",
+      "transcription": "yaaw yǐng",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -83,7 +83,7 @@
     {
       "character": "ฑ",
       "name": "ฑอ มณโฑ",
-      "transcription": "thaawᴹ mohnᴹ-thohᴹ",
+      "transcription": "thaaw mohn-thoh",
       "class": "low",
       "usage": "rare",
       "sounds": {
@@ -93,7 +93,7 @@
     {
       "character": "ฒ",
       "name": "ฒอ ผู้เฒ่า",
-      "transcription": "thaawᴹ phuuᶠ thaoᶠ",
+      "transcription": "thaaw phûu thâo",
       "class": "low",
       "usage": "rare",
       "sounds": {
@@ -103,7 +103,7 @@
     {
       "character": "ณ",
       "name": "ณอ เณร",
-      "transcription": "naawᴹ neehnᴹ",
+      "transcription": "naaw neehn",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -113,7 +113,7 @@
     {
       "character": "ท",
       "name": "ทอ ทหาร",
-      "transcription": "thaawᴹ tha-haanᴿ",
+      "transcription": "thaaw tha-hǎan",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -123,7 +123,7 @@
     {
       "character": "ธ",
       "name": "ธอ ธง",
-      "transcription": "thaawᴹ thohngᴹ",
+      "transcription": "thaaw thohng",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -133,7 +133,7 @@
     {
       "character": "น",
       "name": "นอ หนู",
-      "transcription": "naawᴹ nuuᴿ",
+      "transcription": "naaw nǔu",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -143,7 +143,7 @@
     {
       "character": "พ",
       "name": "พอ พาน",
-      "transcription": "phaawᴹ phaanᴹ",
+      "transcription": "phaaw phaan",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -153,7 +153,7 @@
     {
       "character": "ฟ",
       "name": "ฟอ ฟัน",
-      "transcription": "faawᴹ fanᴹ",
+      "transcription": "faaw fan",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -163,7 +163,7 @@
     {
       "character": "ภ",
       "name": "ภอ สำเภา",
-      "transcription": "phaawᴹ samᴿ phaoᴹ",
+      "transcription": "phaaw sǎm phao",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -173,7 +173,7 @@
     {
       "character": "ม",
       "name": "มอ ม้า",
-      "transcription": "maawᴹ maaᴴ",
+      "transcription": "maaw máa",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -183,7 +183,7 @@
     {
       "character": "ย",
       "name": "ยอ ยักษ์",
-      "transcription": "yaawᴹ yakᴴ",
+      "transcription": "yaaw yák",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -193,7 +193,7 @@
     {
       "character": "ร",
       "name": "รอ เรือ",
-      "transcription": "raawᴹ reuaᴹ",
+      "transcription": "raaw reua",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -203,7 +203,7 @@
     {
       "character": "ล",
       "name": "ลอ ลิง",
-      "transcription": "laawᴹ lingᴹ",
+      "transcription": "laaw ling",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -213,7 +213,7 @@
     {
       "character": "ว",
       "name": "วอ แหวน",
-      "transcription": "waawᴹ waenᴿ",
+      "transcription": "waaw wǎen",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -223,7 +223,7 @@
     {
       "character": "ฬ",
       "name": "ฬอ จุฬา",
-      "transcription": "laawᴹ juᴸ-laaᴹ",
+      "transcription": "laaw jù-laa",
       "class": "low",
       "usage": "uncommon",
       "sounds": {
@@ -233,7 +233,7 @@
     {
       "character": "ฮ",
       "name": "ฮอ นกฮูก",
-      "transcription": "haawᴹ nokᴴ-huukᶠ",
+      "transcription": "haaw nók-hûuk",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -243,7 +243,7 @@
     {
       "character": "ก",
       "name": "กอ ไก่",
-      "transcription": "gaawᴹ gaiᴸ",
+      "transcription": "gaaw gài",
       "class": "mid",
       "usage": "common",
       "sounds": {
@@ -253,7 +253,7 @@
     {
       "character": "จ",
       "name": "จอ จาน",
-      "transcription": "jaawᴹ jaanᴹ",
+      "transcription": "jaaw jaan",
       "class": "mid",
       "usage": "common",
       "sounds": {
@@ -263,7 +263,7 @@
     {
       "character": "ฎ",
       "name": "ฎอ ชฎา",
-      "transcription": "daawᴹ cha-daaᴹ",
+      "transcription": "daaw cha-daa",
       "class": "mid",
       "usage": "uncommon",
       "sounds": {
@@ -273,7 +273,7 @@
     {
       "character": "ฏ",
       "name": "ฏอ ปฏัก",
-      "transcription": "dtaawᴹ bpaᴸ dtakᴸ",
+      "transcription": "dtaaw bpà dtàk",
       "class": "mid",
       "usage": "uncommon",
       "sounds": {
@@ -283,7 +283,7 @@
     {
       "character": "ด",
       "name": "ดอ เด็ก",
-      "transcription": "daawᴹ dekᴸ",
+      "transcription": "daaw dèk",
       "class": "mid",
       "usage": "common",
       "sounds": {
@@ -293,7 +293,7 @@
     {
       "character": "ต",
       "name": "ตอ เต่า",
-      "transcription": "dtaawᴹ dtaoᴸ",
+      "transcription": "dtaaw dtào",
       "class": "mid",
       "usage": "common",
       "sounds": {
@@ -303,7 +303,7 @@
     {
       "character": "บ",
       "name": "บอ ใบไม้",
-      "transcription": "baawᴹ baiᴹ maiᴴ",
+      "transcription": "baaw bai mái",
       "class": "mid",
       "usage": "common",
       "sounds": {
@@ -313,7 +313,7 @@
     {
       "character": "ป",
       "name": "ปอ ปลา",
-      "transcription": "bpaawᴹ bplaaᴹ",
+      "transcription": "bpaaw bplaa",
       "class": "mid",
       "usage": "common",
       "sounds": {
@@ -323,7 +323,7 @@
     {
       "character": "อ",
       "name": "ออ อ่าง",
-      "transcription": "aawᴹ aangᴸ",
+      "transcription": "aaw àang",
       "class": "mid",
       "usage": "common",
       "sounds": {
@@ -333,7 +333,7 @@
     {
       "character": "ข",
       "name": "ขอ ไข่",
-      "transcription": "khaawᴿ khaiᴸ",
+      "transcription": "khǎaw khài",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -343,7 +343,7 @@
     {
       "character": "ฃ",
       "name": "ฃอ ขวด",
-      "transcription": "khaawᴿ khuaatᴸ",
+      "transcription": "khǎaw khùaat",
       "class": "high",
       "usage": "ancient",
       "sounds": {
@@ -353,7 +353,7 @@
     {
       "character": "ฉ",
       "name": "ฉอ ฉิ่ง",
-      "transcription": "chaawᴿ chingᴸ",
+      "transcription": "chǎaw chìng",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -363,7 +363,7 @@
     {
       "character": "ฐ",
       "name": "ฐอ ฐาน",
-      "transcription": "thaawᴿ thaanᴿ",
+      "transcription": "thǎaw thǎan",
       "class": "high",
       "usage": "uncommon",
       "sounds": {
@@ -373,7 +373,7 @@
     {
       "character": "ถ",
       "name": "ถอ ถุง",
-      "transcription": "thaawᴿ thungᴿ",
+      "transcription": "thǎaw thǔng",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -383,7 +383,7 @@
     {
       "character": "ผ",
       "name": "ผอ ผึ้ง",
-      "transcription": "phaawᴿ pheungᶠ",
+      "transcription": "phǎaw phêung",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -393,7 +393,7 @@
     {
       "character": "ฝ",
       "name": "ฝอ ฝา",
-      "transcription": "faawᴿ faaᴿ",
+      "transcription": "fǎaw fǎa",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -403,7 +403,7 @@
     {
       "character": "ศ",
       "name": "ศอ ศาลา",
-      "transcription": "saawᴿ saaᴿ laaᴹ",
+      "transcription": "sǎaw sǎa laa",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -413,7 +413,7 @@
     {
       "character": "ษ",
       "name": "ษอ ฤๅษี",
-      "transcription": "saawᴿ reuuᴹ seeᴿ",
+      "transcription": "sǎaw reuu sěe",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -423,7 +423,7 @@
     {
       "character": "ส",
       "name": "สอ เสือ",
-      "transcription": "saawᴿ seuaᴿ",
+      "transcription": "sǎaw sěua",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -433,7 +433,7 @@
     {
       "character": "ห",
       "name": "หอ หีบ",
-      "transcription": "haawᴿ hiipᴸ",
+      "transcription": "hǎaw hìip",
       "class": "high",
       "usage": "common",
       "sounds": {
