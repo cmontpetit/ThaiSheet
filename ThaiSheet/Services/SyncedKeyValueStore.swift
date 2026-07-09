@@ -133,17 +133,7 @@ class SyncedKeyValueStore: KeyValueStore {
     private func pushAllToCloud() {
         guard let cloud = cloud else { return }
 
-        // Push settings keys
-        let settingsKeys = [
-            "fc_consonantsEnabled", "fc_vowelsEnabled", "fc_tonesEnabled", "fc_clusters",
-            "fc_highConsonants", "fc_midConsonants", "fc_lowConsonants", "fc_uncommonConsonants",
-            "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
-            "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
-            "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
-            "fc_useIntelligentSelection", "fc_appLanguage", "fc_iCloudSyncEnabled"
-        ]
-
-        for key in settingsKeys {
+        for key in FlashcardSettings.syncedKeys {
             if let value = local.object(forKey: key) {
                 cloud.set(value, forKey: key)
             }

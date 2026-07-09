@@ -15,7 +15,6 @@ import SwiftUI
 struct NavigableTapArea<Content: View>: View {
     let onPrevious: () -> Void
     let onNext: () -> Void
-    var onReveal: (() -> Void)? = nil  // Not used currently (ScrollView conflicts with vertical swipes)
     @ViewBuilder let content: () -> Content
 
     private let swipeThreshold: CGFloat = 50
@@ -40,6 +39,147 @@ struct NavigableTapArea<Content: View>: View {
                         }
                     }
             )
+    }
+}
+
+// MARK: - Card Face
+
+/// The top card of every flashcard: result-tinted background, swipeable
+/// display area, and the Reference / Play button row.
+struct FlashcardFace<Content: View>: View {
+    let showResult: Bool
+    let hasError: Bool
+    let soundType: SoundType
+    let soundKey: String
+    var displayHeight: CGFloat = 160
+    var onViewInReference: (() -> Void)?
+    let onPrevious: () -> Void
+    let onNext: () -> Void
+    @ViewBuilder let content: () -> Content
+
+    @Environment(\.audioPlayer) private var audioPlayer
+
+    var body: some View {
+        FlashcardResultCard(showResult: showResult, hasError: hasError) {
+            VStack(spacing: 12) {
+                NavigableTapArea(onPrevious: onPrevious, onNext: onNext) {
+                    content()
+                }
+                .frame(height: displayHeight)
+
+                HStack(spacing: 20) {
+                    Button {
+                        onViewInReference?()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "book")
+                            Text("Reference")
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.accentColor)
+                    }
+
+                    // Speaker button (only when completed)
+                    if showResult {
+                        let hasSound = audioPlayer.hasSound(soundType, key: soundKey)
+                        Button {
+                            audioPlayer.play(soundType, key: soundKey)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                                Text("Play")
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(hasSound ? .accentColor : .secondary)
+                        }
+                        .disabled(!hasSound)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+        }
+        .cornerRadius(16)
+    }
+}
+
+// MARK: - Step Section
+
+/// Container for one question step: title (with optional Back button) above
+/// the selection controls, on the standard gray rounded background.
+struct FlashcardStepSection<Content: View>: View {
+    let title: LocalizedStringKey
+    var onBack: (() -> Void)? = nil
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(spacing: 16) {
+            if let onBack {
+                FlashcardStepHeader(title: title, onBack: onBack)
+            } else {
+                Text(title)
+                    .font(.headline)
+            }
+            content()
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
+/// Step title with a Back button, kept centered by a hidden mirror of the button
+struct FlashcardStepHeader: View {
+    let title: LocalizedStringKey
+    let onBack: () -> Void
+
+    var body: some View {
+        HStack {
+            Button(action: onBack) {
+                backLabel
+                    .foregroundColor(.accentColor)
+            }
+
+            Spacer()
+
+            Text(title)
+                .font(.headline)
+
+            Spacer()
+
+            // Invisible spacer for centering
+            backLabel
+                .opacity(0)
+        }
+    }
+
+    private var backLabel: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "chevron.left")
+            Text("Back")
+        }
+        .font(.subheadline)
+    }
+}
+
+// MARK: - Localized Option
+
+/// A selection option whose `value` is the data identifier (matching JSON)
+/// and whose `label` is its localized display text.
+struct LocalizedOption: Identifiable {
+    let value: String
+    var label: String { String(localized: String.LocalizationValue(value)) }
+    var id: String { value }
+}
+
+// MARK: - Quiz Options
+
+enum QuizOptions {
+    /// Returns up to `wrongCount` random wrong answers plus the correct one, shuffled.
+    static func pick(correct: String, from all: some Sequence<String>, wrongCount: Int) -> [String] {
+        var options = Array(Set(all).subtracting([correct]).shuffled().prefix(wrongCount))
+        options.append(correct)
+        return options.shuffled()
     }
 }
 
@@ -240,29 +380,15 @@ struct FlashcardGridButton: View {
 
 // MARK: - Stage Indicator
 
-/// Shows progress indicator for current card
-/// - Wanikani mode: 8 dots with stage name
-/// - Sequential mode: 8 dots with position and stage name
+/// Shows the SRS progress indicator for the current card: 8 dots with stage name
 struct StageIndicatorView: View {
-    let mode: StageIndicatorMode
-
-    enum StageIndicatorMode {
-        case stage(stage: SRSStage, isCapped: Bool)
-    }
+    let stage: SRSStage
+    let isCapped: Bool
 
     /// The stage at which partial testing caps advancement
     private static let cappedStage: SRSStage = .familiar2
 
     var body: some View {
-        switch mode {
-        case .stage(let stage, let isCapped):
-            stageIndicator(stage: stage, isCapped: isCapped)
-        }
-    }
-
-    // MARK: - Stage Indicator
-
-    private func stageIndicator(stage: SRSStage, isCapped: Bool) -> some View {
         VStack(spacing: 2) {
             // 8 dots (Learning 1 through Mastered)
             stageDots(stage: stage, isCapped: isCapped)
@@ -327,7 +453,7 @@ struct StageIndicatorView: View {
         // Stage indicators - not capped
         Text("Full Testing").font(.caption).foregroundColor(.secondary)
         ForEach([SRSStage.new, .learning1, .apprentice1, .familiar1, .confident, .mastered], id: \.rawValue) { stage in
-            StageIndicatorView(mode: .stage(stage: stage, isCapped: false))
+            StageIndicatorView(stage: stage, isCapped: false)
         }
 
         Divider()
@@ -335,7 +461,7 @@ struct StageIndicatorView: View {
         // Stage indicators - capped
         Text("Partial Testing (Capped)").font(.caption).foregroundColor(.secondary)
         ForEach([SRSStage.learning1, .familiar1, .familiar2], id: \.rawValue) { stage in
-            StageIndicatorView(mode: .stage(stage: stage, isCapped: true))
+            StageIndicatorView(stage: stage, isCapped: true)
         }
     }
     .padding()

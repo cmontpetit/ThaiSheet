@@ -39,6 +39,15 @@ enum ThaiDisplay {
         }
     }
 
+    /// Prepends the ก placeholder to a search string that starts with a
+    /// combining mark, so typing "ิ" matches stored forms like "กิ-".
+    static func normalizeSearch(_ text: String) -> String {
+        guard let first = text.unicodeScalars.first, combiningMarks.contains(first) else {
+            return text
+        }
+        return "ก" + text
+    }
+
     /// Replaces each ก according to `replacement(nextScalar)`.
     private static func substitute(
         _ form: String,

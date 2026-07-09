@@ -46,58 +46,19 @@ struct VowelFlashcardView: View {
     // MARK: - Vowel Card View
 
     private var vowelCardView: some View {
-        FlashcardResultCard(
+        FlashcardFace(
             showResult: cardState.step == .completed,
-            hasError: cardState.hasError(for: card)
+            hasError: cardState.hasError(for: card),
+            soundType: .vowel,
+            soundKey: card.display,
+            onViewInReference: { onViewInReference?(card.display) },
+            onPrevious: handlePrevious,
+            onNext: handleNext
         ) {
-            VStack(spacing: 12) {
-                // Main character with swipe gestures for navigation and reveal
-                NavigableTapArea(
-                    onPrevious: handlePrevious,
-                    onNext: handleNext,
-                    onReveal: cardState.step != .completed ? { completeCardEarly() } : nil
-                ) {
-                    Text(card.display.replacingOccurrences(of: "-", with: ""))
-                        .font(.system(size: 72))
-                        .minimumScaleFactor(0.5)
-                }
-                .frame(height: 160)
-
-                // Action buttons
-                HStack(spacing: 20) {
-                    // View in Reference button
-                    Button {
-                        onViewInReference?(card.display)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "book")
-                            Text("Reference")
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.accentColor)
-                    }
-
-                    // Speaker button (only when completed)
-                    if cardState.step == .completed {
-                        let hasSound = audioPlayer.hasSound(.vowel, key: card.display)
-                        Button {
-                            playVowelSound()
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                                Text("Play")
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(hasSound ? .accentColor : .secondary)
-                        }
-                        .disabled(!hasSound)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            Text(card.display.replacingOccurrences(of: "-", with: ""))
+                .font(.system(size: 72))
+                .minimumScaleFactor(0.5)
         }
-        .cornerRadius(16)
     }
 
     // MARK: - Summary Section
@@ -168,74 +129,43 @@ struct VowelFlashcardView: View {
     // MARK: - Duration Selection
 
     private var durationSelectionView: some View {
-        VStack(spacing: 16) {
-            Text("Select the duration")
-                .font(.headline)
-
+        FlashcardStepSection(title: "Select the duration") {
             HStack(spacing: 12) {
                 ForEach(VowelCard.VowelDuration.allCases, id: \.self) { duration in
-                    Button {
+                    FlashcardSelectionButton(label: duration.label) {
                         cardState.selectedDuration = duration
                         cardState.step = .selectForm
-                    } label: {
-                        Text(duration.label)
-                            .font(.body.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color(.systemGray5))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     // MARK: - Form Selection
 
     private var formSelectionView: some View {
-        VStack(spacing: 16) {
-            selectionHeader(title: "Select the form") {
-                cardState.selectedDuration = nil
-                cardState.step = .selectDuration
-            }
-
+        FlashcardStepSection(title: "Select the form", onBack: {
+            cardState.selectedDuration = nil
+            cardState.step = .selectDuration
+        }) {
             HStack(spacing: 12) {
                 ForEach(VowelCard.VowelFormType.allCases, id: \.self) { form in
-                    Button {
+                    FlashcardSelectionButton(label: form.label) {
                         cardState.selectedForm = form
                         cardState.step = .selectSound
-                    } label: {
-                        Text(form.label)
-                            .font(.body.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color(.systemGray5))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     // MARK: - Sound Selection
 
     private var soundSelectionView: some View {
-        VStack(spacing: 16) {
-            selectionHeader(title: "Select the sound") {
-                cardState.selectedForm = nil
-                cardState.step = .selectForm
-            }
-
+        FlashcardStepSection(title: "Select the sound", onBack: {
+            cardState.selectedForm = nil
+            cardState.step = .selectForm
+        }) {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(soundOptions, id: \.self) { sound in
@@ -246,57 +176,19 @@ struct VowelFlashcardView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-
-    // MARK: - Selection Helpers
-
-    private func selectionHeader(title: String, onBack: @escaping () -> Void) -> some View {
-        HStack {
-            Button {
-                onBack()
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                    Text("Back")
-                }
-                .font(.subheadline)
-                .foregroundColor(.accentColor)
-            }
-
-            Spacer()
-
-            Text(title)
-                .font(.headline)
-
-            Spacer()
-
-            HStack(spacing: 4) {
-                Image(systemName: "chevron.left")
-                Text("Back")
-            }
-            .font(.subheadline)
-            .opacity(0)
-        }
     }
 
     // MARK: - Card Completion
 
-    private func completeCard() {
+    private func completeCard(revealed: Bool = false) {
         cardState.step = .completed
-        // Record result: correct if no errors were made
-        let wasCorrect = !cardState.hasError(for: card)
-        onComplete?(wasCorrect)
+        // Revealed early counts as incorrect; otherwise correct if no errors were made
+        onComplete?(revealed ? false : !cardState.hasError(for: card))
         playVowelSound()
     }
 
     private func completeCardEarly() {
-        cardState.step = .completed
-        // Revealed early = not answered correctly
-        onComplete?(false)
-        playVowelSound()
+        completeCard(revealed: true)
     }
 
     private func playVowelSound() {
@@ -328,11 +220,11 @@ struct VowelFlashcardView: View {
     // MARK: - Option Generation
 
     private func generateOptions() {
-        // Get unique sounds from all vowels
-        let allSounds = Set(allVowels.map { $0.sound })
-        var options = Array(allSounds.filter { $0 != card.vowel.sound }.shuffled().prefix(7))
-        options.append(card.vowel.sound)
-        soundOptions = options.shuffled()
+        soundOptions = QuizOptions.pick(
+            correct: card.vowel.sound,
+            from: allVowels.map { $0.sound },
+            wrongCount: 7
+        )
     }
 }
 

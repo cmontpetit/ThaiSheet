@@ -1,5 +1,5 @@
 //
-//  ClusterRowView.swift
+//  ClusterViews.swift
 //  ThaiSheet
 //
 
@@ -120,67 +120,20 @@ struct ClusterMatrixCell: View {
     }
 }
 
-// MARK: - Silent ห Clusters (Compact Row)
+// MARK: - Cluster Grid Section (silent and irregular clusters)
 
-struct SilentClustersView: View {
+struct ClusterGridSection: View {
+    let type: ClusterType
     let clusters: [Cluster]
     var highlightedClusterId: String?
     var onPractice: ((String) -> Void)?
 
-    private var silentClusters: [Cluster] {
-        clusters.filter { $0.type == .silent }
-    }
-
     var body: some View {
         VStack(spacing: 0) {
-            ClusterSectionHeaderView(type: .silent)
+            ClusterSectionHeaderView(type: type)
 
-            // Compact grid of silent clusters
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 8) {
-                ForEach(silentClusters) { cluster in
-                    ClusterCompactCell(
-                        cluster: cluster,
-                        isHighlighted: cluster.id == highlightedClusterId,
-                        onPractice: onPractice
-                    )
-                    .id(cluster.id)
-                }
-            }
-            .padding(12)
-            .background(Color(.systemBackground))
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-// MARK: - Irregular Clusters
-
-struct IrregularClustersView: View {
-    let clusters: [Cluster]
-    var highlightedClusterId: String?
-    var onPractice: ((String) -> Void)?
-
-    private var irregularClusters: [Cluster] {
-        clusters.filter { $0.type == .irregular }
-    }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ClusterSectionHeaderView(type: .irregular)
-
-            // Compact grid of irregular clusters (same layout as silent)
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 8) {
-                ForEach(irregularClusters) { cluster in
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 8) {
+                ForEach(clusters.filter { $0.type == type }) { cluster in
                     ClusterCompactCell(
                         cluster: cluster,
                         isHighlighted: cluster.id == highlightedClusterId,
@@ -225,54 +178,6 @@ struct ClusterCompactCell: View {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(isHighlighted ? Color.accentColor : Color.clear, lineWidth: 2)
             )
-        }
-        .buttonStyle(.plain)
-        .sheet(isPresented: $showingSheet) {
-            ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
-        }
-    }
-}
-
-// MARK: - Detail Row (for irregular with notes)
-
-struct ClusterDetailRow: View {
-    let cluster: Cluster
-    var isHighlighted: Bool = false
-    var onPractice: ((String) -> Void)?
-    @State private var showingSheet = false
-
-    var body: some View {
-        Button {
-            showingSheet = true
-        } label: {
-            HStack(spacing: 12) {
-                Text(cluster.displayWithVowel)
-                    .font(.title2)
-                    .frame(width: 50, alignment: .leading)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    if let sound = cluster.sound {
-                        Text("→ \(sound)")
-                            .font(.subheadline)
-                    }
-                    if let usage = cluster.usageLabel {
-                        Text(usage)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Spacer()
-
-                if cluster.note != nil {
-                    Image(systemName: "info.circle")
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
-            .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color.clear)
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showingSheet) {
@@ -354,42 +259,14 @@ struct ClusterSectionHeaderView: View {
     }
 }
 
-// MARK: - Legacy support (keep for compatibility)
-
-struct ClusterRowView: View {
-    let cluster: Cluster
-
-    var body: some View {
-        ClusterDetailRow(cluster: cluster)
-    }
-}
-
-struct ClusterSectionView: View {
-    let type: ClusterType
-    let clusters: [Cluster]
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ClusterSectionHeaderView(type: type)
-            Divider()
-            ForEach(clusters) { cluster in
-                ClusterRowView(cluster: cluster)
-                Divider()
-            }
-        }
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-}
-
 // MARK: - Preview
 
 #Preview {
     ScrollView {
         VStack(spacing: 16) {
             ClusterMatrixView(clusters: Cluster.loadAll())
-            SilentClustersView(clusters: Cluster.loadAll())
-            IrregularClustersView(clusters: Cluster.loadAll())
+            ClusterGridSection(type: .silent, clusters: Cluster.loadAll())
+            ClusterGridSection(type: .irregular, clusters: Cluster.loadAll())
         }
         .padding(.horizontal)
     }

@@ -71,6 +71,20 @@ final class ThaiDisplayTests: XCTestCase {
         XCTAssertEqual(ThaiDisplay.placeholder("ก"), circle)
     }
 
+    // MARK: - Search normalization
+
+    func test_normalizeSearch_prependsPlaceholderToCombiningMark() {
+        XCTAssertEqual(ThaiDisplay.normalizeSearch("\u{0E34}"), "ก\u{0E34}")
+        XCTAssertEqual(ThaiDisplay.normalizeSearch("\u{0E48}"), "ก\u{0E48}")
+    }
+
+    func test_normalizeSearch_leavesRegularTextUnchanged() {
+        XCTAssertEqual(ThaiDisplay.normalizeSearch("กา"), "กา")
+        XCTAssertEqual(ThaiDisplay.normalizeSearch("เ"), "เ")
+        XCTAssertEqual(ThaiDisplay.normalizeSearch("kh"), "kh")
+        XCTAssertEqual(ThaiDisplay.normalizeSearch(""), "")
+    }
+
     // MARK: - Forms without ก are unchanged
 
     func test_rareVowelsWithoutPlaceholder_areUnchanged() {

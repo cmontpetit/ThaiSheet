@@ -33,9 +33,10 @@ enum FlashcardType: CaseIterable {
 struct ContentView: View {
     var settings: FlashcardSettings
     var syncedStore: SyncedKeyValueStore?
+    @Environment(\.thaiData) private var thaiData
     @State private var learningModel: LearningModel
     @State private var manager: FlashcardManager?
-    @State private var selectedTab: AppTab = .flashcards
+    @State private var selectedTab: AppTab = .reference
     @State private var highlighted: [FlashcardType: String] = [:]
     @State private var flashcardStarting: [FlashcardType: String] = [:]
 
@@ -59,6 +60,17 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
+            CheatsheetBrowserView(
+                highlighted: $highlighted,
+                flashcardStarting: $flashcardStarting,
+                selectedTab: $selectedTab
+            )
+            .environment(\.learningModel, learningModel)
+            .tabItem {
+                Label("Reference", systemImage: "book")
+            }
+            .tag(AppTab.reference)
+
             if let manager = manager {
                 FlashcardsView(
                     manager: manager,
@@ -82,21 +94,10 @@ struct ContentView: View {
                 }
                 .tag(AppTab.flashcards)
             }
-
-            CheatsheetBrowserView(
-                highlighted: $highlighted,
-                flashcardStarting: $flashcardStarting,
-                selectedTab: $selectedTab
-            )
-            .environment(\.learningModel, learningModel)
-            .tabItem {
-                Label("Reference", systemImage: "book")
-            }
-            .tag(AppTab.reference)
         }
         .onAppear {
             if manager == nil {
-                manager = FlashcardManager(settings: settings, learningModel: learningModel)
+                manager = FlashcardManager(settings: settings, learningModel: learningModel, data: thaiData)
             }
         }
         .onChange(of: selectedTab) { oldTab, _ in
@@ -131,7 +132,7 @@ struct FlashcardsView: View {
     private func stageIndicator(for card: FlashcardItem) -> some View {
         let stage = manager.learningModel.srsStage(for: card)
         let isCapped = manager.settings.isPartialTesting(for: card.type)
-        StageIndicatorView(mode: .stage(stage: stage, isCapped: isCapped))
+        StageIndicatorView(stage: stage, isCapped: isCapped)
     }
 
     /// Helper to set highlight and switch to Reference tab
@@ -147,7 +148,7 @@ struct FlashcardsView: View {
         case .consonant(let consonant):
             ConsonantFlashcardView(
                 consonant: consonant,
-                allConsonants: manager.allConsonantsForOptions,
+                allConsonants: manager.data.consonants,
                 onViewInReference: { viewInReference($0, type: .consonant) },
                 onComplete: { correct in
                     let fullTesting = !manager.settings.isPartialTesting(for: .consonant)
@@ -159,7 +160,7 @@ struct FlashcardsView: View {
         case .vowel(let vowelCard):
             VowelFlashcardView(
                 card: vowelCard,
-                allVowels: manager.allVowelsForOptions,
+                allVowels: manager.data.vowels,
                 onViewInReference: { viewInReference($0, type: .vowel) },
                 onComplete: { correct in
                     let fullTesting = !manager.settings.isPartialTesting(for: .vowel)
@@ -193,7 +194,7 @@ struct FlashcardsView: View {
         case .cluster(let cluster):
             ClusterFlashcardView(
                 cluster: cluster,
-                allClusters: manager.allClustersForOptions,
+                allClusters: manager.data.clusters,
                 onViewInReference: { viewInReference($0, type: .cluster) },
                 onComplete: { correct in
                     let fullTesting = !manager.settings.isPartialTesting(for: .cluster)

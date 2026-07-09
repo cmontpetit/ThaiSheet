@@ -509,76 +509,8 @@ final class FlashcardSettingsTests: XCTestCase {
 
     // MARK: - Filter Counts
 
-    func test_enabledConsonantFilterCount_allEnabled_returns4() {
-        XCTAssertEqual(settings.enabledConsonantFilterCount, 4)
-    }
-
-    func test_enabledConsonantFilterCount_oneDisabled_returns3() {
-        settings.highConsonants = false
-        XCTAssertEqual(settings.enabledConsonantFilterCount, 3)
-    }
-
     func test_enabledVowelFilterCount_allEnabled_returns3() {
         XCTAssertEqual(settings.enabledVowelFilterCount, 3)
-    }
-
-    func test_enabledToneFilterCount_allEnabled_returns4() {
-        XCTAssertEqual(settings.enabledToneFilterCount, 4)
-    }
-
-    func test_enabledClusterTypeCount_allEnabled_returns3() {
-        XCTAssertEqual(settings.enabledClusterTypeCount, 3)
-    }
-
-    func test_enabledCategoryCount_allEnabled_returns4() {
-        XCTAssertEqual(settings.enabledCategoryCount, 4)
-    }
-
-    func test_enabledCategoryCount_oneDisabled_returns3() {
-        settings.consonantsEnabled = false
-        XCTAssertEqual(settings.enabledCategoryCount, 3)
-    }
-
-    // MARK: - Category State Helpers
-
-    func test_isOnlyConsonantsEnabled_trueWhenOnlyConsonants() {
-        settings.consonantsEnabled = true
-        settings.vowelsEnabled = false
-        settings.tonesEnabled = false
-        settings.clusters = false
-        XCTAssertTrue(settings.isOnlyConsonantsEnabled)
-    }
-
-    func test_isOnlyConsonantsEnabled_falseWhenMultipleEnabled() {
-        settings.consonantsEnabled = true
-        settings.vowelsEnabled = true
-        settings.tonesEnabled = false
-        settings.clusters = false
-        XCTAssertFalse(settings.isOnlyConsonantsEnabled)
-    }
-
-    func test_isOnlyVowelsEnabled_trueWhenOnlyVowels() {
-        settings.consonantsEnabled = false
-        settings.vowelsEnabled = true
-        settings.tonesEnabled = false
-        settings.clusters = false
-        XCTAssertTrue(settings.isOnlyVowelsEnabled)
-    }
-
-    func test_isOnlyTonesEnabled_trueWhenOnlyTones() {
-        settings.consonantsEnabled = false
-        settings.vowelsEnabled = false
-        settings.tonesEnabled = true
-        settings.clusters = false
-        XCTAssertTrue(settings.isOnlyTonesEnabled)
-    }
-
-    func test_isOnlyClustersEnabled_trueWhenOnlyClusters() {
-        settings.consonantsEnabled = false
-        settings.vowelsEnabled = false
-        settings.tonesEnabled = false
-        settings.clusters = true
-        XCTAssertTrue(settings.isOnlyClustersEnabled)
     }
 
     // MARK: - Supported Languages

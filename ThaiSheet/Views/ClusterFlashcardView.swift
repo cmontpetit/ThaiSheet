@@ -45,56 +45,20 @@ struct ClusterFlashcardView: View {
     // MARK: - Cluster Card
 
     private var clusterCard: some View {
-        FlashcardResultCard(
+        FlashcardFace(
             showResult: cardState.step == .completed,
-            hasError: cardState.hasError(for: cluster)
+            hasError: cardState.hasError(for: cluster),
+            soundType: .cluster,
+            soundKey: cluster.displayWithVowel,
+            displayHeight: 140,
+            onViewInReference: { onViewInReference?(cluster.id) },
+            onPrevious: handlePrevious,
+            onNext: handleNext
         ) {
-            VStack(spacing: 12) {
-                // Main cluster display with swipe gestures
-                NavigableTapArea(
-                    onPrevious: handlePrevious,
-                    onNext: handleNext,
-                    onReveal: cardState.step != .completed ? { completeCardEarly() } : nil
-                ) {
-                    Text(cluster.displayWithVowel)
-                        .font(.system(size: 72))
-                        .minimumScaleFactor(0.5)
-                }
-                .frame(height: 140)
-
-                // Action buttons
-                HStack(spacing: 20) {
-                    Button {
-                        onViewInReference?(cluster.id)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "book")
-                            Text("Reference")
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.accentColor)
-                    }
-
-                    if cardState.step == .completed {
-                        let hasSound = audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel)
-                        Button {
-                            audioPlayer.play(.cluster, key: cluster.displayWithVowel)
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                                Text("Play")
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(hasSound ? .accentColor : .secondary)
-                        }
-                        .disabled(!hasSound)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            Text(cluster.displayWithVowel)
+                .font(.system(size: 72))
+                .minimumScaleFactor(0.5)
         }
-        .cornerRadius(16)
     }
 
     // MARK: - Summary Section
@@ -151,10 +115,7 @@ struct ClusterFlashcardView: View {
     }
 
     private var typeSelectionView: some View {
-        VStack(spacing: 16) {
-            Text("Select the cluster type")
-                .font(.headline)
-
+        FlashcardStepSection(title: "Select the cluster type") {
             HStack(spacing: 12) {
                 ForEach(typeOptions, id: \.self) { type in
                     FlashcardSelectionButton(label: type.displayName) {
@@ -164,16 +125,10 @@ struct ClusterFlashcardView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     private var soundSelectionView: some View {
-        VStack(spacing: 16) {
-            Text("Select the sound")
-                .font(.headline)
-
+        FlashcardStepSection(title: "Select the sound") {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
                 ForEach(soundOptions, id: \.self) { sound in
                     FlashcardSelectionButton(label: sound) {
@@ -183,28 +138,21 @@ struct ClusterFlashcardView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     // MARK: - Card Completion
 
-    private func completeCard() {
+    private func completeCard(revealed: Bool = false) {
         cardState.step = .completed
-        let wasCorrect = !cardState.hasError(for: cluster)
-        onComplete?(wasCorrect)
+        // Revealed early counts as incorrect; otherwise correct if no errors were made
+        onComplete?(revealed ? false : !cardState.hasError(for: cluster))
         if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
             audioPlayer.play(.cluster, key: cluster.displayWithVowel)
         }
     }
 
     private func completeCardEarly() {
-        cardState.step = .completed
-        onComplete?(false)
-        if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
-            audioPlayer.play(.cluster, key: cluster.displayWithVowel)
-        }
+        completeCard(revealed: true)
     }
 
     // MARK: - Next Card Button
@@ -230,11 +178,11 @@ struct ClusterFlashcardView: View {
     // MARK: - Option Generation
 
     private func generateSoundOptions() {
-        let correctSound = cluster.sound ?? "(silent)"
-        let allSounds = Set(allClusters.compactMap { $0.sound })
-        var options = Array(allSounds.filter { $0 != cluster.sound }.shuffled().prefix(5))
-        options.append(correctSound)
-        soundOptions = options.shuffled()
+        soundOptions = QuizOptions.pick(
+            correct: cluster.sound ?? "(silent)",
+            from: allClusters.compactMap { $0.sound },
+            wrongCount: 5
+        )
     }
 }
 

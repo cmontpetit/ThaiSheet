@@ -27,13 +27,16 @@ struct CheatsheetBrowserView: View {
     @Binding var flashcardStarting: [FlashcardType: String]
     @Binding var selectedTab: AppTab
 
+    @Environment(\.thaiData) private var thaiData
+
     @State private var searchText = ""
     @State private var selectedType: CheatsheetEntryType = .consonants
-    @State private var consonants: [Consonant] = []
-    @State private var vowels: [Vowel] = []
-    @State private var toneRules: [ToneRule] = []
-    @State private var toneMarks: [ToneMark] = []
-    @State private var clusters: [Cluster] = []
+
+    private var consonants: [Consonant] { thaiData.consonants }
+    private var vowels: [Vowel] { thaiData.vowels }
+    private var toneRules: [ToneRule] { thaiData.toneRules }
+    private var toneMarks: [ToneMark] { thaiData.toneMarks }
+    private var clusters: [Cluster] { thaiData.clusters }
 
     // Filters
     @State private var selectedConsonantClass: ConsonantClass? = nil
@@ -81,29 +84,10 @@ struct CheatsheetBrowserView: View {
         return result
     }
 
-    // Thai combining characters that need a base consonant (vowels above/below, tone marks)
-    private static let thaiCombiningMarks: CharacterSet = {
-        var set = CharacterSet()
-        // Vowels: ั ิ ี ึ ื ุ ู
-        set.insert(charactersIn: "\u{0E31}\u{0E34}\u{0E35}\u{0E36}\u{0E37}\u{0E38}\u{0E39}")
-        // Tone marks and other combining: ็ ่ ้ ๊ ๋ ์ ํ ๎
-        set.insert(charactersIn: "\u{0E47}\u{0E48}\u{0E49}\u{0E4A}\u{0E4B}\u{0E4C}\u{0E4D}\u{0E4E}")
-        return set
-    }()
-
-    private func normalizeThaiSearch(_ text: String) -> String {
-        guard let firstScalar = text.unicodeScalars.first,
-              Self.thaiCombiningMarks.contains(firstScalar) else {
-            return text
-        }
-        // Prepend ก if text starts with a combining character
-        return "ก" + text
-    }
-
     // Normalized search query for vowels (prepends ก to combining characters)
     private var normalizedVowelSearch: String? {
         guard !searchText.isEmpty else { return nil }
-        return normalizeThaiSearch(searchText)
+        return ThaiDisplay.normalizeSearch(searchText)
     }
 
     var filteredVowels: [Vowel] {
@@ -114,18 +98,8 @@ struct CheatsheetBrowserView: View {
 
         let query = searchText.lowercased()
         return vowels.filter { vowel in
-            // Match any Thai vowel form
-            let forms = [vowel.short.closed, vowel.short.open, vowel.long.closed, vowel.long.open]
-            for form in forms.compactMap({ $0 }) {
-                if form.contains(normalizedSearch) {
-                    return true
-                }
-            }
-            // Match sound
-            if vowel.sound.lowercased().contains(query) {
-                return true
-            }
-            return false
+            vowel.allForms.contains { $0.contains(normalizedSearch) } ||
+            vowel.sound.lowercased().contains(query)
         }
     }
 
@@ -148,7 +122,7 @@ struct CheatsheetBrowserView: View {
         if searchText == "ก" { return [] }
 
         let query = searchText.lowercased()
-        let normalizedSearch = normalizeThaiSearch(searchText)
+        let normalizedSearch = ThaiDisplay.normalizeSearch(searchText)
         return toneMarks.filter { mark in
             mark.withLowConsonant.contains(normalizedSearch) ||
             mark.withMidHighConsonant.contains(normalizedSearch) ||
@@ -207,49 +181,21 @@ struct CheatsheetBrowserView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 8)
 
-                // Filter chips for consonants
+                // Filter chips
                 if selectedType == .consonants {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            FilterChipView(
-                                label: "All",
-                                isSelected: selectedConsonantClass == nil,
-                                action: { selectedConsonantClass = nil }
-                            )
-                            ForEach(ConsonantClass.allCases, id: \.self) { cls in
-                                FilterChipView(
-                                    label: cls.label,
-                                    isSelected: selectedConsonantClass == cls,
-                                    color: cls.color,
-                                    action: { selectedConsonantClass = cls }
-                                )
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    .padding(.bottom, 8)
+                    FilterChipRow(
+                        items: ConsonantClass.allCases,
+                        label: { $0.label },
+                        color: { $0.color },
+                        selection: $selectedConsonantClass
+                    )
                 }
-
-                // Filter chips for clusters
                 if selectedType == .clusters {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            FilterChipView(
-                                label: "All",
-                                isSelected: selectedClusterType == nil,
-                                action: { selectedClusterType = nil }
-                            )
-                            ForEach(ClusterType.allCases, id: \.self) { type in
-                                FilterChipView(
-                                    label: type.chipLabel,
-                                    isSelected: selectedClusterType == type,
-                                    action: { selectedClusterType = type }
-                                )
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    .padding(.bottom, 8)
+                    FilterChipRow(
+                        items: ClusterType.allCases,
+                        label: { $0.chipLabel },
+                        selection: $selectedClusterType
+                    )
                 }
 
                 switch selectedType {
@@ -270,21 +216,7 @@ struct CheatsheetBrowserView: View {
                                 .id(consonant.character)
                             }
                             .listStyle(.plain)
-                            .task {
-                                if let character = highlightedConsonant {
-                                    try? await Task.sleep(for: .milliseconds(100))
-                                    withAnimation {
-                                        proxy.scrollTo(character, anchor: .center)
-                                    }
-                                }
-                            }
-                            .onChange(of: highlightedConsonant) { _, newValue in
-                                if let character = newValue {
-                                    withAnimation {
-                                        proxy.scrollTo(character, anchor: .center)
-                                    }
-                                }
-                            }
+                            .scrollsToHighlight(highlightedConsonant, proxy: proxy) { $0 }
                         }
                     }
                 case .vowels:
@@ -305,28 +237,8 @@ struct CheatsheetBrowserView: View {
                                 .id(vowel.id)
                             }
                             .listStyle(.plain)
-                            .task {
-                                if let vowelForm = highlightedVowel,
-                                   let vowel = vowels.first(where: { v in
-                                       [v.short.closed, v.short.open, v.long.closed, v.long.open]
-                                           .compactMap { $0 }.contains(vowelForm)
-                                   }) {
-                                    try? await Task.sleep(for: .milliseconds(100))
-                                    withAnimation {
-                                        proxy.scrollTo(vowel.id, anchor: .center)
-                                    }
-                                }
-                            }
-                            .onChange(of: highlightedVowel) { _, newValue in
-                                if let vowelForm = newValue,
-                                   let vowel = vowels.first(where: { v in
-                                       [v.short.closed, v.short.open, v.long.closed, v.long.open]
-                                           .compactMap { $0 }.contains(vowelForm)
-                                   }) {
-                                    withAnimation {
-                                        proxy.scrollTo(vowel.id, anchor: .center)
-                                    }
-                                }
+                            .scrollsToHighlight(highlightedVowel, proxy: proxy) { form in
+                                vowels.first { $0.allForms.contains(form) }?.id
                             }
                         }
                     }
@@ -374,36 +286,12 @@ struct CheatsheetBrowserView: View {
                             }
                             .padding(.horizontal)
                         }
-                        .task {
-                            if let display = highlightedToneMark,
-                               let mark = toneMarks.first(where: { $0.withLowConsonant == display || $0.withMidHighConsonant == display }) {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                withAnimation {
-                                    proxy.scrollTo("tonemark-\(mark.id)", anchor: .center)
-                                }
-                            }
-                            if let ruleId = highlightedToneRule {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                withAnimation {
-                                    proxy.scrollTo("tonerule-\(ruleId)", anchor: .center)
-                                }
-                            }
+                        .scrollsToHighlight(highlightedToneMark, proxy: proxy) { display in
+                            toneMarks
+                                .first { $0.withLowConsonant == display || $0.withMidHighConsonant == display }
+                                .map { "tonemark-\($0.id)" }
                         }
-                        .onChange(of: highlightedToneMark) { _, newValue in
-                            if let display = newValue,
-                               let mark = toneMarks.first(where: { $0.withLowConsonant == display || $0.withMidHighConsonant == display }) {
-                                withAnimation {
-                                    proxy.scrollTo("tonemark-\(mark.id)", anchor: .center)
-                                }
-                            }
-                        }
-                        .onChange(of: highlightedToneRule) { _, newValue in
-                            if let ruleId = newValue {
-                                withAnimation {
-                                    proxy.scrollTo("tonerule-\(ruleId)", anchor: .center)
-                                }
-                            }
-                        }
+                        .scrollsToHighlight(highlightedToneRule, proxy: proxy) { "tonerule-\($0)" }
                     }
                     .background(Color(.secondarySystemBackground))
                 case .clusters:
@@ -419,92 +307,71 @@ struct CheatsheetBrowserView: View {
                                         startPractice(clusterId, type: .cluster)
                                     }
                                 }
-                                // Compact grid for silent clusters
-                                if filteredClusters.contains(where: { $0.type == .silent }) {
-                                    SilentClustersView(
-                                        clusters: filteredClusters,
-                                        highlightedClusterId: highlightedCluster
-                                    ) { clusterId in
-                                        startPractice(clusterId, type: .cluster)
-                                    }
-                                }
-                                // List for irregular clusters
-                                if filteredClusters.contains(where: { $0.type == .irregular }) {
-                                    IrregularClustersView(
-                                        clusters: filteredClusters,
-                                        highlightedClusterId: highlightedCluster
-                                    ) { clusterId in
-                                        startPractice(clusterId, type: .cluster)
+                                // Compact grids for silent and irregular clusters
+                                ForEach([ClusterType.silent, .irregular], id: \.self) { type in
+                                    if filteredClusters.contains(where: { $0.type == type }) {
+                                        ClusterGridSection(
+                                            type: type,
+                                            clusters: filteredClusters,
+                                            highlightedClusterId: highlightedCluster
+                                        ) { clusterId in
+                                            startPractice(clusterId, type: .cluster)
+                                        }
                                     }
                                 }
                             }
                             .padding(.horizontal)
                         }
-                        .task {
-                            if let clusterId = highlightedCluster {
-                                try? await Task.sleep(for: .milliseconds(100))
-                                withAnimation {
-                                    proxy.scrollTo(clusterId, anchor: .center)
-                                }
-                            }
-                        }
-                        .onChange(of: highlightedCluster) { _, newValue in
-                            if let clusterId = newValue {
-                                withAnimation {
-                                    proxy.scrollTo(clusterId, anchor: .center)
-                                }
-                            }
-                        }
+                        .scrollsToHighlight(highlightedCluster, proxy: proxy) { $0 }
                     }
                     .background(Color(.secondarySystemBackground))
                 }
             }
             .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
         }
-        .onAppear {
-            if consonants.isEmpty {
-                consonants = Consonant.loadAll()
-            }
-            if vowels.isEmpty {
-                vowels = Vowel.loadAll()
-            }
-            if toneRules.isEmpty {
-                toneRules = ToneRule.loadAll()
-            }
-            if toneMarks.isEmpty {
-                toneMarks = ToneMark.loadAll()
-            }
-            if clusters.isEmpty {
-                clusters = Cluster.loadAll()
-            }
-        }
-        .onChange(of: highlightedConsonant) { _, newValue in
-            if newValue != nil {
+        .onChange(of: highlighted) { _, newValue in
+            // Switch to the section of whichever item was just highlighted
+            if newValue[.consonant] != nil {
                 selectedType = .consonants
                 selectedConsonantClass = nil
-            }
-        }
-        .onChange(of: highlightedVowel) { _, newValue in
-            if newValue != nil {
+            } else if newValue[.vowel] != nil {
                 selectedType = .vowels
-            }
-        }
-        .onChange(of: highlightedToneMark) { _, newValue in
-            if newValue != nil {
+            } else if newValue[.toneMark] != nil || newValue[.toneRule] != nil {
                 selectedType = .tones
-            }
-        }
-        .onChange(of: highlightedToneRule) { _, newValue in
-            if newValue != nil {
-                selectedType = .tones
-            }
-        }
-        .onChange(of: highlightedCluster) { _, newValue in
-            if newValue != nil {
+            } else if newValue[.cluster] != nil {
                 selectedType = .clusters
                 selectedClusterType = nil
             }
         }
+    }
+}
+
+// MARK: - Scroll to Highlight
+
+private extension View {
+    /// Scrolls to the resolved id when `highlighted` is set: once on appear
+    /// (after a short delay so the list has laid out) and on every change.
+    func scrollsToHighlight<ID: Hashable>(
+        _ highlighted: String?,
+        proxy: ScrollViewProxy,
+        id resolve: @escaping (String) -> ID?
+    ) -> some View {
+        self
+            .task {
+                if let value = highlighted, let id = resolve(value) {
+                    try? await Task.sleep(for: .milliseconds(100))
+                    withAnimation {
+                        proxy.scrollTo(id, anchor: .center)
+                    }
+                }
+            }
+            .onChange(of: highlighted) { _, newValue in
+                if let value = newValue, let id = resolve(value) {
+                    withAnimation {
+                        proxy.scrollTo(id, anchor: .center)
+                    }
+                }
+            }
     }
 }
 

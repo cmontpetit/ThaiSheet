@@ -88,10 +88,6 @@ struct VowelRowView: View {
     @State private var selectedFormType: VowelFormType? = nil
     @State private var selectedText: String? = nil
 
-    private var allForms: [String?] {
-        [vowel.short.closed, vowel.short.open, vowel.long.closed, vowel.long.open]
-    }
-
     private func formMatchesSearch(_ form: String?) -> Bool {
         guard let form = form, let query = searchQuery, !query.isEmpty else { return true }
         return form.contains(query)
@@ -99,7 +95,7 @@ struct VowelRowView: View {
 
     private var isHighlighted: Bool {
         guard let highlighted = highlightedForm else { return false }
-        return allForms.compactMap { $0 }.contains(highlighted)
+        return vowel.allForms.contains(highlighted)
     }
 
     // Find a form that has a sound file (prefer closed forms)

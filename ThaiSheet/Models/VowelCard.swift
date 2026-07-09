@@ -49,24 +49,21 @@ struct VowelCard: Identifiable {
         var cards: [VowelCard] = []
         var seenDisplays: Set<String> = []
         for vowel in vowels {
-            if let form = vowel.short.closed, !seenDisplays.contains(form) {
-                let isDuplicate = vowel.isDuplicate(form: form)
-                cards.append(VowelCard(vowel: vowel, duration: .short, form: .closed, display: form, acceptsBothDurations: isDuplicate))
-                seenDisplays.insert(form)
-            }
-            if let form = vowel.short.open, !seenDisplays.contains(form) {
-                let isDuplicate = vowel.isDuplicate(form: form)
-                cards.append(VowelCard(vowel: vowel, duration: .short, form: .open, display: form, acceptsBothDurations: isDuplicate))
-                seenDisplays.insert(form)
-            }
-            if let form = vowel.long.closed, !seenDisplays.contains(form) {
-                let isDuplicate = vowel.isDuplicate(form: form)
-                cards.append(VowelCard(vowel: vowel, duration: .long, form: .closed, display: form, acceptsBothDurations: isDuplicate))
-                seenDisplays.insert(form)
-            }
-            if let form = vowel.long.open, !seenDisplays.contains(form) {
-                let isDuplicate = vowel.isDuplicate(form: form)
-                cards.append(VowelCard(vowel: vowel, duration: .long, form: .open, display: form, acceptsBothDurations: isDuplicate))
+            let variants: [(form: String?, duration: VowelDuration, formType: VowelFormType)] = [
+                (vowel.short.closed, .short, .closed),
+                (vowel.short.open, .short, .open),
+                (vowel.long.closed, .long, .closed),
+                (vowel.long.open, .long, .open),
+            ]
+            for variant in variants {
+                guard let form = variant.form, !seenDisplays.contains(form) else { continue }
+                cards.append(VowelCard(
+                    vowel: vowel,
+                    duration: variant.duration,
+                    form: variant.formType,
+                    display: form,
+                    acceptsBothDurations: vowel.isDuplicate(form: form)
+                ))
                 seenDisplays.insert(form)
             }
         }

@@ -15,16 +15,10 @@ struct ToneMarkFlashcardView: View {
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneMarkCardState()
 
-    // All possible tones for selection (value = data identifier, label = localized display)
-    private struct ToneOption: Identifiable {
-        let value: String
-        var label: String { String(localized: String.LocalizationValue(value)) }
-        var id: String { value }
-    }
-
-    private let toneOptions: [ToneOption] = [
-        ToneOption(value: "Low"), ToneOption(value: "Mid"), ToneOption(value: "High"),
-        ToneOption(value: "Falling"), ToneOption(value: "Rising"),
+    // All possible tones for selection
+    private let toneOptions: [LocalizedOption] = [
+        LocalizedOption(value: "Low"), LocalizedOption(value: "Mid"), LocalizedOption(value: "High"),
+        LocalizedOption(value: "Falling"), LocalizedOption(value: "Rising"),
     ]
 
     var body: some View {
@@ -50,58 +44,19 @@ struct ToneMarkFlashcardView: View {
     // MARK: - Tone Mark Card View
 
     private var toneMarkCardView: some View {
-        FlashcardResultCard(
+        FlashcardFace(
             showResult: cardState.step == .completed,
-            hasError: cardState.hasError(for: card)
+            hasError: cardState.hasError(for: card),
+            soundType: .toneMark,
+            soundKey: card.display,
+            onViewInReference: { onViewInReference?(card.display) },
+            onPrevious: handlePrevious,
+            onNext: handleNext
         ) {
-            VStack(spacing: 12) {
-                // Main character with swipe gestures for navigation and reveal
-                NavigableTapArea(
-                    onPrevious: handlePrevious,
-                    onNext: handleNext,
-                    onReveal: cardState.step != .completed ? { completeCardEarly() } : nil
-                ) {
-                    Text(card.display)
-                        .font(.system(size: 100))
-                        .minimumScaleFactor(0.5)
-                }
-                .frame(height: 160)
-
-                // Action buttons
-                HStack(spacing: 20) {
-                    // View in Reference button
-                    Button {
-                        onViewInReference?(card.display)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "book")
-                            Text("Reference")
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.accentColor)
-                    }
-
-                    // Speaker button (only when completed)
-                    if cardState.step == .completed {
-                        let hasSound = audioPlayer.hasSound(.toneMark, key: card.display)
-                        Button {
-                            audioPlayer.play(.toneMark, key: card.display)
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                                Text("Play")
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(hasSound ? .accentColor : .secondary)
-                        }
-                        .disabled(!hasSound)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            Text(card.display)
+                .font(.system(size: 100))
+                .minimumScaleFactor(0.5)
         }
-        .cornerRadius(16)
     }
 
     // MARK: - Summary Section
@@ -150,83 +105,47 @@ struct ToneMarkFlashcardView: View {
     // MARK: - Class Selection
 
     private var classSelectionView: some View {
-        VStack(spacing: 16) {
-            Text("Select the consonant class")
-                .font(.headline)
-
+        FlashcardStepSection(title: "Select the consonant class") {
             HStack(spacing: 12) {
                 ForEach(ToneMarkCard.ConsonantClassType.allCases, id: \.self) { classType in
-                    Button {
+                    FlashcardSelectionButton(label: classType.label) {
                         cardState.selectedClass = classType
                         cardState.step = .selectTone
-                    } label: {
-                        Text(classType.label)
-                            .font(.body.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color(.systemGray5))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     // MARK: - Tone Selection
 
     private var toneSelectionView: some View {
-        VStack(spacing: 16) {
-            Text("Select the tone")
-                .font(.headline)
-
+        FlashcardStepSection(title: "Select the tone") {
             // 5 tone buttons in a row
             HStack(spacing: 8) {
                 ForEach(toneOptions) { tone in
-                    Button {
+                    FlashcardSelectionButton(label: tone.label) {
                         cardState.selectedTone = tone.value
                         completeCard()
-                    } label: {
-                        Text(tone.label)
-                            .font(.body.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color(.systemGray5))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     // MARK: - Card Completion
 
-    private func completeCard() {
+    private func completeCard(revealed: Bool = false) {
         cardState.step = .completed
-        // Record result: correct if no errors were made
-        let wasCorrect = !cardState.hasError(for: card)
-        onComplete?(wasCorrect)
+        // Revealed early counts as incorrect; otherwise correct if no errors were made
+        onComplete?(revealed ? false : !cardState.hasError(for: card))
         if audioPlayer.hasSound(.toneMark, key: card.display) {
             audioPlayer.play(.toneMark, key: card.display)
         }
     }
 
     private func completeCardEarly() {
-        cardState.step = .completed
-        // Revealed early = not answered correctly
-        onComplete?(false)
-        if audioPlayer.hasSound(.toneMark, key: card.display) {
-            audioPlayer.play(.toneMark, key: card.display)
-        }
+        completeCard(revealed: true)
     }
 
     // MARK: - Next Card Button

@@ -32,10 +32,7 @@ struct FlashcardFilterView: View {
 
                 // Consonants
                 Section("Consonants") {
-                    parentToggle(
-                        title: "Consonants",
-                        isOn: $settings.consonantsEnabled
-                    )
+                    Toggle("Consonants", isOn: $settings.consonantsEnabled)
                     if settings.consonantsEnabled {
                         childToggle(title: "High", isOn: $settings.highConsonants)
                         childToggle(title: "Mid", isOn: $settings.midConsonants)
@@ -46,10 +43,7 @@ struct FlashcardFilterView: View {
 
                 // Vowels
                 Section("Vowels") {
-                    parentToggle(
-                        title: "Vowels",
-                        isOn: $settings.vowelsEnabled
-                    )
+                    Toggle("Vowels", isOn: $settings.vowelsEnabled)
                     if settings.vowelsEnabled {
                         childToggle(title: "Long", isOn: $settings.longVowels)
                         childToggle(title: "Short", isOn: $settings.shortVowels)
@@ -59,10 +53,7 @@ struct FlashcardFilterView: View {
 
                 // Tones
                 Section("Tones") {
-                    parentToggle(
-                        title: "Tones",
-                        isOn: $settings.tonesEnabled
-                    )
+                    Toggle("Tones", isOn: $settings.tonesEnabled)
                     if settings.tonesEnabled {
                         childToggle(title: "High consonant rules", isOn: $settings.highToneRules)
                         childToggle(title: "Mid consonant rules", isOn: $settings.midToneRules)
@@ -73,10 +64,7 @@ struct FlashcardFilterView: View {
 
                 // Clusters
                 Section("Clusters") {
-                    parentToggle(
-                        title: "Clusters",
-                        isOn: $settings.clusters
-                    )
+                    Toggle("Clusters", isOn: $settings.clusters)
                     if settings.clusters {
                         childToggle(title: "Smooth (กร-, ปล-, etc.)", isOn: $settings.smoothClusters)
                         childToggle(title: "Silent ห (หน-, หม-, etc.)", isOn: $settings.silentClusters)
@@ -85,52 +73,16 @@ struct FlashcardFilterView: View {
                 }
             }
             .onChange(of: settings.consonantsEnabled) { _, newValue in
-                if newValue {
-                    settings.highConsonants = true
-                    settings.midConsonants = true
-                    settings.lowConsonants = true
-                    settings.uncommonConsonants = true
-                } else {
-                    settings.highConsonants = false
-                    settings.midConsonants = false
-                    settings.lowConsonants = false
-                    settings.uncommonConsonants = false
-                }
+                setChildren([\.highConsonants, \.midConsonants, \.lowConsonants, \.uncommonConsonants], to: newValue)
             }
             .onChange(of: settings.vowelsEnabled) { _, newValue in
-                if newValue {
-                    settings.longVowels = true
-                    settings.shortVowels = true
-                    settings.uncommonVowels = true
-                } else {
-                    settings.longVowels = false
-                    settings.shortVowels = false
-                    settings.uncommonVowels = false
-                }
+                setChildren([\.longVowels, \.shortVowels, \.uncommonVowels], to: newValue)
             }
             .onChange(of: settings.tonesEnabled) { _, newValue in
-                if newValue {
-                    settings.highToneRules = true
-                    settings.midToneRules = true
-                    settings.lowToneRules = true
-                    settings.toneMarks = true
-                } else {
-                    settings.highToneRules = false
-                    settings.midToneRules = false
-                    settings.lowToneRules = false
-                    settings.toneMarks = false
-                }
+                setChildren([\.highToneRules, \.midToneRules, \.lowToneRules, \.toneMarks], to: newValue)
             }
             .onChange(of: settings.clusters) { _, newValue in
-                if newValue {
-                    settings.smoothClusters = true
-                    settings.silentClusters = true
-                    settings.irregularClusters = true
-                } else {
-                    settings.smoothClusters = false
-                    settings.silentClusters = false
-                    settings.irregularClusters = false
-                }
+                setChildren([\.smoothClusters, \.silentClusters, \.irregularClusters], to: newValue)
             }
             .navigationTitle("Filter")
             .navigationBarTitleDisplayMode(.inline)
@@ -146,13 +98,11 @@ struct FlashcardFilterView: View {
 
     // MARK: - Toggle Helpers
 
-    /// Parent category toggle - controls visibility and enables/disables all children via .onChange
-    @ViewBuilder
-    private func parentToggle(
-        title: LocalizedStringKey,
-        isOn: Binding<Bool>
-    ) -> some View {
-        Toggle(title, isOn: isOn)
+    /// Cascade a parent toggle to its child filters
+    private func setChildren(_ children: [ReferenceWritableKeyPath<FlashcardSettings, Bool>], to value: Bool) {
+        for child in children {
+            settings[keyPath: child] = value
+        }
     }
 
     /// Child filter toggle

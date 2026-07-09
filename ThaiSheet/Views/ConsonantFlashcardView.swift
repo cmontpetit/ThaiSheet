@@ -48,56 +48,19 @@ struct ConsonantFlashcardView: View {
     // MARK: - Consonant Card
 
     private var consonantCard: some View {
-        FlashcardResultCard(
+        FlashcardFace(
             showResult: cardState.step == .completed,
-            hasError: cardState.hasError(for: consonant)
+            hasError: cardState.hasError(for: consonant),
+            soundType: .consonant,
+            soundKey: consonant.character,
+            onViewInReference: { onViewInReference?(consonant.character) },
+            onPrevious: handlePrevious,
+            onNext: handleNext
         ) {
-            VStack(spacing: 12) {
-                // Main character with swipe gestures for navigation and reveal
-                NavigableTapArea(
-                    onPrevious: handlePrevious,
-                    onNext: handleNext,
-                    onReveal: cardState.step != .completed ? { completeCardEarly() } : nil
-                ) {
-                    Text(consonant.character)
-                        .font(.system(size: 100))
-                        .minimumScaleFactor(0.5)
-                }
-                .frame(height: 160)
-
-                // Action buttons
-                HStack(spacing: 20) {
-                    // View in Reference button
-                    Button {
-                        onViewInReference?(consonant.character)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "book")
-                            Text("Reference")
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.accentColor)
-                    }
-
-                    // Speaker button (only when completed)
-                    if cardState.step == .completed {
-                        Button {
-                            audioPlayer.play(.consonant, key: consonant.character)
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "speaker.wave.2.fill")
-                                Text("Play")
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(.accentColor)
-                        }
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            Text(consonant.character)
+                .font(.system(size: 100))
+                .minimumScaleFactor(0.5)
         }
-        .cornerRadius(16)
     }
 
     // MARK: - Summary Section
@@ -162,10 +125,7 @@ struct ConsonantFlashcardView: View {
     // MARK: - Class Selection
 
     private var classSelectionView: some View {
-        VStack(spacing: 16) {
-            Text("Select the class")
-                .font(.headline)
-
+        FlashcardStepSection(title: "Select the class") {
             HStack(spacing: 12) {
                 ForEach(ConsonantClass.allCases, id: \.self) { classType in
                     Button {
@@ -184,20 +144,15 @@ struct ConsonantFlashcardView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     // MARK: - Initial Sound Selection
 
     private var initialSoundSelectionView: some View {
-        VStack(spacing: 16) {
-            selectionHeader(title: "Select the initial sound") {
-                cardState.selectedClass = nil
-                cardState.step = .selectClass
-            }
-
+        FlashcardStepSection(title: "Select the initial sound", onBack: {
+            cardState.selectedClass = nil
+            cardState.step = .selectClass
+        }) {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(initialSoundOptions, id: \.self) { sound in
@@ -208,20 +163,15 @@ struct ConsonantFlashcardView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     // MARK: - Final Sound Selection
 
     private var finalSoundSelectionView: some View {
-        VStack(spacing: 16) {
-            selectionHeader(title: "Select the final sound") {
-                cardState.selectedInitial = nil
-                cardState.step = .selectInitial
-            }
-
+        FlashcardStepSection(title: "Select the final sound", onBack: {
+            cardState.selectedInitial = nil
+            cardState.step = .selectInitial
+        }) {
             // 1 row of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(finalSoundOptions, id: \.self) { sound in
@@ -232,20 +182,15 @@ struct ConsonantFlashcardView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     // MARK: - Transcription Selection
 
     private var transcriptionSelectionView: some View {
-        VStack(spacing: 16) {
-            selectionHeader(title: "Select the transcription") {
-                cardState.selectedFinal = nil
-                cardState.step = .selectFinal
-            }
-
+        FlashcardStepSection(title: "Select the transcription", onBack: {
+            cardState.selectedFinal = nil
+            cardState.step = .selectFinal
+        }) {
             // 2 rows of 2 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 2), spacing: 10) {
                 ForEach(transcriptionOptions, id: \.self) { transcription in
@@ -256,58 +201,19 @@ struct ConsonantFlashcardView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-
-    // MARK: - Selection Helpers
-
-    private func selectionHeader(title: String, onBack: @escaping () -> Void) -> some View {
-        HStack {
-            Button {
-                onBack()
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                    Text("Back")
-                }
-                .font(.subheadline)
-                .foregroundColor(.accentColor)
-            }
-
-            Spacer()
-
-            Text(title)
-                .font(.headline)
-
-            Spacer()
-
-            // Invisible spacer for centering
-            HStack(spacing: 4) {
-                Image(systemName: "chevron.left")
-                Text("Back")
-            }
-            .font(.subheadline)
-            .opacity(0)
-        }
     }
 
     // MARK: - Card Completion
 
-    private func completeCard() {
+    private func completeCard(revealed: Bool = false) {
         cardState.step = .completed
-        // Record result: correct if no errors were made
-        let wasCorrect = !cardState.hasError(for: consonant)
-        onComplete?(wasCorrect)
+        // Revealed early counts as incorrect; otherwise correct if no errors were made
+        onComplete?(revealed ? false : !cardState.hasError(for: consonant))
         audioPlayer.play(.consonant, key: consonant.character)
     }
 
     private func completeCardEarly() {
-        cardState.step = .completed
-        // Revealed early = not answered correctly
-        onComplete?(false)
-        audioPlayer.play(.consonant, key: consonant.character)
+        completeCard(revealed: true)
     }
 
     // MARK: - Next Card Button
@@ -333,17 +239,16 @@ struct ConsonantFlashcardView: View {
     // MARK: - Option Generation
 
     private func generateOptions() {
-        // Get unique initial sounds from all consonants
-        let allInitialSounds = Set(allConsonants.map { $0.initialSound })
-        var initialOptions = Array(allInitialSounds.filter { $0 != consonant.initialSound }.shuffled().prefix(7))
-        initialOptions.append(consonant.initialSound)
-        initialSoundOptions = initialOptions.shuffled()
-
-        // Get unique final sounds from all consonants
-        let allFinalSounds = Set(allConsonants.map { $0.finalSound })
-        var finalOptions = Array(allFinalSounds.filter { $0 != consonant.finalSound }.shuffled().prefix(3))
-        finalOptions.append(consonant.finalSound)
-        finalSoundOptions = finalOptions.shuffled()
+        initialSoundOptions = QuizOptions.pick(
+            correct: consonant.initialSound,
+            from: allConsonants.map { $0.initialSound },
+            wrongCount: 7
+        )
+        finalSoundOptions = QuizOptions.pick(
+            correct: consonant.finalSound,
+            from: allConsonants.map { $0.finalSound },
+            wrongCount: 3
+        )
 
         // Get transcriptions from other consonants (3 wrong + 1 correct = 4 total)
         // Prioritize confusers with the same prefix (e.g., "saaw" for both ส and ซ)
@@ -435,57 +340,6 @@ extension CardState {
             return true
         }
         return false
-    }
-}
-
-// MARK: - Flow Layout
-
-struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
-        return result.size
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
-
-        for (index, subview) in subviews.enumerated() {
-            if index < result.positions.count {
-                let position = result.positions[index]
-                subview.place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
-            }
-        }
-    }
-
-    private func arrangeSubviews(proposal: ProposedViewSize, subviews: Subviews) -> (size: CGSize, positions: [CGPoint]) {
-        let maxWidth = proposal.width ?? .infinity
-        var positions: [CGPoint] = []
-        var currentX: CGFloat = 0
-        var currentY: CGFloat = 0
-        var lineHeight: CGFloat = 0
-        var totalHeight: CGFloat = 0
-        var totalWidth: CGFloat = 0
-
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-
-            if currentX + size.width > maxWidth && currentX > 0 {
-                currentX = 0
-                currentY += lineHeight + spacing
-                lineHeight = 0
-            }
-
-            positions.append(CGPoint(x: currentX, y: currentY))
-
-            lineHeight = max(lineHeight, size.height)
-            currentX += size.width + spacing
-            totalWidth = max(totalWidth, currentX - spacing)
-            totalHeight = currentY + lineHeight
-        }
-
-        return (CGSize(width: totalWidth, height: totalHeight), positions)
     }
 }
 

@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct ThaiSheetApp: App {
     private let syncedStore: SyncedKeyValueStore
+    private let thaiData = ThaiDataStore()
     @State private var settings: FlashcardSettings
 
     init() {
@@ -22,6 +23,7 @@ struct ThaiSheetApp: App {
         WindowGroup {
             ContentView(settings: settings, syncedStore: syncedStore)
                 .environment(\.locale, settings.resolvedLocale)
+                .environment(\.thaiData, thaiData)
         }
     }
 }

@@ -8,15 +8,8 @@ import SwiftUI
 
 @Observable
 class FlashcardManager {
-    // Raw data (all cards, unfiltered)
-    private var allConsonants: [Consonant] = []
-    private var allVowels: [Vowel] = []
-    private var allVowelCards: [VowelCard] = []
-    private var allToneMarks: [ToneMark] = []
-    private var allToneMarkCards: [ToneMarkCard] = []
-    private var allToneRules: [ToneRule] = []
-    private var allToneRuleCards: [ToneRuleCard] = []
-    private var allClusters: [Cluster] = []
+    // Shared bundled data
+    let data: ThaiDataStore
 
     // Settings reference
     let settings: FlashcardSettings
@@ -37,29 +30,13 @@ class FlashcardManager {
     }
 
     var isLoaded: Bool {
-        !allConsonants.isEmpty && !allVowelCards.isEmpty &&
-        !allToneMarkCards.isEmpty && !allToneRuleCards.isEmpty && !allClusters.isEmpty
+        data.isLoaded
     }
 
-    init(settings: FlashcardSettings, learningModel: LearningModel) {
+    init(settings: FlashcardSettings, learningModel: LearningModel, data: ThaiDataStore) {
         self.settings = settings
         self.learningModel = learningModel
-        loadAllData()
-    }
-
-    // MARK: - Data Loading
-
-    func loadAllData() {
-        allConsonants = Consonant.loadAll()
-        allVowels = Vowel.loadAll()
-        allVowelCards = VowelCard.allCards(from: allVowels)
-        allToneMarks = ToneMark.loadAll()
-        allToneMarkCards = ToneMarkCard.allCards(from: allToneMarks)
-        allToneRules = ToneRule.loadAll()
-        allToneRuleCards = ToneRuleCard.allCards(from: allToneRules)
-        allClusters = Cluster.loadAll()
-
-        // Update strategies with initial cards
+        self.data = data
         updateStrategies()
     }
 
@@ -77,21 +54,21 @@ class FlashcardManager {
         var cards: [FlashcardItem] = []
 
         // Add filtered consonants
-        for consonant in allConsonants {
+        for consonant in data.consonants {
             if settings.isConsonantEnabled(consonant) {
                 cards.append(.consonant(consonant))
             }
         }
 
         // Add filtered vowels
-        for card in allVowelCards {
+        for card in data.vowelCards {
             if isVowelCardEnabled(card) {
                 cards.append(.vowel(card))
             }
         }
 
         // Add filtered tone rules
-        for card in allToneRuleCards {
+        for card in data.toneRuleCards {
             if isToneRuleCardEnabled(card) {
                 cards.append(.toneRule(card))
             }
@@ -99,13 +76,13 @@ class FlashcardManager {
 
         // Add tone marks
         if settings.areToneMarksEnabled {
-            for card in allToneMarkCards {
+            for card in data.toneMarkCards {
                 cards.append(.toneMark(card))
             }
         }
 
         // Add filtered clusters
-        for cluster in allClusters {
+        for cluster in data.clusters {
             if settings.isClusterEnabled(cluster) {
                 cards.append(.cluster(cluster))
             }
@@ -118,23 +95,23 @@ class FlashcardManager {
     var allCards: [FlashcardItem] {
         var cards: [FlashcardItem] = []
 
-        for consonant in allConsonants {
+        for consonant in data.consonants {
             cards.append(.consonant(consonant))
         }
 
-        for card in allVowelCards {
+        for card in data.vowelCards {
             cards.append(.vowel(card))
         }
 
-        for card in allToneRuleCards {
+        for card in data.toneRuleCards {
             cards.append(.toneRule(card))
         }
 
-        for card in allToneMarkCards {
+        for card in data.toneMarkCards {
             cards.append(.toneMark(card))
         }
 
-        for cluster in allClusters {
+        for cluster in data.clusters {
             cards.append(.cluster(cluster))
         }
 
@@ -207,31 +184,31 @@ class FlashcardManager {
 
     /// Jump to a consonant by character
     func jumpToConsonant(_ character: String) {
-        guard let consonant = allConsonants.first(where: { $0.character == character }) else { return }
+        guard let consonant = data.consonants.first(where: { $0.character == character }) else { return }
         jumpOrOverride(to: .consonant(consonant))
     }
 
     /// Jump to a vowel by display string
     func jumpToVowel(_ display: String) {
-        guard let vowelCard = allVowelCards.first(where: { $0.display == display }) else { return }
+        guard let vowelCard = data.vowelCards.first(where: { $0.display == display }) else { return }
         jumpOrOverride(to: .vowel(vowelCard))
     }
 
     /// Jump to a tone mark by display string
     func jumpToToneMark(_ display: String) {
-        guard let toneMarkCard = allToneMarkCards.first(where: { $0.display == display }) else { return }
+        guard let toneMarkCard = data.toneMarkCards.first(where: { $0.display == display }) else { return }
         jumpOrOverride(to: .toneMark(toneMarkCard))
     }
 
     /// Jump to a tone rule by ID
     func jumpToToneRule(_ ruleId: String) {
-        guard let ruleCard = allToneRuleCards.first(where: { $0.rule.id == ruleId }) else { return }
+        guard let ruleCard = data.toneRuleCards.first(where: { $0.rule.id == ruleId }) else { return }
         jumpOrOverride(to: .toneRule(ruleCard))
     }
 
     /// Jump to a cluster by ID
     func jumpToCluster(_ clusterId: String) {
-        guard let cluster = allClusters.first(where: { $0.id == clusterId }) else { return }
+        guard let cluster = data.clusters.first(where: { $0.id == clusterId }) else { return }
         jumpOrOverride(to: .cluster(cluster))
     }
 
@@ -240,19 +217,5 @@ class FlashcardManager {
         updateStrategies()
         sequentialStrategy.reset()
         wanikaniStrategy.reset()
-    }
-
-    // MARK: - For generating quiz options
-
-    var allConsonantsForOptions: [Consonant] {
-        allConsonants
-    }
-
-    var allVowelsForOptions: [Vowel] {
-        allVowels
-    }
-
-    var allClustersForOptions: [Cluster] {
-        allClusters
     }
 }

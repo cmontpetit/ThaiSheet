@@ -49,6 +49,11 @@ struct Vowel: Codable, Identifiable {
 
     var sound: String { sounds.en }
 
+    /// All existing written forms, in short-closed/short-open/long-closed/long-open order
+    var allForms: [String] {
+        [short.closed, short.open, long.closed, long.open].compactMap { $0 }
+    }
+
     func note(for duration: String, form: String) -> String? {
         guard let notes = notes else { return nil }
         switch (duration, form) {
@@ -62,8 +67,7 @@ struct Vowel: Codable, Identifiable {
 
     var isRare: Bool {
         // Vowels with ฤ are rare
-        let allForms = [short.closed, short.open, long.closed, long.open].compactMap { $0 }
-        return allForms.contains { $0.contains("ฤ") }
+        allForms.contains { $0.contains("ฤ") }
     }
 
     /// Returns true if the given form appears in both short and long positions

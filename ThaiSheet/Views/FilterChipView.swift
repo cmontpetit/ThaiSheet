@@ -34,6 +34,36 @@ struct FilterChipView: View {
     }
 }
 
+/// Horizontal row of filter chips with a leading "All" chip clearing the selection
+struct FilterChipRow<Item: Hashable>: View {
+    let items: [Item]
+    let label: (Item) -> String
+    var color: (Item) -> Color? = { _ in nil }
+    @Binding var selection: Item?
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                FilterChipView(
+                    label: String(localized: "All"),
+                    isSelected: selection == nil,
+                    action: { selection = nil }
+                )
+                ForEach(items, id: \.self) { item in
+                    FilterChipView(
+                        label: label(item),
+                        isSelected: selection == item,
+                        color: color(item),
+                        action: { selection = item }
+                    )
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding(.bottom, 8)
+    }
+}
+
 #Preview {
     HStack {
         FilterChipView(label: "All", isSelected: true, action: {})

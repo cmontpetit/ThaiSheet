@@ -16,24 +16,18 @@ struct ToneRuleFlashcardView: View {
     @State private var cardState = ToneRuleCardState()
 
     // Selection options (value = data identifier matching JSON, label = localized display)
-    private struct Option: Identifiable {
-        let value: String
-        var label: String { String(localized: String.LocalizationValue(value)) }
-        var id: String { value }
-    }
-
-    private let consonantClassOptions: [Option] = [
-        Option(value: "Low"), Option(value: "Mid"), Option(value: "High"),
+    private let consonantClassOptions: [LocalizedOption] = [
+        LocalizedOption(value: "Low"), LocalizedOption(value: "Mid"), LocalizedOption(value: "High"),
     ]
-    private let vowelDurationOptions: [Option] = [
-        Option(value: "Short"), Option(value: "Long"), Option(value: "Any"),
+    private let vowelDurationOptions: [LocalizedOption] = [
+        LocalizedOption(value: "Short"), LocalizedOption(value: "Long"), LocalizedOption(value: "Any"),
     ]
-    private let endOptions: [Option] = [
-        Option(value: "Live"), Option(value: "Dead"),
+    private let endOptions: [LocalizedOption] = [
+        LocalizedOption(value: "Live"), LocalizedOption(value: "Dead"),
     ]
-    private let toneOptions: [Option] = [
-        Option(value: "Low"), Option(value: "Mid"), Option(value: "High"),
-        Option(value: "Falling"), Option(value: "Rising"),
+    private let toneOptions: [LocalizedOption] = [
+        LocalizedOption(value: "Low"), LocalizedOption(value: "Mid"), LocalizedOption(value: "High"),
+        LocalizedOption(value: "Falling"), LocalizedOption(value: "Rising"),
     ]
 
     /// Localize a data identifier for display
@@ -64,57 +58,18 @@ struct ToneRuleFlashcardView: View {
     // MARK: - Sample Word Card View
 
     private var sampleWordCardView: some View {
-        FlashcardResultCard(
+        FlashcardFace(
             showResult: cardState.step == .completed,
-            hasError: cardState.hasError(for: card)
+            hasError: cardState.hasError(for: card),
+            soundType: .toneRule,
+            soundKey: card.sample.full,
+            onViewInReference: { onViewInReference?(card.rule.id) },
+            onPrevious: handlePrevious,
+            onNext: handleNext
         ) {
-            VStack(spacing: 12) {
-                // Main character with swipe gestures for navigation and reveal
-                NavigableTapArea(
-                    onPrevious: handlePrevious,
-                    onNext: handleNext,
-                    onReveal: cardState.step != .completed ? { completeCardEarly() } : nil
-                ) {
-                    // Display the sample word with focus highlighting
-                    sampleWordText
-                }
-                .frame(height: 160)
-
-                // Action buttons
-                HStack(spacing: 20) {
-                    // View in Reference button
-                    Button {
-                        onViewInReference?(card.rule.id)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "book")
-                            Text("Reference")
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.accentColor)
-                    }
-
-                    // Speaker button (only when completed)
-                    if cardState.step == .completed {
-                        let hasSound = audioPlayer.hasSound(.toneRule, key: card.sample.full)
-                        Button {
-                            audioPlayer.play(.toneRule, key: card.sample.full)
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                                Text("Play")
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(hasSound ? .accentColor : .secondary)
-                        }
-                        .disabled(!hasSound)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            // Display the sample word with focus highlighting
+            sampleWordText
         }
-        .cornerRadius(16)
     }
 
     @ViewBuilder
@@ -261,11 +216,8 @@ struct ToneRuleFlashcardView: View {
 
     // MARK: - Generic Selection View
 
-    private func selectionView(title: LocalizedStringKey, options: [Option], onSelect: @escaping (String) -> Void) -> some View {
-        VStack(spacing: 16) {
-            Text(title)
-                .font(.headline)
-
+    private func selectionView(title: LocalizedStringKey, options: [LocalizedOption], onSelect: @escaping (String) -> Void) -> some View {
+        FlashcardStepSection(title: title) {
             // Flexible layout based on number of options
             if options.count <= 3 {
                 HStack(spacing: 8) {
@@ -289,12 +241,9 @@ struct ToneRuleFlashcardView: View {
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
-    private func selectionButton(_ option: Option, onSelect: @escaping (String) -> Void) -> some View {
+    private func selectionButton(_ option: LocalizedOption, onSelect: @escaping (String) -> Void) -> some View {
         FlashcardSelectionButton(label: option.label) {
             onSelect(option.value)
         }
@@ -302,23 +251,17 @@ struct ToneRuleFlashcardView: View {
 
     // MARK: - Card Completion
 
-    private func completeCard() {
+    private func completeCard(revealed: Bool = false) {
         cardState.step = .completed
-        // Record result: correct if no errors were made
-        let wasCorrect = !cardState.hasError(for: card)
-        onComplete?(wasCorrect)
+        // Revealed early counts as incorrect; otherwise correct if no errors were made
+        onComplete?(revealed ? false : !cardState.hasError(for: card))
         if audioPlayer.hasSound(.toneRule, key: card.sample.full) {
             audioPlayer.play(.toneRule, key: card.sample.full)
         }
     }
 
     private func completeCardEarly() {
-        cardState.step = .completed
-        // Revealed early = not answered correctly
-        onComplete?(false)
-        if audioPlayer.hasSound(.toneRule, key: card.sample.full) {
-            audioPlayer.play(.toneRule, key: card.sample.full)
-        }
+        completeCard(revealed: true)
     }
 
     // MARK: - Next Card Button

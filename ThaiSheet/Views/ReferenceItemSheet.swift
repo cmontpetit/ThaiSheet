@@ -24,7 +24,7 @@ struct ReferenceItemSheet: View {
                 .padding(.top, 20)
 
             // Stage indicator
-            StageIndicatorView(mode: .stage(stage: stage, isCapped: false))
+            StageIndicatorView(stage: stage, isCapped: false)
 
             // Note (if any)
             if let note = note {
