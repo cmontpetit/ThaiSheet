@@ -32,7 +32,7 @@ struct ToneRuleFlashcardView: View {
 
     /// Localize a data identifier for display
     private func localized(_ value: String) -> String {
-        String(localized: String.LocalizationValue(value))
+        String(localized: String.LocalizationValue(value), bundle: .appLanguage)
     }
 
     var body: some View {

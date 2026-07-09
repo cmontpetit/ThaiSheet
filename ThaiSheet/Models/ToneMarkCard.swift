@@ -20,8 +20,8 @@ struct ToneMarkCard: Identifiable {
 
         var label: String {
             switch self {
-            case .low: return String(localized: "Low")
-            case .midHigh: return String(localized: "Mid/High")
+            case .low: return String(localized: "Low", bundle: .appLanguage)
+            case .midHigh: return String(localized: "Mid/High", bundle: .appLanguage)
             }
         }
     }

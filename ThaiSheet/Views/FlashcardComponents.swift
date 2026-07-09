@@ -168,7 +168,7 @@ struct FlashcardStepHeader: View {
 /// and whose `label` is its localized display text.
 struct LocalizedOption: Identifiable {
     let value: String
-    var label: String { String(localized: String.LocalizationValue(value)) }
+    var label: String { String(localized: String.LocalizationValue(value), bundle: .appLanguage) }
     var id: String { value }
 }
 
@@ -230,7 +230,7 @@ struct FlashcardSummaryHeader: View {
 
 /// A single row in the summary section showing label and value
 struct FlashcardSummaryRow: View {
-    let label: String
+    let label: LocalizedStringKey
     let selectedValue: String?
     let correctValue: String
     let showResult: Bool

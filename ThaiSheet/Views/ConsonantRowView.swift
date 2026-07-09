@@ -120,7 +120,7 @@ struct ConsonantRowView: View {
                 .foregroundColor(hasSound ? .accentColor : .primary)
 
                 if consonant.usage != .common {
-                    Text(consonant.usage.rawValue)
+                    Text(consonant.usage.label)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

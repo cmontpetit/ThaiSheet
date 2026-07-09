@@ -6,14 +6,16 @@
 import SwiftUI
 
 struct StyledToneText: View {
+    /// Tone data identifier from JSON (e.g. "Falling"); localized for display
     let tone: String
 
     var body: some View {
         if tone.isEmpty {
             Text("")
         } else {
-            Text(String(tone.prefix(1))).fontWeight(.bold) +
-            Text(String(tone.dropFirst())).foregroundColor(.secondary)
+            let displayTone = String(localized: String.LocalizationValue(tone), bundle: .appLanguage)
+            Text(String(displayTone.prefix(1))).fontWeight(.bold) +
+            Text(String(displayTone.dropFirst())).foregroundColor(.secondary)
         }
     }
 }
@@ -91,7 +93,7 @@ struct ToneRuleRowView: View {
 
             // Main content (tappable for sheet)
             HStack(spacing: 0) {
-                Text(rule.initialConsonant)
+                Text(String(localized: String.LocalizationValue(rule.initialConsonant), bundle: .appLanguage))
                     .frame(width: 60)
                     .padding(.vertical, 6)
                     .background(rule.consonantColor)
@@ -101,14 +103,14 @@ struct ToneRuleRowView: View {
                     .foregroundStyle(.quaternary)
                     .frame(width: 20)
 
-                Text(rule.vowelDuration)
+                Text(String(localized: String.LocalizationValue(rule.vowelDuration), bundle: .appLanguage))
                     .frame(width: 70)
 
                 Text("+")
                     .foregroundStyle(.quaternary)
                     .frame(width: 20)
 
-                Text(rule.end)
+                Text(String(localized: String.LocalizationValue(rule.end), bundle: .appLanguage))
                     .frame(width: 80)
 
                 Text("=")
@@ -138,7 +140,7 @@ struct ToneRuleRowView: View {
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
         .sheet(isPresented: $showingSheet) {
             ReferenceItemSheet(
-                title: rule.primarySample?.full ?? rule.tone,
+                title: rule.primarySample?.full ?? String(localized: String.LocalizationValue(rule.tone), bundle: .appLanguage),
                 stage: lowestStage,
                 note: rule.primarySample?.note,
                 hasSound: hasSound,

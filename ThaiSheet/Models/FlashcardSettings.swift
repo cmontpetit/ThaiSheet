@@ -113,22 +113,33 @@ class FlashcardSettings {
     }
 
     var appLanguage = "system" {
-        didSet { persist(appLanguage, forKey: "fc_appLanguage") }
+        didSet {
+            persist(appLanguage, forKey: "fc_appLanguage")
+            Bundle.updateAppLanguage(appLanguage)
+        }
     }
 
-    /// Supported languages for the in-app picker
-    static let supportedLanguages: [(code: String, name: String)] = [
-        ("system", "System"),
-        ("en", "English"),
-        ("fr", "Français"),
-    ]
+    /// Supported languages for the in-app picker.
+    /// Language names are endonyms and intentionally not localized; only "System" is.
+    /// Computed so "System" re-resolves when the override changes.
+    static var supportedLanguages: [(code: String, name: String)] {
+        [
+            ("system", String(localized: "System", bundle: .appLanguage)),
+            ("en", "English"),
+            ("fr", "Français"),
+        ]
+    }
 
-    /// Resolved locale based on the app language setting
+    /// Resolved locale based on the app language setting.
+    /// The override is dev-only; release builds always follow the system
+    /// (a non-"system" value could still arrive via iCloud sync from a debug build).
     var resolvedLocale: Locale {
-        if appLanguage == "system" {
-            return .current
+        #if DEBUG
+        if appLanguage != "system" {
+            return Locale(identifier: appLanguage)
         }
-        return Locale(identifier: appLanguage)
+        #endif
+        return .current
     }
 
     var iCloudSyncEnabled = false {
@@ -371,5 +382,27 @@ class FlashcardSettings {
         if midToneRules { count += 1 }
         if lowToneRules { count += 1 }
         return count
+    }
+}
+
+// MARK: - Dev Language Override Bundle
+
+extension Bundle {
+    /// Bundle that `String(localized:)` display strings resolve against.
+    /// Follows the dev-only language override; the main bundle (system language)
+    /// otherwise. SwiftUI `Text` literals follow `\.locale` from `resolvedLocale`
+    /// instead, so both mechanisms switch together.
+    private(set) nonisolated(unsafe) static var appLanguage: Bundle = .main
+
+    static func updateAppLanguage(_ code: String) {
+        #if DEBUG
+        if code != "system",
+           let path = Bundle.main.path(forResource: code, ofType: "lproj"),
+           let bundle = Bundle(path: path) {
+            appLanguage = bundle
+            return
+        }
+        #endif
+        appLanguage = .main
     }
 }

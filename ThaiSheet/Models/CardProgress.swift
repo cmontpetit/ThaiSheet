@@ -24,12 +24,12 @@ enum SRSStage: Int, Codable, CaseIterable, Comparable {
     /// Human-readable name for the stage
     var displayName: String {
         switch self {
-        case .new: return String(localized: "New")
-        case .learning1, .learning2: return String(localized: "Learning")
-        case .apprentice1, .apprentice2: return String(localized: "Apprentice")
-        case .familiar1, .familiar2: return String(localized: "Familiar")
-        case .confident: return String(localized: "Confident")
-        case .mastered: return String(localized: "Mastered")
+        case .new: return String(localized: "New", bundle: .appLanguage)
+        case .learning1, .learning2: return String(localized: "Learning", bundle: .appLanguage)
+        case .apprentice1, .apprentice2: return String(localized: "Apprentice", bundle: .appLanguage)
+        case .familiar1, .familiar2: return String(localized: "Familiar", bundle: .appLanguage)
+        case .confident: return String(localized: "Confident", bundle: .appLanguage)
+        case .mastered: return String(localized: "Mastered", bundle: .appLanguage)
         }
     }
 

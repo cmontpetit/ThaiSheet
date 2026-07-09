@@ -12,25 +12,25 @@ enum ClusterType: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .smooth: return String(localized: "Smooth Clusters")
-        case .irregular: return String(localized: "Irregular Clusters")
-        case .silent: return String(localized: "Silent ห Combinations")
+        case .smooth: return String(localized: "Smooth Clusters", bundle: .appLanguage)
+        case .irregular: return String(localized: "Irregular Clusters", bundle: .appLanguage)
+        case .silent: return String(localized: "Silent ห Combinations", bundle: .appLanguage)
         }
     }
 
     var chipLabel: String {
         switch self {
-        case .smooth: return String(localized: "Smooth")
-        case .irregular: return String(localized: "Irregular")
-        case .silent: return String(localized: "Silent ห")
+        case .smooth: return String(localized: "Smooth", bundle: .appLanguage)
+        case .irregular: return String(localized: "Irregular", bundle: .appLanguage)
+        case .silent: return String(localized: "Silent ห", bundle: .appLanguage)
         }
     }
 
     var description: String {
         switch self {
-        case .smooth: return String(localized: "Standard consonant + r/l/w")
-        case .irregular: return String(localized: "Special pronunciation rules")
-        case .silent: return String(localized: "ห makes syllable high-class")
+        case .smooth: return String(localized: "Standard consonant + r/l/w", bundle: .appLanguage)
+        case .irregular: return String(localized: "Special pronunciation rules", bundle: .appLanguage)
+        case .silent: return String(localized: "ห makes syllable high-class", bundle: .appLanguage)
         }
     }
 }
@@ -65,11 +65,16 @@ struct Cluster: Codable, Identifiable {
 
     var usageLabel: String? {
         switch usage {
-        case .uncommon: return "uncommon"
-        case .rare: return "rare"
-        case .ancient: return "ancient"
+        case .uncommon: return String(localized: "uncommon", bundle: .appLanguage)
+        case .rare: return String(localized: "rare", bundle: .appLanguage)
+        case .ancient: return String(localized: "ancient", bundle: .appLanguage)
         case .common, .none: return nil
         }
+    }
+
+    /// Sound for display and quiz options; silent clusters get a localized marker
+    var soundLabel: String {
+        sound ?? String(localized: "(silent)", bundle: .appLanguage)
     }
 
     /// Display form with า vowel for pronunciation (e.g., "กร-" → "กรา").

@@ -45,7 +45,7 @@ struct FilterChipRow<Item: Hashable>: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 FilterChipView(
-                    label: String(localized: "All"),
+                    label: String(localized: "All", bundle: .appLanguage),
                     isSelected: selection == nil,
                     action: { selection = nil }
                 )

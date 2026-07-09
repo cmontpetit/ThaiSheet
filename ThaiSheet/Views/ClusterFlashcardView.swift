@@ -80,7 +80,7 @@ struct ClusterFlashcardView: View {
                 FlashcardSummaryRow(
                     label: "Sound",
                     selectedValue: cardState.selectedSound,
-                    correctValue: cluster.sound ?? "(silent)",
+                    correctValue: cluster.soundLabel,
                     showResult: cardState.step == .completed
                 )
 
@@ -179,7 +179,7 @@ struct ClusterFlashcardView: View {
 
     private func generateSoundOptions() {
         soundOptions = QuizOptions.pick(
-            correct: cluster.sound ?? "(silent)",
+            correct: cluster.soundLabel,
             from: allClusters.compactMap { $0.sound },
             wrongCount: 5
         )
@@ -205,7 +205,7 @@ extension ClusterCardState {
         if let selected = selectedType, selected != cluster.type {
             return true
         }
-        let correctSound = cluster.sound ?? "(silent)"
+        let correctSound = cluster.soundLabel
         if let selected = selectedSound, selected != correctSound {
             return true
         }

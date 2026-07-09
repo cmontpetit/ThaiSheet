@@ -77,8 +77,8 @@ struct ToneMarkFlashcardView: View {
                 )
                 FlashcardSummaryRow(
                     label: "Tone",
-                    selectedValue: cardState.selectedTone.map { String(localized: String.LocalizationValue($0)) },
-                    correctValue: String(localized: String.LocalizationValue(card.correctTone)),
+                    selectedValue: cardState.selectedTone.map { String(localized: String.LocalizationValue($0), bundle: .appLanguage) },
+                    correctValue: String(localized: String.LocalizationValue(card.correctTone), bundle: .appLanguage),
                     showResult: cardState.step == .completed
                 )
             }

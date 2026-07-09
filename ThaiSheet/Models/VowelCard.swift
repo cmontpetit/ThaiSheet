@@ -21,8 +21,8 @@ struct VowelCard: Identifiable {
 
         var label: String {
             switch self {
-            case .short: return String(localized: "Short")
-            case .long: return String(localized: "Long")
+            case .short: return String(localized: "Short", bundle: .appLanguage)
+            case .long: return String(localized: "Long", bundle: .appLanguage)
             }
         }
     }
@@ -33,8 +33,8 @@ struct VowelCard: Identifiable {
 
         var label: String {
             switch self {
-            case .closed: return String(localized: "Closed")
-            case .open: return String(localized: "Open")
+            case .closed: return String(localized: "Closed", bundle: .appLanguage)
+            case .open: return String(localized: "Open", bundle: .appLanguage)
             }
         }
     }

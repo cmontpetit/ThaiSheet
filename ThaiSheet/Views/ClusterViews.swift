@@ -209,7 +209,7 @@ struct ClusterDetailSheet: View {
         var parts: [String] = []
 
         if let usage = cluster.usageLabel {
-            parts.append("Usage: \(usage)")
+            parts.append(String(localized: "Usage: \(usage)", bundle: .appLanguage))
         }
 
         parts.append(cluster.type.description)

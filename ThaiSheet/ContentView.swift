@@ -21,11 +21,21 @@ enum FlashcardType: CaseIterable {
 
     var label: String {
         switch self {
-        case .consonant: String(localized: "Consonant")
-        case .vowel: String(localized: "Vowel")
-        case .toneMark: String(localized: "Tone Mark")
-        case .toneRule: String(localized: "Tone Rule")
-        case .cluster: String(localized: "Cluster")
+        case .consonant: String(localized: "Consonant", bundle: .appLanguage)
+        case .vowel: String(localized: "Vowel", bundle: .appLanguage)
+        case .toneMark: String(localized: "Tone Mark", bundle: .appLanguage)
+        case .toneRule: String(localized: "Tone Rule", bundle: .appLanguage)
+        case .cluster: String(localized: "Cluster", bundle: .appLanguage)
+        }
+    }
+
+    var pluralLabel: String {
+        switch self {
+        case .consonant: String(localized: "Consonants", bundle: .appLanguage)
+        case .vowel: String(localized: "Vowels", bundle: .appLanguage)
+        case .toneMark: String(localized: "Tone Marks", bundle: .appLanguage)
+        case .toneRule: String(localized: "Tone Rules", bundle: .appLanguage)
+        case .cluster: String(localized: "Clusters", bundle: .appLanguage)
         }
     }
 }
@@ -61,6 +71,8 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             CheatsheetBrowserView(
+                settings: settings,
+                syncedStore: syncedStore,
                 highlighted: $highlighted,
                 flashcardStarting: $flashcardStarting,
                 selectedTab: $selectedTab
@@ -125,7 +137,7 @@ struct FlashcardsView: View {
     @State private var filterRefreshID = UUID()
 
     private var typeLabel: String {
-        manager.currentCard?.type.label ?? "Flashcard"
+        manager.currentCard?.type.label ?? String(localized: "Flashcard", bundle: .appLanguage)
     }
 
     @ViewBuilder
@@ -367,7 +379,7 @@ struct FlashcardsSheetModifier: ViewModifier {
                 }
             }
             .sheet(isPresented: $showingSettings) {
-                FlashcardSettingsView(settings: manager.settings, syncedStore: syncedStore)
+                SettingsView(settings: manager.settings, syncedStore: syncedStore)
             }
             .sheet(isPresented: $showingStats) {
                 SRSStatsView(

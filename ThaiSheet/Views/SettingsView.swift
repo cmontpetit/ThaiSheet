@@ -1,11 +1,12 @@
 //
-//  FlashcardSettingsView.swift
+//  SettingsView.swift
 //  ThaiSheet
 //
 
 import SwiftUI
 
-struct FlashcardSettingsView: View {
+/// App-wide settings sheet, reachable from both tabs
+struct SettingsView: View {
     @Bindable var settings: FlashcardSettings
     var syncedStore: SyncedKeyValueStore?
     @Environment(\.dismiss) private var dismiss
@@ -13,6 +14,22 @@ struct FlashcardSettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // Language override is a dev-only tool for checking translations;
+                // release builds always follow the system language
+                #if DEBUG
+                Section {
+                    Picker(selection: $settings.appLanguage) {
+                        ForEach(FlashcardSettings.supportedLanguages, id: \.code) { lang in
+                            Text(lang.name).tag(lang.code)
+                        }
+                    } label: {
+                        Text("Language")
+                    }
+                } header: {
+                    Text("Language")
+                }
+                #endif
+
                 Section {
                     strategyOption(
                         title: "Wanikani-style SRS",
@@ -30,19 +47,7 @@ struct FlashcardSettingsView: View {
                         settings.useIntelligentSelection = false
                     }
                 } header: {
-                    Text("Learning Strategy")
-                }
-
-                Section {
-                    Picker(selection: $settings.appLanguage) {
-                        ForEach(FlashcardSettings.supportedLanguages, id: \.code) { lang in
-                            Text(lang.name).tag(lang.code)
-                        }
-                    } label: {
-                        Text("Language")
-                    }
-                } header: {
-                    Text("Language")
+                    Text("Flashcards: Learning Strategy")
                 }
 
                 Section {
@@ -117,5 +122,5 @@ struct FlashcardSettingsView: View {
 }
 
 #Preview {
-    FlashcardSettingsView(settings: FlashcardSettings())
+    SettingsView(settings: FlashcardSettings())
 }

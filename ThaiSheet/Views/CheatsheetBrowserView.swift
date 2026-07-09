@@ -5,23 +5,39 @@
 
 import SwiftUI
 
+// Tones goes last: it has no filter chips, so keeping the chip-bearing
+// sections adjacent minimizes layout jumps when switching sections.
 enum CheatsheetEntryType: String, CaseIterable {
     case consonants
     case vowels
-    case tones
     case clusters
+    case tones
 
     var label: String {
         switch self {
-        case .consonants: return String(localized: "Consonants")
-        case .vowels: return String(localized: "Vowels")
-        case .tones: return String(localized: "Tones")
-        case .clusters: return String(localized: "Clusters")
+        case .consonants: return String(localized: "Consonants", bundle: .appLanguage)
+        case .vowels: return String(localized: "Vowels", bundle: .appLanguage)
+        case .clusters: return String(localized: "Clusters", bundle: .appLanguage)
+        case .tones: return String(localized: "Tones", bundle: .appLanguage)
+        }
+    }
+
+    /// Abbreviated label used when result counts are appended: the segmented
+    /// picker gives every segment equal width, so full names get truncated
+    var shortLabel: String {
+        switch self {
+        case .consonants: return String(localized: "Cons.", bundle: .appLanguage)
+        case .vowels: return String(localized: "Vow.", bundle: .appLanguage)
+        case .clusters: return String(localized: "Clus.", bundle: .appLanguage)
+        case .tones: return String(localized: "Tones", bundle: .appLanguage)
         }
     }
 }
 
 struct CheatsheetBrowserView: View {
+    var settings: FlashcardSettings
+    var syncedStore: SyncedKeyValueStore? = nil
+
     // Navigation bindings (dictionaries keyed by FlashcardType)
     @Binding var highlighted: [FlashcardType: String]
     @Binding var flashcardStarting: [FlashcardType: String]
@@ -31,6 +47,7 @@ struct CheatsheetBrowserView: View {
 
     @State private var searchText = ""
     @State private var selectedType: CheatsheetEntryType = .consonants
+    @State private var showingSettings = false
 
     private var consonants: [Consonant] { thaiData.consonants }
     private var vowels: [Vowel] { thaiData.vowels }
@@ -120,7 +137,7 @@ struct CheatsheetBrowserView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 FilterChipView(
-                    label: String(localized: "All"),
+                    label: String(localized: "All", bundle: .appLanguage),
                     isSelected: selectedVowelDuration == nil,
                     action: { selectedVowelDuration = nil }
                 )
@@ -132,7 +149,7 @@ struct CheatsheetBrowserView: View {
                     )
                 }
                 FilterChipView(
-                    label: String(localized: "Rare"),
+                    label: String(localized: "Rare", bundle: .appLanguage),
                     isSelected: showRareVowels,
                     color: .pink,
                     action: { showRareVowels.toggle() }
@@ -143,15 +160,22 @@ struct CheatsheetBrowserView: View {
         .padding(.bottom, 8)
     }
 
+    /// Matches a data identifier (e.g. "Falling") against the query in both
+    /// its raw form and its localized display form
+    private func matchesQuery(_ value: String, query: String) -> Bool {
+        value.lowercased().contains(query) ||
+        String(localized: String.LocalizationValue(value), bundle: .appLanguage).lowercased().contains(query)
+    }
+
     var filteredToneRules: [ToneRule] {
         guard !searchText.isEmpty else { return toneRules }
 
         let query = searchText.lowercased()
         return toneRules.filter { rule in
-            rule.initialConsonant.lowercased().contains(query) ||
-            rule.vowelDuration.lowercased().contains(query) ||
-            rule.end.lowercased().contains(query) ||
-            rule.tone.lowercased().contains(query)
+            matchesQuery(rule.initialConsonant, query: query) ||
+            matchesQuery(rule.vowelDuration, query: query) ||
+            matchesQuery(rule.end, query: query) ||
+            matchesQuery(rule.tone, query: query)
         }
     }
 
@@ -166,8 +190,8 @@ struct CheatsheetBrowserView: View {
         return toneMarks.filter { mark in
             mark.withLowConsonant.contains(normalizedSearch) ||
             mark.withMidHighConsonant.contains(normalizedSearch) ||
-            mark.onLowConsonant.lowercased().contains(query) ||
-            mark.onMidHighConsonant.lowercased().contains(query)
+            matchesQuery(mark.onLowConsonant, query: query) ||
+            matchesQuery(mark.onMidHighConsonant, query: query)
         }
     }
 
@@ -206,7 +230,7 @@ struct CheatsheetBrowserView: View {
         case .clusters:
             count = filteredClusters.count
         }
-        return "\(type.label) (\(count))"
+        return String(localized: "\(type.shortLabel) (\(count))", bundle: .appLanguage)
     }
 
     var body: some View {
@@ -392,6 +416,18 @@ struct CheatsheetBrowserView: View {
                 }
             }
             .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(settings: settings, syncedStore: syncedStore)
+            }
         }
         .onChange(of: highlighted) { _, newValue in
             // Switch to the section of whichever item was just highlighted
@@ -445,6 +481,7 @@ private extension View {
 
 #Preview {
     CheatsheetBrowserView(
+        settings: FlashcardSettings(),
         highlighted: .constant([:]),
         flashcardStarting: .constant([:]),
         selectedTab: .constant(.reference)

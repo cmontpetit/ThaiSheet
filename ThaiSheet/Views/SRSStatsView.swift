@@ -96,12 +96,12 @@ struct SRSStatsView: View {
 
         var label: String {
             switch self {
-            case .new: return String(localized: "New")
-            case .learning: return String(localized: "Learning")
-            case .apprentice: return String(localized: "Apprentice")
-            case .familiar: return String(localized: "Familiar")
-            case .confident: return String(localized: "Confident")
-            case .mastered: return String(localized: "Mastered")
+            case .new: return String(localized: "New", bundle: .appLanguage)
+            case .learning: return String(localized: "Learning", bundle: .appLanguage)
+            case .apprentice: return String(localized: "Apprentice", bundle: .appLanguage)
+            case .familiar: return String(localized: "Familiar", bundle: .appLanguage)
+            case .confident: return String(localized: "Confident", bundle: .appLanguage)
+            case .mastered: return String(localized: "Mastered", bundle: .appLanguage)
             }
         }
 
@@ -206,7 +206,7 @@ struct SRSStatsView: View {
 
     private var cardTypeBreakdown: some View {
         return ForEach(FlashcardType.allCases, id: \.self) { type in
-            let name = type.label + "s"
+            let name = type.pluralLabel
             let cardsOfType = displayedCards.filter { $0.type == type }
             let dueCount = learningModel.dueCardCount(in: cardsOfType)
             let familiarCount = learningModel.familiarCardCount(in: cardsOfType)
@@ -251,7 +251,7 @@ struct SRSStatsView: View {
 // MARK: - Stat Box Component
 
 private struct StatBox: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let color: Color
 

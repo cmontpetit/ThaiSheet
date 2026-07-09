@@ -21,9 +21,9 @@ enum ConsonantClass: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .low: return String(localized: "Low")
-        case .mid: return String(localized: "Mid")
-        case .high: return String(localized: "High")
+        case .low: return String(localized: "Low", bundle: .appLanguage)
+        case .mid: return String(localized: "Mid", bundle: .appLanguage)
+        case .high: return String(localized: "High", bundle: .appLanguage)
         }
     }
 
@@ -41,6 +41,16 @@ enum ConsonantUsage: String, Codable {
     case uncommon
     case rare
     case ancient
+
+    /// Localized display label (lowercase, shown as a row annotation)
+    var label: String {
+        switch self {
+        case .common: return ""
+        case .uncommon: return String(localized: "uncommon", bundle: .appLanguage)
+        case .rare: return String(localized: "rare", bundle: .appLanguage)
+        case .ancient: return String(localized: "ancient", bundle: .appLanguage)
+        }
+    }
 }
 
 struct ConsonantSounds: Codable {
