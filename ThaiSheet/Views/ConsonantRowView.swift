@@ -36,7 +36,8 @@ struct ConsonantHeaderView: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             HStack(alignment: .center, spacing: 12) {
-                Text("Class")
+                Text("Cl.")
+                    .fixedSize()
                     .frame(width: 20)
 
                 Text("Char")

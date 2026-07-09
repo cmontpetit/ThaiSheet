@@ -72,6 +72,16 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 - In the model, these two columns should be marked as English, since a French version, for instance, may have different letters.
 - The placeholder "◌" (U+25CC dotted circle) is replaced with "ก" in JSON data.
 
+### Data deviations from the source cheatsheet (audited July 2026)
+The app's data intentionally differs from `external-resources/complete-cheatsheet.png` where the PNG is wrong:
+- ซ final sound: PNG says "-s" → app uses "-t" (Thai has no final /s/)
+- ย/ว finals: PNG "[vowel]" → app "-y"/"-w"
+- Added หญ- to silent ห combinations (missing from PNG; หญิง/ใหญ่/หญ้า)
+- Added ฦ/ฦๅ (obsolete letters, not in PNG) and the no-mark tone row (Mid/Mid)
+- ช้าง transcription: PNG "chang" → "chaang" (long vowel)
+- The PNG's 7-row tone rule table is CORRECT — do not add rules (a bogus "High+Long+Dead→Falling" was once introduced and removed; high-class dead syllables are always Low tone)
+- Cluster romanization follows the consonant scheme (g-/dt-/bp-): กร- = gr-, ตร- = dtr-, ปร- = bpr-
+
 ### Vowel notation
 - **Closed** = syllable ends with consonant → form includes `-` to show where final consonant goes
 - **Open** = syllable ends with vowel sound → no dash needed

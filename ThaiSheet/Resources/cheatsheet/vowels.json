@@ -28,7 +28,7 @@
     },
     {
       "short": {
-        "closed": "กอ็-",
+        "closed": "ก็อ-",
         "open": "เกาะ"
       },
       "long": {
@@ -164,7 +164,7 @@
         "open": "กัวะ"
       },
       "long": {
-        "closed": "กัว-",
+        "closed": "กว-",
         "open": "กัว"
       },
       "sounds": {
@@ -172,7 +172,111 @@
       },
       "notes": {
         "short_open": "Short form with -ะ is mainly used in open syllables.",
-        "long_closed": "Closed syllables typically use the long written pattern plus a final consonant."
+        "long_closed": "In closed syllables the ั disappears: ◌ว◌ (สวน, ด่วน, รวม)."
+      }
+    },
+
+    {
+      "short": {
+        "closed": "ก็อย",
+        "open": null
+      },
+      "long": {
+        "closed": "กอย",
+        "open": null
+      },
+      "sounds": {
+        "en": "aawy"
+      },
+      "notes": {
+        "short_closed": "Rare spelling (marked rare in the source cheatsheet).",
+        "long_closed": "ย acts as the final glide: บ่อย, ร้อย, อร่อย."
+      }
+    },
+
+    {
+      "short": {
+        "closed": null,
+        "open": null
+      },
+      "long": {
+        "closed": "เกย",
+        "open": null
+      },
+      "sounds": {
+        "en": "eeuy"
+      },
+      "notes": {
+        "long_closed": "ย acts as the final glide: เลย, เนย, เกย."
+      }
+    },
+
+    {
+      "short": {
+        "closed": null,
+        "open": null
+      },
+      "long": {
+        "closed": "โกย",
+        "open": null
+      },
+      "sounds": {
+        "en": "oy/ohy"
+      },
+      "notes": {
+        "long_closed": "ย acts as the final glide: โดย, โรย."
+      }
+    },
+
+    {
+      "short": {
+        "closed": "กุย",
+        "open": null
+      },
+      "long": {
+        "closed": null,
+        "open": null
+      },
+      "sounds": {
+        "en": "uy"
+      },
+      "notes": {
+        "short_closed": "ย acts as the final glide: คุย, ลุย."
+      }
+    },
+
+    {
+      "short": {
+        "closed": null,
+        "open": null
+      },
+      "long": {
+        "closed": "เกือย",
+        "open": null
+      },
+      "sounds": {
+        "en": "euuay"
+      },
+      "notes": {
+        "long_closed": "ย acts as the final glide: เหนื่อย, เรื่อย."
+      }
+    },
+
+    {
+      "short": {
+        "closed": "กวย",
+        "open": null
+      },
+      "long": {
+        "closed": "กวาย",
+        "open": null
+      },
+      "sounds": {
+        "en": "uay"
+      },
+      "notes": {
+        "short_closed": "ย acts as the final glide: ด้วย, สวย, กล้วย.",
+        "long_closed": "Long form: ควาย, สบาย follows ◌าย pattern."
       }
     },
     {
@@ -194,7 +298,7 @@
     },
     {
       "short": {
-        "closed": "แกว",
+        "closed": "แก็ว",
         "open": null
       },
       "long": {
@@ -203,10 +307,6 @@
       },
       "sounds": {
         "en": "aeo"
-      },
-      "notes": {
-        "short_closed": "Written form overlaps with long.open; pronunciation/length is word-dependent.",
-        "long_open": "Written form overlaps with short.closed; pronunciation/length is word-dependent."
       }
     },
     {
@@ -215,15 +315,15 @@
         "open": null
       },
       "long": {
-        "closed": null,
-        "open": "เกออ"
+        "closed": "เกอว",
+        "open": null
       },
       "sounds": {
         "en": "uaaw"
       },
       "usage": "rare",
       "notes": {
-        "long_open": "Rare spelling—do not prioritize; confirm with dictionary/audio if encountered."
+        "long_closed": "Rare spelling—do not prioritize; confirm with dictionary/audio if encountered."
       }
     },
     {
@@ -300,9 +400,59 @@
       },
       "sounds": {
         "en": "ai"
+      }
+    },
+
+    {
+      "short": {
+        "closed": null,
+        "open": null
+      },
+      "long": {
+        "closed": null,
+        "open": "ใก"
+      },
+      "sounds": {
+        "en": "ai"
       },
       "notes": {
-        "long_open": "Also spelled ใก for exactly 20 common words (ใช้, ใน, ใจ, etc.)"
+        "long_open": "ไม้ม้วน: used for exactly 20 common words (ใช้, ใน, ใจ, ใหม่, …)."
+      }
+    },
+
+    {
+      "short": {
+        "closed": "กัย",
+        "open": null
+      },
+      "long": {
+        "closed": "กาย",
+        "open": null
+      },
+      "sounds": {
+        "en": "ai"
+      },
+      "notes": {
+        "short_closed": "◌ั + ย final: วัย, ภัย.",
+        "long_closed": "◌า + ย final: สาย, ตาย, ควาย."
+      }
+    },
+
+    {
+      "short": {
+        "closed": null,
+        "open": null
+      },
+      "long": {
+        "closed": "ไกย",
+        "open": null
+      },
+      "sounds": {
+        "en": "ai"
+      },
+      "usage": "rare",
+      "notes": {
+        "long_closed": "ไ◌ย appears in very few words (ไทย)."
       }
     },
     {

@@ -65,11 +65,6 @@ struct Vowel: Codable, Identifiable {
         }
     }
 
-    var isRare: Bool {
-        // Vowels with ฤ are rare
-        allForms.contains { $0.contains("ฤ") }
-    }
-
     /// Returns true if the given form appears in both short and long positions
     func isDuplicate(form: String) -> Bool {
         let shortForms = [short.closed, short.open].compactMap { $0 }

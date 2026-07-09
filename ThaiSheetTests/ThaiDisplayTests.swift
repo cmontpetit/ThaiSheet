@@ -26,8 +26,13 @@ final class ThaiDisplayTests: XCTestCase {
     }
 
     func test_followingThaiLetter_usesExplicitCircle() {
-        // อ is a full letter, not a combining mark
-        XCTAssertEqual(ThaiDisplay.placeholder("กอ็-"), "\(circle)อ็-")
+        // ว is a full letter, not a combining mark
+        XCTAssertEqual(ThaiDisplay.placeholder("กว-"), "\(circle)ว-")
+    }
+
+    func test_shortOClosed_usesHairSpace() {
+        // ก็อ- (ล็อก pattern): ก carries the ็ mark
+        XCTAssertEqual(ThaiDisplay.placeholder("ก็อ-"), "\(hair)\u{0E47}อ-")
     }
 
     func test_bareConsonantWithDash_usesExplicitCircle() {

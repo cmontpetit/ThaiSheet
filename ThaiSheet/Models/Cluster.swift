@@ -72,8 +72,10 @@ struct Cluster: Codable, Identifiable {
         }
     }
 
-    /// Display form with า vowel for pronunciation (e.g., "กร-" → "กรา")
+    /// Display form with า vowel for pronunciation (e.g., "กร-" → "กรา").
+    /// Final-position clusters (leading "-", e.g. "-ทร") display as written.
     var displayWithVowel: String {
+        guard !cluster.hasPrefix("-") else { return cluster }
         let base = cluster.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
         return base + "า"
     }

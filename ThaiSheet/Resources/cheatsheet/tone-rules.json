@@ -69,31 +69,16 @@
         { "full": "ซาก", "focus": "ซาก" },
         { "full": "ยาก", "focus": "ยาก" },
         { "full": "โลก", "focus": "โลก" },
-        { "full": "เมือก", "focus": "เมือก" }
-      ]
-    },
-
-    {
-      "initialConsonant": "High",
-      "vowelDuration": "Long",
-      "end": "Dead",
-      "tone": "Falling",
-      "samples": [
-        { "full": "ชอบ", "focus": "ชอบ" },
+        { "full": "เมือก", "focus": "เมือก" },
+        {
+          "full": "ชอบ",
+          "focus": "ชอบ",
+          "note": "Low-class ช; long dead syllable → falling tone."
+        },
         {
           "full": "ชาติ",
           "focus": "ชาติ",
-          "note": "High-class initial; long dead syllable → falling tone."
-        },
-        {
-          "full": "ขาด",
-          "focus": "ขาด",
-          "note": "High-class consonant with long dead syllable → falling tone."
-        },
-        {
-          "full": "สอบ",
-          "focus": "สอบ",
-          "note": "High-class consonant; long dead syllable → falling tone."
+          "note": "Low-class ช; long dead syllable → falling tone."
         }
       ]
     },
@@ -193,36 +178,12 @@
           "focus": "หนา",
           "note": "Leading ห; tone class determined by ห."
         },
-        {
-          "full": "ถาม",
-          "focus": "ถาม",
-          "note": "Leading ห; tone class determined by ห."
-        },
-        {
-          "full": "เขา",
-          "focus": "เขา",
-          "note": "Leading ห; tone class determined by ห."
-        },
-        {
-          "full": "ผม",
-          "focus": "ผม",
-          "note": "Common spoken exception; pronounced rising in everyday Thai."
-        },
-        {
-          "full": "สอง",
-          "focus": "สอง",
-          "note": "Low-class consonant; rising tone is lexical outcome."
-        },
-        {
-          "full": "สาม",
-          "focus": "สาม",
-          "note": "Low-class consonant; rising tone is lexical outcome."
-        },
-        {
-          "full": "สาย",
-          "focus": "สาย",
-          "note": "Low-class consonant; rising tone is lexical outcome."
-        },
+        { "full": "ถาม", "focus": "ถาม" },
+        { "full": "เขา", "focus": "เขา" },
+        { "full": "ผม", "focus": "ผม" },
+        { "full": "สอง", "focus": "สอง" },
+        { "full": "สาม", "focus": "สาม" },
+        { "full": "สาย", "focus": "สาย" },
         { "full": "ขาย", "focus": "ขาย" },
         { "full": "สวย", "focus": "สวย" },
         { "full": "ไหม", "focus": "ไหม" }
@@ -231,11 +192,21 @@
 
     {
       "initialConsonant": "High",
-      "vowelDuration": "Short",
+      "vowelDuration": "Any",
       "end": "Dead",
       "tone": "Low",
       "samples": [
         { "full": "ขับ", "focus": "ขับ" },
+        {
+          "full": "ขาด",
+          "focus": "ขาด",
+          "note": "High-class consonant; dead syllable → low tone regardless of vowel length."
+        },
+        {
+          "full": "สอบ",
+          "focus": "สอบ",
+          "note": "High-class consonant; long dead syllable → low tone."
+        },
         { "full": "ผัก", "focus": "ผัก" },
         { "full": "สัก", "focus": "สัก" },
         { "full": "หก", "focus": "หก" },

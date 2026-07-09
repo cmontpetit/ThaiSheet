@@ -88,9 +88,9 @@ final class BundleLoaderTests: XCTestCase {
                                     "Should have at least 20 vowels")
     }
 
-    func test_vowelLoadAll_returns23Vowels() {
+    func test_vowelLoadAll_returns32Vowels() {
         let vowels = Vowel.loadAll()
-        XCTAssertEqual(vowels.count, 23)
+        XCTAssertEqual(vowels.count, 32)
     }
 
     func test_vowelLoadAll_allHaveSounds() {
@@ -147,9 +147,9 @@ final class BundleLoaderTests: XCTestCase {
         XCTAssertFalse(toneRules.isEmpty)
     }
 
-    func test_toneRuleLoadAll_returns8Rules() {
+    func test_toneRuleLoadAll_returns7Rules() {
         let toneRules = ToneRule.loadAll()
-        XCTAssertEqual(toneRules.count, 8)
+        XCTAssertEqual(toneRules.count, 7, "Standard Thai tone table has 7 rules")
     }
 
     func test_toneRuleLoadAll_hasAllConsonantClasses() {
@@ -185,9 +185,9 @@ final class BundleLoaderTests: XCTestCase {
         XCTAssertFalse(clusters.isEmpty)
     }
 
-    func test_clusterLoadAll_returns28Clusters() {
+    func test_clusterLoadAll_returns30Clusters() {
         let clusters = Cluster.loadAll()
-        XCTAssertEqual(clusters.count, 28)
+        XCTAssertEqual(clusters.count, 30)
     }
 
     func test_clusterLoadAll_hasAllTypes() {

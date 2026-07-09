@@ -151,7 +151,7 @@ struct VowelRowView: View {
     private var backgroundForRow: Color {
         if isHighlighted {
             return Color.accentColor.opacity(0.1)
-        } else if vowel.isRare {
+        } else if vowel.isUncommon {
             return Color.pink.opacity(0.1)
         }
         return Color.clear
