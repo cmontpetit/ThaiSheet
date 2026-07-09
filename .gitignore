@@ -11,3 +11,9 @@ build/
 DerivedData/
 *.xcuserstate
 xcuserdata/
+
+# Python virtualenvs (scripts/venv, root venv)
+venv/
+
+# Claude Code personal permission grants (per-developer, not shared)
+.claude/settings.local.json

@@ -23,11 +23,13 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - `FlashcardItem` — enum unifying all card types (`case consonant(Consonant)`, etc.)
 - `FlashcardType` — `CaseIterable` enum for card categories, with `label` property
 - `ThaiColors` — shared tone/class color mapping
+- `ThaiDisplay` — display forms for the ◌ placeholder, combining-mark search normalization
 
 **State:**
-- `FlashcardSettings` (`@Observable`) — filter toggles and preferences, persisted via `UserDefaults` `didSet`. Accepts `UserDefaults` instance for testability.
-- `LearningModel` (`@Observable`) — SRS progress tracking (`CardProgress` per card)
+- `FlashcardSettings` (`@Observable`) — filter toggles and preferences, persisted via `didSet`. Accepts a `KeyValueStore` for testability. Also owns the dev-only language override (`Bundle.appLanguage`).
+- `LearningModel` (`@Observable`) — SRS progress tracking (`CardProgress` per card). Accepts a `KeyValueStore`.
 - `CardProgress` — per-card SRS stage, review timestamps, streak
+- `KeyValueStore` — protocol abstracting the UserDefaults API (`UserDefaults` conforms); `SyncedKeyValueStore` dual-writes UserDefaults + `NSUbiquitousKeyValueStore` for iCloud sync (cloud activated lazily)
 
 ### Services (`ThaiSheet/Services/`)
 
@@ -35,6 +37,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - **`CardSelectionStrategy`** (protocol) — `SequentialStrategy` (fixed order) and `WanikaniStrategy` (SRS-prioritized).
 - **`AudioPlayer`** — singleton conforming to `AudioPlaying` protocol. Injected via `@Environment(\.audioPlayer)`. Uses `SoundType` enum (`.consonant`, `.vowel`, `.toneMark`, `.toneRule`, `.cluster`) for unified `play`/`hasSound` methods.
 - **`BundleLoader`** — generic JSON loading utility. All models use `BundleLoader.load(_:as:keyPath:)` instead of duplicated boilerplate.
+- **`ThaiDataStore`** — loads all bundled JSON once; injected via `@Environment(\.thaiData)` into `FlashcardManager` and `CheatsheetBrowserView`.
 
 ### Views (`ThaiSheet/Views/`)
 
@@ -55,7 +58,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 
 **Screens:**
 - `CheatsheetBrowserView` — reference tab with search and section navigation
-- `FlashcardFilterView`, `FlashcardSettingsView` — settings sheets
+- `FlashcardFilterView`, `SettingsView` — settings sheets
 - `SRSStatsView` — learning progress statistics
 
 ### App Shell (`ContentView.swift`)
@@ -71,7 +74,8 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 |---|---|
 | `AudioPlaying` | `@Environment(\.audioPlayer)` — protocol, mockable |
 | `LearningModel` | `@Environment(\.learningModel)` |
-| `FlashcardSettings` | Passed as parameter; accepts `UserDefaults` in init |
+| `ThaiDataStore` | `@Environment(\.thaiData)` |
+| `FlashcardSettings` | Passed as parameter; accepts `KeyValueStore` in init |
 | `FlashcardManager` | Passed as parameter to `FlashcardsView` |
 
 ## Data Flow
