@@ -23,9 +23,9 @@ enum ThaiDisplay {
     private static let dottedCircle: Unicode.Scalar = "\u{25CC}"
     private static let hairSpace: Unicode.Scalar = "\u{200A}"
 
-    /// Replaces the ก placeholder consonant in a vowel form with a dotted
-    /// circle for display. The result is for rendering only — sound file
-    /// keys, SRS ids, and search all use the raw ก-based form.
+    /// Replaces the ก placeholder consonant in a vowel or tone-mark form
+    /// with a dotted circle for display. The result is for rendering only —
+    /// sound file keys, SRS ids, and search all use the raw ก-based form.
     ///
     /// When ก carries an above/below mark, ก becomes a hair space instead of
     /// an explicit U+25CC: the text engine then auto-inserts a single dotted
@@ -33,7 +33,7 @@ enum ThaiDisplay {
     /// a second circle drawn next to it. The hair space also keeps the mark
     /// from attaching to a preposed vowel (เ แ โ); zero-width characters
     /// don't work because the shaper deletes them and glues the mark anyway.
-    static func vowelPlaceholder(_ form: String) -> String {
+    static func placeholder(_ form: String) -> String {
         substitute(form) { next in
             next.map(combiningMarks.contains) == true ? hairSpace : dottedCircle
         }

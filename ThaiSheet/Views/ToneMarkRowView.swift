@@ -8,19 +8,19 @@ import SwiftUI
 struct ToneMarkHeaderView: View {
     var body: some View {
         HStack(spacing: 0) {
-            Text("Low")
-                .frame(maxWidth: .infinity)
-
-            Text("Tone")
+            Text("Tone Mark")
                 .frame(maxWidth: .infinity)
 
             Divider()
                 .frame(height: 20)
 
-            Text("Mid/High")
+            Text("On Low Cons.")
                 .frame(maxWidth: .infinity)
 
-            Text("Tone")
+            Divider()
+                .frame(height: 20)
+
+            Text("On Mid/High Cons.")
                 .frame(maxWidth: .infinity)
         }
         .font(.caption)
@@ -61,34 +61,32 @@ struct ToneMarkRowView: View {
                 .frame(width: 8, height: 8)
                 .padding(.trailing, 4)
 
-            // Low consonant column
-            toneMarkCell(
-                display: toneMark.withLowConsonant,
-                soundKey: toneMark.soundKeyLow,
-                tone: toneMark.onLowConsonant,
-                hasSound: hasLowSound,
-                isNA: toneMark.onLowConsonant == "n/a"
-            )
-            .frame(maxWidth: .infinity)
-
-            toneLabelCell(toneMark.onLowConsonant, soundKey: toneMark.soundKeyLow, hasSound: hasLowSound)
+            // Tone mark on a dotted-circle placeholder
+            Text(ThaiDisplay.placeholder(toneMark.withMidHighConsonant))
+                .font(.title2)
                 .frame(maxWidth: .infinity)
 
             Divider()
                 .frame(height: 30)
 
-            // Mid/High consonant column
-            toneMarkCell(
-                display: toneMark.withMidHighConsonant,
-                soundKey: toneMark.soundKeyMidHigh,
-                tone: toneMark.onMidHighConsonant,
-                hasSound: hasMidHighSound,
-                isNA: toneMark.onMidHighConsonant == "n/a"
+            toneCell(
+                tone: toneMark.onLowConsonant,
+                display: toneMark.withLowConsonant,
+                soundKey: toneMark.soundKeyLow,
+                hasSound: hasLowSound
             )
             .frame(maxWidth: .infinity)
 
-            toneLabelCell(toneMark.onMidHighConsonant, soundKey: toneMark.soundKeyMidHigh, hasSound: hasMidHighSound)
-                .frame(maxWidth: .infinity)
+            Divider()
+                .frame(height: 30)
+
+            toneCell(
+                tone: toneMark.onMidHighConsonant,
+                display: toneMark.withMidHighConsonant,
+                soundKey: toneMark.soundKeyMidHigh,
+                hasSound: hasMidHighSound
+            )
+            .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)
         .padding(.leading, 8)
@@ -97,17 +95,18 @@ struct ToneMarkRowView: View {
     }
 
     @ViewBuilder
-    private func toneMarkCell(display: String, soundKey: String, tone: String, hasSound: Bool, isNA: Bool) -> some View {
-        if isNA {
-            Text("")
-                .font(.title2)
+    private func toneCell(tone: String, display: String, soundKey: String, hasSound: Bool) -> some View {
+        if tone == "n/a" {
+            Text("—")
+                .font(.subheadline)
+                .foregroundStyle(.quaternary)
         } else {
             Button {
                 selectedDisplay = display
             } label: {
-                Text(display)
-                    .font(.title2)
-                    .foregroundColor(.primary)
+                StyledToneText(tone: tone)
+                    .font(.subheadline)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .sheet(
@@ -125,24 +124,6 @@ struct ToneMarkRowView: View {
                     onPractice: { onPractice?(soundKey) }
                 )
             }
-        }
-    }
-
-    @ViewBuilder
-    private func toneLabelCell(_ tone: String, soundKey: String, hasSound: Bool) -> some View {
-        if tone == "n/a" {
-            Text("")
-                .font(.subheadline)
-        } else {
-            StyledToneText(tone: tone)
-                .font(.subheadline)
-                .foregroundColor(hasSound ? .accentColor : .secondary)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if hasSound {
-                        audioPlayer.play(.toneMark, key: soundKey)
-                    }
-                }
         }
     }
 }

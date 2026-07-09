@@ -79,7 +79,7 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 
 ### Thai character rendering on iOS
 - The dotted circle `◌` (U+25CC) causes double-circle rendering on iOS when combined with vowel marks that go above/below (e.g., `◌ิ` shows two circles) — in every font tested (system, Thonburi, SukhumvitSet)
-- For data, use `ก` as the consonant placeholder; for display, `ThaiDisplay.vowelPlaceholder` (Models/ThaiDisplay.swift) converts it:
+- For data, use `ก` as the consonant placeholder; for display, `ThaiDisplay.placeholder` (Models/ThaiDisplay.swift) converts it:
   - ก before an above/below combining mark → hair space (U+200A): the shaper auto-inserts a single dotted circle under the orphaned mark
   - ก elsewhere → explicit `◌` (U+25CC)
   - Zero-width characters (ZWSP/ZWJ) do NOT work as the mark's stand-in base — the Thai shaper deletes them and glues the mark onto the preceding letter (e.g. onto preposed เ/แ/โ)

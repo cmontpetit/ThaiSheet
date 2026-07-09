@@ -710,6 +710,26 @@
         }
       }
     },
+    "On Low Cons." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur cons. basse"
+          }
+        }
+      }
+    },
+    "On Mid/High Cons." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur cons. moy./haute"
+          }
+        }
+      }
+    },
     "Open" : {
       "localizations" : {
         "fr" : {
