@@ -351,7 +351,6 @@
       "sounds": {
         "en": "iu"
       },
-      "usage": "uncommon",
       "notes": {
         "short_closed": "Often appears in loanwords; patterns may feel less regular."
       }
@@ -392,31 +391,34 @@
     {
       "short": {
         "closed": null,
-        "open": null
+        "open": "ไก"
       },
       "long": {
-        "closed": "ไก-",
-        "open": "ไก"
+        "closed": null,
+        "open": null
       },
       "sounds": {
         "en": "ai"
+      },
+      "notes": {
+        "short_open": "ไ◌ is a short /ai/ and never takes a written final (ไป, ไม้)."
       }
     },
 
     {
       "short": {
         "closed": null,
-        "open": null
+        "open": "ใก"
       },
       "long": {
         "closed": null,
-        "open": "ใก"
+        "open": null
       },
       "sounds": {
         "en": "ai"
       },
       "notes": {
-        "long_open": "ไม้ม้วน: used for exactly 20 common words (ใช้, ใน, ใจ, ใหม่, …)."
+        "short_open": "ไม้ม้วน: used for exactly 20 common words (ใช้, ใน, ใจ, ใหม่, …)."
       }
     },
 
@@ -426,15 +428,14 @@
         "open": null
       },
       "long": {
-        "closed": "กาย",
+        "closed": null,
         "open": null
       },
       "sounds": {
         "en": "ai"
       },
       "notes": {
-        "short_closed": "◌ั + ย final: วัย, ภัย.",
-        "long_closed": "◌า + ย final: สาย, ตาย, ควาย."
+        "short_closed": "◌ั + ย final: วัย, ภัย."
       }
     },
 
@@ -444,15 +445,31 @@
         "open": null
       },
       "long": {
+        "closed": "กาย",
+        "open": null
+      },
+      "sounds": {
+        "en": "aai"
+      },
+      "notes": {
+        "long_closed": "◌า + ย final, the long counterpart of ไ◌/◌ัย: สาย, ตาย, ควาย."
+      }
+    },
+
+    {
+      "short": {
         "closed": "ไกย",
+        "open": null
+      },
+      "long": {
+        "closed": null,
         "open": null
       },
       "sounds": {
         "en": "ai"
       },
-      "usage": "rare",
       "notes": {
-        "long_closed": "ไ◌ย appears in very few words (ไทย)."
+        "short_closed": "ไ◌ย appears in very few words (ไทย); still a short /ai/."
       }
     },
     {

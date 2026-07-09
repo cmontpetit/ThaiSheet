@@ -88,9 +88,15 @@ final class BundleLoaderTests: XCTestCase {
                                     "Should have at least 20 vowels")
     }
 
-    func test_vowelLoadAll_returns32Vowels() {
+    func test_vowelLoadAll_returns33Vowels() {
         let vowels = Vowel.loadAll()
-        XCTAssertEqual(vowels.count, 32)
+        XCTAssertEqual(vowels.count, 33)
+    }
+
+    func test_vowelLoadAll_idsAreUnique() {
+        // Duplicate ids break SwiftUI List identity (rows render multiple times)
+        let ids = Vowel.loadAll().map(\.id)
+        XCTAssertEqual(ids.count, Set(ids).count, "Vowel ids must be unique")
     }
 
     func test_vowelLoadAll_allHaveSounds() {

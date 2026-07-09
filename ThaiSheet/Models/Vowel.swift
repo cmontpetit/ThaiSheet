@@ -39,7 +39,7 @@ struct Vowel: Codable, Identifiable {
     let notes: VowelNotes?
     let usage: VowelUsage?
 
-    var id: String { sounds.en + (short.closed ?? "") + (short.open ?? "") }
+    var id: String { sounds.en + "-" + allForms.joined(separator: "|") }
 
     /// Returns true if this vowel is uncommon, rare, or archaic
     var isUncommon: Bool {
@@ -52,6 +52,12 @@ struct Vowel: Codable, Identifiable {
     /// All existing written forms, in short-closed/short-open/long-closed/long-open order
     var allForms: [String] {
         [short.closed, short.open, long.closed, long.open].compactMap { $0 }
+    }
+
+    /// Returns true if this vowel has at least one written form for the duration
+    func hasForm(for duration: VowelCard.VowelDuration) -> Bool {
+        let form = duration == .short ? short : long
+        return form.closed != nil || form.open != nil
     }
 
     func note(for duration: String, form: String) -> String? {

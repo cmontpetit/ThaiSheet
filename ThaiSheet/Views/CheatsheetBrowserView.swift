@@ -41,6 +41,8 @@ struct CheatsheetBrowserView: View {
     // Filters
     @State private var selectedConsonantClass: ConsonantClass? = nil
     @State private var selectedClusterType: ClusterType? = nil
+    @State private var selectedVowelDuration: VowelCard.VowelDuration? = nil
+    @State private var showRareVowels = false
 
     // Convenience accessors for highlighted values
     private var highlightedConsonant: String? { highlighted[.consonant] }
@@ -91,16 +93,54 @@ struct CheatsheetBrowserView: View {
     }
 
     var filteredVowels: [Vowel] {
-        guard let normalizedSearch = normalizedVowelSearch else { return vowels }
+        var result = vowels
+
+        if let duration = selectedVowelDuration {
+            result = result.filter { $0.hasForm(for: duration) }
+        }
+
+        guard let normalizedSearch = normalizedVowelSearch else {
+            // No search: hide rare/archaic rows unless the Rare toggle is on
+            return showRareVowels ? result : result.filter { !$0.isUncommon }
+        }
 
         // Don't match vowels if searching for just the placeholder consonant
         if searchText == "ก" { return [] }
 
+        // Searching bypasses the rare toggle so matches are never hidden
         let query = searchText.lowercased()
-        return vowels.filter { vowel in
+        return result.filter { vowel in
             vowel.allForms.contains { $0.contains(normalizedSearch) } ||
             vowel.sound.lowercased().contains(query)
         }
+    }
+
+    /// Duration selection chips plus the independent "Rare" visibility toggle
+    private var vowelFilterChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                FilterChipView(
+                    label: String(localized: "All"),
+                    isSelected: selectedVowelDuration == nil,
+                    action: { selectedVowelDuration = nil }
+                )
+                ForEach(VowelCard.VowelDuration.allCases, id: \.self) { duration in
+                    FilterChipView(
+                        label: duration.label,
+                        isSelected: selectedVowelDuration == duration,
+                        action: { selectedVowelDuration = duration }
+                    )
+                }
+                FilterChipView(
+                    label: String(localized: "Rare"),
+                    isSelected: showRareVowels,
+                    color: .pink,
+                    action: { showRareVowels.toggle() }
+                )
+            }
+            .padding(.horizontal)
+        }
+        .padding(.bottom, 8)
     }
 
     var filteredToneRules: [ToneRule] {
@@ -197,9 +237,15 @@ struct CheatsheetBrowserView: View {
                         selection: $selectedClusterType
                     )
                 }
+                if selectedType == .vowels {
+                    vowelFilterChips
+                }
 
                 switch selectedType {
                 case .consonants:
+                    if filteredConsonants.isEmpty {
+                        ContentUnavailableView.search(text: searchText)
+                    } else {
                     VStack(spacing: 0) {
                         ConsonantHeaderView()
                         Divider()
@@ -219,9 +265,13 @@ struct CheatsheetBrowserView: View {
                             .scrollsToHighlight(highlightedConsonant, proxy: proxy) { $0 }
                         }
                     }
+                    }
                 case .vowels:
+                    if filteredVowels.isEmpty {
+                        ContentUnavailableView.search(text: searchText)
+                    } else {
                     VStack(spacing: 0) {
-                        VowelHeaderView()
+                        VowelHeaderView(visibleDuration: selectedVowelDuration)
                         Divider()
                         ScrollViewReader { proxy in
                             List(filteredVowels) { vowel in
@@ -229,6 +279,7 @@ struct CheatsheetBrowserView: View {
                                     vowel: vowel,
                                     highlightedForm: highlightedVowel,
                                     searchQuery: normalizedVowelSearch,
+                                    visibleDuration: selectedVowelDuration,
                                     onPractice: { form in
                                         startPractice(form, type: .vowel)
                                     }
@@ -242,47 +293,55 @@ struct CheatsheetBrowserView: View {
                             }
                         }
                     }
+                    }
                 case .tones:
+                    if filteredToneMarks.isEmpty && filteredToneRules.isEmpty {
+                        ContentUnavailableView.search(text: searchText)
+                    } else {
                     ScrollViewReader { proxy in
                         ScrollView {
                             VStack(spacing: 16) {
                                 // Tone Marks table
-                                VStack(spacing: 0) {
-                                    ToneMarkHeaderView()
-                                    Divider()
-                                    ForEach(filteredToneMarks) { mark in
-                                        let isMarkHighlighted = highlightedToneMark == mark.withLowConsonant ||
-                                                                highlightedToneMark == mark.withMidHighConsonant
-                                        ToneMarkRowView(
-                                            toneMark: mark,
-                                            isHighlighted: isMarkHighlighted
-                                        ) { display in
-                                            startPractice(display, type: .toneMark)
-                                        }
-                                        .id("tonemark-\(mark.id)")
+                                if !filteredToneMarks.isEmpty {
+                                    VStack(spacing: 0) {
+                                        ToneMarkHeaderView()
                                         Divider()
+                                        ForEach(filteredToneMarks) { mark in
+                                            let isMarkHighlighted = highlightedToneMark == mark.withLowConsonant ||
+                                                                    highlightedToneMark == mark.withMidHighConsonant
+                                            ToneMarkRowView(
+                                                toneMark: mark,
+                                                isHighlighted: isMarkHighlighted
+                                            ) { display in
+                                                startPractice(display, type: .toneMark)
+                                            }
+                                            .id("tonemark-\(mark.id)")
+                                            Divider()
+                                        }
                                     }
+                                    .background(Color(.systemBackground))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
-                                .background(Color(.systemBackground))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
 
                                 // Tone Rules table
-                                VStack(spacing: 0) {
-                                    ToneRuleHeaderView()
-                                    Divider()
-                                    ForEach(filteredToneRules) { rule in
-                                        ToneRuleRowView(
-                                            rule: rule,
-                                            isHighlighted: highlightedToneRule == rule.id
-                                        ) {
-                                            startPractice(rule.id, type: .toneRule)
-                                        }
-                                        .id("tonerule-\(rule.id)")
+                                if !filteredToneRules.isEmpty {
+                                    VStack(spacing: 0) {
+                                        ToneRuleHeaderView()
                                         Divider()
+                                        ForEach(filteredToneRules) { rule in
+                                            ToneRuleRowView(
+                                                rule: rule,
+                                                isHighlighted: highlightedToneRule == rule.id
+                                            ) {
+                                                startPractice(rule.id, type: .toneRule)
+                                            }
+                                            .id("tonerule-\(rule.id)")
+                                            Divider()
+                                        }
                                     }
+                                    .background(Color(.systemBackground))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
-                                .background(Color(.systemBackground))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                             .padding(.horizontal)
                         }
@@ -294,7 +353,11 @@ struct CheatsheetBrowserView: View {
                         .scrollsToHighlight(highlightedToneRule, proxy: proxy) { "tonerule-\($0)" }
                     }
                     .background(Color(.secondarySystemBackground))
+                    }
                 case .clusters:
+                    if filteredClusters.isEmpty {
+                        ContentUnavailableView.search(text: searchText)
+                    } else {
                     ScrollViewReader { proxy in
                         ScrollView {
                             VStack(spacing: 16) {
@@ -325,6 +388,7 @@ struct CheatsheetBrowserView: View {
                         .scrollsToHighlight(highlightedCluster, proxy: proxy) { $0 }
                     }
                     .background(Color(.secondarySystemBackground))
+                    }
                 }
             }
             .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
@@ -334,8 +398,12 @@ struct CheatsheetBrowserView: View {
             if newValue[.consonant] != nil {
                 selectedType = .consonants
                 selectedConsonantClass = nil
-            } else if newValue[.vowel] != nil {
+            } else if let form = newValue[.vowel] {
                 selectedType = .vowels
+                selectedVowelDuration = nil
+                if vowels.first(where: { $0.allForms.contains(form) })?.isUncommon == true {
+                    showRareVowels = true
+                }
             } else if newValue[.toneMark] != nil || newValue[.toneRule] != nil {
                 selectedType = .tones
             } else if newValue[.cluster] != nil {

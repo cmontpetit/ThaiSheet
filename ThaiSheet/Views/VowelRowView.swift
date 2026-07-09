@@ -24,56 +24,63 @@ enum VowelFormType {
 }
 
 struct VowelHeaderView: View {
+    /// When set, only that duration's columns are shown (full width)
+    var visibleDuration: VowelCard.VowelDuration? = nil
+
     var body: some View {
         HStack(spacing: 0) {
-            // SHORT section
-            VStack(spacing: 2) {
-                Text("SHORT")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                HStack(spacing: 0) {
-                    Text("Closed")
-                        .font(.caption2)
-                        .frame(maxWidth: .infinity)
-                    Text("Open")
-                        .font(.caption2)
-                        .frame(maxWidth: .infinity)
-                }
+            switch visibleDuration {
+            case .short:
+                durationHeader("SHORT", fullWidth: true)
+                Divider()
+                    .frame(height: 30)
+                soundHeader
+            case .long:
+                durationHeader("LONG", fullWidth: true)
+                Divider()
+                    .frame(height: 30)
+                soundHeader
+            case nil:
+                durationHeader("SHORT", fullWidth: false)
+                Divider()
+                    .frame(height: 30)
+                soundHeader
+                Divider()
+                    .frame(height: 30)
+                durationHeader("LONG", fullWidth: false)
             }
-            .frame(maxWidth: .infinity)
-
-            Divider()
-                .frame(height: 30)
-
-            // Sound column (center)
-            Text("Sound")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .frame(width: 60)
-
-            Divider()
-                .frame(height: 30)
-
-            // LONG section
-            VStack(spacing: 2) {
-                Text("LONG")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                HStack(spacing: 0) {
-                    Text("Closed")
-                        .font(.caption2)
-                        .frame(maxWidth: .infinity)
-                    Text("Open")
-                        .font(.caption2)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .frame(maxWidth: .infinity)
         }
         .foregroundStyle(.secondary)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(Color(.systemBackground))
+    }
+
+    private var soundHeader: some View {
+        Text("Sound")
+            .font(.caption)
+            .fontWeight(.semibold)
+            .frame(width: 60)
+    }
+
+    /// Full-width mode aligns the column labels leading, matching the cells
+    private func durationHeader(_ title: LocalizedStringKey, fullWidth: Bool) -> some View {
+        VStack(spacing: 2) {
+            Text(title)
+                .font(.caption)
+                .fontWeight(.semibold)
+            HStack(spacing: 0) {
+                Text("Closed")
+                    .font(.caption2)
+                    .frame(maxWidth: .infinity, alignment: fullWidth ? .leading : .center)
+                    .padding(.leading, fullWidth ? 24 : 0)
+                Text("Open")
+                    .font(.caption2)
+                    .frame(maxWidth: .infinity, alignment: fullWidth ? .leading : .center)
+                    .padding(.leading, fullWidth ? 24 : 0)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -81,6 +88,8 @@ struct VowelRowView: View {
     let vowel: Vowel
     var highlightedForm: String? = nil
     var searchQuery: String? = nil
+    /// When set, only that duration's cells are shown (full width)
+    var visibleDuration: VowelCard.VowelDuration? = nil
     var onPractice: ((String) -> Void)? = nil
 
     @Environment(\.audioPlayer) private var audioPlayer
@@ -116,36 +125,54 @@ struct VowelRowView: View {
                 .frame(width: 8, height: 8)
                 .padding(.trailing, 4)
 
-            // SHORT section
-            HStack(spacing: 0) {
-                vowelCell(vowel.short.closed, formType: .shortClosed)
-                vowelCell(vowel.short.open, formType: .shortOpen)
+            switch visibleDuration {
+            case .short:
+                shortCells
+                Divider()
+                    .frame(height: 30)
+                soundLabel
+            case .long:
+                longCells
+                Divider()
+                    .frame(height: 30)
+                soundLabel
+            case nil:
+                shortCells
+                Divider()
+                    .frame(height: 30)
+                soundLabel
+                Divider()
+                    .frame(height: 30)
+                longCells
             }
-            .frame(maxWidth: .infinity)
-
-            Divider()
-                .frame(height: 30)
-
-            // Sound (center, display only)
-            Text(vowel.sound)
-                .font(.caption)
-                .foregroundColor(.primary)
-                .frame(width: 60)
-
-            Divider()
-                .frame(height: 30)
-
-            // LONG section
-            HStack(spacing: 0) {
-                vowelCell(vowel.long.closed, formType: .longClosed)
-                vowelCell(vowel.long.open, formType: .longOpen)
-            }
-            .frame(maxWidth: .infinity)
         }
         .padding(.leading, 8)
         .padding(.trailing, 12)
         .padding(.vertical, 6)
         .background(backgroundForRow)
+    }
+
+    private var shortCells: some View {
+        HStack(spacing: 0) {
+            vowelCell(vowel.short.closed, formType: .shortClosed)
+            vowelCell(vowel.short.open, formType: .shortOpen)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var longCells: some View {
+        HStack(spacing: 0) {
+            vowelCell(vowel.long.closed, formType: .longClosed)
+            vowelCell(vowel.long.open, formType: .longOpen)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var soundLabel: some View {
+        Text(vowel.sound)
+            .font(.caption)
+            .foregroundColor(.primary)
+            .frame(width: 60)
     }
 
     private var backgroundForRow: Color {
@@ -155,6 +182,20 @@ struct VowelRowView: View {
             return Color.pink.opacity(0.1)
         }
         return Color.clear
+    }
+
+    /// Larger glyphs when a single duration has the full width
+    private var formFont: Font {
+        visibleDuration == nil ? .title2 : .system(size: 34)
+    }
+
+    /// Full-width mode reads like a table: content leads from the left edge
+    private var cellAlignment: Alignment {
+        visibleDuration == nil ? .center : .leading
+    }
+
+    private var cellLeadingPadding: CGFloat {
+        visibleDuration == nil ? 0 : 24
     }
 
     @ViewBuilder
@@ -167,9 +208,10 @@ struct VowelRowView: View {
                 selectedText = text
             } label: {
                 Text(ThaiDisplay.placeholder(text))
-                    .font(.title2)
+                    .font(formFont)
                     .foregroundColor(matches ? .primary : .secondary)
-                    .frame(maxWidth: .infinity)
+                    .padding(.leading, cellLeadingPadding)
+                    .frame(maxWidth: .infinity, alignment: cellAlignment)
                     .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
                     .cornerRadius(4)
             }
@@ -191,9 +233,10 @@ struct VowelRowView: View {
             }
         } else {
             Text("-")
-                .font(.title2)
+                .font(formFont)
                 .foregroundStyle(.quaternary)
-                .frame(maxWidth: .infinity)
+                .padding(.leading, cellLeadingPadding)
+                .frame(maxWidth: .infinity, alignment: cellAlignment)
         }
     }
 }
