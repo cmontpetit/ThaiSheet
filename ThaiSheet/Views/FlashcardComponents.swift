@@ -228,13 +228,15 @@ struct FlashcardSummaryHeader: View {
 
 // MARK: - Summary Row
 
-/// A single row in the summary section showing label and value
+/// A single row in the summary section showing label and value.
+/// A `GridRow`, so the enclosing `Grid` sizes the label column to the
+/// longest label — no fixed widths that wrap in other languages or at
+/// larger Dynamic Type sizes.
 struct FlashcardSummaryRow: View {
     let label: LocalizedStringKey
     let selectedValue: String?
     let correctValue: String
     let showResult: Bool
-    var labelWidth: CGFloat = 60
     var alternativeCorrectValue: String? = nil
 
     private var isCorrect: Bool {
@@ -247,12 +249,21 @@ struct FlashcardSummaryRow: View {
     }
 
     var body: some View {
-        HStack {
+        GridRow {
             Text(label)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-                .frame(width: labelWidth, alignment: .leading)
+                .gridColumnAlignment(.leading)
 
+            HStack {
+                valueContent
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var valueContent: some View {
             if showResult {
                 if wasSelected {
                     if isCorrect {
@@ -282,9 +293,21 @@ struct FlashcardSummaryRow: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
+    }
+}
 
-            Spacer()
+/// Container for summary rows: a two-column grid whose label column hugs
+/// the longest label
+struct FlashcardSummaryGrid<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
+            content()
         }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
 }
 
@@ -481,7 +504,7 @@ struct StageIndicatorView: View {
         .padding(.horizontal)
 
         // Summary Rows
-        VStack(spacing: 6) {
+        FlashcardSummaryGrid {
             FlashcardSummaryRow(
                 label: "Class",
                 selectedValue: "Low",
@@ -501,9 +524,6 @@ struct StageIndicatorView: View {
                 showResult: false
             )
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
         .padding(.horizontal)
 
         // Selection Buttons

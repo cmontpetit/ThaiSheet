@@ -68,7 +68,7 @@ struct ToneMarkFlashcardView: View {
                 onReveal: { completeCardEarly() }
             )
 
-            VStack(spacing: 6) {
+            FlashcardSummaryGrid {
                 FlashcardSummaryRow(
                     label: "Class",
                     selectedValue: cardState.selectedClass?.label,
@@ -82,9 +82,6 @@ struct ToneMarkFlashcardView: View {
                     showResult: cardState.step == .completed
                 )
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
         }
     }
 

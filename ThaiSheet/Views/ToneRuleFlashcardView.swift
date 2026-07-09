@@ -121,34 +121,30 @@ struct ToneRuleFlashcardView: View {
                 onReveal: { completeCardEarly() }
             )
 
-            VStack(spacing: 6) {
+            FlashcardSummaryGrid {
                 FlashcardSummaryRow(
                     label: "Class",
                     selectedValue: cardState.selectedConsonantClass.map { localized($0) },
                     correctValue: localized(card.rule.initialConsonant),
-                    showResult: cardState.step == .completed,
-                    labelWidth: 50
+                    showResult: cardState.step == .completed
                 )
                 FlashcardSummaryRow(
                     label: "Vowel",
                     selectedValue: cardState.selectedVowelDuration.map { localized($0) },
                     correctValue: localized(card.rule.vowelDuration),
-                    showResult: cardState.step == .completed,
-                    labelWidth: 50
+                    showResult: cardState.step == .completed
                 )
                 FlashcardSummaryRow(
                     label: "End",
                     selectedValue: cardState.selectedEnd.map { localized($0) },
                     correctValue: localized(normalizedEnd(card.rule.end)),
-                    showResult: cardState.step == .completed,
-                    labelWidth: 50
+                    showResult: cardState.step == .completed
                 )
                 FlashcardSummaryRow(
                     label: "Tone",
                     selectedValue: cardState.selectedTone.map { ThaiColors.toneDisplay($0) },
                     correctValue: ThaiColors.toneDisplay(card.correctTone),
-                    showResult: cardState.step == .completed,
-                    labelWidth: 50
+                    showResult: cardState.step == .completed
                 )
 
                 // Show note when completed
@@ -161,9 +157,6 @@ struct ToneRuleFlashcardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
         }
     }
 

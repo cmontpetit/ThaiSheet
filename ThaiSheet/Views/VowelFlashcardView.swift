@@ -70,28 +70,25 @@ struct VowelFlashcardView: View {
                 onReveal: { completeCardEarly() }
             )
 
-            VStack(spacing: 6) {
+            FlashcardSummaryGrid {
                 FlashcardSummaryRow(
                     label: "Duration",
                     selectedValue: cardState.selectedDuration?.label,
                     correctValue: card.duration.label,
                     showResult: cardState.step == .completed,
-                    labelWidth: 70,
                     alternativeCorrectValue: card.alternativeDuration?.label
                 )
                 FlashcardSummaryRow(
                     label: "Form",
                     selectedValue: cardState.selectedForm?.label,
                     correctValue: card.form.label,
-                    showResult: cardState.step == .completed,
-                    labelWidth: 70
+                    showResult: cardState.step == .completed
                 )
                 FlashcardSummaryRow(
                     label: "Sound",
                     selectedValue: cardState.selectedSound,
                     correctValue: card.vowel.sound,
-                    showResult: cardState.step == .completed,
-                    labelWidth: 70
+                    showResult: cardState.step == .completed
                 )
 
                 // Show note if available and card is completed
@@ -104,9 +101,6 @@ struct VowelFlashcardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
         }
     }
 

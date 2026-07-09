@@ -70,7 +70,7 @@ struct ClusterFlashcardView: View {
                 onReveal: { completeCardEarly() }
             )
 
-            VStack(spacing: 6) {
+            FlashcardSummaryGrid {
                 FlashcardSummaryRow(
                     label: "Type",
                     selectedValue: cardState.selectedType?.displayName,
@@ -94,9 +94,6 @@ struct ClusterFlashcardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
         }
     }
 

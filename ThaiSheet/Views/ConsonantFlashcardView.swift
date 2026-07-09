@@ -72,7 +72,7 @@ struct ConsonantFlashcardView: View {
                 onReveal: { completeCardEarly() }
             )
 
-            VStack(spacing: 6) {
+            FlashcardSummaryGrid {
                 FlashcardSummaryRow(
                     label: "Class",
                     selectedValue: cardState.selectedClass?.displayName,
@@ -98,9 +98,6 @@ struct ConsonantFlashcardView: View {
                     showResult: cardState.step == .completed
                 )
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
         }
     }
 
