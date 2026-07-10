@@ -17,3 +17,6 @@ venv/
 
 # Claude Code personal permission grants (per-developer, not shared)
 .claude/settings.local.json
+
+# Source cheat sheet images (copyrighted Udemy course material - local reference only)
+external-resources/

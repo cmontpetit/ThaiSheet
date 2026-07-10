@@ -19,7 +19,7 @@ iOS application for learning to read Thai, based on a comprehensive cheatsheet.
 
 ## Project Resources
 
-- **Source cheatsheet images:** `external-resources/` (project root)
+- **Source cheatsheet images:** `external-resources/` (project root) — kept LOCAL ONLY, gitignored and purged from history: the cheat sheet is copyrighted Udemy course material and must not be committed. The app's data lives in `ThaiSheet/Resources/cheatsheet/*.json` (facts restructured, corrected, and extended — see data deviations below)
 - **Generated data:** `ThaiSheet/Resources/` (bundled with app)
 - **App assets:** `ThaiSheet/Assets.xcassets`
 
@@ -85,7 +85,7 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
 - The placeholder "◌" (U+25CC dotted circle) is replaced with "ก" in JSON data.
 
 ### Data deviations from the source cheatsheet (audited July 2026)
-The app's data intentionally differs from `external-resources/complete-cheatsheet.png` where the PNG is wrong:
+The app's data intentionally differs from the source cheat sheet (`external-resources/complete-cheatsheet.png`, local only) where the PNG is wrong:
 - ซ final sound: PNG says "-s" → app uses "-t" (Thai has no final /s/)
 - ย/ว finals: PNG "[vowel]" → app "-y"/"-w"
 - Added หญ- to silent ห combinations (missing from PNG; หญิง/ใหญ่/หญ้า)
