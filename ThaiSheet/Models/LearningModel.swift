@@ -5,6 +5,7 @@
 
 import Foundation
 import SwiftUI
+import os
 
 // MARK: - Environment Key
 
@@ -23,6 +24,7 @@ extension EnvironmentValues {
 @Observable
 class LearningModel {
     static let storageKey = "learningProgress"
+    private static let logger = Logger(subsystem: "net.montpetit.thaisheet", category: "LearningModel")
 
     /// Progress data keyed by card ID
     private var progressByCardId: [String: CardProgress] = [:]
@@ -170,8 +172,12 @@ class LearningModel {
 
     private func save() {
         let encoder = JSONEncoder()
-        if let data = try? encoder.encode(progressByCardId) {
+        do {
+            let data = try encoder.encode(progressByCardId)
             store.set(data, forKey: LearningModel.storageKey)
+        } catch {
+            Self.logger.error("Failed to encode learning progress: \(error, privacy: .public)")
+            assertionFailure("Failed to encode learning progress: \(error)")
         }
     }
 
@@ -180,8 +186,14 @@ class LearningModel {
             return
         }
         let decoder = JSONDecoder()
-        if let loaded = try? decoder.decode([String: CardProgress].self, from: data) {
-            progressByCardId = loaded
+        do {
+            progressByCardId = try decoder.decode([String: CardProgress].self, from: data)
+        } catch {
+            // Keep the in-memory progress (empty on first load) rather than
+            // overwriting the stored blob; the user's data may be recoverable
+            // by a newer build that understands the format.
+            Self.logger.error("Failed to decode stored learning progress; leaving store untouched: \(error, privacy: .public)")
+            assertionFailure("Failed to decode stored learning progress: \(error)")
         }
     }
 

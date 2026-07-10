@@ -11,6 +11,8 @@ enum ThaiDisplay {
     /// U+0E31 mai han akat, U+0E33 sara am (leading nikhahit renders above),
     /// U+0E34–U+0E3A vowels above/below, U+0E47–U+0E4E tone and other marks.
     private static let combiningMarks: Set<Unicode.Scalar> = {
+        // Force-unwraps are safe: all values are constant BMP codepoints,
+        // for which Unicode.Scalar(_:) never returns nil
         var set = Set<Unicode.Scalar>()
         set.insert(Unicode.Scalar(0x0E31)!)
         set.insert(Unicode.Scalar(0x0E33)!)

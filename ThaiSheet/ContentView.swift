@@ -153,6 +153,13 @@ struct FlashcardsView: View {
         selectedTab = .reference
     }
 
+    /// Record a quiz answer and give haptic feedback
+    private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
+        let fullTesting = !manager.settings.isPartialTesting(for: type)
+        manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
+        UINotificationFeedbackGenerator().notificationOccurred(correct ? .success : .error)
+    }
+
     /// Flashcard content view for the current card - extracted to reduce body complexity
     @ViewBuilder
     private func flashcardContent(for card: FlashcardItem) -> some View {
@@ -162,10 +169,7 @@ struct FlashcardsView: View {
                 consonant: consonant,
                 allConsonants: manager.data.consonants,
                 onViewInReference: { viewInReference($0, type: .consonant) },
-                onComplete: { correct in
-                    let fullTesting = !manager.settings.isPartialTesting(for: .consonant)
-                    manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
-                },
+                onComplete: { recordAnswer(for: card, type: .consonant, correct: $0) },
                 onNext: { manager.nextCard() },
                 onPrevious: { manager.previousCard() }
             )
@@ -174,10 +178,7 @@ struct FlashcardsView: View {
                 card: vowelCard,
                 allVowels: manager.data.vowels,
                 onViewInReference: { viewInReference($0, type: .vowel) },
-                onComplete: { correct in
-                    let fullTesting = !manager.settings.isPartialTesting(for: .vowel)
-                    manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
-                },
+                onComplete: { recordAnswer(for: card, type: .vowel, correct: $0) },
                 onNext: { manager.nextCard() },
                 onPrevious: { manager.previousCard() }
             )
@@ -185,10 +186,7 @@ struct FlashcardsView: View {
             ToneMarkFlashcardView(
                 card: toneMarkCard,
                 onViewInReference: { viewInReference($0, type: .toneMark) },
-                onComplete: { correct in
-                    let fullTesting = !manager.settings.isPartialTesting(for: .toneMark)
-                    manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
-                },
+                onComplete: { recordAnswer(for: card, type: .toneMark, correct: $0) },
                 onNext: { manager.nextCard() },
                 onPrevious: { manager.previousCard() }
             )
@@ -196,10 +194,7 @@ struct FlashcardsView: View {
             ToneRuleFlashcardView(
                 card: toneRuleCard,
                 onViewInReference: { viewInReference($0, type: .toneRule) },
-                onComplete: { correct in
-                    let fullTesting = !manager.settings.isPartialTesting(for: .toneRule)
-                    manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
-                },
+                onComplete: { recordAnswer(for: card, type: .toneRule, correct: $0) },
                 onNext: { manager.nextCard() },
                 onPrevious: { manager.previousCard() }
             )
@@ -208,10 +203,7 @@ struct FlashcardsView: View {
                 cluster: cluster,
                 allClusters: manager.data.clusters,
                 onViewInReference: { viewInReference($0, type: .cluster) },
-                onComplete: { correct in
-                    let fullTesting = !manager.settings.isPartialTesting(for: .cluster)
-                    manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
-                },
+                onComplete: { recordAnswer(for: card, type: .cluster, correct: $0) },
                 onNext: { manager.nextCard() },
                 onPrevious: { manager.previousCard() }
             )

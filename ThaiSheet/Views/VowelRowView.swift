@@ -5,22 +5,16 @@
 
 import SwiftUI
 
-enum VowelFormType {
-    case shortClosed, shortOpen, longClosed, longOpen
+/// Duration × form pair identifying one of a vowel row's four cells,
+/// expressed with the model's own enums (see VowelCard)
+struct VowelFormVariant: Equatable {
+    let duration: VowelCard.VowelDuration
+    let form: VowelCard.VowelFormType
 
-    var duration: String {
-        switch self {
-        case .shortClosed, .shortOpen: return "Short"
-        case .longClosed, .longOpen: return "Long"
-        }
-    }
-
-    var form: String {
-        switch self {
-        case .shortClosed, .longClosed: return "Closed"
-        case .shortOpen, .longOpen: return "Open"
-        }
-    }
+    static let shortClosed = VowelFormVariant(duration: .short, form: .closed)
+    static let shortOpen = VowelFormVariant(duration: .short, form: .open)
+    static let longClosed = VowelFormVariant(duration: .long, form: .closed)
+    static let longOpen = VowelFormVariant(duration: .long, form: .open)
 }
 
 struct VowelHeaderView: View {
@@ -94,7 +88,7 @@ struct VowelRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
-    @State private var selectedFormType: VowelFormType? = nil
+    @State private var selectedFormType: VowelFormVariant? = nil
     @State private var selectedText: String? = nil
 
     private func formMatchesSearch(_ form: String?) -> Bool {
@@ -108,8 +102,8 @@ struct VowelRowView: View {
     }
 
     // Find a form that has a sound file (prefer visible forms, then closed forms)
-    private var soundForm: (text: String, formType: VowelFormType)? {
-        let candidates: [(String?, VowelFormType)]
+    private var soundForm: (text: String, formType: VowelFormVariant)? {
+        let candidates: [(String?, VowelFormVariant)]
         switch visibleDuration {
         case .short:
             candidates = [(vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen),
@@ -130,7 +124,7 @@ struct VowelRowView: View {
         soundForm != nil
     }
 
-    private func showSheet(for text: String, formType: VowelFormType) {
+    private func showSheet(for text: String, formType: VowelFormVariant) {
         selectedFormType = formType
         selectedText = text
     }
@@ -178,7 +172,7 @@ struct VowelRowView: View {
                 ReferenceItemSheet(
                     title: ThaiDisplay.placeholder(text),
                     stage: learningModel.getProgress(forId: FlashcardType.vowel.cardId(for: text)).srsStage,
-                    note: vowel.note(for: formType.duration, form: formType.form),
+                    note: vowel.note(for: formType.duration.rawValue, form: formType.form.rawValue),
                     hasSound: audioPlayer.hasSound(.vowel, key: text),
                     onPlaySound: { audioPlayer.play(.vowel, key: text) },
                     onPractice: { onPractice?(text) }
@@ -248,7 +242,7 @@ struct VowelRowView: View {
 
     // Tap plays this form's sound, long press opens the sheet
     @ViewBuilder
-    private func vowelCell(_ text: String?, formType: VowelFormType) -> some View {
+    private func vowelCell(_ text: String?, formType: VowelFormVariant) -> some View {
         if let text = text {
             let matches = formMatchesSearch(text)
             let isSelected = highlightedForm == text
