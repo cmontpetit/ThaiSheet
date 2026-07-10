@@ -1,6 +1,6 @@
 # ThaiSheet
 
-An open-source iOS reference to help you learn to read Thai, based on a comprehensive cheatsheet.
+An open-source iOS quick reference to help you learn to read Thai, based on a comprehensive cheatsheet.
 
 App Store release preparation is tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
 

@@ -5,7 +5,7 @@ This file is a working draft for App Store Connect. Review it before submission,
 ## App Information
 
 - Name: ThaiSheet
-- Subtitle: `Thai script reference + audio` (29/30 chars)
+- Subtitle: `Thai script quick reference` (27/30 chars)
 - Primary category: Education
 - Secondary category: Reference
 - Bundle ID: `net.montpetit.thaisheet`
@@ -26,7 +26,7 @@ This file is a working draft for App Store Connect. Review it before submission,
 
 ## Description
 
-ThaiSheet is a focused reference to help you learn to read Thai script: the classic cheat-sheet tables for consonants, vowels, consonant clusters, tone marks, and tone rules — searchable, filterable, and with pronunciation audio throughout.
+ThaiSheet is a quick reference to help you learn to read Thai script: look up consonants, vowels, consonant clusters, tone marks, and tone rules in the classic cheat-sheet tables — searchable, filterable, and with pronunciation audio throughout.
 
 Tap any character, vowel form, cluster, or tone example to hear it. Look up a consonant's class, its initial and final sounds, or which tone a syllable takes — the way the tables teach it.
 
@@ -56,13 +56,13 @@ Initial release.
 
 ## French (fr-FR) Store Metadata
 
-- Subtitle: `Référence thaïe + audio` (23)
+- Subtitle: `Aide-mémoire thaï + audio` (25)
 - What's New: `Première version.`
 - Keywords: `thaï,Thaïlande,langue,alphabet,lecture,cartes,SRS,tons,voyelles,consonnes`
 - Promotional text: `La feuille de référence du thaï en app : tableaux, audio et cartes SRS.`
 - Description:
 
-ThaiSheet est une référence pour apprendre à lire l'écriture thaïe : les tableaux classiques des consonnes, voyelles, groupes de consonnes, signes de ton et règles de ton — avec recherche, filtres et audio de prononciation partout.
+ThaiSheet est un aide-mémoire pour apprendre à lire l'écriture thaïe : retrouvez consonnes, voyelles, groupes de consonnes, signes de ton et règles de ton dans les tableaux classiques — avec recherche, filtres et audio de prononciation partout.
 
 Touchez un caractère, une forme de voyelle, un groupe ou un exemple de ton pour l'entendre. Retrouvez la classe d'une consonne, ses sons initial et final, ou le ton d'une syllabe — tels que les tableaux les enseignent.
 

@@ -4,9 +4,10 @@ Instructions for AI coding agents and new contributors.
 
 ## About ThaiSheet
 
-iOS reference to help learn to read Thai, based on a comprehensive cheatsheet.
-(Renamed from Aksorn.) The reference is the primary feature; flashcards are
-complementary practice. The app opens on the Reference tab.
+iOS quick reference to help learn to read Thai, based on a comprehensive cheatsheet.
+(Renamed from Aksorn.) The quick-lookup reference is the primary feature — an app
+you reach for to find script info fast; flashcards are complementary practice.
+The app opens on the Reference tab.
 
 **Target users:** Thai language learners (beginner to intermediate)
 

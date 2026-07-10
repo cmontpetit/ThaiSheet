@@ -113,12 +113,12 @@
         }
       }
     },
-    "An open-source reference to help you learn to read Thai" : {
+    "An open-source quick reference to help you learn to read Thai" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Une référence open source pour vous aider à apprendre à lire le thaï"
+            "value" : "Un aide-mémoire open source pour apprendre à lire le thaï"
           }
         }
       }
