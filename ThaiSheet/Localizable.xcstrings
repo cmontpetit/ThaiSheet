@@ -60,17 +60,6 @@
         }
       }
     },
-    "%lld familiar" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld familier"
-          }
-        }
-      }
-    },
     "%lld mastered" : {
       "localizations" : {
         "fr" : {
@@ -145,7 +134,7 @@
       }
     },
     "Any" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -360,7 +349,7 @@
       }
     },
     "Dead" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -442,7 +431,7 @@
       }
     },
     "Falling" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -543,6 +532,7 @@
       }
     },
     "High" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -660,19 +650,8 @@
         }
       }
     },
-    "Learning Strategy" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stratégie d'apprentissage"
-          }
-        }
-      }
-    },
     "Live" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -715,6 +694,7 @@
       }
     },
     "Long" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -737,6 +717,7 @@
       }
     },
     "Low" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -767,6 +748,7 @@
       }
     },
     "Mid" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1055,7 +1037,7 @@
       }
     },
     "Rising" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1228,6 +1210,7 @@
       }
     },
     "Short" : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
