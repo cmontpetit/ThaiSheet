@@ -288,7 +288,10 @@ struct VowelRowView: View {
             short: VowelForm(closed: "ก-", open: "โกะ"),
             long: VowelForm(closed: "โก-", open: "โก"),
             sounds: VowelSounds(en: "oh"),
-            notes: VowelNotes(short_closed: "Unwritten/inherent vowel (e.g., กก = gok)", short_open: nil, long_closed: nil, long_open: nil),
+            notes: VowelNotesContainer(
+                en: VowelNotes(short_closed: "Unwritten/inherent vowel (e.g., กก = gok)", short_open: nil, long_closed: nil, long_open: nil),
+                fr: nil
+            ),
             usage: nil
         ))
         .listRowInsets(EdgeInsets())

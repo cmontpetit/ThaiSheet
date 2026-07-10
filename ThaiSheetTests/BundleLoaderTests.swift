@@ -242,4 +242,41 @@ final class BundleLoaderTests: XCTestCase {
         let result = BundleLoader.load("nonexistent-file", as: ConsonantsData.self, keyPath: \.consonants)
         XCTAssertTrue(result.isEmpty)
     }
+
+    // MARK: - Localized Notes
+
+    func test_clusterNotes_allHaveFrenchTranslations() {
+        let notes = Cluster.loadAll().compactMap(\.note)
+        XCTAssertFalse(notes.isEmpty, "Some clusters should carry notes")
+        for note in notes {
+            XCTAssertFalse(note.en.isEmpty)
+            XCTAssertFalse(note.fr?.isEmpty ?? true,
+                           "Cluster note missing French: \(note.en)")
+        }
+    }
+
+    func test_toneSampleNotes_allHaveFrenchTranslations() {
+        let notes = ToneRule.loadAll().flatMap { $0.samples ?? [] }.compactMap(\.note)
+        XCTAssertFalse(notes.isEmpty, "Some tone samples should carry notes")
+        for note in notes {
+            XCTAssertFalse(note.en.isEmpty)
+            XCTAssertFalse(note.fr?.isEmpty ?? true,
+                           "Tone sample note missing French: \(note.en)")
+        }
+    }
+
+    func test_vowelNotes_frenchMirrorsEnglishKeys() {
+        let noted = Vowel.loadAll().compactMap(\.notes)
+        XCTAssertFalse(noted.isEmpty, "Some vowels should carry notes")
+        for notes in noted {
+            guard let fr = notes.fr else {
+                XCTFail("Vowel notes missing French block")
+                continue
+            }
+            for key: KeyPath<VowelNotes, String?> in [\.short_closed, \.short_open, \.long_closed, \.long_open] {
+                XCTAssertEqual(notes.en[keyPath: key] == nil, fr[keyPath: key] == nil,
+                               "French vowel notes must mirror the English keys")
+            }
+        }
+    }
 }

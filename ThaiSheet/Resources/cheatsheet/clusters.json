@@ -16,7 +16,7 @@
       "cluster": "ตร-",
       "sound": "dtr-",
       "type": "smooth",
-      "note": "Pronounced with an unvoiced stop; often sounds softer than English 'tr'."
+      "note": { "en": "Pronounced with an unvoiced stop; often sounds softer than English 'tr'.", "fr": "Prononcé avec une occlusive non voisée ; souvent plus doux que le « tr » anglais." }
     },
 
     { "cluster": "ปร-", "sound": "bpr-", "type": "smooth" },
@@ -27,7 +27,7 @@
       "sound": "pl-",
       "type": "smooth",
       "usage": "uncommon",
-      "note": "Not a true consonant cluster; vowel is suppressed. Pronounced like 'พล-'."
+      "note": { "en": "Not a true consonant cluster; vowel is suppressed. Pronounced like 'พล-'.", "fr": "Pas un vrai groupe consonantique ; la voyelle est supprimée. Se prononce comme « พล- »." }
     },
 
     { "cluster": "พร-", "sound": "pr-", "type": "smooth" },
@@ -38,7 +38,7 @@
       "sound": "br-",
       "type": "smooth",
       "usage": "rare",
-      "note": "Mostly found in loanwords; not productive in modern Thai."
+      "note": { "en": "Mostly found in loanwords; not productive in modern Thai.", "fr": "Surtout présent dans les mots d'emprunt ; non productif en thaï moderne." }
     },
 
     {
@@ -53,81 +53,81 @@
       "sound": "dr-",
       "type": "smooth",
       "usage": "rare",
-      "note": "Mostly appears in loanwords or formal vocabulary."
+      "note": { "en": "Mostly appears in loanwords or formal vocabulary.", "fr": "Apparaît surtout dans les mots d'emprunt ou le vocabulaire formel." }
     },
 
     {
       "cluster": "ทร-",
       "sound": "s-",
       "type": "irregular",
-      "note": "Historical spelling; usually pronounced 's-' (ทราบ, ทราย). In some Indic loanwords it is 't(h)-' (นิทรา)."
+      "note": { "en": "Historical spelling; usually pronounced 's-' (ทราบ, ทราย). In some Indic loanwords it is 't(h)-' (นิทรา).", "fr": "Graphie historique ; se prononce généralement « s- » (ทราบ, ทราย). Dans certains emprunts indiens : « t(h)- » (นิทรา)." }
     },
     {
       "cluster": "สร-",
       "sound": "s-",
       "type": "irregular",
-      "note": "Initial ร is silent; cluster pronounced as 's-' (สร้าง)."
+      "note": { "en": "Initial ร is silent; cluster pronounced as 's-' (สร้าง).", "fr": "Le ร initial est muet ; le groupe se prononce « s- » (สร้าง)." }
     },
     {
       "cluster": "จร-",
       "sound": "j-",
       "type": "irregular",
-      "note": "Historical spelling; ร is not pronounced (จริง)."
+      "note": { "en": "Historical spelling; ร is not pronounced (จริง).", "fr": "Graphie historique ; ร ne se prononce pas (จริง)." }
     },
     {
       "cluster": "-ทร",
       "sound": "-t",
       "type": "irregular",
-      "note": "As a final cluster ทร reads as a '-t' stop (สมุทร)."
+      "note": { "en": "As a final cluster ทร reads as a '-t' stop (สมุทร).", "fr": "En position finale, ทร se lit comme une occlusive « -t » (สมุทร)." }
     },
 
     {
       "cluster": "หง-",
       "sound": "ng-",
       "type": "silent",
-      "note": "Leading ห is silent but determines tone class."
+      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
     },
     {
       "cluster": "หน-",
       "sound": "n-",
       "type": "silent",
-      "note": "Leading ห is silent but determines tone class."
+      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
     },
     {
       "cluster": "หม-",
       "sound": "m-",
       "type": "silent",
-      "note": "Leading ห is silent but determines tone class."
+      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
     },
     {
       "cluster": "หย-",
       "sound": "y-",
       "type": "silent",
-      "note": "Leading ห is silent but determines tone class."
+      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
     },
     {
       "cluster": "หญ-",
       "sound": "y-",
       "type": "silent",
-      "note": "Leading ห is silent but determines tone class (หญิง, ใหญ่, หญ้า)."
+      "note": { "en": "Leading ห is silent but determines tone class (หญิง, ใหญ่, หญ้า).", "fr": "Le ห initial est muet mais détermine la classe tonale (หญิง, ใหญ่, หญ้า)." }
     },
     {
       "cluster": "หร-",
       "sound": "r-",
       "type": "silent",
-      "note": "Leading ห is silent but determines tone class."
+      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
     },
     {
       "cluster": "หล-",
       "sound": "l-",
       "type": "silent",
-      "note": "Leading ห is silent but determines tone class."
+      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
     },
     {
       "cluster": "หว-",
       "sound": "w-",
       "type": "silent",
-      "note": "Leading ห is silent but determines tone class."
+      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
     }
   ]
 }
