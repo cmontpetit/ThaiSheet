@@ -21,7 +21,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - `Consonant`, `Vowel`, `ToneMark`, `ToneRule`, `Cluster` — Thai character data
 - `VowelCard`, `ToneMarkCard`, `ToneRuleCard` — flashcard wrappers that pair data with quiz metadata
 - `FlashcardItem` — enum unifying all card types (`case consonant(Consonant)`, etc.)
-- `FlashcardType` — `CaseIterable` enum for card categories, with `label` property
+- `FlashcardType` — `CaseIterable` enum for card categories, with `label` property. Also owns persisted progress-ID construction (`cardId(for:)`) — IDs are stored in user data, never build them by hand
 - `ThaiColors` — shared tone/class color mapping
 - `ThaiDisplay` — display forms for the ◌ placeholder, combining-mark search normalization
 
@@ -49,10 +49,12 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - `ClusterFlashcardView` — type, sound
 
 **Reference views** — row views for the browse/search tab:
-- `ConsonantRowView`, `VowelRowView`, `ToneMarkRowView`, `ToneRuleRowView`, `ClusterRowView`
+- `ConsonantRowView`, `VowelRowView`, `ToneMarkRowView`, `ToneRuleRowView`, `ClusterViews` (matrix + grid cells)
+- All playable items share one interaction, via `PlayableItemModifier`: tap plays the sound (details sheet when there is none), long press opens the details sheet. The modifier also carries the VoiceOver semantics (label, hint, button trait) — use it instead of raw gestures.
 
 **Shared components:**
 - `FlashcardComponents.swift` — `FlashcardResultCard`, `FlashcardSummaryRow`, `FlashcardNextButton`, `NavigableTapArea`, etc.
+- `PlayableItemModifier` — tap-to-play/long-press-details gesture + accessibility for reference items
 - `FilterChipView` — reusable filter chip
 - `ReferenceItemSheet` — detail sheet for reference items
 
