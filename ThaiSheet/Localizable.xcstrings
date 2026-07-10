@@ -124,12 +124,12 @@
         }
       }
     },
-    "An open-source iOS app for learning to read Thai" : {
+    "An open-source reference to help you learn to read Thai" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Une application iOS open source pour apprendre à lire le thaï"
+            "value" : "Une référence open source pour vous aider à apprendre à lire le thaï"
           }
         }
       }

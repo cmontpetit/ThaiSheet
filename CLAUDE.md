@@ -4,14 +4,15 @@ Instructions for AI coding agents and new contributors.
 
 ## About ThaiSheet
 
-iOS application for learning to read Thai, based on a comprehensive cheatsheet.
-(Renamed from Aksorn.)
+iOS reference to help learn to read Thai, based on a comprehensive cheatsheet.
+(Renamed from Aksorn.) The reference is the primary feature; flashcards are
+complementary practice. The app opens on the Reference tab.
 
 **Target users:** Thai language learners (beginner to intermediate)
 
 **Key features:**
-- **Flashcard tab**: Cards showing Thai characters with multiple-choice questions about their characteristics. Uses Wanikani-style SRS (spaced repetition) to optimize learning.
-- **Reference tab**: Browse cheatsheet clips with search by character characteristics.
+- **Reference tab** (first/default): Browse cheatsheet clips with search by character characteristics.
+- **Flashcard tab**: Complementary practice — cards showing Thai characters with multiple-choice questions about their characteristics. Uses Wanikani-style SRS (spaced repetition) to optimize learning.
 
 **Platforms:** iPhone, iPad
 

@@ -26,7 +26,7 @@ struct AboutView: View {
                     Text("Version \(appVersion) (\(buildNumber))")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text("An open-source iOS app for learning to read Thai")
+                    Text("An open-source reference to help you learn to read Thai")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

@@ -1,6 +1,6 @@
 # ThaiSheet
 
-An open-source iOS app for learning to read Thai, based on a comprehensive cheatsheet.
+An open-source iOS reference to help you learn to read Thai, based on a comprehensive cheatsheet.
 
 App Store release preparation is tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
 
@@ -10,13 +10,13 @@ Screenshots will be added before the first App Store release.
 
 ## Features
 
-- **Flashcards with SRS** - Multiple-choice questions about Thai characters using a Wanikani-style spaced repetition system with 8 progression stages
 - **Reference Browser** - Browse consonants, vowels, tone rules, tone marks, and clusters with search and filtering
 - **Audio Playback** - Hear pronunciation for characters and syllables
+- **Complementary Flashcards** - Practice what you look up with multiple-choice questions, using a Wanikani-style spaced repetition system with 8 progression stages
 - **Smart Card Selection** - Choose between intelligent SRS-based ordering or sequential study
+- **Customizable Filters** - Focus on specific consonant classes, vowel types, or tone rules
 - **Progress Tracking** - Detailed statistics showing mastery levels across all card types
 - **Optional iCloud Sync** - Sync learning progress and settings across devices when enabled
-- **Customizable Filters** - Focus on specific consonant classes, vowel types, or tone rules
 - **Localized** - Available in English and French, with easy community translation support
 
 ## Requirements
