@@ -26,6 +26,7 @@ Output files are saved to ThaiSheet/Resources/sounds/
 import argparse
 import json
 import re
+import time
 from pathlib import Path
 
 
@@ -54,9 +55,13 @@ class SoundGenerator:
         pitch: float,
         force: bool,
         dry_run: bool,
+        retries: int,
+        retry_delay: float,
     ) -> None:
         self.force = force
         self.dry_run = dry_run
+        self.retries = retries
+        self.retry_delay = retry_delay
         self.written = 0
         self.skipped = 0
         self.expected_files: set[Path] = set()
@@ -116,20 +121,35 @@ class SoundGenerator:
         assert self.client is not None
         assert self.voice is not None
         assert self.audio_config is not None
+        assert self.google_exceptions is not None
         synthesis_input = self.texttospeech.SynthesisInput(text=text)
-        try:
-            response = self.client.synthesize_speech(
-                input=synthesis_input,
-                voice=self.voice,
-                audio_config=self.audio_config,
-            )
-        except self.google_exceptions.PermissionDenied as error:
-            raise SystemExit(format_permission_error(error)) from error
-        except self.google_exceptions.GoogleAPICallError as error:
-            raise SystemExit(format_google_api_error(error)) from error
+
+        for attempt in range(self.retries + 1):
+            try:
+                response = self.client.synthesize_speech(
+                    input=synthesis_input,
+                    voice=self.voice,
+                    audio_config=self.audio_config,
+                )
+                break
+            except self.google_exceptions.PermissionDenied as error:
+                if is_service_disabled_error(error) and attempt < self.retries:
+                    self.retry_after_delay(error, attempt)
+                    continue
+                raise SystemExit(format_permission_error(error)) from error
+            except self.google_exceptions.GoogleAPICallError as error:
+                if is_retryable_google_api_error(error) and attempt < self.retries:
+                    self.retry_after_delay(error, attempt)
+                    continue
+                raise SystemExit(format_google_api_error(error)) from error
 
         filepath.write_bytes(response.audio_content)
         self.written += 1
+
+    def retry_after_delay(self, error: Exception, attempt: int) -> None:
+        delay = min(self.retry_delay * (2 ** attempt), 60.0)
+        print(f"  Google Cloud TTS is not ready yet ({short_error(error)}). Retrying in {delay:g}s...")
+        time.sleep(delay)
 
 
 def format_permission_error(error: Exception) -> str:
@@ -177,6 +197,25 @@ def format_google_api_error(error: Exception) -> str:
         "",
         f"Original error: {error}",
     ])
+
+
+def is_service_disabled_error(error: Exception) -> bool:
+    message = str(error)
+    return "SERVICE_DISABLED" in message or "has not been used" in message
+
+
+def is_retryable_google_api_error(error: Exception) -> bool:
+    message = str(error)
+    return any(token in message for token in [
+        "DEADLINE_EXCEEDED",
+        "RESOURCE_EXHAUSTED",
+        "UNAVAILABLE",
+    ])
+
+
+def short_error(error: Exception) -> str:
+    first_line = str(error).splitlines()[0]
+    return first_line[:160]
 
 
 def find_activation_url(message: str) -> str | None:
@@ -401,9 +440,17 @@ def main():
     parser.add_argument('--force', action='store_true', help='Overwrite existing MP3 files')
     parser.add_argument('--dry-run', action='store_true', help='Show files that would be generated without calling the API')
     parser.add_argument('--check-files', action='store_true', help='Fail if bundled MP3s are stale or missing')
+    parser.add_argument('--retries', type=int, default=4, help='Retries for transient Google Cloud API errors')
+    parser.add_argument('--retry-delay', type=float, default=5.0, help='Initial retry delay in seconds')
 
     args = parser.parse_args()
     selected_types = [args.tone_marks, args.tone_rules, args.consonants, args.vowels, args.clusters]
+
+    if args.retries < 0:
+        parser.error("--retries must be 0 or greater")
+
+    if args.retry_delay < 0:
+        parser.error("--retry-delay must be 0 or greater")
 
     if args.check_files and not args.all and any(selected_types):
         parser.error("--check-files must be used with --all or with no specific sound type")
@@ -430,6 +477,8 @@ def main():
         pitch=args.pitch,
         force=args.force,
         dry_run=args.dry_run,
+        retries=args.retries,
+        retry_delay=args.retry_delay,
     )
 
     if args.all or args.tone_marks:
