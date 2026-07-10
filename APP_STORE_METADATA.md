@@ -5,7 +5,10 @@ This file is a working draft for App Store Connect. Review it before submission,
 ## App Information
 
 - Name: ThaiSheet
-- Subtitle: Learn to read Thai script
+- Subtitle: PICK ONE (30-char limit):
+  - `Thai script reference & drills` (30)
+  - `Read Thai: reference + audio` (28)
+  - `Learn to read Thai script` (25 — current draft)
 - Primary category: Education
 - Secondary category: Reference
 - Bundle ID: `net.montpetit.thaisheet`
@@ -13,14 +16,34 @@ This file is a working draft for App Store Connect. Review it before submission,
 - Version: `1.0`
 - Build: `1`
 - Copyright: `2026 Claude Montpetit`
+- Pricing: Free
+- In-App Purchases: None
+
+## URLs
+
+- Privacy Policy URL: https://cmontpetit.github.io/ThaiSheet/privacy.html
+- Support URL: https://cmontpetit.github.io/ThaiSheet/support.html
+- Marketing URL (optional): https://cmontpetit.github.io/ThaiSheet/
+
+(Live once the repo is public and GitHub Pages is enabled on `main:/docs`.)
 
 ## Description
 
-ThaiSheet helps learners read Thai script with a focused reference browser, pronunciation audio, and flashcards for consonants, vowels, tone marks, tone rules, and consonant clusters.
+ThaiSheet is a focused reference to help you learn to read Thai script: the classic cheat-sheet tables for consonants, vowels, consonant clusters, tone marks, and tone rules — searchable, filterable, and with pronunciation audio throughout.
 
-Practice with a Wanikani-style spaced repetition system, review cards in sequence, filter the topics you want to study, and track progress across SRS stages. ThaiSheet includes English and French interface localizations and can optionally sync progress across your devices with iCloud.
+Tap any character, vowel form, cluster, or tone example to hear it. Look up a consonant's class, its initial and final sounds, or which tone a syllable takes — the way the tables teach it.
 
-ThaiSheet is open source and built without ads, analytics, tracking, or third-party iOS SDKs.
+When you want to practice, complementary flashcards quiz you on what you look up, with a Wanikani-style spaced repetition system (SRS) tracking each card from Learning to Mastered.
+
+- Complete script reference: 44 consonants, 33 vowels, consonant clusters, tone marks, and the 7 tone rules
+- Pronunciation audio for every entry
+- Search by character or sound; filter by class, duration, or type
+- Multiple-choice flashcards with SRS and progress statistics
+- Optional iCloud sync of progress and settings
+- English and French interface
+- No account, no ads, no analytics, no tracking — and open source
+
+ThaiSheet is a companion to whatever course or textbook you use: it won't replace study, but it keeps everything you need to decode Thai script one tap away.
 
 ## Keywords
 
@@ -28,11 +51,34 @@ Thai,Thailand,language,script,alphabet,reading,flashcards,SRS,tone,vowels,conson
 
 ## Promotional Text
 
-Practice Thai script with reference tables, pronunciation audio, and SRS flashcards.
+The Thai script cheat sheet as an app: reference tables, pronunciation audio, and SRS flashcards.
 
 ## What's New
 
 Initial release.
+
+## French (fr-FR) Store Metadata Draft
+
+- Subtitle: `Référence pour lire le thaï` (27)
+- Keywords: `thaï,Thaïlande,langue,alphabet,lecture,cartes,SRS,tons,voyelles,consonnes`
+- Promotional text: `La feuille de référence du thaï en app : tableaux, audio et cartes SRS.`
+- Description:
+
+ThaiSheet est une référence pour apprendre à lire l'écriture thaïe : les tableaux classiques des consonnes, voyelles, groupes de consonnes, signes de ton et règles de ton — avec recherche, filtres et audio de prononciation partout.
+
+Touchez un caractère, une forme de voyelle, un groupe ou un exemple de ton pour l'entendre. Retrouvez la classe d'une consonne, ses sons initial et final, ou le ton d'une syllabe — tels que les tableaux les enseignent.
+
+Pour pratiquer, des cartes-éclair complémentaires vous interrogent sur ce que vous consultez, avec un système de répétition espacée (SRS) de style Wanikani qui suit chaque carte de « Apprentissage » à « Maîtrisé ».
+
+- Référence complète : 44 consonnes, 33 voyelles, groupes de consonnes, signes de ton et les 7 règles de ton
+- Audio de prononciation pour chaque entrée
+- Recherche par caractère ou par son ; filtres par classe, durée ou type
+- Cartes-éclair à choix multiples avec SRS et statistiques de progression
+- Synchronisation iCloud optionnelle de la progression et des réglages
+- Interface en anglais et en français
+- Pas de compte, pas de pub, pas de suivi — et open source
+
+ThaiSheet accompagne le cours ou le manuel de votre choix : il ne remplace pas l'étude, mais garde tout ce qu'il faut pour décoder l'écriture thaïe à portée de main.
 
 ## Review Notes
 
@@ -56,11 +102,25 @@ The app does not implement custom encryption and sets `ITSAppUsesNonExemptEncryp
 
 No user-generated content, web browsing, purchases, gambling, violence, medical advice, or unrestricted internet access.
 
+## Content Rights
+
+- Learning data: the bundled JSON files are an independent compilation of factual
+  information about the Thai script (character inventory, consonant classes, sounds,
+  tone rules) expressed in the app's own structure and wording, with corrections and
+  additions by the author (see "Data deviations" in CLAUDE.md). No third-party images,
+  prose, or artwork are included.
+- Audio: all pronunciation MP3s were generated by the author with Google Cloud
+  Text-to-Speech under the author's own Google Cloud account; Google's terms permit
+  using generated audio in applications. Attribution: "Audio generated with Google
+  Cloud Text-to-Speech" (also shown in the app's About screen credits).
+- Screenshots: captured from the app itself; no third-party content.
+
 ## Required Before Submission
 
-- Capture App Store screenshots for iPhone and iPad.
-- Publish the GitHub repository or another public support page.
-- Use `PRIVACY.md` as the hosted Privacy Policy URL once public.
-- Regenerate bundled audio with official Google Cloud Text-to-Speech credentials and confirm rights/attribution for source learning data.
-- Run `scripts/check_release_binary.sh` on the archived app product.
-- Create the App Store Connect app record and select the signed archive build.
+- [x] Capture App Store screenshots for iPhone and iPad (`docs/screenshots/`, July 2026).
+- [ ] Publish the GitHub repository and enable GitHub Pages (`main:/docs`).
+- [ ] Verify the privacy/support/marketing URLs above are live.
+- [x] Regenerate bundled audio with official Google Cloud Text-to-Speech credentials (commit 46c0ffd, July 2026).
+- [x] Document rights/attribution for learning data and audio (Content Rights above).
+- [x] Run `scripts/check_release_binary.sh` on a Release archive (passed July 10, 2026 — re-run on the final signed archive before upload).
+- [ ] Create the App Store Connect app record and select the signed archive build.

@@ -12,4 +12,6 @@ Before opening an issue, please include:
 - Steps to reproduce the problem.
 - Screenshots or screen recordings when useful.
 
-For App Store review, use this repository URL as the Support URL once the repository is public.
+The user-facing support page (used as the App Store Support URL) is
+https://cmontpetit.github.io/ThaiSheet/support.html (`docs/support.html`, served by
+GitHub Pages once the repository is public). Keep it in sync with this file.
