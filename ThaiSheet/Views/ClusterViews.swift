@@ -106,17 +106,12 @@ struct ClusterMatrixCell: View {
             .padding(4)
             .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color.clear)
             .cornerRadius(6)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
-                    audioPlayer.play(.cluster, key: cluster.displayWithVowel)
-                } else {
-                    showingSheet = true
-                }
-            }
-            .onLongPressGesture {
-                showingSheet = true
-            }
+            .playableItem(
+                label: clusterAccessibilityLabel(cluster),
+                hasSound: audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel),
+                onPlay: { audioPlayer.play(.cluster, key: cluster.displayWithVowel) },
+                onDetails: { showingSheet = true }
+            )
             .sheet(isPresented: $showingSheet) {
                 ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
             }
@@ -185,21 +180,24 @@ struct ClusterCompactCell: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(isHighlighted ? Color.accentColor : Color.clear, lineWidth: 2)
         )
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
-                audioPlayer.play(.cluster, key: cluster.displayWithVowel)
-            } else {
-                showingSheet = true
-            }
-        }
-        .onLongPressGesture {
-            showingSheet = true
-        }
+        .playableItem(
+            label: clusterAccessibilityLabel(cluster),
+            hasSound: audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel),
+            onPlay: { audioPlayer.play(.cluster, key: cluster.displayWithVowel) },
+            onDetails: { showingSheet = true }
+        )
         .sheet(isPresented: $showingSheet) {
             ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
         }
     }
+}
+
+/// Spoken label for a cluster cell, e.g. "กรา, gr-"
+func clusterAccessibilityLabel(_ cluster: Cluster) -> String {
+    if let sound = cluster.sound {
+        return "\(cluster.displayWithVowel), \(sound)"
+    }
+    return cluster.displayWithVowel
 }
 
 // MARK: - Detail Sheet

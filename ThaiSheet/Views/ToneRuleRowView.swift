@@ -79,6 +79,18 @@ struct ToneRuleRowView: View {
         return audioPlayer.hasSound(.toneRule, key: sample.full)
     }
 
+    /// Spoken summary of the rule row, e.g. "Low, Short, Dead/None: High. คะ"
+    private var ruleAccessibilityLabel: String {
+        let inputs = [rule.initialConsonant, rule.vowelDuration, rule.end]
+            .map { String(localized: String.LocalizationValue($0), bundle: .appLanguage) }
+            .joined(separator: ", ")
+        let tone = ThaiColors.toneName(rule.tone)
+        if let sample = rule.primarySample {
+            return "\(inputs): \(tone). \(sample.full)"
+        }
+        return "\(inputs): \(tone)"
+    }
+
     /// Lowest stage among all sample cards for this rule
     private var lowestStage: SRSStage {
         guard let samples = rule.samples else { return .new }
@@ -127,17 +139,16 @@ struct ToneRuleRowView: View {
                     .foregroundColor(hasSound ? .accentColor : .primary)
                     .frame(width: 60)
             }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if hasSound, let sample = rule.primarySample {
-                    audioPlayer.play(.toneRule, key: sample.full)
-                } else {
-                    showingSheet = true
-                }
-            }
-            .onLongPressGesture {
-                showingSheet = true
-            }
+            .playableItem(
+                label: ruleAccessibilityLabel,
+                hasSound: hasSound && rule.primarySample != nil,
+                onPlay: {
+                    if let sample = rule.primarySample {
+                        audioPlayer.play(.toneRule, key: sample.full)
+                    }
+                },
+                onDetails: { showingSheet = true }
+            )
         }
         .font(.subheadline)
         .padding(.vertical, 4)

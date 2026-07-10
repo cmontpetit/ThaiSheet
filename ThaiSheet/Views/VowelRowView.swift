@@ -204,23 +204,23 @@ struct VowelRowView: View {
     }
 
     // Romanization: tap plays the preferred form's sound, long press opens the sheet
+    @ViewBuilder
     private var soundLabel: some View {
-        Text(vowel.sound)
+        let text = Text(vowel.sound)
             .font(.caption)
             .foregroundColor(hasSound ? .accentColor : .primary)
             .frame(width: 60)
             .frame(maxHeight: .infinity)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if let form = soundForm {
-                    audioPlayer.play(.vowel, key: form.text)
-                }
-            }
-            .onLongPressGesture {
-                if let form = soundForm {
-                    showSheet(for: form.text, formType: form.formType)
-                }
-            }
+        if let form = soundForm {
+            text.playableItem(
+                label: "\(vowel.sound), \(form.text)",
+                hasSound: true,
+                onPlay: { audioPlayer.play(.vowel, key: form.text) },
+                onDetails: { showSheet(for: form.text, formType: form.formType) }
+            )
+        } else {
+            text
+        }
     }
 
     private var backgroundForRow: Color {
@@ -259,17 +259,12 @@ struct VowelRowView: View {
                 .frame(maxWidth: .infinity, alignment: cellAlignment)
                 .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
                 .cornerRadius(4)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if audioPlayer.hasSound(.vowel, key: text) {
-                        audioPlayer.play(.vowel, key: text)
-                    } else {
-                        showSheet(for: text, formType: formType)
-                    }
-                }
-                .onLongPressGesture {
-                    showSheet(for: text, formType: formType)
-                }
+                .playableItem(
+                    label: text,
+                    hasSound: audioPlayer.hasSound(.vowel, key: text),
+                    onPlay: { audioPlayer.play(.vowel, key: text) },
+                    onDetails: { showSheet(for: text, formType: formType) }
+                )
         } else {
             Text("-")
                 .font(formFont)
