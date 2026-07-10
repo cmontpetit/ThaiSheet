@@ -36,7 +36,7 @@ struct AboutView: View {
             }
 
             Section("Open Source") {
-                Link(destination: URL(string: "https://github.com/montpetit/ThaiSheet")!) {
+                Link(destination: URL(string: "https://github.com/cmontpetit/ThaiSheet")!) {
                     HStack {
                         Label("GitHub Repository", systemImage: "link")
                         Spacer()
