@@ -13,11 +13,16 @@ Thank you for your interest in contributing to ThaiSheet! This guide will help y
 
 ### Sound Files
 
-Sound files are generated with Google Cloud Text-to-Speech:
+Sound files are generated with Google Cloud Text-to-Speech. First-time setup (from the repository root):
 
 ```bash
-cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && cd ..
 gcloud auth application-default login
+```
+
+Then, to regenerate sounds (from the repository root):
+
+```bash
 source scripts/venv/bin/activate
 python3 scripts/generate_sounds.py --all --dry-run --check-files
 python3 scripts/generate_sounds.py --all --force --check-files
@@ -55,15 +60,15 @@ ThaiSheet uses String Catalogs (`.xcstrings`) for localization. To add a new lan
 3. Click the `+` button at the bottom of the language list to add your language
 4. Translate all strings in the String Catalog editor
 5. Add your language option to the `supportedLanguages` array in `FlashcardSettings.swift`
-6. Test by switching to your language in the app's Settings > Language
+6. Test by switching to your language in the app's Settings > Language (the picker is available in DEBUG builds only; release builds follow the system language)
 7. Submit a PR with your translations
 
 **Important:** Do not translate Thai characters, sound file names, UserDefaults keys, or JSON data identifiers.
 
 ## Reporting Issues
 
-- Use the [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) template for bugs
-- Use the [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md) template for ideas
+- Use the [Bug Report](ISSUE_TEMPLATE/bug_report.md) template for bugs
+- Use the [Feature Request](ISSUE_TEMPLATE/feature_request.md) template for ideas
 - Search existing issues before creating a new one
 
 ## Architecture

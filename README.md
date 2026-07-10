@@ -6,7 +6,11 @@ App Store release preparation is tracked in [APP_STORE_METADATA.md](APP_STORE_ME
 
 ## Screenshots
 
-Screenshots will be added before the first App Store release.
+| Reference | Vowels | Tones | Flashcards |
+|---|---|---|---|
+| ![Consonant reference](docs/screenshots/iphone-reference-consonants.png) | ![Vowel reference](docs/screenshots/iphone-reference-vowels.png) | ![Tone marks and rules](docs/screenshots/iphone-reference-tones.png) | ![Flashcard quiz](docs/screenshots/iphone-flashcard.png) |
+
+More (dark mode, French, iPad) in [docs/screenshots/](docs/screenshots/), also shown on the [website](https://cmontpetit.github.io/ThaiSheet/).
 
 ## Features
 
@@ -58,6 +62,18 @@ python3 scripts/generate_sounds.py --all --force --check-files
 ```
 
 The default Thai voice is `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare output before committing regenerated MP3s.
+
+## Data & Audio Provenance
+
+The bundled learning data (`ThaiSheet/Resources/cheatsheet/*.json`) is an independent
+compilation of factual information about the Thai script — character inventory,
+consonant classes, sounds, tone rules — expressed in this project's own structure and
+wording, with corrections and additions by the author. No third-party images, prose,
+or artwork are included.
+
+All pronunciation audio was generated with
+[Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech) (see Sound
+Generation above).
 
 ## Contributing
 

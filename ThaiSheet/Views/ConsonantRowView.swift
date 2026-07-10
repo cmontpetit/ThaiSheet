@@ -78,7 +78,7 @@ struct ConsonantRowView: View {
     }
 
     private var stage: SRSStage {
-        learningModel.getProgress(forId: "consonant-\(consonant.id)").srsStage
+        learningModel.getProgress(forId: FlashcardType.consonant.cardId(for: consonant.id)).srsStage
     }
 
     var body: some View {
@@ -123,17 +123,12 @@ struct ConsonantRowView: View {
                 .padding(.vertical, 8)
                 .padding(.horizontal, 8)
             }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if hasSound {
-                    audioPlayer.play(.consonant, key: consonant.character)
-                } else {
-                    showingSheet = true
-                }
-            }
-            .onLongPressGesture {
-                showingSheet = true
-            }
+            .playableItem(
+                label: "\(consonant.character), \(consonant.transcription)",
+                hasSound: hasSound,
+                onPlay: { audioPlayer.play(.consonant, key: consonant.character) },
+                onDetails: { showingSheet = true }
+            )
         }
         .padding(.vertical, 4)
         .padding(.leading, 8)

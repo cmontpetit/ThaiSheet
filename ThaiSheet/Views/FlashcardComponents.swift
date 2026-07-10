@@ -17,14 +17,19 @@ struct NavigableTapArea<Content: View>: View {
     let onNext: () -> Void
     @ViewBuilder let content: () -> Content
 
+    /// Horizontal travel needed to register a card swipe; shorter drags are
+    /// treated as accidental
     private let swipeThreshold: CGFloat = 50
+    /// Drag distance before the gesture activates at all, so quiz-button taps
+    /// with slight movement don't get swallowed
+    private let swipeActivationDistance: CGFloat = 30
 
     var body: some View {
         content()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
             .gesture(
-                DragGesture(minimumDistance: 30, coordinateSpace: .local)
+                DragGesture(minimumDistance: swipeActivationDistance, coordinateSpace: .local)
                     .onEnded { value in
                         let horizontal = value.translation.width
                         let vertical = value.translation.height

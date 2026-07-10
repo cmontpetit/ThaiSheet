@@ -199,7 +199,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 ### App Store and Open Source Notes
 - App Store metadata draft lives in `APP_STORE_METADATA.md`; privacy/support/security docs live in `PRIVACY.md`, `SUPPORT.md`, and `SECURITY.md`
 - The App Store privacy position is: no ads, analytics, tracking, or third-party iOS SDKs; learning progress/settings are local unless optional iCloud Sync is enabled
-- Before public release, confirm rights and attribution for JSON learning data and screenshots; bundled MP3s should be regenerated with official Google Cloud Text-to-Speech credentials before submission
+- Before public release, confirm rights and attribution for JSON learning data and screenshots. Bundled MP3s: DONE — regenerated with official Google Cloud Text-to-Speech credentials (commit 46c0ffd, July 2026)
 - Do not commit `external-resources/`; source cheatsheet images are local-only copyrighted reference material
 
 ### Verifying UI in the simulator (no UI automation)
@@ -210,6 +210,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - Zoom screenshots before judging Thai glyph details — small renderings mislead
 
 ### Reference Tab Status
-- Implemented: Consonants, Vowels, Tone Rules, Tone Marks, Clusters
+- Four segments (`CheatsheetEntryType`): Consonants, Vowels, Clusters, Tones — the Tones segment combines tone marks and tone rules
 - Each type has search filtering and type-specific filter chips
 - Sound playback enabled for all types
+- Interaction convention: tap on a playable item plays its sound (opens the details sheet when it has none); long press opens the details sheet (play/practice). Implemented by `PlayableItemModifier`, which also carries the VoiceOver semantics — never attach raw tap/long-press gestures to reference items

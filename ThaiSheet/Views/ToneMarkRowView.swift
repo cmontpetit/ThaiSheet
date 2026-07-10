@@ -50,7 +50,7 @@ struct ToneMarkRowView: View {
     }
 
     private func stage(for display: String) -> SRSStage {
-        learningModel.getProgress(forId: "toneMark-\(display)").srsStage
+        learningModel.getProgress(forId: FlashcardType.toneMark.cardId(for: display)).srsStage
     }
 
     var body: some View {
@@ -101,20 +101,14 @@ struct ToneMarkRowView: View {
                 .font(.subheadline)
                 .foregroundStyle(.quaternary)
         } else {
-            // Tap plays the sound, long press opens the sheet
             StyledToneText(tone: tone)
                 .font(.subheadline)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if hasSound {
-                        audioPlayer.play(.toneMark, key: soundKey)
-                    } else {
-                        selectedDisplay = display
-                    }
-                }
-                .onLongPressGesture {
-                    selectedDisplay = display
-                }
+                .playableItem(
+                    label: "\(display), \(ThaiColors.toneName(tone))",
+                    hasSound: hasSound,
+                    onPlay: { audioPlayer.play(.toneMark, key: soundKey) },
+                    onDetails: { selectedDisplay = display }
+                )
                 .sheet(
                 isPresented: Binding(
                     get: { selectedDisplay == display },

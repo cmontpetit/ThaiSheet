@@ -6,6 +6,9 @@
 import SwiftUI
 
 struct AboutView: View {
+    // Force-unwrap is safe: literal URL, validated at development time
+    private static let repositoryURL = URL(string: "https://github.com/cmontpetit/ThaiSheet")!
+
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
@@ -36,7 +39,7 @@ struct AboutView: View {
             }
 
             Section("Open Source") {
-                Link(destination: URL(string: "https://github.com/cmontpetit/ThaiSheet")!) {
+                Link(destination: Self.repositoryURL) {
                     HStack {
                         Label("GitHub Repository", systemImage: "link")
                         Spacer()
