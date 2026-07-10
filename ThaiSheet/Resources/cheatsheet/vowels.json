@@ -65,8 +65,14 @@
         "en": "erh/uuhr"
       },
       "notes": {
-        "short_closed": "Same written form as long.closed. For เ◌อ in closed syllables, Thai does not mark vowel length; length is learned by the word.",
-        "long_closed": "Same written form as short.closed. For เ◌อ in closed syllables, Thai does not mark vowel length; length is learned by the word."
+        "en": {
+          "short_closed": "Same written form as long.closed. For เ◌อ in closed syllables, Thai does not mark vowel length; length is learned by the word.",
+          "long_closed": "Same written form as short.closed. For เ◌อ in closed syllables, Thai does not mark vowel length; length is learned by the word."
+        },
+        "fr": {
+          "short_closed": "Même forme écrite que la version longue fermée. Pour เ◌อ en syllabe fermée, le thaï n'indique pas la longueur de la voyelle ; elle s'apprend mot par mot.",
+          "long_closed": "Même forme écrite que la version courte fermée. Pour เ◌อ en syllabe fermée, le thaï n'indique pas la longueur de la voyelle ; elle s'apprend mot par mot."
+        }
       }
     },
     {
@@ -82,7 +88,12 @@
         "en": "oh"
       },
       "notes": {
-        "short_closed": "Unwritten/inherent vowel. In many closed syllables it reads like โอะ (/o/), but the exact vowel can depend on the word."
+        "en": {
+          "short_closed": "Unwritten/inherent vowel. In many closed syllables it reads like โอะ (/o/), but the exact vowel can depend on the word."
+        },
+        "fr": {
+          "short_closed": "Voyelle inhérente, non écrite. Dans beaucoup de syllabes fermées, elle se lit comme โอะ (/o/), mais la voyelle exacte peut dépendre du mot."
+        }
       }
     },
     {
@@ -137,8 +148,14 @@
         "en": "ia"
       },
       "notes": {
-        "short_open": "Short form with -ะ is mainly used in open syllables.",
-        "long_closed": "Closed syllables typically use the long written pattern plus a final consonant."
+        "en": {
+          "short_open": "Short form with -ะ is mainly used in open syllables.",
+          "long_closed": "Closed syllables typically use the long written pattern plus a final consonant."
+        },
+        "fr": {
+          "short_open": "La forme courte avec -ะ s'emploie surtout en syllabe ouverte.",
+          "long_closed": "Les syllabes fermées utilisent généralement la graphie longue suivie d'une consonne finale."
+        }
       }
     },
     {
@@ -154,8 +171,14 @@
         "en": "eua"
       },
       "notes": {
-        "short_open": "Short form with -ะ is mainly used in open syllables.",
-        "long_closed": "Closed syllables typically use the long written pattern plus a final consonant."
+        "en": {
+          "short_open": "Short form with -ะ is mainly used in open syllables.",
+          "long_closed": "Closed syllables typically use the long written pattern plus a final consonant."
+        },
+        "fr": {
+          "short_open": "La forme courte avec -ะ s'emploie surtout en syllabe ouverte.",
+          "long_closed": "Les syllabes fermées utilisent généralement la graphie longue suivie d'une consonne finale."
+        }
       }
     },
     {
@@ -171,8 +194,14 @@
         "en": "ua"
       },
       "notes": {
-        "short_open": "Short form with -ะ is mainly used in open syllables.",
-        "long_closed": "In closed syllables the ั disappears: ◌ว◌ (สวน, ด่วน, รวม)."
+        "en": {
+          "short_open": "Short form with -ะ is mainly used in open syllables.",
+          "long_closed": "In closed syllables the ั disappears: ◌ว◌ (สวน, ด่วน, รวม)."
+        },
+        "fr": {
+          "short_open": "La forme courte avec -ะ s'emploie surtout en syllabe ouverte.",
+          "long_closed": "En syllabe fermée, le ั disparaît : ◌ว◌ (สวน, ด่วน, รวม)."
+        }
       }
     },
 
@@ -189,8 +218,14 @@
         "en": "aawy"
       },
       "notes": {
-        "short_closed": "Rare spelling (marked rare in the source cheatsheet).",
-        "long_closed": "ย acts as the final glide: บ่อย, ร้อย, อร่อย."
+        "en": {
+          "short_closed": "Rare spelling (marked rare in the source cheatsheet).",
+          "long_closed": "ย acts as the final glide: บ่อย, ร้อย, อร่อย."
+        },
+        "fr": {
+          "short_closed": "Graphie rare (indiquée comme rare dans l'aide-mémoire source).",
+          "long_closed": "ย sert de semi-voyelle finale : บ่อย, ร้อย, อร่อย."
+        }
       }
     },
 
@@ -207,7 +242,12 @@
         "en": "eeuy"
       },
       "notes": {
-        "long_closed": "ย acts as the final glide: เลย, เนย, เกย."
+        "en": {
+          "long_closed": "ย acts as the final glide: เลย, เนย, เกย."
+        },
+        "fr": {
+          "long_closed": "ย sert de semi-voyelle finale : เลย, เนย, เกย."
+        }
       }
     },
 
@@ -224,7 +264,12 @@
         "en": "oy/ohy"
       },
       "notes": {
-        "long_closed": "ย acts as the final glide: โดย, โรย."
+        "en": {
+          "long_closed": "ย acts as the final glide: โดย, โรย."
+        },
+        "fr": {
+          "long_closed": "ย sert de semi-voyelle finale : โดย, โรย."
+        }
       }
     },
 
@@ -241,7 +286,12 @@
         "en": "uy"
       },
       "notes": {
-        "short_closed": "ย acts as the final glide: คุย, ลุย."
+        "en": {
+          "short_closed": "ย acts as the final glide: คุย, ลุย."
+        },
+        "fr": {
+          "short_closed": "ย sert de semi-voyelle finale : คุย, ลุย."
+        }
       }
     },
 
@@ -258,7 +308,12 @@
         "en": "euuay"
       },
       "notes": {
-        "long_closed": "ย acts as the final glide: เหนื่อย, เรื่อย."
+        "en": {
+          "long_closed": "ย acts as the final glide: เหนื่อย, เรื่อย."
+        },
+        "fr": {
+          "long_closed": "ย sert de semi-voyelle finale : เหนื่อย, เรื่อย."
+        }
       }
     },
 
@@ -275,8 +330,14 @@
         "en": "uay"
       },
       "notes": {
-        "short_closed": "ย acts as the final glide: ด้วย, สวย, กล้วย.",
-        "long_closed": "Long form: ควาย, สบาย follows ◌าย pattern."
+        "en": {
+          "short_closed": "ย acts as the final glide: ด้วย, สวย, กล้วย.",
+          "long_closed": "Long form: ควาย, สบาย follows ◌าย pattern."
+        },
+        "fr": {
+          "short_closed": "ย sert de semi-voyelle finale : ด้วย, สวย, กล้วย.",
+          "long_closed": "Forme longue : ควาย, สบาย suivent le modèle ◌าย."
+        }
       }
     },
     {
@@ -292,8 +353,14 @@
         "en": "ao"
       },
       "notes": {
-        "short_closed": "ว may function as a final consonant /w/ here.",
-        "long_open": "ว is part of the vowel spelling in this open long form."
+        "en": {
+          "short_closed": "ว may function as a final consonant /w/ here.",
+          "long_open": "ว is part of the vowel spelling in this open long form."
+        },
+        "fr": {
+          "short_closed": "ว peut jouer ici le rôle de consonne finale /w/.",
+          "long_open": "ว fait partie de la graphie de la voyelle dans cette forme longue ouverte."
+        }
       }
     },
     {
@@ -323,7 +390,12 @@
       },
       "usage": "rare",
       "notes": {
-        "long_closed": "Rare spelling—do not prioritize; confirm with dictionary/audio if encountered."
+        "en": {
+          "long_closed": "Rare spelling—do not prioritize; confirm with dictionary/audio if encountered."
+        },
+        "fr": {
+          "long_closed": "Graphie rare — non prioritaire ; à vérifier avec un dictionnaire ou l'audio si vous la rencontrez."
+        }
       }
     },
     {
@@ -352,7 +424,12 @@
         "en": "iu"
       },
       "notes": {
-        "short_closed": "Often appears in loanwords; patterns may feel less regular."
+        "en": {
+          "short_closed": "Often appears in loanwords; patterns may feel less regular."
+        },
+        "fr": {
+          "short_closed": "Apparaît souvent dans les mots d'emprunt ; les schémas peuvent sembler moins réguliers."
+        }
       }
     },
     {
@@ -368,7 +445,12 @@
         "en": "iaao"
       },
       "notes": {
-        "long_closed": "Decoding tip: break as เกี-ยว (เ + ี + ย + ว) before blending."
+        "en": {
+          "long_closed": "Decoding tip: break as เกี-ยว (เ + ี + ย + ว) before blending."
+        },
+        "fr": {
+          "long_closed": "Astuce de lecture : décomposer en เกี-ยว (เ + ี + ย + ว) avant d'assembler."
+        }
       }
     },
     {
@@ -384,8 +466,14 @@
         "en": "ahm"
       },
       "notes": {
-        "short_closed": "◌ำ includes the final /m/ sound; treat as a single unit (vowel+final).",
-        "long_open": "◌ำ includes the final /m/ sound; open vs closed behaves differently here."
+        "en": {
+          "short_closed": "◌ำ includes the final /m/ sound; treat as a single unit (vowel+final).",
+          "long_open": "◌ำ includes the final /m/ sound; open vs closed behaves differently here."
+        },
+        "fr": {
+          "short_closed": "◌ำ inclut le son final /m/ ; à traiter comme une seule unité (voyelle + finale).",
+          "long_open": "◌ำ inclut le son final /m/ ; le comportement ouvert/fermé diffère ici."
+        }
       }
     },
     {
@@ -401,7 +489,12 @@
         "en": "ai"
       },
       "notes": {
-        "short_open": "ไ◌ is a short /ai/ and never takes a written final (ไป, ไม้)."
+        "en": {
+          "short_open": "ไ◌ is a short /ai/ and never takes a written final (ไป, ไม้)."
+        },
+        "fr": {
+          "short_open": "ไ◌ est un /ai/ court et ne prend jamais de finale écrite (ไป, ไม้)."
+        }
       }
     },
 
@@ -418,7 +511,12 @@
         "en": "ai"
       },
       "notes": {
-        "short_open": "ไม้ม้วน: used for exactly 20 common words (ใช้, ใน, ใจ, ใหม่, …)."
+        "en": {
+          "short_open": "ไม้ม้วน: used for exactly 20 common words (ใช้, ใน, ใจ, ใหม่, …)."
+        },
+        "fr": {
+          "short_open": "ไม้ม้วน : utilisé pour exactement 20 mots courants (ใช้, ใน, ใจ, ใหม่, …)."
+        }
       }
     },
 
@@ -435,7 +533,12 @@
         "en": "ai"
       },
       "notes": {
-        "short_closed": "◌ั + ย final: วัย, ภัย."
+        "en": {
+          "short_closed": "◌ั + ย final: วัย, ภัย."
+        },
+        "fr": {
+          "short_closed": "◌ั + ย final : วัย, ภัย."
+        }
       }
     },
 
@@ -452,7 +555,12 @@
         "en": "aai"
       },
       "notes": {
-        "long_closed": "◌า + ย final, the long counterpart of ไ◌/◌ัย: สาย, ตาย, ควาย."
+        "en": {
+          "long_closed": "◌า + ย final, the long counterpart of ไ◌/◌ัย: สาย, ตาย, ควาย."
+        },
+        "fr": {
+          "long_closed": "◌า + ย final, l'équivalent long de ไ◌/◌ัย : สาย, ตาย, ควาย."
+        }
       }
     },
 
@@ -469,7 +577,12 @@
         "en": "ai"
       },
       "notes": {
-        "short_closed": "ไ◌ย appears in very few words (ไทย); still a short /ai/."
+        "en": {
+          "short_closed": "ไ◌ย appears in very few words (ไทย); still a short /ai/."
+        },
+        "fr": {
+          "short_closed": "ไ◌ย n'apparaît que dans de très rares mots (ไทย) ; reste un /ai/ court."
+        }
       }
     },
     {
@@ -485,7 +598,10 @@
         "en": "rue"
       },
       "usage": "rare",
-      "note": "Sanskrit-derived, includes inherent r sound"
+      "note": {
+        "en": "Sanskrit-derived, includes inherent r sound",
+        "fr": "D'origine sanskrite, inclut un son r inhérent"
+      }
     },
     {
       "short": {
@@ -500,7 +616,10 @@
         "en": "ri"
       },
       "usage": "rare",
-      "note": "Sanskrit-derived ฤ in closed syllables"
+      "note": {
+        "en": "Sanskrit-derived ฤ in closed syllables",
+        "fr": "ฤ d'origine sanskrite en syllabe fermée"
+      }
     },
     {
       "short": {
@@ -515,7 +634,10 @@
         "en": "lue"
       },
       "usage": "archaic",
-      "note": "Sanskrit-derived, includes inherent l sound. ฦๅ only in ฦๅสาย."
+      "note": {
+        "en": "Sanskrit-derived, includes inherent l sound. ฦๅ only in ฦๅสาย.",
+        "fr": "D'origine sanskrite, inclut un son l inhérent. ฦๅ seulement dans ฦๅสาย."
+      }
     }
   ]
 }

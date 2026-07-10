@@ -90,7 +90,7 @@ struct ClusterFlashcardView: View {
                 if cardState.step == .completed, let note = cluster.note {
                     Divider()
                         .padding(.vertical, 4)
-                    Text(note)
+                    Text(note.localized)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)

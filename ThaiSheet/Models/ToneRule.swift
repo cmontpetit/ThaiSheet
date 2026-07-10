@@ -9,7 +9,7 @@ import SwiftUI
 struct ToneSample: Codable {
     let full: String
     let focus: String
-    let note: String?
+    let note: LocalizedText?
 }
 
 struct ToneRule: Codable, Identifiable {

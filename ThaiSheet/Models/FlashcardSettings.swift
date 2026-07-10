@@ -394,15 +394,23 @@ extension Bundle {
     /// instead, so both mechanisms switch together.
     private(set) nonisolated(unsafe) static var appLanguage: Bundle = .main
 
+    /// Language code ("en"/"fr") that data-model strings (`LocalizedText`,
+    /// vowel notes) resolve to. Kept in sync with `appLanguage` so JSON data
+    /// and catalog strings always switch together.
+    private(set) nonisolated(unsafe) static var appLanguageCode: String =
+        Bundle.main.preferredLocalizations.first ?? "en"
+
     static func updateAppLanguage(_ code: String) {
         #if DEBUG
         if code != "system",
            let path = Bundle.main.path(forResource: code, ofType: "lproj"),
            let bundle = Bundle(path: path) {
             appLanguage = bundle
+            appLanguageCode = code
             return
         }
         #endif
         appLanguage = .main
+        appLanguageCode = Bundle.main.preferredLocalizations.first ?? "en"
     }
 }

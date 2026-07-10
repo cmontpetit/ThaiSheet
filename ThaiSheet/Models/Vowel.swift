@@ -25,6 +25,13 @@ struct VowelNotes: Codable {
     }
 }
 
+/// Per-language vowel notes (like `sounds.en`); untranslated languages
+/// fall back to English per key
+struct VowelNotesContainer: Codable {
+    let en: VowelNotes
+    let fr: VowelNotes?
+}
+
 enum VowelUsage: String, Codable {
     case common
     case uncommon
@@ -36,7 +43,7 @@ struct Vowel: Codable, Identifiable {
     let short: VowelForm
     let long: VowelForm
     let sounds: VowelSounds
-    let notes: VowelNotes?
+    let notes: VowelNotesContainer?
     let usage: VowelUsage?
 
     var id: String { sounds.en + "-" + allForms.joined(separator: "|") }
@@ -62,13 +69,18 @@ struct Vowel: Codable, Identifiable {
 
     func note(for duration: String, form: String) -> String? {
         guard let notes = notes else { return nil }
+        let key: KeyPath<VowelNotes, String?>
         switch (duration, form) {
-        case ("Short", "Closed"): return notes.short_closed
-        case ("Short", "Open"): return notes.short_open
-        case ("Long", "Closed"): return notes.long_closed
-        case ("Long", "Open"): return notes.long_open
+        case ("Short", "Closed"): key = \.short_closed
+        case ("Short", "Open"): key = \.short_open
+        case ("Long", "Closed"): key = \.long_closed
+        case ("Long", "Open"): key = \.long_open
         default: return nil
         }
+        if Bundle.appLanguageCode == "fr", let fr = notes.fr?[keyPath: key] {
+            return fr
+        }
+        return notes.en[keyPath: key]
     }
 
     /// Returns true if the given form appears in both short and long positions

@@ -12,42 +12,66 @@
         {
           "full": "วัด",
           "focus": "วัด",
-          "note": "Short dead syllable with low-class consonant; produces high tone (often counter-intuitive)."
+          "note": {
+            "en": "Short dead syllable with low-class consonant; produces high tone (often counter-intuitive).",
+            "fr": "Syllabe morte courte avec consonne de classe basse ; produit un ton haut (souvent contre-intuitif)."
+          }
         },
         {
           "full": "พระ",
           "focus": "พระ",
-          "note": "Unstressed syllable in natural speech; tone movement may sound reduced."
+          "note": {
+            "en": "Unstressed syllable in natural speech; tone movement may sound reduced.",
+            "fr": "Syllabe non accentuée en parole naturelle ; le mouvement tonal peut sembler réduit."
+          }
         },
         {
           "full": "มะลิ",
           "focus": "มะ",
-          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+          "note": {
+            "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
+            "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
+          }
         },
         {
           "full": "มะม่วง",
           "focus": "มะ",
-          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+          "note": {
+            "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
+            "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
+          }
         },
         {
           "full": "มะพร้าว",
           "focus": "มะ",
-          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+          "note": {
+            "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
+            "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
+          }
         },
         {
           "full": "มะนาว",
           "focus": "มะ",
-          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+          "note": {
+            "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
+            "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
+          }
         },
         {
           "full": "มะเขือ",
           "focus": "มะ",
-          "note": "Unstressed prefix syllable; tone applies but is reduced in speech."
+          "note": {
+            "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
+            "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
+          }
         },
         {
           "full": "ทะเล",
           "focus": "ทะ",
-          "note": "First syllable is unstressed; tone is correct but reduced."
+          "note": {
+            "en": "First syllable is unstressed; tone is correct but reduced.",
+            "fr": "La première syllabe est non accentuée ; le ton est correct mais réduit."
+          }
         }
       ]
     },
@@ -73,12 +97,18 @@
         {
           "full": "ชอบ",
           "focus": "ชอบ",
-          "note": "Low-class ช; long dead syllable → falling tone."
+          "note": {
+            "en": "Low-class ช; long dead syllable → falling tone.",
+            "fr": "ช de classe basse ; syllabe morte longue → ton descendant."
+          }
         },
         {
           "full": "ชาติ",
           "focus": "ชาติ",
-          "note": "Low-class ช; long dead syllable → falling tone."
+          "note": {
+            "en": "Low-class ช; long dead syllable → falling tone.",
+            "fr": "ช de classe basse ; syllabe morte longue → ton descendant."
+          }
         }
       ]
     },
@@ -166,17 +196,26 @@
         {
           "full": "หมี",
           "focus": "หมี",
-          "note": "Uses leading ห; tone class determined by ห."
+          "note": {
+            "en": "Uses leading ห; tone class determined by ห.",
+            "fr": "Utilise un ห initial ; la classe tonale est déterminée par ห."
+          }
         },
         {
           "full": "หา",
           "focus": "หา",
-          "note": "Leading ห; behaves as high-class for tone."
+          "note": {
+            "en": "Leading ห; behaves as high-class for tone.",
+            "fr": "ห initial ; se comporte comme une classe haute pour le ton."
+          }
         },
         {
           "full": "หนา",
           "focus": "หนา",
-          "note": "Leading ห; tone class determined by ห."
+          "note": {
+            "en": "Leading ห; tone class determined by ห.",
+            "fr": "ห initial ; classe tonale déterminée par ห."
+          }
         },
         { "full": "ถาม", "focus": "ถาม" },
         { "full": "เขา", "focus": "เขา" },
@@ -200,12 +239,18 @@
         {
           "full": "ขาด",
           "focus": "ขาด",
-          "note": "High-class consonant; dead syllable → low tone regardless of vowel length."
+          "note": {
+            "en": "High-class consonant; dead syllable → low tone regardless of vowel length.",
+            "fr": "Consonne de classe haute ; syllabe morte → ton bas quelle que soit la longueur de la voyelle."
+          }
         },
         {
           "full": "สอบ",
           "focus": "สอบ",
-          "note": "High-class consonant; long dead syllable → low tone."
+          "note": {
+            "en": "High-class consonant; long dead syllable → low tone.",
+            "fr": "Consonne de classe haute ; syllabe morte longue → ton bas."
+          }
         },
         { "full": "ผัก", "focus": "ผัก" },
         { "full": "สัก", "focus": "สัก" },
@@ -218,13 +263,19 @@
         {
           "full": "เสร็จ",
           "focus": "เสร็จ",
-          "note": "Complex vowel + final stop; still short dead syllable."
+          "note": {
+            "en": "Complex vowel + final stop; still short dead syllable.",
+            "fr": "Voyelle complexe + occlusive finale ; reste une syllabe morte courte."
+          }
         },
         { "full": "สุก", "focus": "สุก" },
         {
           "full": "สะอาด",
           "focus": "สะ",
-          "note": "Unstressed prefix syllable; tone reduced in speech."
+          "note": {
+            "en": "Unstressed prefix syllable; tone reduced in speech.",
+            "fr": "Syllabe préfixe non accentuée ; ton réduit à l'oral."
+          }
         }
       ]
     }

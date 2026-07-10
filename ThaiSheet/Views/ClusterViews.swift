@@ -229,7 +229,7 @@ struct ClusterDetailSheet: View {
         parts.append(cluster.type.description)
 
         if let note = cluster.note {
-            parts.append(note)
+            parts.append(note.localized)
         }
 
         return parts.isEmpty ? nil : parts.joined(separator: "\n\n")

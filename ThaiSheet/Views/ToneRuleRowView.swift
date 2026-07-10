@@ -159,7 +159,7 @@ struct ToneRuleRowView: View {
             ReferenceItemSheet(
                 title: rule.primarySample?.full ?? String(localized: String.LocalizationValue(rule.tone), bundle: .appLanguage),
                 stage: lowestStage,
-                note: rule.primarySample?.note,
+                note: rule.primarySample?.note?.localized,
                 hasSound: hasSound,
                 onPlaySound: {
                     if let sample = rule.primarySample {
@@ -199,7 +199,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Any",
             end: "Live",
             tone: "Rising",
-            samples: [ToneSample(full: "ขา", focus: "ขา", note: "Sample with a note")]
+            samples: [ToneSample(full: "ขา", focus: "ขา", note: LocalizedText(en: "Sample with a note", fr: nil))]
         ))
         .listRowInsets(EdgeInsets())
     }

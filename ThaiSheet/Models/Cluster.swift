@@ -47,7 +47,7 @@ struct Cluster: Codable, Identifiable {
     let sound: String?
     let type: ClusterType
     let usage: ClusterUsage?
-    let note: String?
+    let note: LocalizedText?
 
     var id: String { cluster }
 
