@@ -159,6 +159,7 @@ struct CheatsheetBrowserView: View {
             .padding(.horizontal)
         }
         .padding(.bottom, 8)
+        .contentColumn()
     }
 
     /// Matches a data identifier (e.g. "Falling") against the query in both
@@ -245,6 +246,7 @@ struct CheatsheetBrowserView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
                 .padding(.vertical, 8)
+                .contentColumn()
 
                 // Filter chips
                 if selectedType == .consonants {
@@ -290,6 +292,7 @@ struct CheatsheetBrowserView: View {
                             .scrollsToHighlight(highlightedConsonant, proxy: proxy) { $0 }
                         }
                     }
+                    .contentColumn()
                     }
                 case .vowels:
                     if filteredVowels.isEmpty {
@@ -318,6 +321,7 @@ struct CheatsheetBrowserView: View {
                             }
                         }
                     }
+                    .contentColumn()
                     }
                 case .tones:
                     if filteredToneMarks.isEmpty && filteredToneRules.isEmpty {
@@ -369,6 +373,7 @@ struct CheatsheetBrowserView: View {
                                 }
                             }
                             .padding(.horizontal)
+                            .contentColumn()
                         }
                         .scrollsToHighlight(highlightedToneMark, proxy: proxy) { display in
                             toneMarks
@@ -409,6 +414,7 @@ struct CheatsheetBrowserView: View {
                                 }
                             }
                             .padding(.horizontal)
+                            .contentColumn()
                         }
                         .scrollsToHighlight(highlightedCluster, proxy: proxy) { $0 }
                     }

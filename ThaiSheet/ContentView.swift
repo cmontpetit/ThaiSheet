@@ -304,6 +304,7 @@ struct FlashcardsView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
+        .contentColumn()
     }
 
     /// Main card view when a card is available

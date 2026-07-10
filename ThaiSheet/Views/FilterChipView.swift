@@ -61,6 +61,7 @@ struct FilterChipRow<Item: Hashable>: View {
             .padding(.horizontal)
         }
         .padding(.bottom, 8)
+        .contentColumn()
     }
 }
 

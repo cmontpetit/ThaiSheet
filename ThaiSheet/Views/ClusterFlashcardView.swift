@@ -15,6 +15,7 @@ struct ClusterFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ClusterCardState()
+    @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
     @State private var soundOptions: [String] = []
 
     private let typeOptions: [ClusterType] = [.smooth, .silent, .irregular]
@@ -32,6 +33,7 @@ struct ClusterFlashcardView: View {
                 selectionArea
             }
             .padding()
+            .contentColumn()
         }
         .onAppear {
             generateSoundOptions()
@@ -56,7 +58,7 @@ struct ClusterFlashcardView: View {
             onNext: handleNext
         ) {
             Text(cluster.displayWithVowel)
-                .font(.system(size: 72))
+                .font(.system(size: glyphSize))
                 .minimumScaleFactor(0.5)
         }
     }
