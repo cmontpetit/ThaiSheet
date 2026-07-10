@@ -532,12 +532,12 @@
         }
       }
     },
-    "Google Cloud TTS" : {
+    "gTTS-generated audio" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Google Cloud TTS"
+            "value" : "Audio généré avec gTTS"
           }
         }
       }
@@ -1421,12 +1421,12 @@
         }
       }
     },
-    "This app does not collect, store, or transmit any personal data. All learning progress is stored locally on your device." : {
+    "ThaiSheet does not include analytics, ads, or tracking. Progress and settings stay on device unless you enable iCloud Sync, which uses Apple's iCloud key-value store." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cette application ne collecte, ne stocke et ne transmet aucune donnée personnelle. Toute la progression est stockée localement sur votre appareil."
+            "value" : "ThaiSheet n'inclut pas d'analyse, de publicité ni de suivi. La progression et les réglages restent sur l'appareil, sauf si vous activez la synchronisation iCloud, qui utilise le stockage clé-valeur iCloud d'Apple."
           }
         }
       }

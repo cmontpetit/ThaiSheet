@@ -58,7 +58,7 @@ struct AboutView: View {
                     Text("Sound Generation")
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("Google Cloud TTS")
+                    Text("gTTS-generated audio")
                 }
                 HStack {
                     Text("Built with")
@@ -69,7 +69,7 @@ struct AboutView: View {
             }
 
             Section("Privacy") {
-                Text("This app does not collect, store, or transmit any personal data. All learning progress is stored locally on your device.")
+                Text("ThaiSheet does not include analytics, ads, or tracking. Progress and settings stay on device unless you enable iCloud Sync, which uses Apple's iCloud key-value store.")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }

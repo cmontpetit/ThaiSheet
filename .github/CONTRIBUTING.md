@@ -13,7 +13,7 @@ Thank you for your interest in contributing to ThaiSheet! This guide will help y
 
 ### Sound Files
 
-Sound files are generated using Google Cloud Text-to-Speech:
+Sound files are generated with gTTS:
 
 ```bash
 cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt

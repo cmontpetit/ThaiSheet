@@ -6,18 +6,52 @@
 import XCTest
 @testable import ThaiSheet
 
+private final class InMemoryKeyValueStore: KeyValueStore {
+    private var values: [String: Any] = [:]
+
+    func set(_ value: Any?, forKey key: String) {
+        values[key] = value
+    }
+
+    func set(_ value: Bool, forKey key: String) {
+        values[key] = value
+    }
+
+    func object(forKey key: String) -> Any? {
+        values[key]
+    }
+
+    func string(forKey key: String) -> String? {
+        values[key] as? String
+    }
+
+    func data(forKey key: String) -> Data? {
+        values[key] as? Data
+    }
+
+    func removeObject(forKey key: String) {
+        values.removeValue(forKey: key)
+    }
+
+    @discardableResult
+    func synchronize() -> Bool {
+        true
+    }
+}
+
 @MainActor
 final class SequentialStrategyTests: XCTestCase {
 
     private var strategy: SequentialStrategy!
     private var learningModel: LearningModel!
+    private var testStore: InMemoryKeyValueStore!
     private var testCards: [FlashcardItem]!
 
     override func setUp() {
         super.setUp()
-        UserDefaults.standard.removeObject(forKey: "learningProgress")
+        testStore = InMemoryKeyValueStore()
         strategy = SequentialStrategy()
-        learningModel = LearningModel()
+        learningModel = LearningModel(store: testStore)
 
         let consonants = Consonant.loadAll()
         XCTAssertFalse(consonants.isEmpty, "Need bundle data for tests")
@@ -27,9 +61,9 @@ final class SequentialStrategyTests: XCTestCase {
     }
 
     override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: "learningProgress")
         strategy = nil
         learningModel = nil
+        testStore = nil
         testCards = nil
         super.tearDown()
     }
@@ -187,13 +221,14 @@ final class WanikaniStrategyTests: XCTestCase {
 
     private var strategy: WanikaniStrategy!
     private var learningModel: LearningModel!
+    private var testStore: InMemoryKeyValueStore!
     private var testCards: [FlashcardItem]!
 
     override func setUp() {
         super.setUp()
-        UserDefaults.standard.removeObject(forKey: "learningProgress")
+        testStore = InMemoryKeyValueStore()
         strategy = WanikaniStrategy()
-        learningModel = LearningModel()
+        learningModel = LearningModel(store: testStore)
 
         let consonants = Consonant.loadAll()
         XCTAssertFalse(consonants.isEmpty, "Need bundle data for tests")
@@ -203,9 +238,9 @@ final class WanikaniStrategyTests: XCTestCase {
     }
 
     override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: "learningProgress")
         strategy = nil
         learningModel = nil
+        testStore = nil
         testCards = nil
         super.tearDown()
     }
