@@ -1667,6 +1667,17 @@
         }
       }
     },
+    "Website" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Site web"
+          }
+        }
+      }
+    },
     "ห makes syllable high-class" : {
       "localizations" : {
         "fr" : {

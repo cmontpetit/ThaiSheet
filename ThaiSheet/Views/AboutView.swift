@@ -6,8 +6,9 @@
 import SwiftUI
 
 struct AboutView: View {
-    // Force-unwrap is safe: literal URL, validated at development time
+    // Force-unwraps are safe: literal URLs, validated at development time
     private static let repositoryURL = URL(string: "https://github.com/cmontpetit/ThaiSheet")!
+    private static let websiteURL = URL(string: "https://cmontpetit.github.io/ThaiSheet/")!
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -39,6 +40,15 @@ struct AboutView: View {
             }
 
             Section("Open Source") {
+                Link(destination: Self.websiteURL) {
+                    HStack {
+                        Label("Website", systemImage: "globe")
+                        Spacer()
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
                 Link(destination: Self.repositoryURL) {
                     HStack {
                         Label("GitHub Repository", systemImage: "link")
