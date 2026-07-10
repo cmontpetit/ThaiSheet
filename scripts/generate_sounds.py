@@ -25,6 +25,7 @@ Output files are saved to ThaiSheet/Resources/sounds/
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 
@@ -64,12 +65,14 @@ class SoundGenerator:
         self.client = None
         self.voice = None
         self.audio_config = None
+        self.google_exceptions = None
 
         if dry_run:
             return
 
         try:
             from google.cloud import texttospeech
+            from google.api_core import exceptions as google_exceptions
         except ImportError as error:
             raise SystemExit(
                 "Missing google-cloud-texttospeech. Run: "
@@ -78,6 +81,7 @@ class SoundGenerator:
             ) from error
 
         self.texttospeech = texttospeech
+        self.google_exceptions = google_exceptions
         self.client = texttospeech.TextToSpeechClient()
         voice_args = {"language_code": language_code}
         if voice_name:
@@ -113,13 +117,79 @@ class SoundGenerator:
         assert self.voice is not None
         assert self.audio_config is not None
         synthesis_input = self.texttospeech.SynthesisInput(text=text)
-        response = self.client.synthesize_speech(
-            input=synthesis_input,
-            voice=self.voice,
-            audio_config=self.audio_config,
-        )
+        try:
+            response = self.client.synthesize_speech(
+                input=synthesis_input,
+                voice=self.voice,
+                audio_config=self.audio_config,
+            )
+        except self.google_exceptions.PermissionDenied as error:
+            raise SystemExit(format_permission_error(error)) from error
+        except self.google_exceptions.GoogleAPICallError as error:
+            raise SystemExit(format_google_api_error(error)) from error
+
         filepath.write_bytes(response.audio_content)
         self.written += 1
+
+
+def format_permission_error(error: Exception) -> str:
+    """Return a short actionable message for common Google Cloud permission errors."""
+    message = str(error)
+    activation_url = find_activation_url(message)
+    project_id = find_project_id(message)
+
+    lines = [
+        "Google Cloud Text-to-Speech permission error.",
+        "",
+        "Most likely fix: enable the Cloud Text-to-Speech API for the Google Cloud project used by your Application Default Credentials.",
+    ]
+
+    if project_id:
+        lines.extend([
+            "",
+            "Command:",
+            f"  gcloud services enable texttospeech.googleapis.com --project {project_id}",
+            f"  gcloud auth application-default set-quota-project {project_id}",
+        ])
+
+    if activation_url:
+        lines.extend([
+            "",
+            "Console link:",
+            f"  {activation_url}",
+        ])
+
+    lines.extend([
+        "",
+        "If you enabled the API recently, wait a few minutes and retry.",
+        "",
+        f"Original error: {message}",
+    ])
+    return "\n".join(lines)
+
+
+def format_google_api_error(error: Exception) -> str:
+    """Return a short actionable message for Google Cloud API errors."""
+    return "\n".join([
+        "Google Cloud Text-to-Speech API call failed.",
+        "",
+        "Check that billing is enabled, the API is enabled, and your Application Default Credentials are for the intended project.",
+        "",
+        f"Original error: {error}",
+    ])
+
+
+def find_activation_url(message: str) -> str | None:
+    match = re.search(
+        r"https://console\.developers\.google\.com/apis/api/texttospeech\.googleapis\.com/overview\?project=[\w-]+",
+        message,
+    )
+    return match.group(0) if match else None
+
+
+def find_project_id(message: str) -> str | None:
+    match = re.search(r"project ([a-z][a-z0-9-]{4,}[a-z0-9])", message)
+    return match.group(1) if match else None
 
 
 # =============================================================================
