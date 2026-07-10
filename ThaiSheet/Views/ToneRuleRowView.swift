@@ -95,7 +95,7 @@ struct ToneRuleRowView: View {
     private var lowestStage: SRSStage {
         guard let samples = rule.samples else { return .new }
         let stages = samples.map { sample in
-            let cardId = "toneRule-\(rule.id)-\(sample.full)"
+            let cardId = FlashcardType.toneRule.cardId(for: ToneRuleCard.key(rule: rule, sample: sample))
             return learningModel.getProgress(forId: cardId).srsStage
         }
         return stages.min() ?? .new

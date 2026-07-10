@@ -50,7 +50,7 @@ struct ToneMarkRowView: View {
     }
 
     private func stage(for display: String) -> SRSStage {
-        learningModel.getProgress(forId: "toneMark-\(display)").srsStage
+        learningModel.getProgress(forId: FlashcardType.toneMark.cardId(for: display)).srsStage
     }
 
     var body: some View {

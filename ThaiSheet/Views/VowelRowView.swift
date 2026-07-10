@@ -177,7 +177,7 @@ struct VowelRowView: View {
             if let text = selectedText, let formType = selectedFormType {
                 ReferenceItemSheet(
                     title: ThaiDisplay.placeholder(text),
-                    stage: learningModel.getProgress(forId: "vowel-\(text)").srsStage,
+                    stage: learningModel.getProgress(forId: FlashcardType.vowel.cardId(for: text)).srsStage,
                     note: vowel.note(for: formType.duration, form: formType.form),
                     hasSound: audioPlayer.hasSound(.vowel, key: text),
                     onPlaySound: { audioPlayer.play(.vowel, key: text) },

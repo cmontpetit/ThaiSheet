@@ -214,7 +214,7 @@ struct ClusterDetailSheet: View {
     }
 
     private var stage: SRSStage {
-        let cardId = "cluster-\(cluster.id)"
+        let cardId = FlashcardType.cluster.cardId(for: cluster.id)
         return learningModel.getProgress(forId: cardId).srsStage
     }
 

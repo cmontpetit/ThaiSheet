@@ -11,7 +11,12 @@ struct ToneRuleCard: Identifiable {
     let sample: ToneSample
     let correctTone: String
 
-    var id: String { "\(rule.id)-\(sample.full)" }
+    var id: String { Self.key(rule: rule, sample: sample) }
+
+    /// Card key for a rule/sample pair, without constructing a full card
+    static func key(rule: ToneRule, sample: ToneSample) -> String {
+        "\(rule.id)-\(sample.full)"
+    }
 
     static func allCards(from rules: [ToneRule]) -> [ToneRuleCard] {
         var cards: [ToneRuleCard] = []

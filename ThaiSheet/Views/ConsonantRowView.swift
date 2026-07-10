@@ -78,7 +78,7 @@ struct ConsonantRowView: View {
     }
 
     private var stage: SRSStage {
-        learningModel.getProgress(forId: "consonant-\(consonant.id)").srsStage
+        learningModel.getProgress(forId: FlashcardType.consonant.cardId(for: consonant.id)).srsStage
     }
 
     var body: some View {

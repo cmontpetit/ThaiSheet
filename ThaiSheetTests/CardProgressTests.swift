@@ -346,4 +346,41 @@ final class CardProgressTests: XCTestCase {
         let rawValues = SRSStage.allCases.map(\.rawValue)
         XCTAssertEqual(rawValues, [0, 1, 2, 3, 4, 5, 6, 7, 8])
     }
+
+    // MARK: - Card ID format
+    // Card IDs are persisted in UserDefaults/iCloud; these literals must never change.
+
+    func test_cardId_formatIsStablePerType() {
+        XCTAssertEqual(FlashcardType.consonant.cardId(for: "ก"), "consonant-ก")
+        XCTAssertEqual(FlashcardType.vowel.cardId(for: "กา"), "vowel-กา")
+        XCTAssertEqual(FlashcardType.toneMark.cardId(for: "ค่า"), "toneMark-ค่า")
+        XCTAssertEqual(FlashcardType.toneRule.cardId(for: "Low-Short-Dead/None-คะ"), "toneRule-Low-Short-Dead/None-คะ")
+        XCTAssertEqual(FlashcardType.cluster.cardId(for: "กร"), "cluster-กร")
+    }
+
+    func test_toneRuleCardKey_matchesCardId() {
+        let rule = ToneRule(
+            initialConsonant: "Low",
+            vowelDuration: "Short",
+            end: "Dead/None",
+            tone: "High",
+            samples: [ToneSample(full: "คะ", focus: "คะ", note: nil)]
+        )
+        let sample = rule.samples![0]
+        let card = ToneRuleCard(rule: rule, sample: sample, correctTone: rule.tone)
+        XCTAssertEqual(ToneRuleCard.key(rule: rule, sample: sample), card.id)
+        XCTAssertEqual(card.id, "Low-Short-Dead/None-คะ")
+    }
+
+    func test_flashcardItemId_usesCardIdFormat() {
+        let consonant = Consonant(
+            character: "ก",
+            name: "กอ ไก่",
+            transcription: "gaaw gài",
+            class: .mid,
+            usage: .common,
+            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "g-", final: "-k"))
+        )
+        XCTAssertEqual(FlashcardItem.consonant(consonant).id, "consonant-ก")
+    }
 }
