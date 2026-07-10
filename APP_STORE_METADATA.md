@@ -54,7 +54,12 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 
 Initial release.
 
-## French (fr-FR) Store Metadata
+## French Store Metadata — DEFERRED
+
+Decision (July 2026): the first submission ships with English (U.S.) store metadata
+only; the app's French UI localization ships regardless. Add this French listing in a
+later update — as **French (Canada)** first (the Canadian storefront indexes fr-CA
+keywords), optionally duplicated to French (France).
 
 - Subtitle: `Aide-mémoire thaï + audio` (25)
 - What's New: `Première version.`
