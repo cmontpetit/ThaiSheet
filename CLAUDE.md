@@ -202,6 +202,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - Three variants wired in Contents.json: light, dark, and tinted (tinted must stay grayscale per Apple's spec; keep its chip luminances lighter than the glyph)
 - Artwork must be FULL-BLEED 1024×1024 — no pre-rounded corners or outer padding; iOS applies its own mask (a baked-in rounded rect shows a double-rounding artifact on device)
 - Design: cheatsheet card + table rules + bold Thonburi ก + three consonant-class color chips (green/yellow/red = low/mid/high, matching `ConsonantClass.color`)
+- The website favicon/touch icons (`docs/icon-{32,180,256}.png`) are resized copies — after changing the icon, regenerate them: `for sz in 32 180 256; do sips -z $sz $sz ThaiSheet/Assets.xcassets/AppIcon.appiconset/AppIcon.png --out docs/icon-$sz.png; done`
 
 ### App Store and Open Source Notes
 - App Store metadata draft lives in `APP_STORE_METADATA.md`; privacy/support/security docs live in `PRIVACY.md`, `SUPPORT.md`, and `SECURITY.md`

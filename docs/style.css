@@ -42,9 +42,11 @@ header h1 {
   margin: 0.5rem 0 0.25rem;
 }
 
-.thai-accent {
-  font-size: 3rem;
-  line-height: 1;
+.app-icon {
+  width: 128px;
+  height: 128px;
+  border-radius: 28px; /* approximate the iOS squircle */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 .tagline {
