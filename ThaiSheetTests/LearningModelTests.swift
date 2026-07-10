@@ -416,4 +416,37 @@ final class LearningModelTests: XCTestCase {
         XCTAssertEqual(progress.srsStage, .mastered)
         XCTAssertNil(progress.nextReviewDate)
     }
+
+    // MARK: - Corrupted stored progress
+
+    // Reuses the setUp model via reload() — instantiating extra @Observable
+    // models in the test host triggers the documented malloc crash
+
+    func test_corruptedStore_loadKeepsBlobUntouched() {
+        let garbage = Data("not valid json {".utf8)
+        testDefaults.set(garbage, forKey: LearningModel.storageKey)
+
+        model.reload()
+
+        XCTAssertEqual(model.getProgress(for: card1).srsStage, .new)
+        // No save happened yet: the blob must still be in place, unbacked-up
+        XCTAssertEqual(testDefaults.data(forKey: LearningModel.storageKey), garbage)
+        XCTAssertNil(testDefaults.data(forKey: LearningModel.corruptedBackupKey))
+    }
+
+    func test_corruptedStore_firstSavePreservesBlobUnderBackupKey() {
+        let garbage = Data("not valid json {".utf8)
+        testDefaults.set(garbage, forKey: LearningModel.storageKey)
+        model.reload()
+
+        model.recordResult(for: card1, correct: true, fullTesting: true)
+
+        XCTAssertEqual(testDefaults.data(forKey: LearningModel.corruptedBackupKey), garbage,
+                       "The undecodable blob must be preserved before the first overwrite")
+        let stored = testDefaults.data(forKey: LearningModel.storageKey)
+        XCTAssertNotNil(stored)
+        XCTAssertNotEqual(stored, garbage, "New progress should replace the main key")
+        let decoded = try? JSONDecoder().decode([String: CardProgress].self, from: stored!)
+        XCTAssertEqual(decoded?.count, 1)
+    }
 }

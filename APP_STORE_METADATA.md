@@ -5,10 +5,7 @@ This file is a working draft for App Store Connect. Review it before submission,
 ## App Information
 
 - Name: ThaiSheet
-- Subtitle: PICK ONE (30-char limit):
-  - `Thai script reference & drills` (30)
-  - `Read Thai: reference + audio` (28)
-  - `Learn to read Thai script` (25 — current draft)
+- Subtitle: `Thai script reference + audio` (29/30 chars)
 - Primary category: Education
 - Secondary category: Reference
 - Bundle ID: `net.montpetit.thaisheet`
@@ -57,9 +54,10 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 
 Initial release.
 
-## French (fr-FR) Store Metadata Draft
+## French (fr-FR) Store Metadata
 
-- Subtitle: `Référence pour lire le thaï` (27)
+- Subtitle: `Référence thaïe + audio` (23)
+- What's New: `Première version.`
 - Keywords: `thaï,Thaïlande,langue,alphabet,lecture,cartes,SRS,tons,voyelles,consonnes`
 - Promotional text: `La feuille de référence du thaï en app : tableaux, audio et cartes SRS.`
 - Description:

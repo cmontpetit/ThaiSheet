@@ -24,7 +24,13 @@ extension EnvironmentValues {
 @Observable
 class LearningModel {
     static let storageKey = "learningProgress"
+    /// Where an undecodable progress blob is preserved before being overwritten
+    static let corruptedBackupKey = "learningProgress.corrupted-backup"
     private static let logger = Logger(subsystem: "net.montpetit.thaisheet", category: "LearningModel")
+
+    /// Set when the stored blob exists but can't be decoded; save() preserves
+    /// the blob under corruptedBackupKey before first overwriting it
+    @ObservationIgnored private var hasUndecodableStoredProgress = false
 
     /// Progress data keyed by card ID
     private var progressByCardId: [String: CardProgress] = [:]
@@ -171,6 +177,16 @@ class LearningModel {
     // MARK: - Persistence
 
     private func save() {
+        // A save after a failed load would overwrite the very blob load()
+        // chose to preserve — move it to the backup key first, so it stays
+        // recoverable by a newer build that understands the format
+        if hasUndecodableStoredProgress {
+            if let corrupted = store.data(forKey: LearningModel.storageKey) {
+                store.set(corrupted, forKey: LearningModel.corruptedBackupKey)
+                Self.logger.error("Preserved undecodable learning progress under \(LearningModel.corruptedBackupKey, privacy: .public)")
+            }
+            hasUndecodableStoredProgress = false
+        }
         let encoder = JSONEncoder()
         do {
             let data = try encoder.encode(progressByCardId)
@@ -188,12 +204,10 @@ class LearningModel {
         let decoder = JSONDecoder()
         do {
             progressByCardId = try decoder.decode([String: CardProgress].self, from: data)
+            hasUndecodableStoredProgress = false
         } catch {
-            // Keep the in-memory progress (empty on first load) rather than
-            // overwriting the stored blob; the user's data may be recoverable
-            // by a newer build that understands the format.
-            Self.logger.error("Failed to decode stored learning progress; leaving store untouched: \(error, privacy: .public)")
-            assertionFailure("Failed to decode stored learning progress: \(error)")
+            hasUndecodableStoredProgress = true
+            Self.logger.error("Failed to decode stored learning progress; blob will be backed up before any overwrite: \(error, privacy: .public)")
         }
     }
 
