@@ -61,6 +61,6 @@ No user-generated content, web browsing, purchases, gambling, violence, medical 
 - Capture App Store screenshots for iPhone and iPad.
 - Publish the GitHub repository or another public support page.
 - Use `PRIVACY.md` as the hosted Privacy Policy URL once public.
-- Confirm rights and attribution for generated audio and source learning data.
+- Regenerate bundled audio with official Google Cloud Text-to-Speech credentials and confirm rights/attribution for source learning data.
 - Run `scripts/check_release_binary.sh` on the archived app product.
 - Create the App Store Connect app record and select the signed archive build.

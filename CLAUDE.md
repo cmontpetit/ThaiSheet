@@ -123,16 +123,22 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - Audio injection: `AudioPlaying` protocol via `@Environment(\.audioPlayer)` — never use `AudioPlayer.shared` directly in views
 
 ### Sound File Generation
-- Script: `scripts/generate_sounds.py` (uses gTTS)
+- Script: `scripts/generate_sounds.py` (uses Google Cloud Text-to-Speech)
 - First-time setup:
   ```bash
   cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+  gcloud auth application-default login
   ```
 - After setup, just activate and run:
   ```bash
-  source scripts/venv/bin/activate && python3 scripts/generate_sounds.py --all
+  source scripts/venv/bin/activate
+  python3 scripts/generate_sounds.py --all --dry-run --check-files
+  python3 scripts/generate_sounds.py --all --force --check-files
   # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
   ```
+- Default voice: `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare quality before committing regenerated MP3s
+- Existing MP3s are skipped unless `--force` is passed
+- Use `--check-files` with `--all` to catch stale or missing bundled MP3s before release
 - Tone mark sounds: 8 files using fixed consonants (ค for low class, ก for mid/high class) + า vowel
 
 ### Flashcard Design Decisions
@@ -192,7 +198,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 ### App Store and Open Source Notes
 - App Store metadata draft lives in `APP_STORE_METADATA.md`; privacy/support/security docs live in `PRIVACY.md`, `SUPPORT.md`, and `SECURITY.md`
 - The App Store privacy position is: no ads, analytics, tracking, or third-party iOS SDKs; learning progress/settings are local unless optional iCloud Sync is enabled
-- Before public release, confirm rights and attribution for generated audio, JSON learning data, and any screenshots
+- Before public release, confirm rights and attribution for JSON learning data and screenshots; bundled MP3s should be regenerated with official Google Cloud Text-to-Speech credentials before submission
 - Do not commit `external-resources/`; source cheatsheet images are local-only copyrighted reference material
 
 ### Verifying UI in the simulator (no UI automation)

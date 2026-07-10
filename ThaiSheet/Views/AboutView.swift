@@ -58,7 +58,7 @@ struct AboutView: View {
                     Text("Sound Generation")
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("gTTS-generated audio")
+                    Text("Google Cloud TTS")
                 }
                 HStack {
                     Text("Built with")

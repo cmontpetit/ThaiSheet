@@ -532,12 +532,12 @@
         }
       }
     },
-    "gTTS-generated audio" : {
+    "Google Cloud TTS" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Audio généré avec gTTS"
+            "value" : "Audio Google Cloud TTS"
           }
         }
       }

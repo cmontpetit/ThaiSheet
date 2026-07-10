@@ -41,18 +41,23 @@ scripts/check_release_binary.sh /path/to/ThaiSheet.app
 
 ## Sound Generation
 
-Sound files are generated with [gTTS](https://pypi.org/project/gTTS/). First-time setup:
+Sound files are generated with [Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech). First-time setup:
 
 ```bash
 cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+gcloud auth application-default login
 ```
 
 After setup, activate the virtual environment and run:
 
 ```bash
-source scripts/venv/bin/activate && python3 scripts/generate_sounds.py --all
+source scripts/venv/bin/activate
+python3 scripts/generate_sounds.py --all --dry-run --check-files
+python3 scripts/generate_sounds.py --all --force --check-files
 # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
 ```
+
+The default Thai voice is `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare output before committing regenerated MP3s.
 
 ## Contributing
 
