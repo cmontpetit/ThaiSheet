@@ -14,6 +14,7 @@ struct ToneMarkFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneMarkCardState()
+    @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 100
 
     // All possible tones for selection
     private let toneOptions: [LocalizedOption] = [
@@ -34,6 +35,7 @@ struct ToneMarkFlashcardView: View {
                 selectionArea
             }
             .padding()
+            .contentColumn()
         }
         .onChange(of: card.id) { _, _ in
             // Reset state when card changes
@@ -54,7 +56,7 @@ struct ToneMarkFlashcardView: View {
             onNext: handleNext
         ) {
             Text(card.display)
-                .font(.system(size: 100))
+                .font(.system(size: glyphSize))
                 .minimumScaleFactor(0.5)
         }
     }

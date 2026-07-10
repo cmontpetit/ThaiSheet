@@ -15,12 +15,14 @@ struct ReferenceItemSheet: View {
     let onPractice: () -> Void
 
     @Environment(\.dismiss) var dismiss
+    @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
 
     var body: some View {
         VStack(spacing: 24) {
             // Title
             Text(title)
-                .font(.system(size: 48))
+                .font(.system(size: titleSize))
+                .minimumScaleFactor(0.5)
                 .padding(.top, 20)
 
             // Stage indicator

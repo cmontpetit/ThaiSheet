@@ -63,6 +63,8 @@ struct FlashcardFace<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     @Environment(\.audioPlayer) private var audioPlayer
+    /// Grows the display area with Dynamic Type so scaled glyphs don't clip
+    @ScaledMetric(relativeTo: .largeTitle) private var displayScale: CGFloat = 1
 
     var body: some View {
         FlashcardResultCard(showResult: showResult, hasError: hasError) {
@@ -70,7 +72,7 @@ struct FlashcardFace<Content: View>: View {
                 NavigableTapArea(onPrevious: onPrevious, onNext: onNext) {
                     content()
                 }
-                .frame(height: displayHeight)
+                .frame(height: displayHeight * displayScale)
 
                 HStack(spacing: 20) {
                     Button {

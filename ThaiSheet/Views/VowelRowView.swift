@@ -90,6 +90,7 @@ struct VowelRowView: View {
     @Environment(\.learningModel) var learningModel
     @State private var selectedFormType: VowelFormVariant? = nil
     @State private var selectedText: String? = nil
+    @ScaledMetric(relativeTo: .title2) private var singleDurationFormSize: CGFloat = 34
 
     private func formMatchesSearch(_ form: String?) -> Bool {
         guard let form = form, let query = searchQuery, !query.isEmpty else { return true }
@@ -228,7 +229,7 @@ struct VowelRowView: View {
 
     /// Larger glyphs when a single duration has the full width
     private var formFont: Font {
-        visibleDuration == nil ? .title2 : .system(size: 34)
+        visibleDuration == nil ? .title2 : .system(size: singleDurationFormSize)
     }
 
     /// Full-width mode reads like a table: content leads from the left edge

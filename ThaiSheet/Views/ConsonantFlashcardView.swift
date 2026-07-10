@@ -15,6 +15,7 @@ struct ConsonantFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = CardState()
+    @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 100
 
     // Generated options for current card
     @State private var initialSoundOptions: [String] = []
@@ -34,6 +35,7 @@ struct ConsonantFlashcardView: View {
                 selectionArea
             }
             .padding()
+            .contentColumn()
         }
         .onAppear {
             generateOptions()
@@ -58,7 +60,7 @@ struct ConsonantFlashcardView: View {
             onNext: handleNext
         ) {
             Text(consonant.character)
-                .font(.system(size: 100))
+                .font(.system(size: glyphSize))
                 .minimumScaleFactor(0.5)
         }
     }

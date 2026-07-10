@@ -15,6 +15,7 @@ struct VowelFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = VowelCardState()
+    @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
 
     // Generated options for sound selection
     @State private var soundOptions: [String] = []
@@ -32,6 +33,7 @@ struct VowelFlashcardView: View {
                 selectionArea
             }
             .padding()
+            .contentColumn()
         }
         .onAppear {
             generateOptions()
@@ -56,7 +58,7 @@ struct VowelFlashcardView: View {
             onNext: handleNext
         ) {
             Text(card.display.replacingOccurrences(of: "-", with: ""))
-                .font(.system(size: 72))
+                .font(.system(size: glyphSize))
                 .minimumScaleFactor(0.5)
         }
     }

@@ -14,6 +14,7 @@ struct ToneRuleFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneRuleCardState()
+    @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
 
     // Selection options (value = data identifier matching JSON, label = localized display)
     private let consonantClassOptions: [LocalizedOption] = [
@@ -48,6 +49,7 @@ struct ToneRuleFlashcardView: View {
                 selectionArea
             }
             .padding()
+            .contentColumn()
         }
         .onChange(of: card.id) { _, _ in
             // Reset state when card changes
@@ -80,7 +82,7 @@ struct ToneRuleFlashcardView: View {
         if full == focus {
             // Simple case: entire word is the focus
             Text(full)
-                .font(.system(size: 72))
+                .font(.system(size: glyphSize))
                 .minimumScaleFactor(0.5)
         } else if let range = full.range(of: focus) {
             // Highlight only the focus part
@@ -91,15 +93,15 @@ struct ToneRuleFlashcardView: View {
             HStack(spacing: 0) {
                 if !before.isEmpty {
                     Text(before)
-                        .font(.system(size: 72))
+                        .font(.system(size: glyphSize))
                         .foregroundColor(.secondary.opacity(0.5))
                 }
                 Text(focusPart)
-                    .font(.system(size: 72))
+                    .font(.system(size: glyphSize))
                     .foregroundColor(.primary)
                 if !after.isEmpty {
                     Text(after)
-                        .font(.system(size: 72))
+                        .font(.system(size: glyphSize))
                         .foregroundColor(.secondary.opacity(0.5))
                 }
             }
@@ -107,7 +109,7 @@ struct ToneRuleFlashcardView: View {
         } else {
             // Fallback: just show the full word
             Text(full)
-                .font(.system(size: 72))
+                .font(.system(size: glyphSize))
                 .minimumScaleFactor(0.5)
         }
     }
