@@ -86,29 +86,37 @@ struct ClusterMatrixCell: View {
     let cluster: Cluster?
     var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
+    @Environment(\.audioPlayer) private var audioPlayer
     @State private var showingSheet = false
 
     var body: some View {
         if let cluster = cluster {
-            Button {
-                showingSheet = true
-            } label: {
-                VStack(spacing: 2) {
-                    Text(cluster.displayWithVowel)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    if let sound = cluster.sound {
-                        Text(sound)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
+            // Tap plays the sound, long press opens the sheet
+            VStack(spacing: 2) {
+                Text(cluster.displayWithVowel)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                if let sound = cluster.sound {
+                    Text(sound)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
-                .foregroundColor(cluster.usageLabel != nil ? .secondary : .primary)
-                .padding(4)
-                .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color.clear)
-                .cornerRadius(6)
             }
-            .buttonStyle(.plain)
+            .foregroundColor(cluster.usageLabel != nil ? .secondary : .primary)
+            .padding(4)
+            .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color.clear)
+            .cornerRadius(6)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
+                    audioPlayer.play(.cluster, key: cluster.displayWithVowel)
+                } else {
+                    showingSheet = true
+                }
+            }
+            .onLongPressGesture {
+                showingSheet = true
+            }
             .sheet(isPresented: $showingSheet) {
                 ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
             }
@@ -155,31 +163,39 @@ struct ClusterCompactCell: View {
     let cluster: Cluster
     var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
+    @Environment(\.audioPlayer) private var audioPlayer
     @State private var showingSheet = false
 
     var body: some View {
-        Button {
-            showingSheet = true
-        } label: {
-            VStack(spacing: 2) {
-                Text(cluster.displayWithVowel)
-                    .font(.title3)
-                if let sound = cluster.sound {
-                    Text(sound)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+        // Tap plays the sound, long press opens the sheet
+        VStack(spacing: 2) {
+            Text(cluster.displayWithVowel)
+                .font(.title3)
+            if let sound = cluster.sound {
+                Text(sound)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color(.systemGray6))
-            .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isHighlighted ? Color.accentColor : Color.clear, lineWidth: 2)
-            )
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color(.systemGray6))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isHighlighted ? Color.accentColor : Color.clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
+                audioPlayer.play(.cluster, key: cluster.displayWithVowel)
+            } else {
+                showingSheet = true
+            }
+        }
+        .onLongPressGesture {
+            showingSheet = true
+        }
         .sheet(isPresented: $showingSheet) {
             ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
         }

@@ -107,14 +107,32 @@ struct VowelRowView: View {
         return vowel.allForms.contains(highlighted)
     }
 
-    // Find a form that has a sound file (prefer closed forms)
-    private var soundForm: String? {
-        let formsToTry = [vowel.long.closed, vowel.short.closed, vowel.long.open, vowel.short.open]
-        return formsToTry.compactMap { $0 }.first { audioPlayer.hasSound(.vowel, key: $0) }
+    // Find a form that has a sound file (prefer visible forms, then closed forms)
+    private var soundForm: (text: String, formType: VowelFormType)? {
+        let candidates: [(String?, VowelFormType)]
+        switch visibleDuration {
+        case .short:
+            candidates = [(vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen),
+                          (vowel.long.closed, .longClosed), (vowel.long.open, .longOpen)]
+        case .long:
+            candidates = [(vowel.long.closed, .longClosed), (vowel.long.open, .longOpen),
+                          (vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen)]
+        case nil:
+            candidates = [(vowel.long.closed, .longClosed), (vowel.short.closed, .shortClosed),
+                          (vowel.long.open, .longOpen), (vowel.short.open, .shortOpen)]
+        }
+        return candidates
+            .compactMap { text, formType in text.map { ($0, formType) } }
+            .first { audioPlayer.hasSound(.vowel, key: $0.0) }
     }
 
     private var hasSound: Bool {
         soundForm != nil
+    }
+
+    private func showSheet(for text: String, formType: VowelFormType) {
+        selectedFormType = formType
+        selectedText = text
     }
 
     var body: some View {
@@ -150,6 +168,23 @@ struct VowelRowView: View {
         .padding(.trailing, 12)
         .padding(.vertical, 6)
         .background(backgroundForRow)
+        .sheet(
+            isPresented: Binding(
+                get: { selectedText != nil },
+                set: { if !$0 { selectedFormType = nil; selectedText = nil } }
+            )
+        ) {
+            if let text = selectedText, let formType = selectedFormType {
+                ReferenceItemSheet(
+                    title: ThaiDisplay.placeholder(text),
+                    stage: learningModel.getProgress(forId: "vowel-\(text)").srsStage,
+                    note: vowel.note(for: formType.duration, form: formType.form),
+                    hasSound: audioPlayer.hasSound(.vowel, key: text),
+                    onPlaySound: { audioPlayer.play(.vowel, key: text) },
+                    onPractice: { onPractice?(text) }
+                )
+            }
+        }
     }
 
     private var shortCells: some View {
@@ -168,11 +203,24 @@ struct VowelRowView: View {
         .frame(maxWidth: .infinity)
     }
 
+    // Romanization: tap plays the preferred form's sound, long press opens the sheet
     private var soundLabel: some View {
         Text(vowel.sound)
             .font(.caption)
-            .foregroundColor(.primary)
+            .foregroundColor(hasSound ? .accentColor : .primary)
             .frame(width: 60)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if let form = soundForm {
+                    audioPlayer.play(.vowel, key: form.text)
+                }
+            }
+            .onLongPressGesture {
+                if let form = soundForm {
+                    showSheet(for: form.text, formType: form.formType)
+                }
+            }
     }
 
     private var backgroundForRow: Color {
@@ -198,39 +246,30 @@ struct VowelRowView: View {
         visibleDuration == nil ? 0 : 24
     }
 
+    // Tap plays this form's sound, long press opens the sheet
     @ViewBuilder
     private func vowelCell(_ text: String?, formType: VowelFormType) -> some View {
         if let text = text {
             let matches = formMatchesSearch(text)
             let isSelected = highlightedForm == text
-            Button {
-                selectedFormType = formType
-                selectedText = text
-            } label: {
-                Text(ThaiDisplay.placeholder(text))
-                    .font(formFont)
-                    .foregroundColor(matches ? .primary : .secondary)
-                    .padding(.leading, cellLeadingPadding)
-                    .frame(maxWidth: .infinity, alignment: cellAlignment)
-                    .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
-                    .cornerRadius(4)
-            }
-            .buttonStyle(.plain)
-            .sheet(
-                isPresented: Binding(
-                    get: { selectedFormType == formType },
-                    set: { if !$0 { selectedFormType = nil; selectedText = nil } }
-                )
-            ) {
-                ReferenceItemSheet(
-                    title: ThaiDisplay.placeholder(text),
-                    stage: learningModel.getProgress(forId: "vowel-\(text)").srsStage,
-                    note: vowel.note(for: formType.duration, form: formType.form),
-                    hasSound: audioPlayer.hasSound(.vowel, key: text),
-                    onPlaySound: { audioPlayer.play(.vowel, key: text) },
-                    onPractice: { onPractice?(text) }
-                )
-            }
+            Text(ThaiDisplay.placeholder(text))
+                .font(formFont)
+                .foregroundColor(matches ? .primary : .secondary)
+                .padding(.leading, cellLeadingPadding)
+                .frame(maxWidth: .infinity, alignment: cellAlignment)
+                .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
+                .cornerRadius(4)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if audioPlayer.hasSound(.vowel, key: text) {
+                        audioPlayer.play(.vowel, key: text)
+                    } else {
+                        showSheet(for: text, formType: formType)
+                    }
+                }
+                .onLongPressGesture {
+                    showSheet(for: text, formType: formType)
+                }
         } else {
             Text("-")
                 .font(formFont)

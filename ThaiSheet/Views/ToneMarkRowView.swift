@@ -101,15 +101,21 @@ struct ToneMarkRowView: View {
                 .font(.subheadline)
                 .foregroundStyle(.quaternary)
         } else {
-            Button {
-                selectedDisplay = display
-            } label: {
-                StyledToneText(tone: tone)
-                    .font(.subheadline)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .sheet(
+            // Tap plays the sound, long press opens the sheet
+            StyledToneText(tone: tone)
+                .font(.subheadline)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if hasSound {
+                        audioPlayer.play(.toneMark, key: soundKey)
+                    } else {
+                        selectedDisplay = display
+                    }
+                }
+                .onLongPressGesture {
+                    selectedDisplay = display
+                }
+                .sheet(
                 isPresented: Binding(
                     get: { selectedDisplay == display },
                     set: { if !$0 { selectedDisplay = nil } }

@@ -89,7 +89,7 @@ struct ConsonantRowView: View {
                 .frame(width: 8, height: 8)
                 .padding(.trailing, 8)
 
-            // Main row content (tappable for sheet)
+            // Row content: tap plays the sound, long press opens the sheet
             HStack(alignment: .center, spacing: 12) {
                 ClassIndicatorView(activeClass: consonant.consonantClass)
 
@@ -101,38 +101,38 @@ struct ConsonantRowView: View {
                     .foregroundStyle(.primary)
 
                 Spacer()
-            }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                showingSheet = true
-            }
 
-            // Sound area (tappable to play sound directly)
-            VStack(alignment: .trailing, spacing: 2) {
-                HStack(spacing: 8) {
-                    Text(consonant.initialSound)
-                        .font(.subheadline)
-                        .monospacedDigit()
-                    Text(consonant.finalSound)
-                        .font(.subheadline)
-                        .monospacedDigit()
-                }
-                .foregroundColor(hasSound ? .accentColor : .primary)
+                VStack(alignment: .trailing, spacing: 2) {
+                    HStack(spacing: 8) {
+                        Text(consonant.initialSound)
+                            .font(.subheadline)
+                            .monospacedDigit()
+                        Text(consonant.finalSound)
+                            .font(.subheadline)
+                            .monospacedDigit()
+                    }
+                    .foregroundColor(hasSound ? .accentColor : .primary)
 
-                if consonant.usage != .common {
-                    Text(consonant.usage.label)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if consonant.usage != .common {
+                        Text(consonant.usage.label)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .frame(minWidth: 80)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 8)
             }
-            .frame(minWidth: 80)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 8)
             .contentShape(Rectangle())
             .onTapGesture {
                 if hasSound {
                     audioPlayer.play(.consonant, key: consonant.character)
+                } else {
+                    showingSheet = true
                 }
+            }
+            .onLongPressGesture {
+                showingSheet = true
             }
         }
         .padding(.vertical, 4)

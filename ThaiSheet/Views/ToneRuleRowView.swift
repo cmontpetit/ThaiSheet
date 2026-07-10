@@ -97,7 +97,7 @@ struct ToneRuleRowView: View {
                 .frame(width: 8, height: 8)
                 .padding(.trailing, 4)
 
-            // Main content (tappable for sheet)
+            // Row content: tap plays the sound, long press opens the sheet
             HStack(spacing: 0) {
                 Text(String(localized: String.LocalizationValue(rule.initialConsonant), bundle: .appLanguage))
                     .frame(width: 60)
@@ -122,22 +122,22 @@ struct ToneRuleRowView: View {
                 Text("=")
                     .foregroundStyle(.quaternary)
                     .frame(width: 20)
+
+                StyledToneText(tone: rule.tone)
+                    .foregroundColor(hasSound ? .accentColor : .primary)
+                    .frame(width: 60)
             }
             .contentShape(Rectangle())
             .onTapGesture {
+                if hasSound, let sample = rule.primarySample {
+                    audioPlayer.play(.toneRule, key: sample.full)
+                } else {
+                    showingSheet = true
+                }
+            }
+            .onLongPressGesture {
                 showingSheet = true
             }
-
-            // Tone column (tappable to play sound directly)
-            StyledToneText(tone: rule.tone)
-                .foregroundColor(hasSound ? .accentColor : .primary)
-                .frame(width: 60)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if hasSound, let sample = rule.primarySample {
-                        audioPlayer.play(.toneRule, key: sample.full)
-                    }
-                }
         }
         .font(.subheadline)
         .padding(.vertical, 4)
