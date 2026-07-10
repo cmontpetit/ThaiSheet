@@ -50,7 +50,10 @@ Other useful docs in that folder:
 xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 17' build
 
 # Run tests
-xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet test
+xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 17' test
+
+# Verify an App Store release build has no coverage instrumentation
+scripts/check_release_binary.sh /path/to/ThaiSheet.app
 ```
 
 ## Project Conventions
@@ -120,7 +123,7 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - Audio injection: `AudioPlaying` protocol via `@Environment(\.audioPlayer)` — never use `AudioPlayer.shared` directly in views
 
 ### Sound File Generation
-- Script: `scripts/generate_sounds.py` (uses Google Text-to-Speech)
+- Script: `scripts/generate_sounds.py` (uses gTTS)
 - First-time setup:
   ```bash
   cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
@@ -184,6 +187,13 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - **Deployment target:** iOS 17.0 (supports iPhone XR and newer)
 - **Simulator:** any available iPhone simulator (e.g. `iPhone 17`)
 - **SourceKit/editor diagnostics** like "Cannot find type X in scope" for types defined in other files are cross-file resolution noise, NOT real errors — always verify with `xcodebuild`
+- Release builds must keep `ENABLE_CODE_COVERAGE = NO`; before App Store submission, run `scripts/check_release_binary.sh` against the archived `.app` product to catch LLVM coverage/profile sections and confirm `ITSAppUsesNonExemptEncryption = false`
+
+### App Store and Open Source Notes
+- App Store metadata draft lives in `APP_STORE_METADATA.md`; privacy/support/security docs live in `PRIVACY.md`, `SUPPORT.md`, and `SECURITY.md`
+- The App Store privacy position is: no ads, analytics, tracking, or third-party iOS SDKs; learning progress/settings are local unless optional iCloud Sync is enabled
+- Before public release, confirm rights and attribution for generated audio, JSON learning data, and any screenshots
+- Do not commit `external-resources/`; source cheatsheet images are local-only copyrighted reference material
 
 ### Verifying UI in the simulator (no UI automation)
 `xcrun simctl` cannot tap or scroll, so to see a specific screen:
