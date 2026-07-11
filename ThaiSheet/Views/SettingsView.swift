@@ -12,46 +12,12 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        #if DEBUG
         let isThaiVoiceAvailable = AudioPlayer.isThaiVoiceAvailable
+        #endif
 
         NavigationStack {
             Form {
-                // Language override is a dev-only tool for checking translations;
-                // release builds always follow the system language
-                #if DEBUG
-                Section {
-                    Picker(selection: $settings.appLanguage) {
-                        ForEach(FlashcardSettings.supportedLanguages, id: \.code) { lang in
-                            Text(lang.name).tag(lang.code)
-                        }
-                    } label: {
-                        Text("Language")
-                    }
-                } header: {
-                    Text("Language")
-                }
-                #endif
-
-                Section {
-                    Picker(
-                        "Voice",
-                        selection: availableAudioSourceBinding(isThaiVoiceAvailable: isThaiVoiceAvailable)
-                    ) {
-                        Text("Recorded voice").tag(AudioSource.recorded)
-                        Text("Device voice")
-                            .tag(AudioSource.device)
-                            .disabled(!isThaiVoiceAvailable)
-                    }
-                    .pickerStyle(.inline)
-                    .labelsHidden()
-                } header: {
-                    Text("Audio")
-                } footer: {
-                    if !isThaiVoiceAvailable {
-                        Text("A Thai device voice is not available on this device.")
-                    }
-                }
-
                 Section {
                     strategyOption(
                         title: "Wanikani-style SRS",
@@ -91,6 +57,42 @@ struct SettingsView: View {
                     Text("iCloud Sync")
                 }
 
+                // Audio-source and language overrides are dev-only tools for now;
+                // release builds ship the recorded voice and follow the system language
+                #if DEBUG
+                Section {
+                    Picker(
+                        "Voice",
+                        selection: availableAudioSourceBinding(isThaiVoiceAvailable: isThaiVoiceAvailable)
+                    ) {
+                        Text("Recorded voice").tag(AudioSource.recorded)
+                        Text("Device voice")
+                            .tag(AudioSource.device)
+                            .disabled(!isThaiVoiceAvailable)
+                    }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
+                } header: {
+                    Text("Audio")
+                } footer: {
+                    if !isThaiVoiceAvailable {
+                        Text("A Thai device voice is not available on this device.")
+                    }
+                }
+
+                Section {
+                    Picker(selection: $settings.appLanguage) {
+                        ForEach(FlashcardSettings.supportedLanguages, id: \.code) { lang in
+                            Text(lang.name).tag(lang.code)
+                        }
+                    } label: {
+                        Text("Language")
+                    }
+                } header: {
+                    Text("Language")
+                }
+                #endif
+
                 Section {
                     NavigationLink {
                         AboutView()
@@ -111,6 +113,7 @@ struct SettingsView: View {
         }
     }
 
+    #if DEBUG
     private func availableAudioSourceBinding(isThaiVoiceAvailable: Bool) -> Binding<AudioSource> {
         Binding {
             AudioPlayer.resolvedAudioSource(
@@ -125,6 +128,7 @@ struct SettingsView: View {
             settings.audioSource = source
         }
     }
+    #endif
 
     @ViewBuilder
     private func strategyOption(
