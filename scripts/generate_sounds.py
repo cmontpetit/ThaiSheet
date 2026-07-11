@@ -246,8 +246,10 @@ def find_project_id(message: str) -> str | None:
 def generate_tone_marks(sounds_dir: Path, cheatsheet_dir: Path, generator: SoundGenerator) -> None:
     """Generate tone mark sound files using fixed consonants matching the reference.
 
-    Uses ค (low class) and ก (mid class) to match the reference display.
-    Generates 8 total files: 3 for low class + 5 for mid/high class.
+    Uses ค (low), ก (mid), and ข (high class) to match the reference display.
+    Generates 8 total files: 2 low + 4 mid + 2 high (a nil/absent tone means
+    the mark is not used with that class; unmarked syllables have no files —
+    they belong to the tone rules).
     """
     print("\n[Tone Marks]")
 
@@ -256,28 +258,23 @@ def generate_tone_marks(sounds_dir: Path, cheatsheet_dir: Path, generator: Sound
     with open(tone_marks_path, 'r', encoding='utf-8') as f:
         tone_marks_data = json.load(f)
 
-    # Fixed consonants matching the reference
-    LOW_CONSONANT = "ค"      # Used for low class examples
-    MID_CONSONANT = "ก"      # Used for mid/high class examples
+    # Fixed consonants matching the reference (ToneMark.lowConsonant etc.)
+    CLASS_CONSONANTS = [
+        ("onLow", "ค", "low class"),
+        ("onMid", "ก", "mid class"),
+        ("onHigh", "ข", "high class"),
+    ]
 
     count = 0
     for tone_mark in tone_marks_data['toneMarks']:
         mark = tone_mark['mark']
-        on_low = tone_mark['onLowConsonant']
-        on_mid_high = tone_mark['onMidHighConsonant']
-
-        # Generate low class sound (using ค)
-        if on_low != 'n/a':
-            display = LOW_CONSONANT + mark + "า"
+        for key, consonant, class_label in CLASS_CONSONANTS:
+            tone = tone_mark.get(key)
+            if not tone:
+                continue
+            display = consonant + mark + "า"
             filename = f"cheat_sheet_tone_mark_{display}.mp3"
-            generator.generate(display, sounds_dir / filename, f"{on_low} tone (low class)")
-            count += 1
-
-        # Generate mid/high class sound (using ก)
-        if on_mid_high != 'n/a':
-            display = MID_CONSONANT + mark + "า"
-            filename = f"cheat_sheet_tone_mark_{display}.mp3"
-            generator.generate(display, sounds_dir / filename, f"{on_mid_high} tone (mid/high class)")
+            generator.generate(display, sounds_dir / filename, f"{tone} tone ({class_label})")
             count += 1
 
     print(f"  Processed {count} tone mark sounds")

@@ -6,22 +6,46 @@
 import Foundation
 import SwiftUI
 
+/// A tone mark and the tone it produces on each consonant class.
+/// A nil tone means the mark is not used with that class (๊/๋ are
+/// mid-class only). Unmarked syllables are NOT represented here — they
+/// follow the tone-rules table.
 struct ToneMark: Codable, Identifiable {
     let mark: String
-    let onLowConsonant: String
-    let onMidHighConsonant: String
+    let onLow: String?
+    let onMid: String?
+    let onHigh: String?
 
-    var id: String { mark.isEmpty ? "none" : mark }
+    var id: String { mark }
 
-    // Display with low class consonant (ค) - no vowel for compact reference display
-    var withLowConsonant: String { "ค" + mark }
+    /// Fixed example consonants per class, matching the reference table,
+    /// the flashcards, and the bundled sound files
+    static let lowConsonant = "ค"
+    static let midConsonant = "ก"
+    static let highConsonant = "ข"
 
-    // Display with mid class consonant (ก) - no vowel for compact reference display
-    var withMidHighConsonant: String { "ก" + mark }
+    /// One reference-table column per class, in Low/Mid/High order.
+    /// `tone` is nil where the mark doesn't apply.
+    var classEntries: [ClassEntry] {
+        [
+            ClassEntry(className: "Low", tone: onLow, consonant: Self.lowConsonant, mark: mark),
+            ClassEntry(className: "Mid", tone: onMid, consonant: Self.midConsonant, mark: mark),
+            ClassEntry(className: "High", tone: onHigh, consonant: Self.highConsonant, mark: mark),
+        ]
+    }
 
-    // Sound lookup key with vowel า for pronunciation
-    var soundKeyLow: String { "ค" + mark + "า" }
-    var soundKeyMidHigh: String { "ก" + mark + "า" }
+    struct ClassEntry: Identifiable {
+        let className: String
+        let tone: String?
+        let consonant: String
+        let mark: String
+
+        var id: String { className }
+        /// Compact display without vowel (e.g. "ค่")
+        var display: String { consonant + mark }
+        /// Full syllable with า, used for pronunciation and as the card id (e.g. "ค่า")
+        var soundKey: String { consonant + mark + "า" }
+    }
 
     func toneColor(for tone: String) -> Color {
         ThaiColors.forTone(tone)

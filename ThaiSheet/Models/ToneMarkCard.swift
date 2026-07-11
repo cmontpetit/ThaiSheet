@@ -5,7 +5,8 @@
 
 import Foundation
 
-// Represents a single tone mark card using fixed consonants (ค for low, ก for mid/high)
+// Represents a single tone mark card using fixed consonants
+// (ค for low, ก for mid, ข for high class)
 struct ToneMarkCard: Identifiable {
     let toneMark: ToneMark
     let consonantClass: ConsonantClassType
@@ -16,38 +17,29 @@ struct ToneMarkCard: Identifiable {
 
     enum ConsonantClassType: String, CaseIterable {
         case low = "Low"
-        case midHigh = "Mid/High"
+        case mid = "Mid"
+        case high = "High"
 
         var label: String {
-            switch self {
-            case .low: return String(localized: "Low", bundle: .appLanguage)
-            case .midHigh: return String(localized: "Mid/High", bundle: .appLanguage)
-            }
+            String(localized: String.LocalizationValue(rawValue), bundle: .appLanguage)
         }
     }
 
-    /// Creates 8 cards matching the reference: 3 for low class (ค) + 5 for mid/high class (ก)
+    /// Creates 8 cards matching the reference: 2 low (ค่า ค้า) + 4 mid
+    /// (ก่า ก้า ก๊า ก๋า) + 2 high (ข่า ข้า). Unmarked syllables have no
+    /// cards — they follow the tone rules.
     static func allCards(from toneMarks: [ToneMark]) -> [ToneMarkCard] {
         var cards: [ToneMarkCard] = []
 
         for toneMark in toneMarks {
-            // Low class card (using ค)
-            if toneMark.onLowConsonant != "n/a" {
+            for entry in toneMark.classEntries {
+                guard let tone = entry.tone,
+                      let classType = ConsonantClassType(rawValue: entry.className) else { continue }
                 cards.append(ToneMarkCard(
                     toneMark: toneMark,
-                    consonantClass: .low,
-                    display: toneMark.soundKeyLow,
-                    correctTone: toneMark.onLowConsonant
-                ))
-            }
-
-            // Mid/High class card (using ก)
-            if toneMark.onMidHighConsonant != "n/a" {
-                cards.append(ToneMarkCard(
-                    toneMark: toneMark,
-                    consonantClass: .midHigh,
-                    display: toneMark.soundKeyMidHigh,
-                    correctTone: toneMark.onMidHighConsonant
+                    consonantClass: classType,
+                    display: entry.soundKey,
+                    correctTone: tone
                 ))
             }
         }

@@ -190,10 +190,12 @@ struct CheatsheetBrowserView: View {
         let query = searchText.lowercased()
         let normalizedSearch = ThaiDisplay.normalizeSearch(searchText)
         return toneMarks.filter { mark in
-            mark.withLowConsonant.contains(normalizedSearch) ||
-            mark.withMidHighConsonant.contains(normalizedSearch) ||
-            matchesQuery(mark.onLowConsonant, query: query) ||
-            matchesQuery(mark.onMidHighConsonant, query: query)
+            mark.classEntries.contains { entry in
+                guard let tone = entry.tone else { return false }
+                return entry.display.contains(normalizedSearch) ||
+                       entry.soundKey.contains(normalizedSearch) ||
+                       matchesQuery(tone, query: query)
+            }
         }
     }
 
@@ -336,8 +338,9 @@ struct CheatsheetBrowserView: View {
                                         ToneMarkHeaderView()
                                         Divider()
                                         ForEach(filteredToneMarks) { mark in
-                                            let isMarkHighlighted = highlightedToneMark == mark.withLowConsonant ||
-                                                                    highlightedToneMark == mark.withMidHighConsonant
+                                            // Match on soundKey (ค่า): that's what flashcards pass
+                                            let isMarkHighlighted = mark.classEntries
+                                                .contains { $0.soundKey == highlightedToneMark }
                                             ToneMarkRowView(
                                                 toneMark: mark,
                                                 isHighlighted: isMarkHighlighted
@@ -385,7 +388,7 @@ struct CheatsheetBrowserView: View {
                         }
                         .scrollsToHighlight(highlightedToneMark, proxy: proxy) { display in
                             toneMarks
-                                .first { $0.withLowConsonant == display || $0.withMidHighConsonant == display }
+                                .first { mark in mark.classEntries.contains { $0.soundKey == display } }
                                 .map { "tonemark-\($0.id)" }
                         }
                         .scrollsToHighlight(highlightedToneRule, proxy: proxy) { "tonerule-\($0)" }

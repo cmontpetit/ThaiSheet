@@ -20,7 +20,13 @@ struct ToneMarkHeaderView: View {
             Divider()
                 .frame(height: 20)
 
-            Text("On Mid/High Cons.")
+            Text("On Mid Cons.")
+                .frame(maxWidth: .infinity)
+
+            Divider()
+                .frame(height: 20)
+
+            Text("On High Cons.")
                 .frame(maxWidth: .infinity)
         }
         .font(.caption)
@@ -41,14 +47,6 @@ struct ToneMarkRowView: View {
     @Environment(\.learningModel) var learningModel
     @State private var selectedDisplay: String? = nil
 
-    private var hasLowSound: Bool {
-        audioPlayer.hasSound(.toneMark, key: toneMark.soundKeyLow)
-    }
-
-    private var hasMidHighSound: Bool {
-        audioPlayer.hasSound(.toneMark, key: toneMark.soundKeyMidHigh)
-    }
-
     private func stage(for display: String) -> SRSStage {
         learningModel.getProgress(forId: FlashcardType.toneMark.cardId(for: display)).srsStage
     }
@@ -61,32 +59,18 @@ struct ToneMarkRowView: View {
                 .frame(width: 8, height: 8)
                 .padding(.trailing, 4)
 
-            // Tone mark on a dotted-circle placeholder
-            Text(ThaiDisplay.placeholder(toneMark.withMidHighConsonant))
+            // Tone mark on a dotted-circle placeholder (ก is the display stand-in)
+            Text(ThaiDisplay.placeholder(ToneMark.midConsonant + toneMark.mark))
                 .font(.title2)
                 .frame(maxWidth: .infinity)
 
-            Divider()
-                .frame(height: 30)
+            ForEach(toneMark.classEntries) { entry in
+                Divider()
+                    .frame(height: 30)
 
-            toneCell(
-                tone: toneMark.onLowConsonant,
-                display: toneMark.withLowConsonant,
-                soundKey: toneMark.soundKeyLow,
-                hasSound: hasLowSound
-            )
-            .frame(maxWidth: .infinity)
-
-            Divider()
-                .frame(height: 30)
-
-            toneCell(
-                tone: toneMark.onMidHighConsonant,
-                display: toneMark.withMidHighConsonant,
-                soundKey: toneMark.soundKeyMidHigh,
-                hasSound: hasMidHighSound
-            )
-            .frame(maxWidth: .infinity)
+                toneCell(entry)
+                    .frame(maxWidth: .infinity)
+            }
         }
         .padding(.vertical, 8)
         .padding(.leading, 8)
@@ -95,35 +79,36 @@ struct ToneMarkRowView: View {
     }
 
     @ViewBuilder
-    private func toneCell(tone: String, display: String, soundKey: String, hasSound: Bool) -> some View {
-        if tone == "n/a" {
-            Text("—")
-                .font(.subheadline)
-                .foregroundStyle(.quaternary)
-        } else {
+    private func toneCell(_ entry: ToneMark.ClassEntry) -> some View {
+        if let tone = entry.tone {
+            let hasSound = audioPlayer.hasSound(.toneMark, key: entry.soundKey)
             StyledToneText(tone: tone)
                 .font(.subheadline)
                 .playableItem(
-                    label: "\(display), \(ThaiColors.toneName(tone))",
+                    label: "\(entry.display), \(ThaiColors.toneName(tone))",
                     hasSound: hasSound,
-                    onPlay: { audioPlayer.play(.toneMark, key: soundKey) },
-                    onDetails: { selectedDisplay = display }
+                    onPlay: { audioPlayer.play(.toneMark, key: entry.soundKey) },
+                    onDetails: { selectedDisplay = entry.display }
                 )
                 .sheet(
-                isPresented: Binding(
-                    get: { selectedDisplay == display },
-                    set: { if !$0 { selectedDisplay = nil } }
-                )
-            ) {
-                ReferenceItemSheet(
-                    title: display,
-                    stage: stage(for: soundKey),
-                    note: nil,
-                    hasSound: hasSound,
-                    onPlaySound: { audioPlayer.play(.toneMark, key: soundKey) },
-                    onPractice: { onPractice?(soundKey) }
-                )
-            }
+                    isPresented: Binding(
+                        get: { selectedDisplay == entry.display },
+                        set: { if !$0 { selectedDisplay = nil } }
+                    )
+                ) {
+                    ReferenceItemSheet(
+                        title: entry.display,
+                        stage: stage(for: entry.soundKey),
+                        note: nil,
+                        hasSound: hasSound,
+                        onPlaySound: { audioPlayer.play(.toneMark, key: entry.soundKey) },
+                        onPractice: { onPractice?(entry.soundKey) }
+                    )
+                }
+        } else {
+            Text("—")
+                .font(.subheadline)
+                .foregroundStyle(.quaternary)
         }
     }
 }
@@ -133,21 +118,17 @@ struct ToneMarkRowView: View {
         ToneMarkHeaderView()
         Divider()
         ToneMarkRowView(toneMark: ToneMark(
-            mark: "",
-            onLowConsonant: "Mid",
-            onMidHighConsonant: "Mid"
-        ))
-        Divider()
-        ToneMarkRowView(toneMark: ToneMark(
             mark: "\u{0E48}",
-            onLowConsonant: "High",
-            onMidHighConsonant: "Falling"
+            onLow: "Falling",
+            onMid: "Low",
+            onHigh: "Low"
         ))
         Divider()
         ToneMarkRowView(toneMark: ToneMark(
             mark: "\u{0E4A}",
-            onLowConsonant: "n/a",
-            onMidHighConsonant: "High"
+            onLow: nil,
+            onMid: "High",
+            onHigh: nil
         ))
     }
 }

@@ -94,7 +94,8 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - ซ final sound: PNG says "-s" → app uses "-t" (Thai has no final /s/)
 - ย/ว finals: PNG "[vowel]" → app "-y"/"-w"
 - Added หญ- to silent ห combinations (missing from PNG; หญิง/ใหญ่/หญ้า)
-- Added ฦ/ฦๅ (obsolete letters, not in PNG) and the no-mark tone row (Mid/Mid)
+- Added ฦ/ฦๅ (obsolete letters, not in PNG)
+- Tone-mark table: NO no-mark row (one was once added as Mid/Mid — wrong for high class, whose unmarked live syllables are Rising; unmarked syllables belong to the tone-rules table). ๊/๋ are mid-class only (the PNG groups mid/high). Classes are represented as separate Low/Mid/High columns with fixed example consonants ค/ก/ข
 - ช้าง transcription: PNG "chang" → "chaang" (long vowel)
 - The PNG's 7-row tone rule table is CORRECT — do not add rules (a bogus "High+Long+Dead→Falling" was once introduced and removed; high-class dead syllables are always Low tone)
 - Cluster romanization follows the consonant scheme (g-/dt-/bp-): กร- = gr-, ตร- = dtr-, ปร- = bpr-; aspirated onsets keep the h (ขร-/คร- = khr-, พร- = phr-, พล- = phl-). Exception: ผล- stays "pl-" pending word-specific verification (ผลิ is a cluster; ผลิต/ผลึก are not) — see the content-correction plan before "fixing" it
@@ -143,11 +144,12 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - Existing MP3s are skipped unless `--force` is passed
 - Use `--check-files` with `--all` to catch stale or missing bundled MP3s before release
 - ฤ- (the "ri" reading) intentionally has NO bundled audio: the recorded file spoke the "rue" reading (TTS gets the dash-stripped text). Excluded via `EXCLUDED_VOWEL_FORMS` in the script pending the ฤ audio/quiz design decision — don't regenerate it
-- Tone mark sounds: 8 files using fixed consonants (ค for low class, ก for mid/high class) + า vowel
+- Tone mark sounds: 8 files using fixed consonants (ค low, ก mid, ข high class) + า vowel
 
 ### Flashcard Design Decisions
-- **Tone Marks**: Use fixed consonants matching the reference (ค for low, ก for mid/high)
-  - 8 total cards: 3 low class (คา, ค่า, ค้า) + 5 mid/high class (กา, ก่า, ก้า, ก๊า, ก๋า)
+- **Tone Marks**: Use fixed consonants matching the reference (ค low, ก mid, ข high)
+  - 8 total cards: 2 low (ค่า, ค้า) + 4 mid (ก่า, ก้า, ก๊า, ก๋า) + 2 high (ข่า, ข้า)
+  - No cards for unmarked syllables — those follow the tone rules
   - Display shows full syllable with า vowel for proper pronunciation
 - **Tone Rules**: Use predefined sample words (not random combinations) because:
   - Real vocabulary is more pedagogically useful

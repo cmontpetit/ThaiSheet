@@ -201,17 +201,12 @@ extension ToneMarkCardState {
 }
 
 private extension ToneMarkCard.ConsonantClassType {
-    /// Class colors matching the consonant reference; Mid/High blends both
+    /// Class colors matching the consonant reference
     var buttonBackground: AnyShapeStyle {
         switch self {
-        case .low:
-            return AnyShapeStyle(ConsonantClass.low.color)
-        case .midHigh:
-            return AnyShapeStyle(LinearGradient(
-                colors: [ConsonantClass.mid.color, ConsonantClass.high.color],
-                startPoint: .leading,
-                endPoint: .trailing
-            ))
+        case .low: return AnyShapeStyle(ConsonantClass.low.color)
+        case .mid: return AnyShapeStyle(ConsonantClass.mid.color)
+        case .high: return AnyShapeStyle(ConsonantClass.high.color)
         }
     }
 }
