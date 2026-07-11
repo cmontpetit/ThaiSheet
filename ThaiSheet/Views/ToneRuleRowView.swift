@@ -61,7 +61,7 @@ struct ToneRuleExpressionView: View {
     @ScaledMetric(relativeTo: .largeTitle) private var toneIndicatorSize: CGFloat = 40
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 12) {
             HStack(spacing: 7) {
                 ruleInputs
             }
