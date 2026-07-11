@@ -57,11 +57,24 @@ After setup, activate the virtual environment and run:
 ```bash
 source scripts/venv/bin/activate
 python3 scripts/generate_sounds.py --all --dry-run --check-files
-python3 scripts/generate_sounds.py --all --force --check-files
+python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-files
 # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
 ```
 
 The default Thai voice is `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare output before committing regenerated MP3s.
+Generated responses are rejected and retried when they are too short or nearly
+silent. Loudness normalization includes a true-peak limit to avoid clipping.
+Candidate sets can be written safely below `scratchpad/` with `--output-dir` and
+compared with the bundled set using `scripts/generate_sound_review.py`.
+
+The public [pronunciation catalog](https://cmontpetit.github.io/ThaiSheet/sounds.html)
+is generated from the same canonical inventory. After changing JSON data, audio,
+or recorded-voice metadata, update and verify it with:
+
+```bash
+python3 scripts/generate_sound_catalog.py
+python3 scripts/generate_sound_catalog.py --check
+```
 
 ## Data & Audio Provenance
 

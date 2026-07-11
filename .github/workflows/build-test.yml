@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify sound inventory and website catalog
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+          python3 scripts/generate_sound_catalog.py --check
+
       - name: Select an available iPhone simulator
         id: simulator
         run: |

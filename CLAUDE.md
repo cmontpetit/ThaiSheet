@@ -140,16 +140,59 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
   ```bash
   source scripts/venv/bin/activate
   python3 scripts/generate_sounds.py --all --dry-run --check-files
-  python3 scripts/generate_sounds.py --all --force --volume-gain-db 6 --check-files
+  python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-files
   # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
   ```
 - Default voice: `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare quality before committing regenerated MP3s
-- The bundled set uses `--volume-gain-db 6`. Gain is applied locally with FFmpeg after synthesis because Neural2-C has returned byte-identical output when Google receives `volume_gain_db`; FFmpeg must be on `PATH` when a nonzero gain is requested.
+- The current bundled Neural2-C set used `--volume-gain-db 6`. New candidate sets use `--normalize-lufs -18`, which includes a -1.5 dB true-peak limit; update `scripts/recorded_audio_metadata.json` when a candidate replaces the bundled set.
+- Non-dry generation validates raw responses before post-processing. Clips shorter than 0.35 seconds or quieter than -24 dBFS peak are rejected and synthesized again up to four times. This catches generative TTS failures such as a near-silent `กึ`; it does not verify pronunciation or tone.
+- The canonical list of 391 expected sounds and synthesis inputs lives in `scripts/sound_inventory.py`. Generation, tests, and the website catalog must use that inventory rather than independently deriving filenames.
+- Custom `--output-dir` paths are restricted to `scratchpad/`, allowing candidate voices to be generated without risking bundled production audio.
+- Use repeatable `--sound-id` arguments for targeted regeneration (for example `--sound-id 'vowel:กึ'`). Stable IDs come from the canonical inventory.
 - Reference sample words are deduplicated by Thai word and generated as `cheat_sheet_sample_word_{word}.mp3`; `--sample-words` generates only that set and `--all` includes it.
 - Existing MP3s are skipped unless `--force` is passed
 - Use `--check-files` with `--all` to catch stale or missing bundled MP3s before release
 - ฤ- (the "ri" reading) intentionally has NO bundled audio: the recorded file spoke the "rue" reading (TTS gets the dash-stripped text). Excluded via `EXCLUDED_VOWEL_FORMS` in the script pending the ฤ audio/quiz design decision (issue #7) — don't regenerate it
 - Tone mark sounds: 8 files using fixed consonants (ค low, ก mid, ข high class) + า vowel
+
+#### Comparing TTS providers
+
+Use `scripts/generate_tts_comparison.py` for local voice auditions. It reads the
+diagnostic cases in `scripts/tts_comparison_manifest.json`, writes only beneath
+the gitignored `scratchpad/tts-comparison/` directory, and creates an `index.html`
+with side-by-side audio controls. It never writes bundled production sounds.
+
+```bash
+source scripts/venv/bin/activate
+python3 scripts/generate_tts_comparison.py --force
+
+# Optional Azure comparison (credentials are read only from the environment)
+AZURE_SPEECH_KEY=... AZURE_SPEECH_REGION=... \
+  python3 scripts/generate_tts_comparison.py --provider google --provider azure --force
+```
+
+The default Google columns are the bundled set's Neural2-C voice and two current
+Chirp 3 HD candidates. Azure defaults to Premwadee, Achara, and Niwat. Keep
+provider output local until it has been reviewed by a native Thai speaker and
+its distribution terms have been confirmed.
+
+For a complete candidate set, generate a local current-versus-candidate review
+page and acoustic report with:
+
+```bash
+python3 scripts/generate_sound_review.py \
+  --candidate-dir scratchpad/kore-candidate \
+  --candidate-voice th-TH-Chirp3-HD-Kore
+```
+
+#### Public pronunciation catalog
+
+The GitHub Pages catalog at `docs/sounds.html` reads generated
+`docs/sounds-data.js`. Generate it with `python3 scripts/generate_sound_catalog.py`.
+The data includes SHA-256 revisions for every MP3, so any audio change makes
+`--check` fail until the catalog is refreshed. CI runs the inventory tests and
+catalog freshness check. The page streams the existing files from GitHub raw
+URLs with `preload="none"`; do not copy the MP3 set into `docs/`.
 
 ### Flashcard Design Decisions
 - **Tone Marks**: Use fixed consonants matching the reference (ค low, ก mid, ข high)

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ThaiSheet — Pronunciation catalog</title>
+  <meta name="description" content="Review every ThaiSheet recorded pronunciation and report pronunciation problems on GitHub.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+  <link rel="apple-touch-icon" href="icon-180.png">
+</head>
+<body class="catalog-page">
+  <header class="compact-header">
+    <a class="brand-link" href="index.html">
+      <img src="icon-32.png" alt="" width="32" height="32">
+      <span>ThaiSheet</span>
+    </a>
+    <h1>Pronunciation catalog</h1>
+    <p class="tagline">Recorded reference audio, open for review</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="support.html">Support</a>
+      <a href="https://github.com/cmontpetit/ThaiSheet/issues">GitHub Issues</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="catalog-summary" aria-labelledby="catalog-provenance-title">
+      <h2 id="catalog-provenance-title">Current recording set</h2>
+      <dl>
+        <div><dt>Provider</dt><dd id="audio-provider"></dd></div>
+        <div><dt>Voice</dt><dd id="audio-voice"></dd></div>
+        <div><dt>Processing</dt><dd id="audio-processing"></dd></div>
+        <div><dt>Files</dt><dd id="audio-count"></dd></div>
+      </dl>
+    </section>
+
+    <section class="catalog-tools" aria-label="Catalog filters">
+      <label class="catalog-search">
+        <span>Search</span>
+        <input id="sound-search" type="search" placeholder="Thai, romanization, meaning, or sound ID" autocomplete="off">
+      </label>
+      <div id="sound-type-tabs" class="catalog-tabs" role="tablist" aria-label="Sound type"></div>
+    </section>
+
+    <p id="catalog-results" class="catalog-results" aria-live="polite"></p>
+    <div class="catalog-table-wrap">
+      <table class="catalog-table">
+        <thead>
+          <tr>
+            <th scope="col">Entry</th>
+            <th scope="col">Synthesis input</th>
+            <th scope="col">Context</th>
+            <th scope="col">Recording</th>
+            <th scope="col"><span class="visually-hidden">Report</span></th>
+          </tr>
+        </thead>
+        <tbody id="sound-table-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025–2026 Claude Montpetit · <a href="index.html">Home</a> · <a href="privacy.html">Privacy Policy</a> · <a href="https://github.com/cmontpetit/ThaiSheet">GitHub</a></p>
+  </footer>
+
+  <script src="sounds-data.js"></script>
+  <script>
+    (() => {
+      const catalog = window.THAISHEET_SOUND_CATALOG;
+      const rawBase = `https://raw.githubusercontent.com/${catalog.repository}/${catalog.branch}/ThaiSheet/Resources/sounds/`;
+      const typeOrder = ["consonant", "vowel", "cluster", "tone_mark", "tone_rule", "sample_word"];
+      const search = document.querySelector("#sound-search");
+      const tabs = document.querySelector("#sound-type-tabs");
+      const tableBody = document.querySelector("#sound-table-body");
+      const results = document.querySelector("#catalog-results");
+      let selectedType = "consonant";
+
+      document.querySelector("#audio-provider").textContent = catalog.audio.provider;
+      document.querySelector("#audio-voice").textContent = catalog.audio.voice;
+      document.querySelector("#audio-processing").textContent = catalog.audio.processing;
+      document.querySelector("#audio-count").textContent = `${catalog.items.length} MP3 files`;
+
+      function makeTab(type, label, count) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.role = "tab";
+        button.dataset.type = type;
+        button.setAttribute("aria-selected", type === selectedType ? "true" : "false");
+        button.textContent = `${label} (${count})`;
+        button.addEventListener("click", () => {
+          selectedType = type;
+          tabs.querySelectorAll("button").forEach(tab => {
+            tab.setAttribute("aria-selected", tab.dataset.type === selectedType ? "true" : "false");
+          });
+          render();
+        });
+        tabs.append(button);
+      }
+
+      makeTab("all", "All", catalog.items.length);
+      typeOrder.forEach(type => makeTab(type, catalog.typeLabels[type], catalog.counts[type]));
+
+      function searchableText(item) {
+        return [
+          item.id, item.display, item.synthesis_text, item.description,
+          item.romanization, item.meaning_en, item.meaning_fr,
+          item.example_word, item.example_romanization,
+          item.example_meaning_en, item.example_meaning_fr,
+        ].join(" ").toLocaleLowerCase();
+      }
+
+      function addText(parent, tag, text, className) {
+        if (!text) return;
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        element.textContent = text;
+        parent.append(element);
+      }
+
+      function contextCell(item) {
+        const cell = document.createElement("td");
+        if (item.example_word) {
+          addText(cell, "strong", item.example_word, "catalog-thai-context");
+          addText(cell, "span", item.example_romanization, "catalog-romanization");
+          const meanings = [item.example_meaning_en, item.example_meaning_fr].filter(Boolean).join(" · ");
+          addText(cell, "span", meanings, "catalog-meaning");
+        } else if (item.meaning_en || item.meaning_fr) {
+          const meanings = [item.meaning_en, item.meaning_fr].filter(Boolean).join(" · ");
+          addText(cell, "span", meanings, "catalog-meaning");
+        } else {
+          addText(cell, "span", item.description, "catalog-meaning");
+        }
+        return cell;
+      }
+
+      function reportURL(item) {
+        const title = `Pronunciation: ${item.display}`;
+        const body = [
+          "## Pronunciation report",
+          "",
+          `- Sound ID: \`${item.id}\``,
+          `- Display: ${item.display}`,
+          `- Synthesis input: ${item.synthesis_text}`,
+          `- File: \`${item.filename}\``,
+          `- Audio revision: \`${item.revision}\``,
+          `- Voice: ${catalog.audio.voice}`,
+          "",
+          "### What sounds incorrect?",
+          "",
+        ].join("\n");
+        const params = new URLSearchParams({title, body});
+        return `https://github.com/${catalog.repository}/issues/new?${params}`;
+      }
+
+      function makeRow(item) {
+        const row = document.createElement("tr");
+
+        const entry = document.createElement("th");
+        entry.scope = "row";
+        addText(entry, "strong", item.display, "catalog-entry-thai");
+        addText(entry, "span", item.romanization, "catalog-romanization");
+        addText(entry, "code", item.id, "catalog-id");
+        row.append(entry);
+
+        const synthesis = document.createElement("td");
+        addText(synthesis, "span", item.synthesis_text, "catalog-synthesis");
+        addText(synthesis, "span", item.description, "catalog-meaning");
+        row.append(synthesis);
+        row.append(contextCell(item));
+
+        const recording = document.createElement("td");
+        const audio = document.createElement("audio");
+        audio.controls = true;
+        audio.preload = "none";
+        audio.src = `${rawBase}${encodeURIComponent(item.filename)}?v=${item.revision}`;
+        audio.setAttribute("aria-label", `Play ${item.display}`);
+        audio.addEventListener("play", () => {
+          document.querySelectorAll("audio").forEach(other => {
+            if (other !== audio) other.pause();
+          });
+        });
+        recording.append(audio);
+        addText(recording, "code", item.revision, "catalog-revision");
+        row.append(recording);
+
+        const report = document.createElement("td");
+        const link = document.createElement("a");
+        link.className = "catalog-report";
+        link.href = reportURL(item);
+        link.textContent = "Report";
+        link.setAttribute("aria-label", `Report a pronunciation problem with ${item.display}`);
+        report.append(link);
+        row.append(report);
+        return row;
+      }
+
+      function render() {
+        const query = search.value.trim().toLocaleLowerCase();
+        const filtered = catalog.items.filter(item => {
+          const typeMatches = selectedType === "all" || item.sound_type === selectedType;
+          return typeMatches && (!query || searchableText(item).includes(query));
+        });
+        tableBody.replaceChildren(...filtered.map(makeRow));
+        results.textContent = `${filtered.length} of ${catalog.items.length} recordings`;
+      }
+
+      search.addEventListener("input", render);
+      render();
+    })();
+  </script>
+</body>
+</html>
