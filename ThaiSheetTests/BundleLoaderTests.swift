@@ -390,8 +390,9 @@ final class BundleLoaderTests: XCTestCase {
         XCTAssertEqual(AudioPlayer.liveText(for: .consonant, key: "ก"), "กอไก่")
     }
 
-    func test_liveText_vowelRemovesOnlyTrailingPlaceholderDash() {
-        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "กั-"), "กั")
+    func test_liveText_closedVowelFillsFinalConsonantSlot() {
+        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "กั-"), "กัน")
+        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "เกิ-"), "เกิน")
         XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "กา"), "กา")
     }
 

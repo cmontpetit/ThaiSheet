@@ -126,6 +126,7 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - Types: `consonant`, `vowel`, `tone_mark`, `tone_rule`, `cluster`, `sample_word`
 - Audio injection: `AudioPlaying` protocol via `@Environment(\.audioPlayer)` — never use `AudioPlayer.shared` directly in views
 - The Audio setting selects one source for all sounds: Recorded voice uses bundled Google MP3s (including sample words); Device voice uses live `AVSpeechSynthesizer` with a Thai system voice. If no Thai system voice is available, playback falls back to the recorded set.
+- For Device voice, closed vowel forms replace their trailing `-` slot with `น` (for example `เกิ-` → `เกิน`). Removing the dash leaves an incomplete syllable and can make Apple announce a mark name such as “sara i” instead of pronouncing the vowel.
 - Do not bundle audio recorded from Apple System Voices. Apple speech is synthesized live on-device only; bundled recordings remain Google Cloud TTS output.
 
 ### Sound File Generation
