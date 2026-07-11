@@ -27,7 +27,7 @@ struct ReferenceItemSheet: View {
     @Environment(\.dismiss) var dismiss
     @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
     @ScaledMetric(relativeTo: .largeTitle) private var titleFrameHeight: CGFloat = 86
-    @ScaledMetric(relativeTo: .largeTitle) private var toneHeaderFrameHeight: CGFloat = 108
+    @ScaledMetric(relativeTo: .largeTitle) private var toneHeaderFrameHeight: CGFloat = 124
 
     var body: some View {
         VStack(spacing: 18) {
@@ -57,7 +57,6 @@ struct ReferenceItemSheet: View {
                     )
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
-                    .clipped()
 
                 if let romanization, !romanization.isEmpty {
                     Text(romanization)
