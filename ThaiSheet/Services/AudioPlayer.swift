@@ -94,7 +94,7 @@ class AudioPlayer: NSObject, AudioPlaying {
 
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voice
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.9
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         speechSynthesizer.speak(utterance)
     }
 
