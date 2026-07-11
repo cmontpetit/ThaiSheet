@@ -774,6 +774,7 @@
       }
     },
     "Mid/High" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
