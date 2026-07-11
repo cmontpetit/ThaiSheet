@@ -11,6 +11,9 @@ struct ReferenceItemSheet: View {
     var romanization: String? = nil
     var subtitle: String? = nil
     var toneIndicator: String? = nil
+    var toneIndicatorTone: String? = nil
+    var consonantClassIndicator: String? = nil
+    var toneRule: ToneRule? = nil
     var usesCompactTitle: Bool = false
     let stage: SRSStage
     let note: String?
@@ -32,14 +35,21 @@ struct ReferenceItemSheet: View {
         VStack(spacing: 18) {
             // Table item and its matching transcription or tone context
             VStack(spacing: 4) {
-                Text(title)
-                    .font(
-                        usesCompactTitle
-                            ? .title2.weight(.semibold)
-                            : .system(size: titleSize)
-                    )
-                    .lineLimit(usesCompactTitle ? 3 : 1)
-                    .minimumScaleFactor(0.45)
+                Group {
+                    if let toneRule {
+                        ToneRuleExpressionView(rule: toneRule)
+                            .padding(.horizontal)
+                    } else {
+                        Text(title)
+                            .font(
+                                usesCompactTitle
+                                    ? .title2.weight(.semibold)
+                                    : .system(size: titleSize)
+                            )
+                            .lineLimit(usesCompactTitle ? 3 : 1)
+                            .minimumScaleFactor(0.45)
+                    }
+                }
                     .frame(height: titleFrameHeight)
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
@@ -61,11 +71,30 @@ struct ReferenceItemSheet: View {
                         .minimumScaleFactor(0.7)
                 }
 
-                if let toneIndicator, !toneIndicator.isEmpty {
-                    Text(toneIndicator)
-                        .font(.system(size: toneIndicatorSize, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(minHeight: 48)
+                if consonantClassIndicator != nil
+                    || toneIndicator != nil
+                    || toneIndicatorTone != nil {
+                    HStack(spacing: 12) {
+                        if let consonantClassIndicator {
+                            StyledConsonantClassText(
+                                consonantClass: consonantClassIndicator,
+                                font: .title2.weight(.semibold),
+                                verticalPadding: 8
+                            )
+                        }
+
+                        if let toneIndicatorTone {
+                            StyledToneText(
+                                tone: toneIndicatorTone,
+                                font: .system(size: toneIndicatorSize, weight: .semibold)
+                            )
+                        } else if let toneIndicator, !toneIndicator.isEmpty {
+                            Text(toneIndicator)
+                                .font(.system(size: toneIndicatorSize, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .frame(minHeight: 48)
                 }
             }
 
@@ -135,6 +164,9 @@ struct ReferenceItemSheet: View {
                 && romanization == nil
                 && subtitle == nil
                 && toneIndicator == nil
+                && toneIndicatorTone == nil
+                && consonantClassIndicator == nil
+                && toneRule == nil
                 ? [.fraction(0.68), .large]
                 : [.large]
         )

@@ -99,6 +99,8 @@ struct ToneMarkRowView: View {
                     ReferenceItemSheet(
                         title: ThaiDisplay.placeholder(ToneMark.midConsonant + toneMark.mark),
                         toneIndicator: ThaiColors.toneDiacritic(tone),
+                        toneIndicatorTone: tone,
+                        consonantClassIndicator: entry.className,
                         stage: stage(for: entry.soundKey),
                         note: nil,
                         sampleWord: toneMark.sampleWord(for: entry.soundKey),
