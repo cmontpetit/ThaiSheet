@@ -174,8 +174,10 @@ struct VowelRowView: View {
                     title: ThaiDisplay.placeholder(text),
                     stage: learningModel.getProgress(forId: FlashcardType.vowel.cardId(for: text)).srsStage,
                     note: vowel.note(for: formType.duration.rawValue, form: formType.form.rawValue),
+                    sampleWord: vowel.sample(for: formType.duration.rawValue, form: formType.form.rawValue),
                     hasSound: audioPlayer.hasSound(.vowel, key: text),
                     onPlaySound: { audioPlayer.play(.vowel, key: text) },
+                    onPlaySampleWord: { audioPlayer.speak($0.word) },
                     onPractice: { onPractice?(text) }
                 )
             }
@@ -282,6 +284,12 @@ struct VowelRowView: View {
             sounds: VowelSounds(en: "aa/ah"),
             notes: nil,
             rowNote: nil,
+            samples: VowelSamples(
+                short_closed: ReferenceSampleWord(word: "กัน"),
+                short_open: ReferenceSampleWord(word: "กะ"),
+                long_closed: ReferenceSampleWord(word: "การ"),
+                long_open: ReferenceSampleWord(word: "กา")
+            ),
             usage: nil
         ))
         .listRowInsets(EdgeInsets())
@@ -294,6 +302,7 @@ struct VowelRowView: View {
                 fr: nil
             ),
             rowNote: nil,
+            samples: nil,
             usage: nil
         ))
         .listRowInsets(EdgeInsets())

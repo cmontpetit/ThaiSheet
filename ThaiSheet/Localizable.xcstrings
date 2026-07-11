@@ -1205,6 +1205,18 @@
         }
       }
     },
+    "Sample Word" : {
+      "comment" : "A label for a vocabulary example in the reference details sheet.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mot exemple"
+          }
+        }
+      }
+    },
     "Settings" : {
       "localizations" : {
         "fr" : {

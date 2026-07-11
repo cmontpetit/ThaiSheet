@@ -240,10 +240,12 @@ struct ClusterDetailSheet: View {
             title: cluster.displayWithVowel,
             stage: stage,
             note: combinedNote,
+            sampleWord: cluster.sample,
             hasSound: hasSound,
             onPlaySound: {
                 audioPlayer.play(.cluster, key: cluster.displayWithVowel)
             },
+            onPlaySampleWord: { audioPlayer.speak($0.word) },
             onPractice: {
                 dismiss()
                 onPractice?(cluster.id)

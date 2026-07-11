@@ -379,7 +379,8 @@ final class CardProgressTests: XCTestCase {
             transcription: "gaaw gài",
             class: .mid,
             usage: .common,
-            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "g-", final: "-k"))
+            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "g-", final: "-k")),
+            sample: nil
         )
         XCTAssertEqual(FlashcardItem.consonant(consonant).id, "consonant-ก")
     }

@@ -48,6 +48,7 @@ struct Cluster: Codable, Identifiable {
     let type: ClusterType
     let usage: ClusterUsage?
     let note: LocalizedText?
+    let sample: ReferenceSampleWord?
 
     var id: String { cluster }
 

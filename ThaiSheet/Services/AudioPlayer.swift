@@ -17,6 +17,7 @@ enum SoundType: String {
 /// Protocol for audio playback, enabling test mocking
 protocol AudioPlaying {
     func play(_ type: SoundType, key: String)
+    func speak(_ text: String)
     func hasSound(_ type: SoundType, key: String) -> Bool
 }
 
@@ -38,9 +39,11 @@ extension EnvironmentValues {
 class AudioPlayer: NSObject, AudioPlaying {
     static let shared = AudioPlayer()
     private var player: AVAudioPlayer?
+    private let speechSynthesizer = AVSpeechSynthesizer()
 
     private override init() {
         super.init()
+        speechSynthesizer.delegate = self
         // Skip audio session configuration during unit tests to avoid CoreAudio crashes
         if NSClassFromString("XCTestCase") == nil {
             configureAudioSession()
@@ -58,8 +61,25 @@ class AudioPlayer: NSObject, AudioPlaying {
     }
 
     func play(_ type: SoundType, key: String) {
+        speechSynthesizer.stopSpeaking(at: .immediate)
         let filename = "cheat_sheet_\(type.rawValue)_\(key)"
         playFile(filename: filename)
+    }
+
+    func speak(_ text: String) {
+        player?.stop()
+        speechSynthesizer.stopSpeaking(at: .immediate)
+
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Error activating audio session for speech: \(error)")
+        }
+
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.voice = AVSpeechSynthesisVoice(language: "th-TH")
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.9
+        speechSynthesizer.speak(utterance)
     }
 
     func hasSound(_ type: SoundType, key: String) -> Bool {
@@ -98,6 +118,18 @@ class AudioPlayer: NSObject, AudioPlaying {
 extension AudioPlayer: AVAudioPlayerDelegate {
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
         // Deactivate session so background music can resume
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+}
+
+// MARK: - AVSpeechSynthesizerDelegate
+
+extension AudioPlayer: AVSpeechSynthesizerDelegate {
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 }
