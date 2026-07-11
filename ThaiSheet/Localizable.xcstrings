@@ -977,18 +977,6 @@
         }
       }
     },
-    "Pronunciation Example" : {
-      "comment" : "A label for the real Thai word used to demonstrate a written vowel form.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exemple de prononciation"
-          }
-        }
-      }
-    },
     "Prioritizes cards due for review based on your progress. Uses spaced repetition to optimize learning." : {
       "localizations" : {
         "fr" : {

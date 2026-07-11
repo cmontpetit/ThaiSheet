@@ -61,24 +61,24 @@ struct ReferenceItemSheet: View {
 
             // Action buttons
             VStack(spacing: 12) {
-                if let pronunciationWord {
-                    pronunciationWordButton(pronunciationWord)
-                } else {
-                    Button {
+                Button {
+                    if let pronunciationWord {
+                        onPlayPronunciation(pronunciationWord)
+                    } else {
                         onPlaySound()
-                    } label: {
-                        HStack {
-                            Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                            Text(soundActionLabel)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(hasSound ? Color.accentColor : Color.gray.opacity(0.3))
-                        .foregroundColor(hasSound ? .white : .secondary)
-                        .cornerRadius(12)
                     }
-                    .disabled(!hasSound)
+                } label: {
+                    HStack {
+                        Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                        Text(soundActionLabel)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(hasSound ? Color.accentColor : Color.gray.opacity(0.3))
+                    .foregroundColor(hasSound ? .white : .secondary)
+                    .cornerRadius(12)
                 }
+                .disabled(!hasSound)
 
                 Button {
                     dismiss()
@@ -95,9 +95,11 @@ struct ReferenceItemSheet: View {
                     .cornerRadius(12)
                 }
 
-                if let sampleWord,
-                   sampleWord.word != pronunciationWord?.word {
-                    sampleWordButton(sampleWord)
+                if let exampleWord = sampleWord ?? pronunciationWord {
+                    sampleWordButton(
+                        exampleWord,
+                        usesPronunciationAudio: exampleWord.word == pronunciationWord?.word
+                    )
                 }
             }
             .padding(.horizontal)
@@ -112,19 +114,16 @@ struct ReferenceItemSheet: View {
         .presentationDragIndicator(.visible)
     }
 
-    private func pronunciationWordButton(_ word: ReferenceSampleWord) -> some View {
+    private func sampleWordButton(
+        _ sampleWord: ReferenceSampleWord,
+        usesPronunciationAudio: Bool = false
+    ) -> some View {
         Button {
-            onPlayPronunciation(word)
-        } label: {
-            wordButtonLabel(word, title: "Pronunciation Example", hasSound: hasSound)
-        }
-        .buttonStyle(.plain)
-        .disabled(!hasSound)
-    }
-
-    private func sampleWordButton(_ sampleWord: ReferenceSampleWord) -> some View {
-        Button {
-            onPlaySampleWord(sampleWord)
+            if usesPronunciationAudio {
+                onPlayPronunciation(sampleWord)
+            } else {
+                onPlaySampleWord(sampleWord)
+            }
         } label: {
             wordButtonLabel(sampleWord, title: "Sample Word", hasSound: true)
         }
