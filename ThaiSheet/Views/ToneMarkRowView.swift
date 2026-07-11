@@ -100,8 +100,10 @@ struct ToneMarkRowView: View {
                         title: entry.display,
                         stage: stage(for: entry.soundKey),
                         note: nil,
+                        sampleWord: toneMark.sampleWord(for: entry.soundKey),
                         hasSound: hasSound,
                         onPlaySound: { audioPlayer.play(.toneMark, key: entry.soundKey) },
+                        onPlaySampleWord: { audioPlayer.speak($0.word) },
                         onPractice: { onPractice?(entry.soundKey) }
                     )
                 }
@@ -121,14 +123,16 @@ struct ToneMarkRowView: View {
             mark: "\u{0E48}",
             onLow: "Falling",
             onMid: "Low",
-            onHigh: "Low"
+            onHigh: "Low",
+            samples: nil
         ))
         Divider()
         ToneMarkRowView(toneMark: ToneMark(
             mark: "\u{0E4A}",
             onLow: nil,
             onMid: "High",
-            onHigh: nil
+            onHigh: nil,
+            samples: nil
         ))
     }
 }

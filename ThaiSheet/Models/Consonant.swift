@@ -69,12 +69,16 @@ struct Consonant: Codable, Identifiable {
     let `class`: ConsonantClass
     let usage: ConsonantUsage
     let sounds: ConsonantSoundsContainer
+    let sample: ReferenceSampleWord?
 
     var id: String { character }
 
     var initialSound: String { sounds.en.initial }
     var finalSound: String { sounds.en.final }
     var consonantClass: ConsonantClass { `class` }
+    var sampleWord: ReferenceSampleWord? {
+        sample ?? ReferenceSampleWord.fromConsonantName(name, transcription: transcription)
+    }
 }
 
 struct ConsonantsData: Codable {

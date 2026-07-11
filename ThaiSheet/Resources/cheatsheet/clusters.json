@@ -1,134 +1,464 @@
 {
   "clusters": [
-    { "cluster": "กร-", "sound": "gr-", "type": "smooth" },
-    { "cluster": "กล-", "sound": "gl-", "type": "smooth" },
-    { "cluster": "กว-", "sound": "gw-", "type": "smooth" },
-
-    { "cluster": "ขร-", "sound": "khr-", "type": "smooth", "usage": "uncommon" },
-    { "cluster": "ขล-", "sound": "khl-", "type": "smooth", "usage": "uncommon" },
-    { "cluster": "ขว-", "sound": "khw-", "type": "smooth" },
-
-    { "cluster": "คร-", "sound": "khr-", "type": "smooth" },
-    { "cluster": "คล-", "sound": "khl-", "type": "smooth" },
-    { "cluster": "คว-", "sound": "khw-", "type": "smooth" },
-
+    {
+      "cluster": "กร-",
+      "sound": "gr-",
+      "type": "smooth",
+      "sample": {
+        "word": "กราบ",
+        "romanization": "gràap",
+        "meaning": {
+          "en": "to bow",
+          "fr": "se prosterner"
+        }
+      }
+    },
+    {
+      "cluster": "กล-",
+      "sound": "gl-",
+      "type": "smooth",
+      "sample": {
+        "word": "กลาง",
+        "romanization": "glaang",
+        "meaning": {
+          "en": "middle",
+          "fr": "milieu"
+        }
+      }
+    },
+    {
+      "cluster": "กว-",
+      "sound": "gw-",
+      "type": "smooth",
+      "sample": {
+        "word": "กว้าง",
+        "romanization": "gwâang",
+        "meaning": {
+          "en": "wide",
+          "fr": "large"
+        }
+      }
+    },
+    {
+      "cluster": "ขร-",
+      "sound": "khr-",
+      "type": "smooth",
+      "usage": "uncommon",
+      "sample": {
+        "word": "ขรึม",
+        "romanization": "khrěum",
+        "meaning": {
+          "en": "serious",
+          "fr": "sérieux"
+        }
+      }
+    },
+    {
+      "cluster": "ขล-",
+      "sound": "khl-",
+      "type": "smooth",
+      "usage": "uncommon",
+      "sample": {
+        "word": "ขลัง",
+        "romanization": "khlǎng",
+        "meaning": {
+          "en": "sacred",
+          "fr": "sacré"
+        }
+      }
+    },
+    {
+      "cluster": "ขว-",
+      "sound": "khw-",
+      "type": "smooth",
+      "sample": {
+        "word": "ขวา",
+        "romanization": "khwǎa",
+        "meaning": {
+          "en": "right",
+          "fr": "droite"
+        }
+      }
+    },
+    {
+      "cluster": "คร-",
+      "sound": "khr-",
+      "type": "smooth",
+      "sample": {
+        "word": "ครู",
+        "romanization": "khruu",
+        "meaning": {
+          "en": "teacher",
+          "fr": "professeur"
+        }
+      }
+    },
+    {
+      "cluster": "คล-",
+      "sound": "khl-",
+      "type": "smooth",
+      "sample": {
+        "word": "คลาน",
+        "romanization": "khlaan",
+        "meaning": {
+          "en": "to crawl",
+          "fr": "ramper"
+        }
+      }
+    },
+    {
+      "cluster": "คว-",
+      "sound": "khw-",
+      "type": "smooth",
+      "sample": {
+        "word": "ควาย",
+        "romanization": "khwaai",
+        "meaning": {
+          "en": "water buffalo",
+          "fr": "buffle"
+        }
+      }
+    },
     {
       "cluster": "ตร-",
       "sound": "dtr-",
       "type": "smooth",
-      "note": { "en": "Pronounced with an unvoiced stop; often sounds softer than English 'tr'.", "fr": "Prononcé avec une occlusive non voisée ; souvent plus doux que le « tr » anglais." }
+      "note": {
+        "en": "Pronounced with an unvoiced stop; often sounds softer than English 'tr'.",
+        "fr": "Prononcé avec une occlusive non voisée ; souvent plus doux que le « tr » anglais."
+      },
+      "sample": {
+        "word": "ตรง",
+        "romanization": "dtrong",
+        "meaning": {
+          "en": "straight",
+          "fr": "droit"
+        }
+      }
     },
-
-    { "cluster": "ปร-", "sound": "bpr-", "type": "smooth" },
-    { "cluster": "ปล-", "sound": "bpl-", "type": "smooth" },
-
+    {
+      "cluster": "ปร-",
+      "sound": "bpr-",
+      "type": "smooth",
+      "sample": {
+        "word": "ปรับ",
+        "romanization": "bpràp",
+        "meaning": {
+          "en": "to adjust",
+          "fr": "ajuster"
+        }
+      }
+    },
+    {
+      "cluster": "ปล-",
+      "sound": "bpl-",
+      "type": "smooth",
+      "sample": {
+        "word": "ปลา",
+        "romanization": "bplaa",
+        "meaning": {
+          "en": "fish",
+          "fr": "poisson"
+        }
+      }
+    },
     {
       "cluster": "ผล-",
       "sound": "pl-",
       "type": "smooth",
       "usage": "uncommon",
-      "note": { "en": "Not a true consonant cluster; vowel is suppressed. Pronounced like 'พล-'.", "fr": "Pas un vrai groupe consonantique ; la voyelle est supprimée. Se prononce comme « พล- »." }
+      "note": {
+        "en": "Not a true consonant cluster; vowel is suppressed. Pronounced like 'พล-'.",
+        "fr": "Pas un vrai groupe consonantique ; la voyelle est supprimée. Se prononce comme « พล- »."
+      },
+      "sample": {
+        "word": "ผลิ",
+        "romanization": "plì",
+        "meaning": {
+          "en": "to sprout",
+          "fr": "bourgeonner"
+        }
+      }
     },
-
-    { "cluster": "พร-", "sound": "phr-", "type": "smooth" },
-    { "cluster": "พล-", "sound": "phl-", "type": "smooth" },
-
+    {
+      "cluster": "พร-",
+      "sound": "phr-",
+      "type": "smooth",
+      "sample": {
+        "word": "พระ",
+        "romanization": "phrá",
+        "meaning": {
+          "en": "monk",
+          "fr": "moine"
+        }
+      }
+    },
+    {
+      "cluster": "พล-",
+      "sound": "phl-",
+      "type": "smooth",
+      "sample": {
+        "word": "เพลง",
+        "romanization": "phleeng",
+        "meaning": {
+          "en": "song",
+          "fr": "chanson"
+        }
+      }
+    },
     {
       "cluster": "บร-",
       "sound": "br-",
       "type": "smooth",
       "usage": "rare",
-      "note": { "en": "Mostly found in loanwords; not productive in modern Thai.", "fr": "Surtout présent dans les mots d'emprunt ; non productif en thaï moderne." }
+      "note": {
+        "en": "Mostly found in loanwords; not productive in modern Thai.",
+        "fr": "Surtout présent dans les mots d'emprunt ; non productif en thaï moderne."
+      },
+      "sample": {
+        "word": "บราวนี่",
+        "romanization": "braao-nîi",
+        "meaning": {
+          "en": "brownie",
+          "fr": "brownie"
+        }
+      }
     },
-
     {
       "cluster": "บล-",
       "sound": "bl-",
       "type": "smooth",
-      "usage": "rare"
+      "usage": "rare",
+      "sample": {
+        "word": "บล็อก",
+        "romanization": "blók",
+        "meaning": {
+          "en": "block",
+          "fr": "bloc"
+        }
+      }
     },
-
     {
       "cluster": "ดร-",
       "sound": "dr-",
       "type": "smooth",
       "usage": "rare",
-      "note": { "en": "Mostly appears in loanwords or formal vocabulary.", "fr": "Apparaît surtout dans les mots d'emprunt ou le vocabulaire formel." }
+      "note": {
+        "en": "Mostly appears in loanwords or formal vocabulary.",
+        "fr": "Apparaît surtout dans les mots d'emprunt ou le vocabulaire formel."
+      },
+      "sample": {
+        "word": "ดราม่า",
+        "romanization": "draa-mâa",
+        "meaning": {
+          "en": "drama",
+          "fr": "drame"
+        }
+      }
     },
-
     {
       "cluster": "ทร-",
       "sound": "s-",
       "type": "irregular",
-      "note": { "en": "Historical spelling; usually pronounced 's-' (ทราบ, ทราย). In some Indic loanwords it is 't(h)-' (นิทรา).", "fr": "Graphie historique ; se prononce généralement « s- » (ทราบ, ทราย). Dans certains emprunts indiens : « t(h)- » (นิทรา)." }
+      "note": {
+        "en": "Historical spelling; usually pronounced 's-' (ทราบ, ทราย). In some Indic loanwords it is 't(h)-' (นิทรา).",
+        "fr": "Graphie historique ; se prononce généralement « s- » (ทราบ, ทราย). Dans certains emprunts indiens : « t(h)- » (นิทรา)."
+      },
+      "sample": {
+        "word": "ทราย",
+        "romanization": "saai",
+        "meaning": {
+          "en": "sand",
+          "fr": "sable"
+        }
+      }
     },
     {
       "cluster": "สร-",
       "sound": "s-",
       "type": "irregular",
-      "note": { "en": "Initial ร is silent; cluster pronounced as 's-' (สร้าง).", "fr": "Le ร initial est muet ; le groupe se prononce « s- » (สร้าง)." }
+      "note": {
+        "en": "Initial ร is silent; cluster pronounced as 's-' (สร้าง).",
+        "fr": "Le ร initial est muet ; le groupe se prononce « s- » (สร้าง)."
+      },
+      "sample": {
+        "word": "สร้าง",
+        "romanization": "sâang",
+        "meaning": {
+          "en": "to build",
+          "fr": "construire"
+        }
+      }
     },
     {
       "cluster": "จร-",
       "sound": "j-",
       "type": "irregular",
-      "note": { "en": "Historical spelling; ร is not pronounced (จริง).", "fr": "Graphie historique ; ร ne se prononce pas (จริง)." }
+      "note": {
+        "en": "Historical spelling; ร is not pronounced (จริง).",
+        "fr": "Graphie historique ; ร ne se prononce pas (จริง)."
+      },
+      "sample": {
+        "word": "จริง",
+        "romanization": "jing",
+        "meaning": {
+          "en": "true",
+          "fr": "vrai"
+        }
+      }
     },
     {
       "cluster": "-ทร",
       "sound": "-t",
       "type": "irregular",
-      "note": { "en": "As a final cluster ทร reads as a '-t' stop (สมุทร).", "fr": "En position finale, ทร se lit comme une occlusive « -t » (สมุทร)." }
+      "note": {
+        "en": "As a final cluster ทร reads as a '-t' stop (สมุทร).",
+        "fr": "En position finale, ทร se lit comme une occlusive « -t » (สมุทร)."
+      },
+      "sample": {
+        "word": "สมุทร",
+        "romanization": "sà-mùt",
+        "meaning": {
+          "en": "ocean",
+          "fr": "océan"
+        }
+      }
     },
-
     {
       "cluster": "หง-",
       "sound": "ng-",
       "type": "silent",
-      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
+      "note": {
+        "en": "Leading ห is silent but determines tone class.",
+        "fr": "Le ห initial est muet mais détermine la classe tonale."
+      },
+      "sample": {
+        "word": "หงส์",
+        "romanization": "hǒng",
+        "meaning": {
+          "en": "swan",
+          "fr": "cygne"
+        }
+      }
     },
     {
       "cluster": "หน-",
       "sound": "n-",
       "type": "silent",
-      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
+      "note": {
+        "en": "Leading ห is silent but determines tone class.",
+        "fr": "Le ห initial est muet mais détermine la classe tonale."
+      },
+      "sample": {
+        "word": "หนู",
+        "romanization": "nǔu",
+        "meaning": {
+          "en": "mouse",
+          "fr": "souris"
+        }
+      }
     },
     {
       "cluster": "หม-",
       "sound": "m-",
       "type": "silent",
-      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
+      "note": {
+        "en": "Leading ห is silent but determines tone class.",
+        "fr": "Le ห initial est muet mais détermine la classe tonale."
+      },
+      "sample": {
+        "word": "หมี",
+        "romanization": "mǐi",
+        "meaning": {
+          "en": "bear",
+          "fr": "ours"
+        }
+      }
     },
     {
       "cluster": "หย-",
       "sound": "y-",
       "type": "silent",
-      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
+      "note": {
+        "en": "Leading ห is silent but determines tone class.",
+        "fr": "Le ห initial est muet mais détermine la classe tonale."
+      },
+      "sample": {
+        "word": "หยุด",
+        "romanization": "yùt",
+        "meaning": {
+          "en": "to stop",
+          "fr": "arrêter"
+        }
+      }
     },
     {
       "cluster": "หญ-",
       "sound": "y-",
       "type": "silent",
-      "note": { "en": "Leading ห is silent but determines tone class (หญิง, ใหญ่, หญ้า).", "fr": "Le ห initial est muet mais détermine la classe tonale (หญิง, ใหญ่, หญ้า)." }
+      "note": {
+        "en": "Leading ห is silent but determines tone class (หญิง, ใหญ่, หญ้า).",
+        "fr": "Le ห initial est muet mais détermine la classe tonale (หญิง, ใหญ่, หญ้า)."
+      },
+      "sample": {
+        "word": "หญิง",
+        "romanization": "yǐng",
+        "meaning": {
+          "en": "woman",
+          "fr": "femme"
+        }
+      }
     },
     {
       "cluster": "หร-",
       "sound": "r-",
       "type": "silent",
-      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
+      "note": {
+        "en": "Leading ห is silent but determines tone class.",
+        "fr": "Le ห initial est muet mais détermine la classe tonale."
+      },
+      "sample": {
+        "word": "หรือ",
+        "romanization": "rěuu",
+        "meaning": {
+          "en": "or",
+          "fr": "ou"
+        }
+      }
     },
     {
       "cluster": "หล-",
       "sound": "l-",
       "type": "silent",
-      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
+      "note": {
+        "en": "Leading ห is silent but determines tone class.",
+        "fr": "Le ห initial est muet mais détermine la classe tonale."
+      },
+      "sample": {
+        "word": "หลาย",
+        "romanization": "lǎai",
+        "meaning": {
+          "en": "many",
+          "fr": "plusieurs"
+        }
+      }
     },
     {
       "cluster": "หว-",
       "sound": "w-",
       "type": "silent",
-      "note": { "en": "Leading ห is silent but determines tone class.", "fr": "Le ห initial est muet mais détermine la classe tonale." }
+      "note": {
+        "en": "Leading ห is silent but determines tone class.",
+        "fr": "Le ห initial est muet mais détermine la classe tonale."
+      },
+      "sample": {
+        "word": "หวาน",
+        "romanization": "wǎan",
+        "meaning": {
+          "en": "sweet",
+          "fr": "sucré"
+        }
+      }
     }
   ]
 }
-

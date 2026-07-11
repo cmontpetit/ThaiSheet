@@ -32,6 +32,17 @@ struct VowelNotesContainer: Codable {
     let fr: VowelNotes?
 }
 
+struct VowelSamples: Codable {
+    let short_closed: ReferenceSampleWord?
+    let short_open: ReferenceSampleWord?
+    let long_closed: ReferenceSampleWord?
+    let long_open: ReferenceSampleWord?
+
+    enum CodingKeys: String, CodingKey {
+        case short_closed, short_open, long_closed, long_open
+    }
+}
+
 enum VowelUsage: String, Codable {
     case common
     case uncommon
@@ -47,10 +58,11 @@ struct Vowel: Codable, Identifiable {
     /// Row-level note (JSON "note"; ฤ/ฦ entries), shown when no
     /// form-specific note exists. Named to avoid clashing with note(for:form:).
     let rowNote: LocalizedText?
+    let samples: VowelSamples?
     let usage: VowelUsage?
 
     enum CodingKeys: String, CodingKey {
-        case short, long, sounds, notes, usage
+        case short, long, sounds, notes, samples, usage
         case rowNote = "note"
     }
 
@@ -89,6 +101,19 @@ struct Vowel: Codable, Identifiable {
             return fr
         }
         return notes.en[keyPath: key] ?? rowNote?.localized
+    }
+
+    func sample(for duration: String, form: String) -> ReferenceSampleWord? {
+        guard let samples = samples else { return nil }
+        let key: KeyPath<VowelSamples, ReferenceSampleWord?>
+        switch (duration, form) {
+        case ("Short", "Closed"): key = \.short_closed
+        case ("Short", "Open"): key = \.short_open
+        case ("Long", "Closed"): key = \.long_closed
+        case ("Long", "Open"): key = \.long_open
+        default: return nil
+        }
+        return samples[keyPath: key]
     }
 
     /// Returns true if the given form appears in both short and long positions

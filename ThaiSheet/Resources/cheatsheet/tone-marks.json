@@ -1,24 +1,96 @@
 {
   "toneMarks": [
-      {
-        "mark": "่",
-        "onLow": "Falling",
-        "onMid": "Low",
-        "onHigh": "Low"
-      },
-      {
-        "mark": "้",
-        "onLow": "High",
-        "onMid": "Falling",
-        "onHigh": "Falling"
-      },
-      {
-        "mark": "๊",
-        "onMid": "High"
-      },
-      {
-        "mark": "๋",
-        "onMid": "Rising"
+    {
+      "mark": "่",
+      "onLow": "Falling",
+      "onMid": "Low",
+      "onHigh": "Low",
+      "samples": {
+        "low": {
+          "word": "ค่า",
+          "romanization": "khâa",
+          "meaning": {
+            "en": "value",
+            "fr": "valeur"
+          }
+        },
+        "mid": {
+          "word": "เก่า",
+          "romanization": "gào",
+          "meaning": {
+            "en": "old",
+            "fr": "vieux"
+          }
+        },
+        "high": {
+          "word": "ข่า",
+          "romanization": "khàa",
+          "meaning": {
+            "en": "galangal",
+            "fr": "galanga"
+          }
+        }
       }
+    },
+    {
+      "mark": "้",
+      "onLow": "High",
+      "onMid": "Falling",
+      "onHigh": "Falling",
+      "samples": {
+        "low": {
+          "word": "ค้า",
+          "romanization": "kháa",
+          "meaning": {
+            "en": "to trade",
+            "fr": "commercer"
+          }
+        },
+        "mid": {
+          "word": "ก้าว",
+          "romanization": "gâao",
+          "meaning": {
+            "en": "step",
+            "fr": "pas"
+          }
+        },
+        "high": {
+          "word": "ข้าว",
+          "romanization": "khâao",
+          "meaning": {
+            "en": "rice",
+            "fr": "riz"
+          }
+        }
+      }
+    },
+    {
+      "mark": "๊",
+      "onMid": "High",
+      "samples": {
+        "mid": {
+          "word": "โต๊ะ",
+          "romanization": "dtó",
+          "meaning": {
+            "en": "table",
+            "fr": "table"
+          }
+        }
+      }
+    },
+    {
+      "mark": "๋",
+      "onMid": "Rising",
+      "samples": {
+        "mid": {
+          "word": "จ๋า",
+          "romanization": "jǎa",
+          "meaning": {
+            "en": "dear",
+            "fr": "chéri"
+          }
+        }
+      }
+    }
   ]
 }

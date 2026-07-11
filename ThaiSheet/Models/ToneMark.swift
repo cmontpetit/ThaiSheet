@@ -10,11 +10,18 @@ import SwiftUI
 /// A nil tone means the mark is not used with that class (๊/๋ are
 /// mid-class only). Unmarked syllables are NOT represented here — they
 /// follow the tone-rules table.
+struct ToneMarkSamples: Codable {
+    let low: ReferenceSampleWord?
+    let mid: ReferenceSampleWord?
+    let high: ReferenceSampleWord?
+}
+
 struct ToneMark: Codable, Identifiable {
     let mark: String
     let onLow: String?
     let onMid: String?
     let onHigh: String?
+    let samples: ToneMarkSamples?
 
     var id: String { mark }
 
@@ -45,6 +52,19 @@ struct ToneMark: Codable, Identifiable {
         var display: String { consonant + mark }
         /// Full syllable with า, used for pronunciation and as the card id (e.g. "ค่า")
         var soundKey: String { consonant + mark + "า" }
+    }
+
+    func sampleWord(for soundKey: String) -> ReferenceSampleWord? {
+        if soundKey == Self.lowConsonant + mark + "า" {
+            return samples?.low
+        }
+        if soundKey == Self.midConsonant + mark + "า" {
+            return samples?.mid
+        }
+        if soundKey == Self.highConsonant + mark + "า" {
+            return samples?.high
+        }
+        return nil
     }
 
     func toneColor(for tone: String) -> Color {

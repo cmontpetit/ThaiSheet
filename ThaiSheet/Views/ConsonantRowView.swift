@@ -139,8 +139,10 @@ struct ConsonantRowView: View {
                 title: consonant.character,
                 stage: stage,
                 note: nil,
+                sampleWord: consonant.sampleWord,
                 hasSound: hasSound,
                 onPlaySound: { audioPlayer.play(.consonant, key: consonant.character) },
+                onPlaySampleWord: { audioPlayer.speak($0.word) },
                 onPractice: { onPractice?() }
             )
         }
@@ -155,7 +157,8 @@ struct ConsonantRowView: View {
             transcription: "haaw nók-hûuk",
             class: .low,
             usage: .uncommon,
-            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "h-", final: "n/a"))
+            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "h-", final: "n/a")),
+            sample: nil
         ))
         ConsonantRowView(consonant: Consonant(
             character: "ก",
@@ -163,7 +166,8 @@ struct ConsonantRowView: View {
             transcription: "gaaw gài",
             class: .mid,
             usage: .common,
-            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "g-", final: "-k"))
+            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "g-", final: "-k")),
+            sample: nil
         ))
         ConsonantRowView(consonant: Consonant(
             character: "ข",
@@ -171,7 +175,8 @@ struct ConsonantRowView: View {
             transcription: "khǎaw khài",
             class: .high,
             usage: .common,
-            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "kh-", final: "-k"))
+            sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "kh-", final: "-k")),
+            sample: nil
         ))
     }
 }

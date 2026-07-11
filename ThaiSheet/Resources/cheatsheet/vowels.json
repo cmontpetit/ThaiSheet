@@ -11,6 +11,40 @@
       },
       "sounds": {
         "en": "aa/ah"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "กัน",
+          "romanization": "gan",
+          "meaning": {
+            "en": "together",
+            "fr": "ensemble"
+          }
+        },
+        "short_open": {
+          "word": "กะ",
+          "romanization": "gà",
+          "meaning": {
+            "en": "to estimate",
+            "fr": "estimer"
+          }
+        },
+        "long_closed": {
+          "word": "การ",
+          "romanization": "gaan",
+          "meaning": {
+            "en": "action",
+            "fr": "action"
+          }
+        },
+        "long_open": {
+          "word": "กา",
+          "romanization": "gaa",
+          "meaning": {
+            "en": "crow",
+            "fr": "corbeau"
+          }
+        }
       }
     },
     {
@@ -24,6 +58,40 @@
       },
       "sounds": {
         "en": "ae"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "แข็ง",
+          "romanization": "khǎeng",
+          "meaning": {
+            "en": "hard",
+            "fr": "dur"
+          }
+        },
+        "short_open": {
+          "word": "แกะ",
+          "romanization": "gàe",
+          "meaning": {
+            "en": "sheep",
+            "fr": "mouton"
+          }
+        },
+        "long_closed": {
+          "word": "แกง",
+          "romanization": "gaaeng",
+          "meaning": {
+            "en": "curry",
+            "fr": "cari"
+          }
+        },
+        "long_open": {
+          "word": "แก",
+          "romanization": "gae",
+          "meaning": {
+            "en": "you (informal)",
+            "fr": "tu (familier)"
+          }
+        }
       }
     },
     {
@@ -37,6 +105,40 @@
       },
       "sounds": {
         "en": "aaw"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "ล็อก",
+          "romanization": "lók",
+          "meaning": {
+            "en": "lock",
+            "fr": "verrou"
+          }
+        },
+        "short_open": {
+          "word": "เกาะ",
+          "romanization": "gò",
+          "meaning": {
+            "en": "island",
+            "fr": "île"
+          }
+        },
+        "long_closed": {
+          "word": "ก่อน",
+          "romanization": "gàawn",
+          "meaning": {
+            "en": "before",
+            "fr": "avant"
+          }
+        },
+        "long_open": {
+          "word": "กอ",
+          "romanization": "gaaw",
+          "meaning": {
+            "en": "clump",
+            "fr": "touffe"
+          }
+        }
       }
     },
     {
@@ -50,6 +152,40 @@
       },
       "sounds": {
         "en": "eh/ey"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "เด็ก",
+          "romanization": "dèk",
+          "meaning": {
+            "en": "child",
+            "fr": "enfant"
+          }
+        },
+        "short_open": {
+          "word": "เกะ",
+          "romanization": "gè",
+          "meaning": {
+            "en": "in the way",
+            "fr": "qui gêne"
+          }
+        },
+        "long_closed": {
+          "word": "เกม",
+          "romanization": "geem",
+          "meaning": {
+            "en": "game",
+            "fr": "jeu"
+          }
+        },
+        "long_open": {
+          "word": "เท",
+          "romanization": "thee",
+          "meaning": {
+            "en": "to pour",
+            "fr": "verser"
+          }
+        }
       }
     },
     {
@@ -73,6 +209,40 @@
           "short_closed": "Même forme écrite que la version longue fermée. Pour เ◌อ en syllabe fermée, le thaï n'indique pas la longueur de la voyelle ; elle s'apprend mot par mot.",
           "long_closed": "Même forme écrite que la version courte fermée. Pour เ◌อ en syllabe fermée, le thaï n'indique pas la longueur de la voyelle ; elle s'apprend mot par mot."
         }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "เงิน",
+          "romanization": "ngern",
+          "meaning": {
+            "en": "money",
+            "fr": "argent"
+          }
+        },
+        "short_open": {
+          "word": "เลอะ",
+          "romanization": "lér",
+          "meaning": {
+            "en": "stained",
+            "fr": "taché"
+          }
+        },
+        "long_closed": {
+          "word": "เดิน",
+          "romanization": "dern",
+          "meaning": {
+            "en": "to walk",
+            "fr": "marcher"
+          }
+        },
+        "long_open": {
+          "word": "เจอ",
+          "romanization": "jer",
+          "meaning": {
+            "en": "to meet",
+            "fr": "rencontrer"
+          }
+        }
       }
     },
     {
@@ -94,6 +264,40 @@
         "fr": {
           "short_closed": "Voyelle inhérente, non écrite. Dans beaucoup de syllabes fermées, elle se lit comme โอะ (/o/), mais la voyelle exacte peut dépendre du mot."
         }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "คน",
+          "romanization": "khon",
+          "meaning": {
+            "en": "person",
+            "fr": "personne"
+          }
+        },
+        "short_open": {
+          "word": "โต๊ะ",
+          "romanization": "dtó",
+          "meaning": {
+            "en": "table",
+            "fr": "table"
+          }
+        },
+        "long_closed": {
+          "word": "โลก",
+          "romanization": "lôok",
+          "meaning": {
+            "en": "world",
+            "fr": "monde"
+          }
+        },
+        "long_open": {
+          "word": "โต",
+          "romanization": "dtoh",
+          "meaning": {
+            "en": "big",
+            "fr": "grand"
+          }
+        }
       }
     },
     {
@@ -107,6 +311,40 @@
       },
       "sounds": {
         "en": "ee"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "กิน",
+          "romanization": "gin",
+          "meaning": {
+            "en": "to eat",
+            "fr": "manger"
+          }
+        },
+        "short_open": {
+          "word": "ติ",
+          "romanization": "dtì",
+          "meaning": {
+            "en": "to criticize",
+            "fr": "critiquer"
+          }
+        },
+        "long_closed": {
+          "word": "กีบ",
+          "romanization": "gìip",
+          "meaning": {
+            "en": "hoof",
+            "fr": "sabot"
+          }
+        },
+        "long_open": {
+          "word": "ดี",
+          "romanization": "dee",
+          "meaning": {
+            "en": "good",
+            "fr": "bon"
+          }
+        }
       }
     },
     {
@@ -120,6 +358,40 @@
       },
       "sounds": {
         "en": "eu"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "ดึก",
+          "romanization": "dèuk",
+          "meaning": {
+            "en": "late at night",
+            "fr": "tard dans la nuit"
+          }
+        },
+        "short_open": {
+          "word": "หึ",
+          "romanization": "hèu",
+          "meaning": {
+            "en": "hmph",
+            "fr": "humph"
+          }
+        },
+        "long_closed": {
+          "word": "คืน",
+          "romanization": "khuuen",
+          "meaning": {
+            "en": "night",
+            "fr": "nuit"
+          }
+        },
+        "long_open": {
+          "word": "คือ",
+          "romanization": "khuue",
+          "meaning": {
+            "en": "is",
+            "fr": "est"
+          }
+        }
       }
     },
     {
@@ -133,6 +405,40 @@
       },
       "sounds": {
         "en": "oo"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "คุณ",
+          "romanization": "khun",
+          "meaning": {
+            "en": "you",
+            "fr": "vous"
+          }
+        },
+        "short_open": {
+          "word": "ดุ",
+          "romanization": "dù",
+          "meaning": {
+            "en": "fierce",
+            "fr": "féroce"
+          }
+        },
+        "long_closed": {
+          "word": "พูด",
+          "romanization": "phûut",
+          "meaning": {
+            "en": "to speak",
+            "fr": "parler"
+          }
+        },
+        "long_open": {
+          "word": "ดู",
+          "romanization": "duu",
+          "meaning": {
+            "en": "to look",
+            "fr": "regarder"
+          }
+        }
       }
     },
     {
@@ -155,6 +461,32 @@
         "fr": {
           "short_open": "La forme courte avec -ะ s'emploie surtout en syllabe ouverte.",
           "long_closed": "Les syllabes fermées utilisent généralement la graphie longue suivie d'une consonne finale."
+        }
+      },
+      "samples": {
+        "short_open": {
+          "word": "เกี๊ยะ",
+          "romanization": "gía",
+          "meaning": {
+            "en": "wooden clogs",
+            "fr": "sabots en bois"
+          }
+        },
+        "long_closed": {
+          "word": "เรียน",
+          "romanization": "rian",
+          "meaning": {
+            "en": "to study",
+            "fr": "étudier"
+          }
+        },
+        "long_open": {
+          "word": "เสีย",
+          "romanization": "sǐa",
+          "meaning": {
+            "en": "broken",
+            "fr": "abîmé"
+          }
         }
       }
     },
@@ -179,6 +511,24 @@
           "short_open": "La forme courte avec -ะ s'emploie surtout en syllabe ouverte.",
           "long_closed": "Les syllabes fermées utilisent généralement la graphie longue suivie d'une consonne finale."
         }
+      },
+      "samples": {
+        "long_closed": {
+          "word": "เมือง",
+          "romanization": "meuang",
+          "meaning": {
+            "en": "city",
+            "fr": "ville"
+          }
+        },
+        "long_open": {
+          "word": "เรือ",
+          "romanization": "reua",
+          "meaning": {
+            "en": "boat",
+            "fr": "bateau"
+          }
+        }
       }
     },
     {
@@ -202,9 +552,34 @@
           "short_open": "La forme courte avec -ะ s'emploie surtout en syllabe ouverte.",
           "long_closed": "En syllabe fermée, le ั disparaît : ◌ว◌ (สวน, ด่วน, รวม)."
         }
+      },
+      "samples": {
+        "short_open": {
+          "word": "ผัวะ",
+          "romanization": "phùa",
+          "meaning": {
+            "en": "thwack",
+            "fr": "pan"
+          }
+        },
+        "long_closed": {
+          "word": "สวน",
+          "romanization": "sǔan",
+          "meaning": {
+            "en": "garden",
+            "fr": "jardin"
+          }
+        },
+        "long_open": {
+          "word": "ตัว",
+          "romanization": "dtua",
+          "meaning": {
+            "en": "body",
+            "fr": "corps"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": "ก็อย",
@@ -226,9 +601,18 @@
           "short_closed": "Graphie rare (indiquée comme rare dans l'aide-mémoire source). Un signe de ton occupe la place du ็, la graphie ordinaire ne montre donc pas la brièveté : บ่อย, อร่อย (la prononciation brève est lexicale).",
           "long_closed": "ย sert de semi-voyelle finale : คอย, ลอย, ร้อย."
         }
+      },
+      "samples": {
+        "long_closed": {
+          "word": "คอย",
+          "romanization": "khaawy",
+          "meaning": {
+            "en": "to wait",
+            "fr": "attendre"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": null,
@@ -248,9 +632,18 @@
         "fr": {
           "long_closed": "ย sert de semi-voyelle finale : เลย, เนย, เกย."
         }
+      },
+      "samples": {
+        "long_closed": {
+          "word": "เลย",
+          "romanization": "leeuy",
+          "meaning": {
+            "en": "beyond",
+            "fr": "au-delà"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": null,
@@ -270,9 +663,18 @@
         "fr": {
           "long_closed": "ย sert de semi-voyelle finale : โดย, โรย."
         }
+      },
+      "samples": {
+        "long_closed": {
+          "word": "โดย",
+          "romanization": "dooy",
+          "meaning": {
+            "en": "by",
+            "fr": "par"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": "กุย",
@@ -292,9 +694,18 @@
         "fr": {
           "short_closed": "ย sert de semi-voyelle finale : คุย, ลุย."
         }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "คุย",
+          "romanization": "khuy",
+          "meaning": {
+            "en": "to chat",
+            "fr": "discuter"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": null,
@@ -314,9 +725,18 @@
         "fr": {
           "long_closed": "ย sert de semi-voyelle finale : เหนื่อย, เรื่อย."
         }
+      },
+      "samples": {
+        "long_closed": {
+          "word": "เหนื่อย",
+          "romanization": "nèuay",
+          "meaning": {
+            "en": "tired",
+            "fr": "fatigué"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": "กวย",
@@ -337,6 +757,24 @@
         "fr": {
           "short_closed": "ย sert de semi-voyelle finale : ด้วย, สวย, กล้วย.",
           "long_closed": "Forme longue : ควาย, สบาย suivent le modèle ◌าย."
+        }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "สวย",
+          "romanization": "sǔay",
+          "meaning": {
+            "en": "beautiful",
+            "fr": "beau"
+          }
+        },
+        "long_closed": {
+          "word": "ควาย",
+          "romanization": "khwaai",
+          "meaning": {
+            "en": "water buffalo",
+            "fr": "buffle"
+          }
         }
       }
     },
@@ -361,6 +799,24 @@
           "short_closed": "ว peut jouer ici le rôle de consonne finale /w/.",
           "long_open": "ว fait partie de la graphie de la voyelle dans cette forme longue ouverte."
         }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "เขา",
+          "romanization": "khǎo",
+          "meaning": {
+            "en": "he/she",
+            "fr": "il/elle"
+          }
+        },
+        "long_open": {
+          "word": "กาว",
+          "romanization": "gaao",
+          "meaning": {
+            "en": "glue",
+            "fr": "colle"
+          }
+        }
       }
     },
     {
@@ -374,6 +830,16 @@
       },
       "sounds": {
         "en": "aeo"
+      },
+      "samples": {
+        "long_open": {
+          "word": "แวว",
+          "romanization": "waew",
+          "meaning": {
+            "en": "glimmer",
+            "fr": "lueur"
+          }
+        }
       }
     },
     {
@@ -409,6 +875,24 @@
       },
       "sounds": {
         "en": "ayo"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "เร็ว",
+          "romanization": "reo",
+          "meaning": {
+            "en": "fast",
+            "fr": "rapide"
+          }
+        },
+        "long_open": {
+          "word": "เลว",
+          "romanization": "leeo",
+          "meaning": {
+            "en": "bad",
+            "fr": "mauvais"
+          }
+        }
       }
     },
     {
@@ -429,6 +913,16 @@
         },
         "fr": {
           "short_closed": "Apparaît souvent dans les mots d'emprunt ; les schémas peuvent sembler moins réguliers."
+        }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "หิว",
+          "romanization": "hǐw",
+          "meaning": {
+            "en": "hungry",
+            "fr": "affamé"
+          }
         }
       }
     },
@@ -451,6 +945,16 @@
         "fr": {
           "long_closed": "Astuce de lecture : décomposer en เกี-ยว (เ + ี + ย + ว) avant d'assembler."
         }
+      },
+      "samples": {
+        "long_closed": {
+          "word": "เขียว",
+          "romanization": "khǐao",
+          "meaning": {
+            "en": "green",
+            "fr": "vert"
+          }
+        }
       }
     },
     {
@@ -471,6 +975,16 @@
         },
         "fr": {
           "short_closed": "◌ำ représente par convention une voyelle brève suivie du son final /m/ ; à traiter comme une seule unité (voyelle + finale). Certains mots, comme น้ำ, s'allongent phonétiquement — à apprendre comme exceptions lexicales."
+        }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "จำ",
+          "romanization": "jam",
+          "meaning": {
+            "en": "to remember",
+            "fr": "se souvenir"
+          }
         }
       }
     },
@@ -493,9 +1007,18 @@
         "fr": {
           "short_open": "ไ◌ est un /ai/ court et ne prend jamais de finale écrite (ไป, ไม้)."
         }
+      },
+      "samples": {
+        "short_open": {
+          "word": "ไป",
+          "romanization": "bpai",
+          "meaning": {
+            "en": "to go",
+            "fr": "aller"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": null,
@@ -515,9 +1038,18 @@
         "fr": {
           "short_open": "ไม้ม้วน : utilisé pour exactement 20 mots courants (ใช้, ใน, ใจ, ใหม่, …)."
         }
+      },
+      "samples": {
+        "short_open": {
+          "word": "ใจ",
+          "romanization": "jai",
+          "meaning": {
+            "en": "heart",
+            "fr": "cœur"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": "กัย",
@@ -537,9 +1069,18 @@
         "fr": {
           "short_closed": "◌ั + ย final : วัย, ภัย."
         }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "วัย",
+          "romanization": "wai",
+          "meaning": {
+            "en": "age",
+            "fr": "âge"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": null,
@@ -559,9 +1100,18 @@
         "fr": {
           "long_closed": "◌า + ย final, l'équivalent long de ไ◌/◌ัย : สาย, ตาย, ควาย."
         }
+      },
+      "samples": {
+        "long_closed": {
+          "word": "สาย",
+          "romanization": "sǎai",
+          "meaning": {
+            "en": "late",
+            "fr": "en retard"
+          }
+        }
       }
     },
-
     {
       "short": {
         "closed": "ไกย",
@@ -581,6 +1131,16 @@
         "fr": {
           "short_closed": "ไ◌ย n'apparaît que dans de très rares mots (ไทย) ; reste un /ai/ court."
         }
+      },
+      "samples": {
+        "short_closed": {
+          "word": "ไทย",
+          "romanization": "thai",
+          "meaning": {
+            "en": "Thai",
+            "fr": "thaï"
+          }
+        }
       }
     },
     {
@@ -599,6 +1159,24 @@
       "note": {
         "en": "Sanskrit-derived, includes inherent r sound. ฤ has three readings depending on the word: rue (ฤดู), ri (ฤทธิ์), roe (ฤกษ์).",
         "fr": "D'origine sanskrite, inclut un son r inhérent. ฤ a trois lectures selon le mot : rue (ฤดู), ri (ฤทธิ์), roe (ฤกษ์)."
+      },
+      "samples": {
+        "short_open": {
+          "word": "ฤดู",
+          "romanization": "réu-duu",
+          "meaning": {
+            "en": "season",
+            "fr": "saison"
+          }
+        },
+        "long_open": {
+          "word": "ฤๅษี",
+          "romanization": "reuu-sěe",
+          "meaning": {
+            "en": "hermit",
+            "fr": "ermite"
+          }
+        }
       }
     },
     {
@@ -617,6 +1195,16 @@
       "note": {
         "en": "Sanskrit-derived ฤ in closed syllables",
         "fr": "ฤ d'origine sanskrite en syllabe fermée"
+      },
+      "samples": {
+        "short_closed": {
+          "word": "ฤทธิ์",
+          "romanization": "rít",
+          "meaning": {
+            "en": "power",
+            "fr": "pouvoir"
+          }
+        }
       }
     },
     {
@@ -635,6 +1223,16 @@
       "note": {
         "en": "Sanskrit-derived, includes inherent l sound. ฦ and ฦๅ are obsolete in modern Thai; historical examples include ฦๅชา and ฦๅสาย.",
         "fr": "D'origine sanskrite, inclut un son l inhérent. ฦ et ฦๅ sont obsolètes en thaï moderne ; exemples historiques : ฦๅชา et ฦๅสาย."
+      },
+      "samples": {
+        "long_open": {
+          "word": "ฦๅสาย",
+          "romanization": "leuu-sǎai",
+          "meaning": {
+            "en": "archaic word",
+            "fr": "mot archaïque"
+          }
+        }
       }
     }
   ]
