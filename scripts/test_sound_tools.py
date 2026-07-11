@@ -6,13 +6,14 @@ from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 
 from generate_sound_catalog import build_catalog, rendered_catalog
+from generate_sound_review import current_voice_label
 from generate_sounds import AudioQuality, SoundGenerator
 from generate_vowel_pronunciation_review import (
     internal_silence_intervals,
     load_candidates,
     render_review,
 )
-from sound_inventory import load_sound_inventory
+from sound_inventory import CATALOG_TYPE_LABELS, SOUND_TYPE_LABELS, load_sound_inventory
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -49,6 +50,15 @@ class SoundInventoryTests(unittest.TestCase):
         self.assertEqual(teacher.romanization, "khruu")
         self.assertEqual(teacher.meaning_en, "teacher")
         self.assertEqual(teacher.meaning_fr, "professeur")
+
+    def test_tone_rule_catalog_groups_primary_and_additional_examples(self):
+        tone_rules = [item for item in self.items if item.sound_type == "tone_rule"]
+        primary = [item for item in tone_rules if item.catalog_type == "tone_rule"]
+        examples = [item for item in tone_rules if item.catalog_type == "tone_rule_example"]
+        self.assertEqual(len(primary), 7)
+        self.assertEqual(len(examples), 91)
+        self.assertEqual(SOUND_TYPE_LABELS["tone_rule"], "Tone rules")
+        self.assertEqual(CATALOG_TYPE_LABELS["tone_rule_example"], "Tone-rule examples")
 
 
 class AudioQualityTests(unittest.TestCase):
@@ -107,7 +117,7 @@ class SoundCatalogTests(unittest.TestCase):
     def test_catalog_contains_hashes_and_metadata(self):
         catalog = build_catalog(SOUNDS_DIR, METADATA_PATH)
         self.assertEqual(len(catalog["items"]), 388)
-        self.assertIn("th-TH-Chirp3-HD-Kore", catalog["audio"]["voice"])
+        self.assertEqual(catalog["audio"]["voice"], "th-TH-Neural2-C")
         self.assertTrue(all(len(item["sha256"]) == 64 for item in catalog["items"]))
         self.assertIn("window.THAISHEET_SOUND_CATALOG", rendered_catalog(catalog))
 
@@ -116,6 +126,11 @@ class SoundCatalogTests(unittest.TestCase):
         self.assertIn('window.location.protocol === "file:"', html)
         self.assertIn('["localhost", "127.0.0.1", "::1"]', html)
         self.assertIn('"../ThaiSheet/Resources/sounds/"', html)
+
+
+class SoundReviewTests(unittest.TestCase):
+    def test_current_voice_comes_from_recorded_audio_metadata(self):
+        self.assertEqual(current_voice_label(), "th-TH-Neural2-C")
 
 
 class VowelPronunciationReviewTests(unittest.TestCase):

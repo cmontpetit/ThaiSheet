@@ -143,8 +143,8 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
   python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-files
   # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
   ```
-- Default generation voice: `th-TH-Neural2-C`. The current vowel pronunciation words use `th-TH-Chirp3-HD-Kore`; the rest of the bundled set uses Neural2-C. Use an explicit `--voice-name` when replacing either set.
-- The bundled Neural2-C files used `--volume-gain-db 6`; the Kore vowel words use `--normalize-lufs -18`. LUFS normalization includes a -1.5 dB true-peak limit; update `scripts/recorded_audio_metadata.json` when a candidate replaces either set.
+- The default and bundled voice is `th-TH-Neural2-C`. Use an explicit `--voice-name` when producing a candidate with another voice.
+- The complete bundled set uses `--normalize-lufs -18`, including a -1.5 dB true-peak limit. Update `scripts/recorded_audio_metadata.json` whenever a candidate replaces the bundled set.
 - Non-dry generation validates raw responses before post-processing. Clips shorter than 0.35 seconds or quieter than -24 dBFS peak are rejected and synthesized again up to four times. This catches generative TTS failures such as a near-silent `กึ`; it does not verify pronunciation or tone.
 - Exact duplicate synthesis inputs reuse the first processed response within a generation run, producing byte-identical MP3s without additional TTS requests.
 - The canonical list of 388 expected sounds and synthesis inputs lives in `scripts/sound_inventory.py`. Generation, tests, and the website catalog must use that inventory rather than independently deriving filenames.

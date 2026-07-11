@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from generate_sounds import inspect_audio
-from sound_inventory import SOUND_TYPE_LABELS, load_sound_inventory
+from sound_inventory import CATALOG_TYPE_LABELS, load_sound_inventory
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -16,6 +16,7 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 CHEATSHEET_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "cheatsheet"
 CURRENT_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "sounds"
 SCRATCHPAD_DIR = PROJECT_ROOT / "scratchpad"
+RECORDED_AUDIO_METADATA = SCRIPT_DIR / "recorded_audio_metadata.json"
 
 
 def validate_complete_set(audio_dir: Path, expected_files: set[str], label: str) -> None:
@@ -34,6 +35,11 @@ def validate_complete_set(audio_dir: Path, expected_files: set[str], label: str)
 def relative_audio_url(page: Path, audio_file: Path) -> str:
     relative = os.path.relpath(audio_file, page.parent)
     return quote(relative, safe="/.-_")
+
+
+def current_voice_label() -> str:
+    metadata = json.loads(RECORDED_AUDIO_METADATA.read_text())
+    return metadata["voice"]
 
 
 def build_review_data(candidate_dir: Path, output: Path, candidate_voice: str) -> dict:
@@ -62,12 +68,15 @@ def build_review_data(candidate_dir: Path, output: Path, candidate_voice: str) -
 
     return {
         "candidateVoice": candidate_voice,
-        "currentVoice": "th-TH-Neural2-C",
+        "currentVoice": current_voice_label(),
         "counts": {
-            sound_type: sum(item.sound_type == sound_type for item in inventory)
-            for sound_type in SOUND_TYPE_LABELS
+            catalog_type: sum(
+                (item.catalog_type or item.sound_type) == catalog_type
+                for item in inventory
+            )
+            for catalog_type in CATALOG_TYPE_LABELS
         },
-        "typeLabels": SOUND_TYPE_LABELS,
+        "typeLabels": CATALOG_TYPE_LABELS,
         "failedQuality": failed_quality,
         "items": items,
     }
@@ -128,7 +137,7 @@ def render_review(data: dict) -> str:
   </main>
   <script>
     const review = {encoded_data};
-    const typeOrder = ["consonant", "vowel", "cluster", "tone_mark", "tone_rule", "sample_word"];
+    const typeOrder = ["consonant", "vowel", "cluster", "tone_mark", "tone_rule", "tone_rule_example", "sample_word"];
     const search = document.querySelector("#search");
     const tabs = document.querySelector("#tabs");
     const rows = document.querySelector("#rows");
@@ -196,7 +205,7 @@ def render_review(data: dict) -> str:
       const query = search.value.trim().toLocaleLowerCase();
       const filtered = review.items.filter(item => {{
         const fields = [item.id, item.display, item.synthesis_text, item.romanization, item.meaning_en, item.meaning_fr, item.example_word, item.example_romanization].join(" ").toLocaleLowerCase();
-        return (selectedType === "all" || item.sound_type === selectedType) && (!query || fields.includes(query));
+        return (selectedType === "all" || item.catalog_type === selectedType) && (!query || fields.includes(query));
       }});
       rows.replaceChildren(...filtered.map(row));
       summary.textContent = `${{filtered.length}} of ${{review.items.length}} recordings · ${{review.failedQuality.length}} quality flags`;
