@@ -68,7 +68,11 @@
   <script>
     (() => {
       const catalog = window.THAISHEET_SOUND_CATALOG;
-      const rawBase = `https://raw.githubusercontent.com/${catalog.repository}/${catalog.branch}/ThaiSheet/Resources/sounds/`;
+      const isLocalPreview = window.location.protocol === "file:" ||
+        ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+      const rawBase = isLocalPreview
+        ? "../ThaiSheet/Resources/sounds/"
+        : `https://raw.githubusercontent.com/${catalog.repository}/${catalog.branch}/ThaiSheet/Resources/sounds/`;
       const typeOrder = ["consonant", "vowel", "cluster", "tone_mark", "tone_rule", "sample_word"];
       const search = document.querySelector("#sound-search");
       const tabs = document.querySelector("#sound-type-tabs");

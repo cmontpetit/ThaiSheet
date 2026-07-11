@@ -193,7 +193,10 @@ The GitHub Pages catalog at `docs/sounds.html` reads generated
 The data includes SHA-256 revisions for every MP3, so any audio change makes
 `--check` fail until the catalog is refreshed. CI runs the inventory tests and
 catalog freshness check. The page streams the existing files from GitHub raw
-URLs with `preload="none"`; do not copy the MP3 set into `docs/`.
+URLs with `preload="none"`; for a local preview, serve the repository root and
+open `/docs/sounds.html` (or open that file directly). Local previews read MP3s
+from the working tree so an unmerged candidate can be reviewed accurately. Do
+not copy the MP3 set into `docs/`.
 
 ### Flashcard Design Decisions
 - **Tone Marks**: Use fixed consonants matching the reference (ค low, ก mid, ข high)

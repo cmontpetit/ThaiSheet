@@ -132,6 +132,12 @@ class SoundCatalogTests(unittest.TestCase):
         self.assertTrue(all(len(item["sha256"]) == 64 for item in catalog["items"]))
         self.assertIn("window.THAISHEET_SOUND_CATALOG", rendered_catalog(catalog))
 
+    def test_local_catalog_plays_working_tree_audio(self):
+        html = (PROJECT_ROOT / "docs" / "sounds.html").read_text(encoding="utf-8")
+        self.assertIn('window.location.protocol === "file:"', html)
+        self.assertIn('["localhost", "127.0.0.1", "::1"]', html)
+        self.assertIn('"../ThaiSheet/Resources/sounds/"', html)
+
 
 if __name__ == "__main__":
     unittest.main()
