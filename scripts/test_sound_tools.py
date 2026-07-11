@@ -117,7 +117,7 @@ class SoundCatalogTests(unittest.TestCase):
     def test_catalog_contains_hashes_and_metadata(self):
         catalog = build_catalog(SOUNDS_DIR, METADATA_PATH)
         self.assertEqual(len(catalog["items"]), 388)
-        self.assertIn("th-TH-Chirp3-HD-Kore", catalog["audio"]["voice"])
+        self.assertEqual(catalog["audio"]["voice"], "th-TH-Neural2-C")
         self.assertTrue(all(len(item["sha256"]) == 64 for item in catalog["items"]))
         self.assertIn("window.THAISHEET_SOUND_CATALOG", rendered_catalog(catalog))
 
@@ -130,9 +130,7 @@ class SoundCatalogTests(unittest.TestCase):
 
 class SoundReviewTests(unittest.TestCase):
     def test_current_voice_comes_from_recorded_audio_metadata(self):
-        label = current_voice_label()
-        self.assertIn("th-TH-Neural2-C", label)
-        self.assertIn("th-TH-Chirp3-HD-Kore", label)
+        self.assertEqual(current_voice_label(), "th-TH-Neural2-C")
 
 
 class VowelPronunciationReviewTests(unittest.TestCase):

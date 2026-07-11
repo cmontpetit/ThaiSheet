@@ -61,9 +61,9 @@ python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-fi
 # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
 ```
 
-The default generation voice is `th-TH-Neural2-C`. The current bundled vowel
-pronunciation words use `th-TH-Chirp3-HD-Kore`; the remaining recorded set uses
-Neural2-C. Use an explicit `--voice-name` when producing a replacement set.
+The bundled and default generation voice is `th-TH-Neural2-C`. The complete
+recorded set is normalized to -18 LUFS. Use an explicit `--voice-name` when
+producing a candidate with another voice.
 Generated responses are rejected and retried when they are too short or nearly
 silent. Loudness normalization includes a true-peak limit to avoid clipping.
 Within one generation run, exact duplicate synthesis inputs reuse the first
