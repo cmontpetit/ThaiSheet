@@ -60,22 +60,15 @@ struct ToneRuleExpressionView: View {
     let rule: ToneRule
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
+        VStack(spacing: 6) {
             HStack(spacing: 7) {
                 ruleInputs
                 equalsSign
-                toneResult
             }
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
 
-            VStack(spacing: 6) {
-                HStack(spacing: 7) {
-                    ruleInputs
-                }
-                HStack(spacing: 7) {
-                    equalsSign
-                    toneResult
-                }
-            }
+            toneResult
         }
         .font(.title3)
         .accessibilityElement(children: .ignore)
