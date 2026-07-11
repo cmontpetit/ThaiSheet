@@ -64,6 +64,8 @@ python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-fi
 The default Thai voice is `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare output before committing regenerated MP3s.
 Generated responses are rejected and retried when they are too short or nearly
 silent. Loudness normalization includes a true-peak limit to avoid clipping.
+Within one generation run, exact duplicate synthesis inputs reuse the first
+processed response so their MP3 files are byte-identical.
 Candidate sets can be written safely below `scratchpad/` with `--output-dir` and
 compared with the bundled set using `scripts/generate_sound_review.py`.
 
@@ -75,6 +77,9 @@ or recorded-voice metadata, update and verify it with:
 python3 scripts/generate_sound_catalog.py
 python3 scripts/generate_sound_catalog.py --check
 ```
+
+When previewing `docs/sounds.html` locally, serve the repository root (rather
+than only `docs/`) so the catalog can play audio from the working tree.
 
 ## Data & Audio Provenance
 

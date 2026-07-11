@@ -146,10 +146,12 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - Default voice: `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare quality before committing regenerated MP3s
 - The current bundled Neural2-C set used `--volume-gain-db 6`. New candidate sets use `--normalize-lufs -18`, which includes a -1.5 dB true-peak limit; update `scripts/recorded_audio_metadata.json` when a candidate replaces the bundled set.
 - Non-dry generation validates raw responses before post-processing. Clips shorter than 0.35 seconds or quieter than -24 dBFS peak are rejected and synthesized again up to four times. This catches generative TTS failures such as a near-silent `กึ`; it does not verify pronunciation or tone.
+- Exact duplicate synthesis inputs reuse the first processed response within a generation run, producing byte-identical MP3s without additional TTS requests.
 - The canonical list of 391 expected sounds and synthesis inputs lives in `scripts/sound_inventory.py`. Generation, tests, and the website catalog must use that inventory rather than independently deriving filenames.
 - Custom `--output-dir` paths are restricted to `scratchpad/`, allowing candidate voices to be generated without risking bundled production audio.
 - Use repeatable `--sound-id` arguments for targeted regeneration (for example `--sound-id 'vowel:กึ'`). Stable IDs come from the canonical inventory.
 - Reference sample words are deduplicated by Thai word and generated as `cheat_sheet_sample_word_{word}.mp3`; `--sample-words` generates only that set and `--all` includes it.
+- The public catalog is `docs/sounds.html`. Local previews use working-tree audio; serve the repository root and open `/docs/sounds.html` so `ThaiSheet/Resources/sounds/` is available.
 - Existing MP3s are skipped unless `--force` is passed
 - Use `--check-files` with `--all` to catch stale or missing bundled MP3s before release
 - ฤ- (the "ri" reading) intentionally has NO bundled audio: the recorded file spoke the "rue" reading (TTS gets the dash-stripped text). Excluded via `EXCLUDED_VOWEL_FORMS` in the script pending the ฤ audio/quiz design decision (issue #7) — don't regenerate it

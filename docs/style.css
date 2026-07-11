@@ -205,6 +205,22 @@ footer a { color: var(--accent); text-decoration: none; }
   border-radius: 7px;
 }
 
+.catalog-notice {
+  margin-top: 2rem;
+  padding: 0.85rem 1rem;
+  border-left: 4px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+}
+
+.catalog-notice h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.catalog-notice p {
+  margin: 0.4rem 0;
+}
+
 .catalog-summary {
   margin-top: 2rem;
   padding: 1rem 0;

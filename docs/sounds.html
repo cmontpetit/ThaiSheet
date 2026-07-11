@@ -25,6 +25,16 @@
   </header>
 
   <main>
+    <section class="catalog-notice" aria-labelledby="catalog-status-title">
+      <h2 id="catalog-status-title">Recordings under review</h2>
+      <p>These synthesized recordings are provisional, not definitive pronunciation
+      references. Isolated Thai characters and vowel forms can be particularly
+      difficult for text-to-speech voices to pronounce correctly.</p>
+      <p>The longer-term goal is to produce a reviewed recording set with a native
+      Thai speaker. Until then, please use the report links below to flag anything
+      that sounds wrong.</p>
+    </section>
+
     <section class="catalog-summary" aria-labelledby="catalog-provenance-title">
       <h2 id="catalog-provenance-title">Current recording set</h2>
       <dl>
@@ -68,7 +78,11 @@
   <script>
     (() => {
       const catalog = window.THAISHEET_SOUND_CATALOG;
-      const rawBase = `https://raw.githubusercontent.com/${catalog.repository}/${catalog.branch}/ThaiSheet/Resources/sounds/`;
+      const isLocalPreview = window.location.protocol === "file:" ||
+        ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+      const rawBase = isLocalPreview
+        ? "../ThaiSheet/Resources/sounds/"
+        : `https://raw.githubusercontent.com/${catalog.repository}/${catalog.branch}/ThaiSheet/Resources/sounds/`;
       const typeOrder = ["consonant", "vowel", "cluster", "tone_mark", "tone_rule", "sample_word"];
       const search = document.querySelector("#sound-search");
       const tabs = document.querySelector("#sound-type-tabs");
