@@ -835,6 +835,17 @@
         }
       }
     },
+    "On High Cons." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur cons. haute"
+          }
+        }
+      }
+    },
     "On Low Cons." : {
       "localizations" : {
         "fr" : {
@@ -845,12 +856,13 @@
         }
       }
     },
-    "On Mid/High Cons." : {
+    "On Mid Cons." : {
+      "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sur cons. moy./haute"
+            "value" : "Sur cons. moyenne"
           }
         }
       }

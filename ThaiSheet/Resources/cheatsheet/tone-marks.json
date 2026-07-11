@@ -1,29 +1,24 @@
 {
   "toneMarks": [
       {
-        "mark": "",
-        "onLowConsonant": "Mid",
-        "onMidHighConsonant": "Mid"
-      },
-      {
         "mark": "่",
-        "onLowConsonant": "Falling",
-        "onMidHighConsonant": "Low"
+        "onLow": "Falling",
+        "onMid": "Low",
+        "onHigh": "Low"
       },
       {
         "mark": "้",
-        "onLowConsonant": "High",
-        "onMidHighConsonant": "Falling"
+        "onLow": "High",
+        "onMid": "Falling",
+        "onHigh": "Falling"
       },
       {
         "mark": "๊",
-        "onLowConsonant": "n/a",
-        "onMidHighConsonant": "High"
+        "onMid": "High"
       },
       {
         "mark": "๋",
-        "onLowConsonant": "n/a",
-        "onMidHighConsonant": "Rising"
+        "onMid": "Rising"
       }
   ]
 }

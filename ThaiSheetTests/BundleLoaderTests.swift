@@ -124,25 +124,60 @@ final class BundleLoaderTests: XCTestCase {
         XCTAssertFalse(toneMarks.isEmpty)
     }
 
-    func test_toneMarkLoadAll_returns5ToneMarks() {
+    func test_toneMarkLoadAll_returns4ActualMarks() {
+        // No no-mark row: unmarked syllables follow the tone rules,
+        // not the tone-mark table (the old Mid/Mid row was wrong for
+        // high-class syllables, which are Rising when live)
         let toneMarks = ToneMark.loadAll()
-        XCTAssertEqual(toneMarks.count, 5, "Should have 5 tone marks (including no-mark)")
-    }
-
-    func test_toneMarkLoadAll_firstIsNoMark() {
-        let toneMarks = ToneMark.loadAll()
-        XCTAssertEqual(toneMarks[0].mark, "", "First tone mark should be empty (no mark)")
-        XCTAssertEqual(toneMarks[0].onLowConsonant, "Mid")
-        XCTAssertEqual(toneMarks[0].onMidHighConsonant, "Mid")
-    }
-
-    func test_toneMarkLoadAll_allHaveToneInfo() {
-        let toneMarks = ToneMark.loadAll()
+        XCTAssertEqual(toneMarks.count, 4)
         for toneMark in toneMarks {
-            XCTAssertFalse(toneMark.onLowConsonant.isEmpty,
-                           "Tone mark '\(toneMark.mark)' should have low consonant tone")
-            XCTAssertFalse(toneMark.onMidHighConsonant.isEmpty,
-                           "Tone mark '\(toneMark.mark)' should have mid/high consonant tone")
+            XCTAssertFalse(toneMark.mark.isEmpty, "Every row must be a real tone mark")
+        }
+    }
+
+    func test_toneMarkLoadAll_maiTriAndChattawaAreMidClassOnly() {
+        let toneMarks = ToneMark.loadAll()
+        for mark in ["\u{0E4A}", "\u{0E4B}"] { // ๊ ๋
+            let toneMark = toneMarks.first { $0.mark == mark }
+            XCTAssertNotNil(toneMark)
+            XCTAssertNil(toneMark?.onLow, "\(mark) is not used with low-class consonants")
+            XCTAssertNotNil(toneMark?.onMid)
+            XCTAssertNil(toneMark?.onHigh, "\(mark) is not used with high-class consonants")
+        }
+    }
+
+    func test_toneMarkLoadAll_maiEkAndThoCoverAllThreeClasses() {
+        let toneMarks = ToneMark.loadAll()
+        for mark in ["\u{0E48}", "\u{0E49}"] { // ่ ้
+            let toneMark = toneMarks.first { $0.mark == mark }
+            XCTAssertNotNil(toneMark?.onLow)
+            XCTAssertNotNil(toneMark?.onMid)
+            XCTAssertNotNil(toneMark?.onHigh)
+        }
+    }
+
+    func test_toneMarkCards_are8WithHighClassAndNoUnmarked() {
+        let cards = ToneMarkCard.allCards(from: ToneMark.loadAll())
+        XCTAssertEqual(cards.count, 8)
+        XCTAssertEqual(
+            Set(cards.map(\.display)),
+            ["ค่า", "ค้า", "ก่า", "ก้า", "ก๊า", "ก๋า", "ข่า", "ข้า"],
+            "2 low (ค) + 4 mid (ก) + 2 high (ข); no unmarked คา/กา cards"
+        )
+    }
+
+    func test_toneMarkCards_highClassTonesAreCorrect() {
+        let cards = ToneMarkCard.allCards(from: ToneMark.loadAll())
+        XCTAssertEqual(cards.first { $0.display == "ข่า" }?.correctTone, "Low")
+        XCTAssertEqual(cards.first { $0.display == "ข้า" }?.correctTone, "Falling")
+        XCTAssertEqual(cards.first { $0.display == "ข่า" }?.consonantClass, .high)
+    }
+
+    func test_toneMarkCards_maiTriAndChattawaProduceMidCardsOnly() {
+        let cards = ToneMarkCard.allCards(from: ToneMark.loadAll())
+        for card in cards where card.toneMark.mark == "\u{0E4A}" || card.toneMark.mark == "\u{0E4B}" {
+            XCTAssertEqual(card.consonantClass, .mid,
+                           "\(card.display) must be a mid-class card")
         }
     }
 
