@@ -16,6 +16,7 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 CHEATSHEET_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "cheatsheet"
 CURRENT_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "sounds"
 SCRATCHPAD_DIR = PROJECT_ROOT / "scratchpad"
+RECORDED_AUDIO_METADATA = SCRIPT_DIR / "recorded_audio_metadata.json"
 
 
 def validate_complete_set(audio_dir: Path, expected_files: set[str], label: str) -> None:
@@ -34,6 +35,11 @@ def validate_complete_set(audio_dir: Path, expected_files: set[str], label: str)
 def relative_audio_url(page: Path, audio_file: Path) -> str:
     relative = os.path.relpath(audio_file, page.parent)
     return quote(relative, safe="/.-_")
+
+
+def current_voice_label() -> str:
+    metadata = json.loads(RECORDED_AUDIO_METADATA.read_text())
+    return metadata["voice"]
 
 
 def build_review_data(candidate_dir: Path, output: Path, candidate_voice: str) -> dict:
@@ -62,7 +68,7 @@ def build_review_data(candidate_dir: Path, output: Path, candidate_voice: str) -
 
     return {
         "candidateVoice": candidate_voice,
-        "currentVoice": "th-TH-Neural2-C",
+        "currentVoice": current_voice_label(),
         "counts": {
             sound_type: sum(item.sound_type == sound_type for item in inventory)
             for sound_type in SOUND_TYPE_LABELS

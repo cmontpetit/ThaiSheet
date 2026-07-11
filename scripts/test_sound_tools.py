@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 
 from generate_sound_catalog import build_catalog, rendered_catalog
+from generate_sound_review import current_voice_label
 from generate_sounds import AudioQuality, SoundGenerator
 from generate_vowel_pronunciation_review import (
     internal_silence_intervals,
@@ -116,6 +117,13 @@ class SoundCatalogTests(unittest.TestCase):
         self.assertIn('window.location.protocol === "file:"', html)
         self.assertIn('["localhost", "127.0.0.1", "::1"]', html)
         self.assertIn('"../ThaiSheet/Resources/sounds/"', html)
+
+
+class SoundReviewTests(unittest.TestCase):
+    def test_current_voice_comes_from_recorded_audio_metadata(self):
+        label = current_voice_label()
+        self.assertIn("th-TH-Neural2-C", label)
+        self.assertIn("th-TH-Chirp3-HD-Kore", label)
 
 
 class VowelPronunciationReviewTests(unittest.TestCase):
