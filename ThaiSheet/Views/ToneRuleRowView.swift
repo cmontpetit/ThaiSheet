@@ -97,7 +97,11 @@ struct ToneRuleRowView: View {
 
     private var additionalSampleWord: ReferenceSampleWord? {
         guard let sample = rule.samples?.dropFirst().first else { return nil }
-        return ReferenceSampleWord(word: sample.full)
+        return ReferenceSampleWord(
+            word: sample.full,
+            romanization: sample.romanization,
+            meaning: sample.meaning
+        )
     }
 
     /// Spoken summary of the rule row, e.g. "Low, Short, Dead/None: High. คะ"

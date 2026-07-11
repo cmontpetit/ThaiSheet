@@ -232,6 +232,18 @@ final class BundleLoaderTests: XCTestCase {
                 subdirectory: "sounds"
             ) ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
             XCTAssertNotNil(sound, "Missing tone-rule example audio for \(sample.full)")
+            XCTAssertFalse(
+                sample.romanization?.isEmpty ?? true,
+                "Tone-rule example \(sample.full) needs romanization"
+            )
+            XCTAssertFalse(
+                sample.meaning?.en.isEmpty ?? true,
+                "Tone-rule example \(sample.full) needs an English meaning"
+            )
+            XCTAssertFalse(
+                sample.meaning?.fr?.isEmpty ?? true,
+                "Tone-rule example \(sample.full) needs a French meaning"
+            )
         }
     }
 

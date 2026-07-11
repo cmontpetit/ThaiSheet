@@ -7,7 +7,12 @@
       "tone": "High",
       "samples": [
         { "full": "คะ", "focus": "คะ" },
-        { "full": "นะ", "focus": "นะ" },
+        {
+          "full": "นะ",
+          "focus": "นะ",
+          "romanization": "ná",
+          "meaning": { "en": "particle", "fr": "particule" }
+        },
         { "full": "ละ", "focus": "ละ" },
         {
           "full": "วัด",
@@ -83,7 +88,12 @@
       "tone": "Falling",
       "samples": [
         { "full": "มาก", "focus": "มาก" },
-        { "full": "ลาก", "focus": "ลาก" },
+        {
+          "full": "ลาก",
+          "focus": "ลาก",
+          "romanization": "lâak",
+          "meaning": { "en": "to drag", "fr": "traîner" }
+        },
         { "full": "พูด", "focus": "พูด" },
         { "full": "ลูก", "focus": "ลูก" },
         { "full": "นาก", "focus": "นาก" },
@@ -120,7 +130,12 @@
       "tone": "Mid",
       "samples": [
         { "full": "มา", "focus": "มา" },
-        { "full": "นา", "focus": "นา" },
+        {
+          "full": "นา",
+          "focus": "นา",
+          "romanization": "naa",
+          "meaning": { "en": "rice field", "fr": "rizière" }
+        },
         { "full": "ยา", "focus": "ยา" },
         { "full": "ลม", "focus": "ลม" },
         { "full": "คน", "focus": "คน" },
@@ -143,7 +158,12 @@
       "tone": "Mid",
       "samples": [
         { "full": "กา", "focus": "กา" },
-        { "full": "ตา", "focus": "ตา" },
+        {
+          "full": "ตา",
+          "focus": "ตา",
+          "romanization": "dtaa",
+          "meaning": { "en": "eye", "fr": "œil" }
+        },
         { "full": "ดี", "focus": "ดี" },
         { "full": "ใจ", "focus": "ใจ" },
         { "full": "ปลา", "focus": "ปลา" },
@@ -167,7 +187,12 @@
       "tone": "Low",
       "samples": [
         { "full": "กัด", "focus": "กัด" },
-        { "full": "ปิด", "focus": "ปิด" },
+        {
+          "full": "ปิด",
+          "focus": "ปิด",
+          "romanization": "bpìt",
+          "meaning": { "en": "to close", "fr": "fermer" }
+        },
         { "full": "จบ", "focus": "จบ" },
         { "full": "ตัด", "focus": "ตัด" },
         { "full": "กด", "focus": "กด" },
@@ -191,7 +216,12 @@
       "tone": "Rising",
       "samples": [
         { "full": "ขา", "focus": "ขา" },
-        { "full": "ขาว", "focus": "ขาว" },
+        {
+          "full": "ขาว",
+          "focus": "ขาว",
+          "romanization": "khǎao",
+          "meaning": { "en": "white", "fr": "blanc" }
+        },
         { "full": "ฝน", "focus": "ฝน" },
         {
           "full": "หมี",
@@ -239,6 +269,8 @@
         {
           "full": "ขาด",
           "focus": "ขาด",
+          "romanization": "khàat",
+          "meaning": { "en": "to lack", "fr": "manquer" },
           "note": {
             "en": "High-class consonant; dead syllable → low tone regardless of vowel length.",
             "fr": "Consonne de classe haute ; syllabe morte → ton bas quelle que soit la longueur de la voyelle."
