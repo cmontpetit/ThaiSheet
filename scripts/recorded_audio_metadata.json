@@ -4,5 +4,6 @@
   "processing": "EBU R128 normalization to -18 LUFS with a -1.5 dB true-peak limit",
   "status": "Current bundled recorded voice",
   "generatedOn": "2026-07-11",
-  "generationCommand": "python3 scripts/generate_sounds.py --all --force --voice-name th-TH-Chirp3-HD-Kore --normalize-lufs -18 --output-dir scratchpad/kore-candidate --check-files"
+  "generationCommand": "python3 scripts/generate_sounds.py --all --force --voice-name th-TH-Chirp3-HD-Kore --normalize-lufs -18 --output-dir scratchpad/kore-candidate --check-files",
+  "reusePolicy": "One processed MP3 is reused for every exact synthesis input"
 }

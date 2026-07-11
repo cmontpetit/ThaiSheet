@@ -64,6 +64,9 @@ python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-fi
 The bundled and default Thai voice is `th-TH-Chirp3-HD-Kore`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare output before committing regenerated MP3s.
 Generated responses are rejected and retried when they are too short or nearly
 silent. Loudness normalization includes a true-peak limit to avoid clipping.
+Within a generation run, entries with the exact same synthesis input reuse one
+processed recording. Existing sets can be repaired with
+`python3 scripts/generate_sounds.py --unify-identical-inputs`.
 Candidate sets can be written safely below `scratchpad/` with `--output-dir` and
 compared with the bundled set using `scripts/generate_sound_review.py`.
 

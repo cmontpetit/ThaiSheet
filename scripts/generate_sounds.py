@@ -25,7 +25,9 @@ Output files are saved to ThaiSheet/Resources/sounds/
 """
 
 import argparse
+from collections import defaultdict
 from dataclasses import dataclass
+import hashlib
 import re
 import shutil
 import subprocess
@@ -136,6 +138,8 @@ class SoundGenerator:
         self.skipped = 0
         self.expected_files: set[Path] = set()
         self.quality_results: dict[str, AudioQuality] = {}
+        self.processed_audio_by_text: dict[str, bytes] = {}
+        self.quality_by_text: dict[str, AudioQuality] = {}
 
         self.texttospeech = None
         self.client = None
@@ -187,7 +191,20 @@ class SoundGenerator:
 
         if filepath.exists() and not self.force:
             print(f"  Skipping {filepath.name}{desc} (exists; pass --force to overwrite)")
+            self.processed_audio_by_text.setdefault(text, filepath.read_bytes())
             self.skipped += 1
+            return
+
+        cached_audio = self.processed_audio_by_text.get(text)
+        if cached_audio is not None:
+            action = "Would reuse" if self.dry_run else "Reusing"
+            print(f"  {action} identical input for {filepath.name}{desc}...")
+            if not self.dry_run:
+                filepath.parent.mkdir(parents=True, exist_ok=True)
+                filepath.write_bytes(cached_audio)
+                if text in self.quality_by_text:
+                    self.quality_results[filepath.name] = self.quality_by_text[text]
+            self.written += 1
             return
 
         action = "Would generate" if self.dry_run else "Generating"
@@ -222,7 +239,9 @@ class SoundGenerator:
                 if not issues:
                     if quality is not None:
                         self.quality_results[filepath.name] = quality
+                        self.quality_by_text[text] = quality
                     self.write_processed_audio(source, filepath)
+                    self.processed_audio_by_text[text] = filepath.read_bytes()
                     self.written += 1
                     return
 
@@ -385,13 +404,89 @@ def generate_sound_type(
     print(f"  Processed {len(selected_items)} sounds")
 
 
-def check_sound_files(sounds_dir: Path, generator: SoundGenerator) -> bool:
+def items_by_synthesis_text(items: list[SoundItem]) -> dict[str, list[SoundItem]]:
+    grouped = defaultdict(list)
+    for item in items:
+        grouped[item.synthesis_text].append(item)
+    return dict(grouped)
+
+
+def canonical_recording_item(items: list[SoundItem]) -> SoundItem:
+    """Choose the existing take to reuse when identical inputs have drifted."""
+    type_priority = {
+        "sample_word": 0,
+        "tone_rule": 2,
+        "tone_mark": 3,
+        "cluster": 4,
+        "consonant": 5,
+        "vowel": 6,
+    }
+
+    def priority(item: SoundItem) -> tuple[int, str]:
+        if item.sound_type == "vowel" and not item.key.endswith("-"):
+            return (1, item.id)
+        return (type_priority[item.sound_type], item.id)
+
+    return min(items, key=priority)
+
+
+def unify_identical_inputs(sounds_dir: Path, items: list[SoundItem]) -> tuple[int, int]:
+    """Reuse one preferred existing MP3 for every exact synthesis input."""
+    missing = [item.filename for item in items if not (sounds_dir / item.filename).exists()]
+    if missing:
+        raise SystemExit(f"Cannot unify recordings; missing: {', '.join(sorted(missing))}")
+
+    changed_groups = 0
+    changed_files = 0
+    for synthesis_text, group in items_by_synthesis_text(items).items():
+        if len(group) < 2:
+            continue
+        canonical = canonical_recording_item(group)
+        canonical_path = sounds_dir / canonical.filename
+        canonical_audio = canonical_path.read_bytes()
+        group_changed = False
+        for item in group:
+            filepath = sounds_dir / item.filename
+            if filepath.read_bytes() == canonical_audio:
+                continue
+            filepath.write_bytes(canonical_audio)
+            changed_files += 1
+            group_changed = True
+        if group_changed:
+            changed_groups += 1
+            print(f"  {synthesis_text}: reused {canonical.id} for {len(group)} entries")
+    return changed_groups, changed_files
+
+
+def inconsistent_identical_inputs(
+    sounds_dir: Path,
+    items: list[SoundItem],
+) -> list[tuple[str, list[str]]]:
+    """Return exact synthesis inputs whose committed MP3 bytes differ."""
+    inconsistent = []
+    for synthesis_text, group in items_by_synthesis_text(items).items():
+        existing = [sounds_dir / item.filename for item in group if (sounds_dir / item.filename).exists()]
+        if len(existing) < 2:
+            continue
+        digests = {hashlib.sha256(filepath.read_bytes()).digest() for filepath in existing}
+        if len(digests) > 1:
+            inconsistent.append((synthesis_text, [filepath.name for filepath in existing]))
+    return inconsistent
+
+
+def check_sound_files(
+    sounds_dir: Path,
+    generator: SoundGenerator,
+    items: list[SoundItem],
+) -> bool:
     """Check that bundled MP3s match the files generated from current JSON data."""
     existing_files = set(sounds_dir.glob("*.mp3"))
     stale_files = sorted(existing_files - generator.expected_files)
     missing_files = sorted(generator.expected_files - existing_files)
 
-    if not stale_files and not missing_files:
+    inconsistent_inputs = inconsistent_identical_inputs(sounds_dir, items)
+
+    if not stale_files and not missing_files and not inconsistent_inputs:
         print("\nSound file check passed.")
         return True
 
@@ -404,6 +499,11 @@ def check_sound_files(sounds_dir: Path, generator: SoundGenerator) -> bool:
         print("\nMissing expected MP3 files:")
         for path in missing_files:
             print(f"  {path.name}")
+
+    if inconsistent_inputs:
+        print("\nDifferent MP3s share an identical synthesis input:")
+        for synthesis_text, filenames in inconsistent_inputs:
+            print(f"  {synthesis_text}: {', '.join(filenames)}")
 
     return False
 
@@ -424,6 +524,10 @@ def main():
     parser.add_argument('--clusters', action='store_true', help='Generate cluster sounds')
     parser.add_argument('--sample-words', action='store_true', help='Generate reference sample word sounds')
     parser.add_argument('--sound-id', action='append', help='Generate one stable inventory ID; may be repeated')
+    parser.add_argument(
+        '--unify-identical-inputs', action='store_true',
+        help='Reuse one preferred existing MP3 for entries with the exact same synthesis input',
+    )
     parser.add_argument('--language-code', default=DEFAULT_LANGUAGE_CODE, help='Google Cloud TTS language code')
     parser.add_argument('--voice-name', default=DEFAULT_VOICE_NAME, help='Google Cloud TTS voice name')
     parser.add_argument('--speaking-rate', type=float, default=1.0, help='Speaking rate, where 1.0 is normal')
@@ -459,6 +563,12 @@ def main():
     if args.sound_id and any([args.all, *selected_types]):
         parser.error("--sound-id cannot be combined with sound type options")
 
+    if args.unify_identical_inputs and any([args.all, args.sound_id, *selected_types]):
+        parser.error("--unify-identical-inputs cannot be combined with generation options")
+
+    if args.unify_identical_inputs and args.check_files:
+        parser.error("run --check-files separately after --unify-identical-inputs")
+
     if args.retries < 0:
         parser.error("--retries must be 0 or greater")
 
@@ -484,7 +594,7 @@ def main():
         parser.error("--check-files must be used with --all or with no specific sound type")
 
     # Default to --all if no specific option provided
-    if not any([args.all, args.sound_id, *selected_types]):
+    if not any([args.all, args.sound_id, args.unify_identical_inputs, *selected_types]):
         args.all = True
 
     project_root, production_sounds_dir, cheatsheet_dir = get_project_paths()
@@ -505,6 +615,13 @@ def main():
     sounds_dir.mkdir(parents=True, exist_ok=True)
 
     inventory = load_sound_inventory(cheatsheet_dir)
+    if args.unify_identical_inputs:
+        print(f"Output directory: {sounds_dir}")
+        print("Unifying entries with identical synthesis inputs...")
+        changed_groups, changed_files = unify_identical_inputs(sounds_dir, inventory)
+        print(f"Done! Unified {changed_files} files across {changed_groups} input groups.")
+        return 0
+
     grouped_inventory = inventory_by_type(inventory)
     if args.sound_id:
         inventory_ids = {item.id for item in inventory}
@@ -572,7 +689,7 @@ def main():
     action = "would be generated" if args.dry_run else "written"
     print(f"\nDone! {generator.written} files {action}; {generator.skipped} skipped.")
 
-    if args.check_files and not check_sound_files(sounds_dir, generator):
+    if args.check_files and not check_sound_files(sounds_dir, generator, inventory):
         return 1
 
     return 0
