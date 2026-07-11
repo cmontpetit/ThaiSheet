@@ -83,7 +83,7 @@
       const rawBase = isLocalPreview
         ? "../ThaiSheet/Resources/sounds/"
         : `https://raw.githubusercontent.com/${catalog.repository}/${catalog.branch}/ThaiSheet/Resources/sounds/`;
-      const typeOrder = ["consonant", "vowel", "cluster", "tone_mark", "tone_rule", "sample_word"];
+      const typeOrder = ["consonant", "vowel", "cluster", "tone_mark", "tone_rule", "tone_rule_example", "sample_word"];
       const search = document.querySelector("#sound-search");
       const tabs = document.querySelector("#sound-type-tabs");
       const tableBody = document.querySelector("#sound-table-body");
@@ -212,7 +212,7 @@
       function render() {
         const query = search.value.trim().toLocaleLowerCase();
         const filtered = catalog.items.filter(item => {
-          const typeMatches = selectedType === "all" || item.sound_type === selectedType;
+          const typeMatches = selectedType === "all" || item.catalog_type === selectedType;
           return typeMatches && (!query || searchableText(item).includes(query));
         });
         tableBody.replaceChildren(...filtered.map(makeRow));

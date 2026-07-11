@@ -16,11 +16,15 @@ SOUND_TYPE_ORDER = (
 )
 SOUND_TYPE_LABELS = {
     "tone_mark": "Tone marks",
-    "tone_rule": "Tone-rule examples",
+    "tone_rule": "Tone rules",
     "consonant": "Consonants",
     "vowel": "Vowels",
     "cluster": "Clusters",
     "sample_word": "Sample words",
+}
+CATALOG_TYPE_LABELS = {
+    **SOUND_TYPE_LABELS,
+    "tone_rule_example": "Tone-rule examples",
 }
 
 
@@ -43,10 +47,12 @@ class SoundItem:
     example_meaning_en: str = ""
     example_meaning_fr: str = ""
     sources: tuple[str, ...] = ()
+    catalog_type: str = ""
 
     def catalog_dict(self) -> dict:
         data = asdict(self)
         data["sources"] = list(self.sources)
+        data["catalog_type"] = self.catalog_type or self.sound_type
         return data
 
 
@@ -130,7 +136,7 @@ def _tone_rule_items(cheatsheet_dir: Path) -> list[SoundItem]:
     items = []
     seen = set()
     for rule in data["toneRules"]:
-        for sample in rule.get("samples") or []:
+        for sample_index, sample in enumerate(rule.get("samples") or []):
             word = sample["full"]
             if word in seen:
                 continue
@@ -143,6 +149,7 @@ def _tone_rule_items(cheatsheet_dir: Path) -> list[SoundItem]:
                 synthesis_text=word,
                 filename=f"cheat_sheet_tone_rule_{word}.mp3",
                 description=f"{rule['tone']} tone",
+                catalog_type="tone_rule" if sample_index == 0 else "tone_rule_example",
             ))
     return items
 

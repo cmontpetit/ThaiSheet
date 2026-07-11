@@ -6,7 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from sound_inventory import SOUND_TYPE_LABELS, load_sound_inventory
+from sound_inventory import CATALOG_TYPE_LABELS, load_sound_inventory
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -51,8 +51,11 @@ def build_catalog(audio_dir: Path, metadata_path: Path) -> dict:
         catalog_items.append(item_data)
 
     counts = {
-        sound_type: sum(item.sound_type == sound_type for item in items)
-        for sound_type in SOUND_TYPE_LABELS
+        catalog_type: sum(
+            (item.catalog_type or item.sound_type) == catalog_type
+            for item in items
+        )
+        for catalog_type in CATALOG_TYPE_LABELS
     }
     return {
         "schemaVersion": 1,
@@ -60,7 +63,7 @@ def build_catalog(audio_dir: Path, metadata_path: Path) -> dict:
         "branch": "main",
         "audio": metadata,
         "counts": counts,
-        "typeLabels": SOUND_TYPE_LABELS,
+        "typeLabels": CATALOG_TYPE_LABELS,
         "items": catalog_items,
     }
 

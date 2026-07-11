@@ -13,7 +13,7 @@ from generate_vowel_pronunciation_review import (
     load_candidates,
     render_review,
 )
-from sound_inventory import SOUND_TYPE_LABELS, load_sound_inventory
+from sound_inventory import CATALOG_TYPE_LABELS, SOUND_TYPE_LABELS, load_sound_inventory
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -51,8 +51,14 @@ class SoundInventoryTests(unittest.TestCase):
         self.assertEqual(teacher.meaning_en, "teacher")
         self.assertEqual(teacher.meaning_fr, "professeur")
 
-    def test_tone_rule_label_describes_the_recordings(self):
-        self.assertEqual(SOUND_TYPE_LABELS["tone_rule"], "Tone-rule examples")
+    def test_tone_rule_catalog_groups_primary_and_additional_examples(self):
+        tone_rules = [item for item in self.items if item.sound_type == "tone_rule"]
+        primary = [item for item in tone_rules if item.catalog_type == "tone_rule"]
+        examples = [item for item in tone_rules if item.catalog_type == "tone_rule_example"]
+        self.assertEqual(len(primary), 7)
+        self.assertEqual(len(examples), 91)
+        self.assertEqual(SOUND_TYPE_LABELS["tone_rule"], "Tone rules")
+        self.assertEqual(CATALOG_TYPE_LABELS["tone_rule_example"], "Tone-rule examples")
 
 
 class AudioQualityTests(unittest.TestCase):
