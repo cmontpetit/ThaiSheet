@@ -102,19 +102,20 @@ struct VowelRowView: View {
         return vowel.allForms.contains(highlighted)
     }
 
-    // Find a form that has a sound file (prefer visible forms, then closed forms)
+    // The romanization represents the bare vowel, so prefer open forms. Device
+    // speech adds a final consonant to closed forms, which changes what is heard.
     private var soundForm: (text: String, formType: VowelFormVariant)? {
         let candidates: [(String?, VowelFormVariant)]
         switch visibleDuration {
         case .short:
-            candidates = [(vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen),
-                          (vowel.long.closed, .longClosed), (vowel.long.open, .longOpen)]
+            candidates = [(vowel.short.open, .shortOpen), (vowel.short.closed, .shortClosed),
+                          (vowel.long.open, .longOpen), (vowel.long.closed, .longClosed)]
         case .long:
-            candidates = [(vowel.long.closed, .longClosed), (vowel.long.open, .longOpen),
-                          (vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen)]
+            candidates = [(vowel.long.open, .longOpen), (vowel.long.closed, .longClosed),
+                          (vowel.short.open, .shortOpen), (vowel.short.closed, .shortClosed)]
         case nil:
-            candidates = [(vowel.long.closed, .longClosed), (vowel.short.closed, .shortClosed),
-                          (vowel.long.open, .longOpen), (vowel.short.open, .shortOpen)]
+            candidates = [(vowel.long.open, .longOpen), (vowel.short.open, .shortOpen),
+                          (vowel.long.closed, .longClosed), (vowel.short.closed, .shortClosed)]
         }
         return candidates
             .compactMap { text, formType in text.map { ($0, formType) } }
