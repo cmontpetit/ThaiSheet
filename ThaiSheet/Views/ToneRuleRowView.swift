@@ -58,12 +58,12 @@ struct StyledToneText: View {
 
 struct ToneRuleExpressionView: View {
     let rule: ToneRule
+    @ScaledMetric(relativeTo: .largeTitle) private var toneIndicatorSize: CGFloat = 40
 
     var body: some View {
         VStack(spacing: 6) {
             HStack(spacing: 7) {
                 ruleInputs
-                equalsSign
             }
             .lineLimit(1)
             .minimumScaleFactor(0.75)
@@ -88,12 +88,11 @@ struct ToneRuleExpressionView: View {
         }
     }
 
-    private var equalsSign: some View {
-        operatorSign("=")
-    }
-
     private var toneResult: some View {
-        StyledToneText(tone: rule.tone, font: .title2)
+        StyledToneText(
+            tone: rule.tone,
+            font: .system(size: toneIndicatorSize, weight: .semibold)
+        )
     }
 
     private var accessibilityLabel: String {

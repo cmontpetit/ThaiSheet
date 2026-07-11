@@ -10,9 +10,7 @@ struct ReferenceItemSheet: View {
     let title: String
     var romanization: String? = nil
     var subtitle: String? = nil
-    var toneIndicator: String? = nil
-    var toneIndicatorTone: String? = nil
-    var consonantClassIndicator: String? = nil
+    var toneMarkContext: ToneMarkSheetContext? = nil
     var toneRule: ToneRule? = nil
     var usesCompactTitle: Bool = false
     let stage: SRSStage
@@ -29,7 +27,7 @@ struct ReferenceItemSheet: View {
     @Environment(\.dismiss) var dismiss
     @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
     @ScaledMetric(relativeTo: .largeTitle) private var titleFrameHeight: CGFloat = 86
-    @ScaledMetric(relativeTo: .largeTitle) private var toneIndicatorSize: CGFloat = 40
+    @ScaledMetric(relativeTo: .largeTitle) private var toneHeaderFrameHeight: CGFloat = 108
 
     var body: some View {
         VStack(spacing: 18) {
@@ -39,6 +37,8 @@ struct ReferenceItemSheet: View {
                     if let toneRule {
                         ToneRuleExpressionView(rule: toneRule)
                             .padding(.horizontal)
+                    } else if let toneMarkContext {
+                        ToneMarkExpressionView(context: toneMarkContext)
                     } else {
                         Text(title)
                             .font(
@@ -50,7 +50,11 @@ struct ReferenceItemSheet: View {
                             .minimumScaleFactor(0.45)
                     }
                 }
-                    .frame(height: titleFrameHeight)
+                    .frame(
+                        height: toneRule != nil || toneMarkContext != nil
+                            ? toneHeaderFrameHeight
+                            : titleFrameHeight
+                    )
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
                     .clipped()
@@ -71,31 +75,6 @@ struct ReferenceItemSheet: View {
                         .minimumScaleFactor(0.7)
                 }
 
-                if consonantClassIndicator != nil
-                    || toneIndicator != nil
-                    || toneIndicatorTone != nil {
-                    HStack(spacing: 12) {
-                        if let consonantClassIndicator {
-                            StyledConsonantClassText(
-                                consonantClass: consonantClassIndicator,
-                                font: .title2.weight(.semibold),
-                                verticalPadding: 8
-                            )
-                        }
-
-                        if let toneIndicatorTone {
-                            StyledToneText(
-                                tone: toneIndicatorTone,
-                                font: .system(size: toneIndicatorSize, weight: .semibold)
-                            )
-                        } else if let toneIndicator, !toneIndicator.isEmpty {
-                            Text(toneIndicator)
-                                .font(.system(size: toneIndicatorSize, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .frame(minHeight: 48)
-                }
             }
 
             // Stage indicator
@@ -160,12 +139,10 @@ struct ReferenceItemSheet: View {
         }
         .padding(.top, 18)
         .presentationDetents(
-            pronunciationWord == nil
+                pronunciationWord == nil
                 && romanization == nil
                 && subtitle == nil
-                && toneIndicator == nil
-                && toneIndicatorTone == nil
-                && consonantClassIndicator == nil
+                && toneMarkContext == nil
                 && toneRule == nil
                 ? [.fraction(0.68), .large]
                 : [.large]
