@@ -4,13 +4,13 @@
     { "cluster": "กล-", "sound": "gl-", "type": "smooth" },
     { "cluster": "กว-", "sound": "gw-", "type": "smooth" },
 
-    { "cluster": "ขร-", "sound": "kr-", "type": "smooth", "usage": "uncommon" },
-    { "cluster": "ขล-", "sound": "kl-", "type": "smooth", "usage": "uncommon" },
-    { "cluster": "ขว-", "sound": "kw-", "type": "smooth" },
+    { "cluster": "ขร-", "sound": "khr-", "type": "smooth", "usage": "uncommon" },
+    { "cluster": "ขล-", "sound": "khl-", "type": "smooth", "usage": "uncommon" },
+    { "cluster": "ขว-", "sound": "khw-", "type": "smooth" },
 
-    { "cluster": "คร-", "sound": "kr-", "type": "smooth" },
-    { "cluster": "คล-", "sound": "kl-", "type": "smooth" },
-    { "cluster": "คว-", "sound": "kw-", "type": "smooth" },
+    { "cluster": "คร-", "sound": "khr-", "type": "smooth" },
+    { "cluster": "คล-", "sound": "khl-", "type": "smooth" },
+    { "cluster": "คว-", "sound": "khw-", "type": "smooth" },
 
     {
       "cluster": "ตร-",
@@ -30,8 +30,8 @@
       "note": { "en": "Not a true consonant cluster; vowel is suppressed. Pronounced like 'พล-'.", "fr": "Pas un vrai groupe consonantique ; la voyelle est supprimée. Se prononce comme « พล- »." }
     },
 
-    { "cluster": "พร-", "sound": "pr-", "type": "smooth" },
-    { "cluster": "พล-", "sound": "pl-", "type": "smooth" },
+    { "cluster": "พร-", "sound": "phr-", "type": "smooth" },
+    { "cluster": "พล-", "sound": "phl-", "type": "smooth" },
 
     {
       "cluster": "บร-",

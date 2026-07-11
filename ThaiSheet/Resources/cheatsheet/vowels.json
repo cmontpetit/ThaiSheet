@@ -219,12 +219,12 @@
       },
       "notes": {
         "en": {
-          "short_closed": "Rare spelling (marked rare in the source cheatsheet).",
-          "long_closed": "ย acts as the final glide: บ่อย, ร้อย, อร่อย."
+          "short_closed": "Rare spelling (marked rare in the source cheatsheet). A tone mark takes the position of ็, so the ordinary spelling does not show the shortness: บ่อย, อร่อย (the short pronunciation is lexical).",
+          "long_closed": "ย acts as the final glide: คอย, ลอย, ร้อย."
         },
         "fr": {
-          "short_closed": "Graphie rare (indiquée comme rare dans l'aide-mémoire source).",
-          "long_closed": "ย sert de semi-voyelle finale : บ่อย, ร้อย, อร่อย."
+          "short_closed": "Graphie rare (indiquée comme rare dans l'aide-mémoire source). Un signe de ton occupe la place du ็, la graphie ordinaire ne montre donc pas la brièveté : บ่อย, อร่อย (la prononciation brève est lexicale).",
+          "long_closed": "ย sert de semi-voyelle finale : คอย, ลอย, ร้อย."
         }
       }
     },
@@ -460,19 +460,17 @@
       },
       "long": {
         "closed": null,
-        "open": "กำ"
+        "open": null
       },
       "sounds": {
         "en": "ahm"
       },
       "notes": {
         "en": {
-          "short_closed": "◌ำ includes the final /m/ sound; treat as a single unit (vowel+final).",
-          "long_open": "◌ำ includes the final /m/ sound; open vs closed behaves differently here."
+          "short_closed": "◌ำ conventionally represents a short vowel plus final /m/; treat as a single unit (vowel+final). Some words, such as น้ำ, are phonetically lengthened — learn them as lexical exceptions."
         },
         "fr": {
-          "short_closed": "◌ำ inclut le son final /m/ ; à traiter comme une seule unité (voyelle + finale).",
-          "long_open": "◌ำ inclut le son final /m/ ; le comportement ouvert/fermé diffère ici."
+          "short_closed": "◌ำ représente par convention une voyelle brève suivie du son final /m/ ; à traiter comme une seule unité (voyelle + finale). Certains mots, comme น้ำ, s'allongent phonétiquement — à apprendre comme exceptions lexicales."
         }
       }
     },
@@ -599,8 +597,8 @@
       },
       "usage": "rare",
       "note": {
-        "en": "Sanskrit-derived, includes inherent r sound",
-        "fr": "D'origine sanskrite, inclut un son r inhérent"
+        "en": "Sanskrit-derived, includes inherent r sound. ฤ has three readings depending on the word: rue (ฤดู), ri (ฤทธิ์), roe (ฤกษ์).",
+        "fr": "D'origine sanskrite, inclut un son r inhérent. ฤ a trois lectures selon le mot : rue (ฤดู), ri (ฤทธิ์), roe (ฤกษ์)."
       }
     },
     {
@@ -635,8 +633,8 @@
       },
       "usage": "archaic",
       "note": {
-        "en": "Sanskrit-derived, includes inherent l sound. ฦๅ only in ฦๅสาย.",
-        "fr": "D'origine sanskrite, inclut un son l inhérent. ฦๅ seulement dans ฦๅสาย."
+        "en": "Sanskrit-derived, includes inherent l sound. ฦ and ฦๅ are obsolete in modern Thai; historical examples include ฦๅชา and ฦๅสาย.",
+        "fr": "D'origine sanskrite, inclut un son l inhérent. ฦ et ฦๅ sont obsolètes en thaï moderne ; exemples historiques : ฦๅชา et ฦๅสาย."
       }
     }
   ]

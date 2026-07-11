@@ -97,7 +97,8 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - Added ฦ/ฦๅ (obsolete letters, not in PNG) and the no-mark tone row (Mid/Mid)
 - ช้าง transcription: PNG "chang" → "chaang" (long vowel)
 - The PNG's 7-row tone rule table is CORRECT — do not add rules (a bogus "High+Long+Dead→Falling" was once introduced and removed; high-class dead syllables are always Low tone)
-- Cluster romanization follows the consonant scheme (g-/dt-/bp-): กร- = gr-, ตร- = dtr-, ปร- = bpr-
+- Cluster romanization follows the consonant scheme (g-/dt-/bp-): กร- = gr-, ตร- = dtr-, ปร- = bpr-; aspirated onsets keep the h (ขร-/คร- = khr-, พร- = phr-, พล- = phl-). Exception: ผล- stays "pl-" pending word-specific verification (ผลิ is a cluster; ผลิต/ผลึก are not) — see the content-correction plan before "fixing" it
+- กำ (sara am) is Short/Closed ONLY — ◌ำ is a short vowel + final /m/; น้ำ-style lengthening is a lexical exception (noted in the data), not a Long form. Do not re-add the Long/Open duplicate
 
 ### Vowel notation
 - **Closed** = syllable ends with consonant → form includes `-` to show where final consonant goes
@@ -141,6 +142,7 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - Default voice: `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare quality before committing regenerated MP3s
 - Existing MP3s are skipped unless `--force` is passed
 - Use `--check-files` with `--all` to catch stale or missing bundled MP3s before release
+- ฤ- (the "ri" reading) intentionally has NO bundled audio: the recorded file spoke the "rue" reading (TTS gets the dash-stripped text). Excluded via `EXCLUDED_VOWEL_FORMS` in the script pending the ฤ audio/quiz design decision — don't regenerate it
 - Tone mark sounds: 8 files using fixed consonants (ค for low class, ก for mid/high class) + า vowel
 
 ### Flashcard Design Decisions
@@ -218,7 +220,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - Zoom screenshots before judging Thai glyph details — small renderings mislead
 
 ### Reference Tab Status
-- Four segments (`CheatsheetEntryType`): Consonants, Vowels, Clusters, Tones — the Tones segment combines tone marks and tone rules
+- Four segments (`CheatsheetEntryType`): Consonants, Vowels, Clusters, Tones — the Tones segment combines tone marks and tone rules; the rules table is captioned "Unmarked syllable tone rules" (the 7 rules apply only to syllables WITHOUT a tone mark)
 - Each type has search filtering and type-specific filter chips
 - Sound playback enabled for all types
 - Interaction convention: tap on a playable item plays its sound (opens the details sheet when it has none); long press opens the details sheet (play/practice). Implemented by `PlayableItemModifier`, which also carries the VoiceOver semantics — never attach raw tap/long-press gestures to reference items

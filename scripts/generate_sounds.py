@@ -33,6 +33,14 @@ from pathlib import Path
 DEFAULT_LANGUAGE_CODE = "th-TH"
 DEFAULT_VOICE_NAME = "th-TH-Neural2-C"
 
+# Vowel forms whose bundled audio is INTENTIONALLY absent.
+# ฤ- (the "ri" reading): dash-stripping sends bare "ฤ" to TTS, which speaks
+# the "rue" reading — wrong for this entry (the shipped file was confirmed
+# byte-identical to ฤ.mp3). Excluded pending the ฤ audio/quiz design decision
+# (content-correction plan, Bucket C). Keeping it out of expected_files also
+# keeps --check-files green.
+EXCLUDED_VOWEL_FORMS = {"ฤ-"}
+
 
 def get_project_paths():
     """Get project root and sounds directory paths."""
@@ -356,6 +364,9 @@ def generate_vowels(sounds_dir: Path, cheatsheet_dir: Path, generator: SoundGene
         for form in forms:
             if form and form not in seen:
                 seen.add(form)
+                if form in EXCLUDED_VOWEL_FORMS:
+                    print(f"  Skipping {form} (intentionally no audio; see EXCLUDED_VOWEL_FORMS)")
+                    continue
                 # Remove trailing dash for pronunciation
                 text = form.rstrip('-')
                 filename = f"cheat_sheet_vowel_{form}.mp3"

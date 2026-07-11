@@ -1595,6 +1595,17 @@
         }
       }
     },
+    "Unmarked syllable tone rules" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Règles de ton des syllabes non marquées"
+          }
+        }
+      }
+    },
     "Usage: %@" : {
       "localizations" : {
         "fr" : {
