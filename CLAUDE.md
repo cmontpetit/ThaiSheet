@@ -122,11 +122,11 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 
 ### Sound Files
 - Location: `ThaiSheet/Resources/sounds/`
-- Naming: `cheat_sheet_{type}_{key}.mp3` (e.g., `cheat_sheet_consonant_ก.mp3`, `cheat_sheet_vowel_กา.mp3`)
+- Naming: `cheat_sheet_{type}_{key}.mp3` (e.g., `cheat_sheet_consonant_ก.mp3`, `cheat_sheet_vowel_กัน.mp3`)
 - Types: `consonant`, `vowel`, `tone_mark`, `tone_rule`, `cluster`, `sample_word`
 - Audio injection: `AudioPlaying` protocol via `@Environment(\.audioPlayer)` — never use `AudioPlayer.shared` directly in views
 - The Audio setting selects one source for all sounds: Recorded voice uses bundled Google MP3s (including sample words); Device voice uses live `AVSpeechSynthesizer` with a Thai system voice. If no Thai system voice is available, playback falls back to the recorded set.
-- For Device voice, closed vowel forms replace their trailing `-` slot with `น` (for example `เกิ-` → `เกิน`). Removing the dash leaves an incomplete syllable and can make Apple announce a mark name such as “sara i” instead of pronouncing the vowel.
+- Vowel audio always speaks the visible per-form pronunciation word for both sources. The current data falls back to the existing sample word when no dedicated `pronunciations` entry exists; forms without a real-word mapping remain silent.
 - Do not bundle audio recorded from Apple System Voices. Apple speech is synthesized live on-device only; bundled recordings remain Google Cloud TTS output.
 
 ### Sound File Generation
@@ -143,18 +143,18 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
   python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-files
   # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
   ```
-- Default voice: `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare quality before committing regenerated MP3s
-- The current bundled Neural2-C set used `--volume-gain-db 6`. New candidate sets use `--normalize-lufs -18`, which includes a -1.5 dB true-peak limit; update `scripts/recorded_audio_metadata.json` when a candidate replaces the bundled set.
+- Default generation voice: `th-TH-Neural2-C`. The current vowel pronunciation words use `th-TH-Chirp3-HD-Kore`; the rest of the bundled set uses Neural2-C. Use an explicit `--voice-name` when replacing either set.
+- The bundled Neural2-C files used `--volume-gain-db 6`; the Kore vowel words use `--normalize-lufs -18`. LUFS normalization includes a -1.5 dB true-peak limit; update `scripts/recorded_audio_metadata.json` when a candidate replaces either set.
 - Non-dry generation validates raw responses before post-processing. Clips shorter than 0.35 seconds or quieter than -24 dBFS peak are rejected and synthesized again up to four times. This catches generative TTS failures such as a near-silent `กึ`; it does not verify pronunciation or tone.
 - Exact duplicate synthesis inputs reuse the first processed response within a generation run, producing byte-identical MP3s without additional TTS requests.
-- The canonical list of 391 expected sounds and synthesis inputs lives in `scripts/sound_inventory.py`. Generation, tests, and the website catalog must use that inventory rather than independently deriving filenames.
+- The canonical list of 388 expected sounds and synthesis inputs lives in `scripts/sound_inventory.py`. Generation, tests, and the website catalog must use that inventory rather than independently deriving filenames.
 - Custom `--output-dir` paths are restricted to `scratchpad/`, allowing candidate voices to be generated without risking bundled production audio.
-- Use repeatable `--sound-id` arguments for targeted regeneration (for example `--sound-id 'vowel:กึ'`). Stable IDs come from the canonical inventory.
+- Use repeatable `--sound-id` arguments for targeted regeneration (for example `--sound-id 'vowel:กึ-:short_closed'`). Stable IDs come from the canonical inventory.
 - Reference sample words are deduplicated by Thai word and generated as `cheat_sheet_sample_word_{word}.mp3`; `--sample-words` generates only that set and `--all` includes it.
 - The public catalog is `docs/sounds.html`. Local previews use working-tree audio; serve the repository root and open `/docs/sounds.html` so `ThaiSheet/Resources/sounds/` is available.
 - Existing MP3s are skipped unless `--force` is passed
 - Use `--check-files` with `--all` to catch stale or missing bundled MP3s before release
-- ฤ- (the "ri" reading) intentionally has NO bundled audio: the recorded file spoke the "rue" reading (TTS gets the dash-stripped text). Excluded via `EXCLUDED_VOWEL_FORMS` in the script pending the ฤ audio/quiz design decision (issue #7) — don't regenerate it
+- ฤ- (the "ri" reading) uses the explicit pronunciation word `ฤทธิ์`; never synthesize the ambiguous bare form.
 - Tone mark sounds: 8 files using fixed consonants (ค low, ก mid, ข high class) + า vowel
 
 #### Comparing TTS providers
@@ -186,6 +186,15 @@ python3 scripts/generate_sound_review.py \
   --candidate-dir scratchpad/kore-candidate \
   --candidate-voice th-TH-Chirp3-HD-Kore
 ```
+
+To audit the vowel pronunciation-word mapping, generate the 73-variant curation
+page with `python3 scripts/generate_vowel_pronunciation_review.py`. It compares
+the bundled word audio with the candidate recording, preserves duplicate
+spellings as separate short/long variants, and leaves forms with no real-word
+candidate silent. The page automatically flags overlong and internally
+segmented one-word clips, but listening review remains required because extra
+generated speech may be fluent. Treat the mapping and recordings as provisional
+until that review is complete.
 
 #### Public pronunciation catalog
 

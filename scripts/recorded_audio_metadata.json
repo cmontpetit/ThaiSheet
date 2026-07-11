@@ -1,6 +1,6 @@
 {
   "provider": "Google Cloud Text-to-Speech",
-  "voice": "th-TH-Neural2-C",
-  "processing": "6 dB post-synthesis gain",
-  "status": "Current bundled recorded voice"
+  "voice": "th-TH-Neural2-C; vowel pronunciation words: th-TH-Chirp3-HD-Kore",
+  "processing": "Neural2-C: 6 dB gain; vowel words: -18 LUFS normalization",
+  "status": "Current mixed recorded set; vowel words remain under review"
 }

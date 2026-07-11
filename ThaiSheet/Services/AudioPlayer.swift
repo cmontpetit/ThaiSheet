@@ -128,8 +128,7 @@ class AudioPlayer: NSObject, AudioPlaying {
         case .consonant:
             return consonantNamesByCharacter[key]
         case .vowel:
-            guard key != "ฤ-" else { return nil }
-            return key.hasSuffix("-") ? String(key.dropLast()) + "น" : key
+            return key
         case .cluster:
             return key.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
         case .toneMark, .toneRule, .sampleWord:

@@ -103,7 +103,11 @@ struct VowelRowView: View {
     }
 
     // Find a form that has a sound file (prefer visible forms, then closed forms)
-    private var soundForm: (text: String, formType: VowelFormVariant)? {
+    private var soundForm: (
+        text: String,
+        formType: VowelFormVariant,
+        pronunciation: ReferenceSampleWord
+    )? {
         let candidates: [(String?, VowelFormVariant)]
         switch visibleDuration {
         case .short:
@@ -116,9 +120,17 @@ struct VowelRowView: View {
             candidates = [(vowel.long.closed, .longClosed), (vowel.short.closed, .shortClosed),
                           (vowel.long.open, .longOpen), (vowel.short.open, .shortOpen)]
         }
-        return candidates
-            .compactMap { text, formType in text.map { ($0, formType) } }
-            .first { audioPlayer.hasSound(.vowel, key: $0.0) }
+        return candidates.compactMap { candidate -> (
+            text: String,
+            formType: VowelFormVariant,
+            pronunciation: ReferenceSampleWord
+        )? in
+            let (text, formType) = candidate
+            guard let text,
+                  let pronunciation = pronunciation(for: formType),
+                  audioPlayer.hasSound(.vowel, key: pronunciation.word) else { return nil }
+            return (text, formType, pronunciation)
+        }.first
     }
 
     private var hasSound: Bool {
@@ -128,6 +140,10 @@ struct VowelRowView: View {
     private func showSheet(for text: String, formType: VowelFormVariant) {
         selectedFormType = formType
         selectedText = text
+    }
+
+    private func pronunciation(for formType: VowelFormVariant) -> ReferenceSampleWord? {
+        vowel.pronunciation(for: formType.duration, form: formType.form)
     }
 
     var body: some View {
@@ -170,13 +186,22 @@ struct VowelRowView: View {
             )
         ) {
             if let text = selectedText, let formType = selectedFormType {
+                let pronunciation = pronunciation(for: formType)
+                let sample = vowel.sample(
+                    for: formType.duration.rawValue,
+                    form: formType.form.rawValue
+                )
                 ReferenceItemSheet(
                     title: ThaiDisplay.placeholder(text),
                     stage: learningModel.getProgress(forId: FlashcardType.vowel.cardId(for: text)).srsStage,
                     note: vowel.note(for: formType.duration.rawValue, form: formType.form.rawValue),
-                    sampleWord: vowel.sample(for: formType.duration.rawValue, form: formType.form.rawValue),
-                    hasSound: audioPlayer.hasSound(.vowel, key: text),
-                    onPlaySound: { audioPlayer.play(.vowel, key: text) },
+                    pronunciationWord: pronunciation,
+                    sampleWord: sample,
+                    hasSound: pronunciation.map {
+                        audioPlayer.hasSound(.vowel, key: $0.word)
+                    } ?? false,
+                    onPlaySound: {},
+                    onPlayPronunciation: { audioPlayer.play(.vowel, key: $0.word) },
                     onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
                     onPractice: { onPractice?(text) }
                 )
@@ -212,7 +237,7 @@ struct VowelRowView: View {
             text.playableItem(
                 label: "\(vowel.sound), \(form.text)",
                 hasSound: true,
-                onPlay: { audioPlayer.play(.vowel, key: form.text) },
+                onPlay: { audioPlayer.play(.vowel, key: form.pronunciation.word) },
                 onDetails: { showSheet(for: form.text, formType: form.formType) }
             )
         } else {
@@ -249,6 +274,10 @@ struct VowelRowView: View {
         if let text = text {
             let matches = formMatchesSearch(text)
             let isSelected = highlightedForm == text
+            let pronunciation = pronunciation(for: formType)
+            let hasSound = pronunciation.map {
+                audioPlayer.hasSound(.vowel, key: $0.word)
+            } ?? false
             Text(ThaiDisplay.placeholder(text))
                 .font(formFont)
                 .foregroundColor(matches ? .primary : .secondary)
@@ -258,8 +287,11 @@ struct VowelRowView: View {
                 .cornerRadius(4)
                 .playableItem(
                     label: text,
-                    hasSound: audioPlayer.hasSound(.vowel, key: text),
-                    onPlay: { audioPlayer.play(.vowel, key: text) },
+                    hasSound: hasSound,
+                    onPlay: {
+                        guard let pronunciation else { return }
+                        audioPlayer.play(.vowel, key: pronunciation.word)
+                    },
                     onDetails: { showSheet(for: text, formType: formType) }
                 )
         } else {
@@ -284,6 +316,7 @@ struct VowelRowView: View {
             sounds: VowelSounds(en: "aa/ah"),
             notes: nil,
             rowNote: nil,
+            pronunciations: nil,
             samples: VowelSamples(
                 short_closed: ReferenceSampleWord(word: "กัน"),
                 short_open: ReferenceSampleWord(word: "กะ"),
@@ -302,6 +335,7 @@ struct VowelRowView: View {
                 fr: nil
             ),
             rowNote: nil,
+            pronunciations: nil,
             samples: nil,
             usage: nil
         ))

@@ -15,6 +15,10 @@ struct VowelCard: Identifiable {
 
     var id: String { display }
 
+    var pronunciationWord: ReferenceSampleWord? {
+        vowel.pronunciation(for: duration, form: form)
+    }
+
     enum VowelDuration: String, CaseIterable {
         case short = "Short"
         case long = "Long"

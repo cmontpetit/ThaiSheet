@@ -81,14 +81,15 @@ def main() -> int:
     audio_dir = Path(args.audio_dir).expanduser().resolve()
     metadata_path = Path(args.metadata).expanduser().resolve()
     output_path = Path(args.output).expanduser().resolve()
-    rendered = rendered_catalog(build_catalog(audio_dir, metadata_path))
+    catalog = build_catalog(audio_dir, metadata_path)
+    rendered = rendered_catalog(catalog)
 
     if args.check:
         if not output_path.exists() or output_path.read_text(encoding="utf-8") != rendered:
             print("Website sound catalog is stale.")
             print("Run: python3 scripts/generate_sound_catalog.py")
             return 1
-        print("Website sound catalog is current (391 MP3 files).")
+        print(f"Website sound catalog is current ({len(catalog['items'])} MP3 files).")
         return 0
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

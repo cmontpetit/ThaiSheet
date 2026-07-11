@@ -7,6 +7,11 @@ from tempfile import TemporaryDirectory
 
 from generate_sound_catalog import build_catalog, rendered_catalog
 from generate_sounds import AudioQuality, SoundGenerator
+from generate_vowel_pronunciation_review import (
+    internal_silence_intervals,
+    load_candidates,
+    render_review,
+)
 from sound_inventory import load_sound_inventory
 
 
@@ -23,20 +28,21 @@ class SoundInventoryTests(unittest.TestCase):
         cls.by_id = {item.id: item for item in cls.items}
 
     def test_inventory_matches_bundled_files(self):
-        self.assertEqual(len(self.items), 391)
+        self.assertEqual(len(self.items), 388)
         expected = {item.filename for item in self.items}
         existing = {path.name for path in SOUNDS_DIR.glob("*.mp3")}
         self.assertEqual(expected, existing)
 
     def test_synthesis_rules_are_preserved(self):
         self.assertEqual(self.by_id["consonant:ก"].synthesis_text, "กอ ไก่")
-        self.assertEqual(self.by_id["vowel:กึ"].synthesis_text, "กึ")
-        self.assertEqual(self.by_id["vowel:กึ-"].synthesis_text, "กึ")
+        self.assertEqual(self.by_id["vowel:กึ:short_open"].synthesis_text, "หึ")
+        self.assertEqual(self.by_id["vowel:กึ-:short_closed"].synthesis_text, "ดึก")
         self.assertEqual(self.by_id["cluster:-ทร"].synthesis_text, "-ทร")
 
-    def test_excluded_ri_vowel_has_no_audio(self):
-        self.assertNotIn("vowel:ฤ-", self.by_id)
-        self.assertFalse((SOUNDS_DIR / "cheat_sheet_vowel_ฤ-.mp3").exists())
+    def test_ri_vowel_uses_unambiguous_real_word(self):
+        ri = self.by_id["vowel:ฤ-:short_closed"]
+        self.assertEqual(ri.synthesis_text, "ฤทธิ์")
+        self.assertEqual(ri.filename, "cheat_sheet_vowel_ฤทธิ์.mp3")
 
     def test_sample_word_metadata_is_available(self):
         teacher = self.by_id["sample-word:ครู"]
@@ -100,8 +106,8 @@ class SoundGeneratorTests(unittest.TestCase):
 class SoundCatalogTests(unittest.TestCase):
     def test_catalog_contains_hashes_and_metadata(self):
         catalog = build_catalog(SOUNDS_DIR, METADATA_PATH)
-        self.assertEqual(len(catalog["items"]), 391)
-        self.assertEqual(catalog["audio"]["voice"], "th-TH-Neural2-C")
+        self.assertEqual(len(catalog["items"]), 388)
+        self.assertIn("th-TH-Chirp3-HD-Kore", catalog["audio"]["voice"])
         self.assertTrue(all(len(item["sha256"]) == 64 for item in catalog["items"]))
         self.assertIn("window.THAISHEET_SOUND_CATALOG", rendered_catalog(catalog))
 
@@ -110,6 +116,61 @@ class SoundCatalogTests(unittest.TestCase):
         self.assertIn('window.location.protocol === "file:"', html)
         self.assertIn('["localhost", "127.0.0.1", "::1"]', html)
         self.assertIn('"../ThaiSheet/Resources/sounds/"', html)
+
+
+class VowelPronunciationReviewTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.candidates = load_candidates()
+
+    def test_includes_every_displayed_vowel_variant(self):
+        self.assertEqual(len(self.candidates), 73)
+
+    def test_duplicate_spelling_keeps_distinct_pronunciation_words(self):
+        closed_er = [
+            item for item in self.candidates
+            if item["form"] == "เกิ-" and item["ending"] == "Closed"
+        ]
+        self.assertEqual([item["word"] for item in closed_er], ["เงิน", "เดิน"])
+
+    def test_ri_reading_uses_real_word(self):
+        ri = next(item for item in self.candidates if item["form"] == "ฤ-")
+        self.assertEqual(ri["word"], "ฤทธิ์")
+        self.assertEqual(ri["romanization"], "rít")
+
+    def test_missing_candidates_are_explicit(self):
+        missing_forms = {item["form"] for item in self.candidates if not item["word"]}
+        self.assertEqual(missing_forms, {"เกือะ", "ก็อย", "แก็ว", "เกอว", "ฦ"})
+
+    def test_review_page_embeds_candidate_data(self):
+        page = render_review({
+            "candidateVoice": "test-voice",
+            "currentVoice": "current",
+            "items": self.candidates[:1],
+            "counts": {
+                "variants": 1,
+                "mapped": 1,
+                "missingWords": 0,
+                "missingAudio": 0,
+                "duplicateSpellings": 0,
+                "automaticAudioFlags": 0,
+            },
+        })
+        self.assertIn("Vowel pronunciation-word review", page)
+        self.assertIn("test-voice", page)
+        self.assertIn("Export review", page)
+        self.assertIn('JSON.stringify(payload, null, 2) + "\\n"', page)
+
+    def test_internal_silence_detection_ignores_clip_padding(self):
+        log = "\n".join([
+            "silence_start: 0",
+            "silence_end: 0.52 | silence_duration: 0.52",
+            "silence_start: 1.18",
+            "silence_end: 1.49 | silence_duration: 0.31",
+            "silence_start: 2.99",
+            "silence_end: 3.26 | silence_duration: 0.27",
+        ])
+        self.assertEqual(internal_silence_intervals(log, 3.26), [(1.18, 1.49)])
 
 
 if __name__ == "__main__":
