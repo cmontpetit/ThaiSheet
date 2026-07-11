@@ -32,7 +32,13 @@ protocol AudioPlaying {
 // MARK: - Environment Key
 
 private struct AudioPlayerKey: EnvironmentKey {
-    static let defaultValue: AudioPlaying = AudioPlayer.shared
+    static let defaultValue: AudioPlaying = NoOpAudioPlayer()
+}
+
+private struct NoOpAudioPlayer: AudioPlaying {
+    func play(_ type: SoundType, key: String) {}
+    func speak(_ text: String) {}
+    func hasSound(_ type: SoundType, key: String) -> Bool { false }
 }
 
 extension EnvironmentValues {
@@ -45,7 +51,6 @@ extension EnvironmentValues {
 // MARK: - AudioPlayer Implementation
 
 class AudioPlayer: NSObject, AudioPlaying {
-    static let shared = AudioPlayer()
     private var player: AVAudioPlayer?
     private let speechSynthesizer = AVSpeechSynthesizer()
     var audioSource: AudioSource
@@ -111,6 +116,13 @@ class AudioPlayer: NSObject, AudioPlaying {
         AVSpeechSynthesisVoice(language: "th-TH") != nil
     }
 
+    static func resolvedAudioSource(
+        _ requestedSource: AudioSource,
+        isThaiVoiceAvailable: Bool
+    ) -> AudioSource {
+        requestedSource == .device && !isThaiVoiceAvailable ? .recorded : requestedSource
+    }
+
     static func liveText(for type: SoundType, key: String) -> String? {
         switch type {
         case .consonant:
@@ -126,7 +138,7 @@ class AudioPlayer: NSObject, AudioPlaying {
     }
 
     private var effectiveAudioSource: AudioSource {
-        audioSource == .device && Self.isThaiVoiceAvailable ? .device : .recorded
+        Self.resolvedAudioSource(audioSource, isThaiVoiceAvailable: Self.isThaiVoiceAvailable)
     }
 
     private static let consonantNamesByCharacter = Dictionary(

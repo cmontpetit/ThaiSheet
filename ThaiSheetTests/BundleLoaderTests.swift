@@ -409,6 +409,21 @@ final class BundleLoaderTests: XCTestCase {
         XCTAssertEqual(AudioPlayer.liveText(for: .cluster, key: "-ทร"), "ทร")
     }
 
+    func test_resolvedAudioSource_deviceFallsBackWithoutThaiVoice() {
+        XCTAssertEqual(
+            AudioPlayer.resolvedAudioSource(.device, isThaiVoiceAvailable: false),
+            .recorded
+        )
+        XCTAssertEqual(
+            AudioPlayer.resolvedAudioSource(.device, isThaiVoiceAvailable: true),
+            .device
+        )
+        XCTAssertEqual(
+            AudioPlayer.resolvedAudioSource(.recorded, isThaiVoiceAvailable: false),
+            .recorded
+        )
+    }
+
     func test_vowelNotes_frenchMirrorsEnglishKeys() {
         let noted = Vowel.loadAll().compactMap(\.notes)
         XCTAssertFalse(noted.isEmpty, "Some vowels should carry notes")
