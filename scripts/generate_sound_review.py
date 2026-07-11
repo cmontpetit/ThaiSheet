@@ -15,6 +15,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 CHEATSHEET_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "cheatsheet"
 CURRENT_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "sounds"
+CURRENT_METADATA = SCRIPT_DIR / "recorded_audio_metadata.json"
 SCRATCHPAD_DIR = PROJECT_ROOT / "scratchpad"
 
 
@@ -41,6 +42,8 @@ def build_review_data(candidate_dir: Path, output: Path, candidate_voice: str) -
     expected_files = {item.filename for item in inventory}
     validate_complete_set(CURRENT_DIR, expected_files, "Current sound set")
     validate_complete_set(candidate_dir, expected_files, "Candidate sound set")
+    with CURRENT_METADATA.open(encoding="utf-8") as metadata_file:
+        current_voice = json.load(metadata_file)["voice"]
 
     items = []
     failed_quality = []
@@ -62,7 +65,7 @@ def build_review_data(candidate_dir: Path, output: Path, candidate_voice: str) -
 
     return {
         "candidateVoice": candidate_voice,
-        "currentVoice": "th-TH-Neural2-C",
+        "currentVoice": current_voice,
         "counts": {
             sound_type: sum(item.sound_type == sound_type for item in inventory)
             for sound_type in SOUND_TYPE_LABELS

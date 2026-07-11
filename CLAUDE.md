@@ -143,8 +143,8 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
   python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-files
   # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
   ```
-- Default voice: `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare quality before committing regenerated MP3s
-- The current bundled Neural2-C set used `--volume-gain-db 6`. New candidate sets use `--normalize-lufs -18`, which includes a -1.5 dB true-peak limit; update `scripts/recorded_audio_metadata.json` when a candidate replaces the bundled set.
+- Default voice: `th-TH-Chirp3-HD-Kore`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare quality before committing regenerated MP3s
+- The current bundled Kore set uses `--normalize-lufs -18`, which includes a -1.5 dB true-peak limit; update `scripts/recorded_audio_metadata.json` whenever a candidate replaces the bundled set.
 - Non-dry generation validates raw responses before post-processing. Clips shorter than 0.35 seconds or quieter than -24 dBFS peak are rejected and synthesized again up to four times. This catches generative TTS failures such as a near-silent `กึ`; it does not verify pronunciation or tone.
 - The canonical list of 391 expected sounds and synthesis inputs lives in `scripts/sound_inventory.py`. Generation, tests, and the website catalog must use that inventory rather than independently deriving filenames.
 - Custom `--output-dir` paths are restricted to `scratchpad/`, allowing candidate voices to be generated without risking bundled production audio.
@@ -171,8 +171,8 @@ AZURE_SPEECH_KEY=... AZURE_SPEECH_REGION=... \
   python3 scripts/generate_tts_comparison.py --provider google --provider azure --force
 ```
 
-The default Google columns are the bundled set's Neural2-C voice and two current
-Chirp 3 HD candidates. Azure defaults to Premwadee, Achara, and Niwat. Keep
+The default Google columns include the former Neural2-C voice and two Chirp 3 HD
+voices, including the bundled Kore voice. Azure defaults to Premwadee, Achara, and Niwat. Keep
 provider output local until it has been reviewed by a native Thai speaker and
 its distribution terms have been confirmed.
 

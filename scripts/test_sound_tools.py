@@ -55,7 +55,7 @@ class SoundCatalogTests(unittest.TestCase):
     def test_catalog_contains_hashes_and_metadata(self):
         catalog = build_catalog(SOUNDS_DIR, METADATA_PATH)
         self.assertEqual(len(catalog["items"]), 391)
-        self.assertEqual(catalog["audio"]["voice"], "th-TH-Neural2-C")
+        self.assertEqual(catalog["audio"]["voice"], "th-TH-Chirp3-HD-Kore")
         self.assertTrue(all(len(item["sha256"]) == 64 for item in catalog["items"]))
         self.assertIn("window.THAISHEET_SOUND_CATALOG", rendered_catalog(catalog))
 

@@ -43,7 +43,7 @@ from sound_inventory import (
 
 
 DEFAULT_LANGUAGE_CODE = "th-TH"
-DEFAULT_VOICE_NAME = "th-TH-Neural2-C"
+DEFAULT_VOICE_NAME = "th-TH-Chirp3-HD-Kore"
 
 
 def get_project_paths():
