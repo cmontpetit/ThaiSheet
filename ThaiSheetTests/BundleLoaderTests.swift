@@ -387,7 +387,7 @@ final class BundleLoaderTests: XCTestCase {
     // MARK: - Device Voice Text
 
     func test_liveText_consonantUsesFullLetterName() {
-        XCTAssertEqual(AudioPlayer.liveText(for: .consonant, key: "ก"), "กอ ไก่")
+        XCTAssertEqual(AudioPlayer.liveText(for: .consonant, key: "ก"), "กอไก่")
     }
 
     func test_liveText_vowelRemovesOnlyTrailingPlaceholderDash() {

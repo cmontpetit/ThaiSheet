@@ -130,7 +130,9 @@ class AudioPlayer: NSObject, AudioPlaying {
     }
 
     private static let consonantNamesByCharacter = Dictionary(
-        uniqueKeysWithValues: Consonant.loadAll().map { ($0.character, $0.name) }
+        uniqueKeysWithValues: Consonant.loadAll().map {
+            ($0.character, $0.name.replacingOccurrences(of: " ", with: ""))
+        }
     )
 
     private static func filename(_ type: SoundType, key: String) -> String {
