@@ -142,7 +142,7 @@ struct ConsonantRowView: View {
                 sampleWord: consonant.sampleWord,
                 hasSound: hasSound,
                 onPlaySound: { audioPlayer.play(.consonant, key: consonant.character) },
-                onPlaySampleWord: { audioPlayer.speak($0.word) },
+                onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
                 onPractice: { onPractice?() }
             )
         }

@@ -123,8 +123,10 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 ### Sound Files
 - Location: `ThaiSheet/Resources/sounds/`
 - Naming: `cheat_sheet_{type}_{key}.mp3` (e.g., `cheat_sheet_consonant_ก.mp3`, `cheat_sheet_vowel_กา.mp3`)
-- Types: `consonant`, `vowel`, `tone_mark`, `tone_rule`, `cluster`
+- Types: `consonant`, `vowel`, `tone_mark`, `tone_rule`, `cluster`, `sample_word`
 - Audio injection: `AudioPlaying` protocol via `@Environment(\.audioPlayer)` — never use `AudioPlayer.shared` directly in views
+- The Audio setting selects one source for all sounds: Recorded voice uses bundled Google MP3s (including sample words); Device voice uses live `AVSpeechSynthesizer` with a Thai system voice. If no Thai system voice is available, playback falls back to the recorded set.
+- Do not bundle audio recorded from Apple System Voices. Apple speech is synthesized live on-device only; bundled recordings remain Google Cloud TTS output.
 
 ### Sound File Generation
 - Script: `scripts/generate_sounds.py` (uses Google Cloud Text-to-Speech)
@@ -137,10 +139,12 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
   ```bash
   source scripts/venv/bin/activate
   python3 scripts/generate_sounds.py --all --dry-run --check-files
-  python3 scripts/generate_sounds.py --all --force --check-files
+  python3 scripts/generate_sounds.py --all --force --volume-gain-db 6 --check-files
   # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
   ```
 - Default voice: `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare quality before committing regenerated MP3s
+- The bundled set uses `--volume-gain-db 6`. Gain is applied locally with FFmpeg after synthesis because Neural2-C has returned byte-identical output when Google receives `volume_gain_db`; FFmpeg must be on `PATH` when a nonzero gain is requested.
+- Reference sample words are deduplicated by Thai word and generated as `cheat_sheet_sample_word_{word}.mp3`; `--sample-words` generates only that set and `--all` includes it.
 - Existing MP3s are skipped unless `--force` is passed
 - Use `--check-files` with `--all` to catch stale or missing bundled MP3s before release
 - ฤ- (the "ri" reading) intentionally has NO bundled audio: the recorded file spoke the "rue" reading (TTS gets the dash-stripped text). Excluded via `EXCLUDED_VOWEL_FORMS` in the script pending the ฤ audio/quiz design decision (issue #7) — don't regenerate it

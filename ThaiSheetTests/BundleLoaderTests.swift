@@ -384,6 +384,30 @@ final class BundleLoaderTests: XCTestCase {
                         "the rue reading's audio must stay bundled")
     }
 
+    // MARK: - Device Voice Text
+
+    func test_liveText_consonantUsesFullLetterName() {
+        XCTAssertEqual(AudioPlayer.liveText(for: .consonant, key: "ก"), "กอ ไก่")
+    }
+
+    func test_liveText_vowelRemovesOnlyTrailingPlaceholderDash() {
+        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "กั-"), "กั")
+        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "กา"), "กา")
+    }
+
+    func test_liveText_riVowelIsExcludedFromDeviceVoice() {
+        XCTAssertNil(AudioPlayer.liveText(for: .vowel, key: "ฤ-"),
+                     "ฤ- must be silent for both recorded and device voice")
+    }
+
+    func test_liveText_sampleWordUsesThaiWord() {
+        XCTAssertEqual(AudioPlayer.liveText(for: .sampleWord, key: "ไก่"), "ไก่")
+    }
+
+    func test_liveText_finalClusterRemovesNotationDash() {
+        XCTAssertEqual(AudioPlayer.liveText(for: .cluster, key: "-ทร"), "ทร")
+    }
+
     func test_vowelNotes_frenchMirrorsEnglishKeys() {
         let noted = Vowel.loadAll().compactMap(\.notes)
         XCTAssertFalse(noted.isEmpty, "Some vowels should carry notes")

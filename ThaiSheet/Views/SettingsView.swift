@@ -31,6 +31,23 @@ struct SettingsView: View {
                 #endif
 
                 Section {
+                    Picker("Voice", selection: $settings.audioSource) {
+                        Text("Recorded voice").tag(AudioSource.recorded)
+                        Text("Device voice")
+                            .tag(AudioSource.device)
+                            .disabled(!AudioPlayer.isThaiVoiceAvailable)
+                    }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
+                } header: {
+                    Text("Audio")
+                } footer: {
+                    if !AudioPlayer.isThaiVoiceAvailable {
+                        Text("A Thai device voice is not available on this device.")
+                    }
+                }
+
+                Section {
                     strategyOption(
                         title: "Wanikani-style SRS",
                         description: "Prioritizes cards due for review based on your progress. Uses spaced repetition to optimize learning.",

@@ -177,7 +177,7 @@ struct VowelRowView: View {
                     sampleWord: vowel.sample(for: formType.duration.rawValue, form: formType.form.rawValue),
                     hasSound: audioPlayer.hasSound(.vowel, key: text),
                     onPlaySound: { audioPlayer.play(.vowel, key: text) },
-                    onPlaySampleWord: { audioPlayer.speak($0.word) },
+                    onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
                     onPractice: { onPractice?(text) }
                 )
             }
