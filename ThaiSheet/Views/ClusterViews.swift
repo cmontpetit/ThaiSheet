@@ -93,7 +93,7 @@ struct ClusterMatrixCell: View {
         if let cluster = cluster {
             // Tap plays the sound, long press opens the sheet
             VStack(spacing: 2) {
-                Text(cluster.displayWithVowel)
+                Text(cluster.cluster)
                     .font(.subheadline)
                     .fontWeight(.medium)
                 if let sound = cluster.sound {
@@ -108,8 +108,8 @@ struct ClusterMatrixCell: View {
             .cornerRadius(6)
             .playableItem(
                 label: clusterAccessibilityLabel(cluster),
-                hasSound: audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel),
-                onPlay: { audioPlayer.play(.cluster, key: cluster.displayWithVowel) },
+                hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
+                onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey) },
                 onDetails: { showingSheet = true }
             )
             .sheet(isPresented: $showingSheet) {
@@ -164,7 +164,7 @@ struct ClusterCompactCell: View {
     var body: some View {
         // Tap plays the sound, long press opens the sheet
         VStack(spacing: 2) {
-            Text(cluster.displayWithVowel)
+            Text(cluster.cluster)
                 .font(.title3)
             if let sound = cluster.sound {
                 Text(sound)
@@ -182,8 +182,8 @@ struct ClusterCompactCell: View {
         )
         .playableItem(
             label: clusterAccessibilityLabel(cluster),
-            hasSound: audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel),
-            onPlay: { audioPlayer.play(.cluster, key: cluster.displayWithVowel) },
+            hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
+            onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey) },
             onDetails: { showingSheet = true }
         )
         .sheet(isPresented: $showingSheet) {
@@ -192,12 +192,12 @@ struct ClusterCompactCell: View {
     }
 }
 
-/// Spoken label for a cluster cell, e.g. "กรา, gr-"
+/// Spoken label for a cluster cell, e.g. "กร-, gr-"
 func clusterAccessibilityLabel(_ cluster: Cluster) -> String {
     if let sound = cluster.sound {
-        return "\(cluster.displayWithVowel), \(sound)"
+        return "\(cluster.cluster), \(sound)"
     }
-    return cluster.displayWithVowel
+    return cluster.cluster
 }
 
 // MARK: - Detail Sheet
@@ -210,7 +210,7 @@ struct ClusterDetailSheet: View {
     @Environment(\.dismiss) var dismiss
 
     private var hasSound: Bool {
-        audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel)
+        audioPlayer.hasSound(.cluster, key: cluster.audioKey)
     }
 
     private var stage: SRSStage {
@@ -237,13 +237,14 @@ struct ClusterDetailSheet: View {
 
     var body: some View {
         ReferenceItemSheet(
-            title: cluster.displayWithVowel,
+            title: cluster.cluster,
+            romanization: cluster.sound,
             stage: stage,
             note: combinedNote,
             sampleWord: cluster.sample,
             hasSound: hasSound,
             onPlaySound: {
-                audioPlayer.play(.cluster, key: cluster.displayWithVowel)
+                audioPlayer.play(.cluster, key: cluster.audioKey)
             },
             onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
             onPractice: {

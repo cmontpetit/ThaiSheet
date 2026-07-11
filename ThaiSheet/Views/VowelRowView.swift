@@ -193,6 +193,7 @@ struct VowelRowView: View {
                 )
                 ReferenceItemSheet(
                     title: ThaiDisplay.placeholder(text),
+                    romanization: vowel.sound,
                     stage: learningModel.getProgress(forId: FlashcardType.vowel.cardId(for: text)).srsStage,
                     note: vowel.note(for: formType.duration.rawValue, form: formType.form.rawValue),
                     pronunciationWord: pronunciation,

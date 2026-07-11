@@ -98,6 +98,7 @@ struct ToneMarkRowView: View {
                 ) {
                     ReferenceItemSheet(
                         title: entry.display,
+                        romanization: ThaiColors.toneDiacritic(tone),
                         stage: stage(for: entry.soundKey),
                         note: nil,
                         sampleWord: toneMark.sampleWord(for: entry.soundKey),

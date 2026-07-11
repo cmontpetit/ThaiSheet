@@ -158,6 +158,7 @@ struct ToneRuleRowView: View {
         .sheet(isPresented: $showingSheet) {
             ReferenceItemSheet(
                 title: rule.primarySample?.full ?? String(localized: String.LocalizationValue(rule.tone), bundle: .appLanguage),
+                romanization: ThaiColors.toneDiacritic(rule.tone),
                 stage: lowestStage,
                 note: rule.primarySample?.note?.localized,
                 hasSound: hasSound,

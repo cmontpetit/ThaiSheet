@@ -1273,6 +1273,18 @@
         }
       }
     },
+    "Say Name" : {
+      "comment" : "The action that pronounces a Thai consonant's full letter name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prononcer le nom"
+          }
+        }
+      }
+    },
     "Settings" : {
       "localizations" : {
         "fr" : {

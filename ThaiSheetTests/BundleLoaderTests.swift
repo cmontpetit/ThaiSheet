@@ -271,6 +271,28 @@ final class BundleLoaderTests: XCTestCase {
         XCTAssertEqual(totalGrouped, clusters.count)
     }
 
+    func test_clusterAudioKey_keepsDisplayNotationSeparateFromPlayback() {
+        let initial = Cluster.loadAll().first { $0.cluster == "กร-" }
+        XCTAssertEqual(initial?.cluster, "กร-")
+        XCTAssertEqual(initial?.audioKey, "กรา")
+
+        let final = Cluster.loadAll().first { $0.cluster == "-ทร" }
+        XCTAssertEqual(final?.cluster, "-ทร")
+        XCTAssertEqual(final?.audioKey, "-ทร")
+    }
+
+    func test_clusterAudioKeys_resolveToBundledSounds() {
+        for cluster in Cluster.loadAll() {
+            let filename = "cheat_sheet_cluster_\(cluster.audioKey)"
+            let sound = Bundle.main.url(
+                forResource: filename,
+                withExtension: "mp3",
+                subdirectory: "sounds"
+            ) ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
+            XCTAssertNotNil(sound, "Missing cluster audio for \(cluster.cluster): \(cluster.audioKey)")
+        }
+    }
+
     // MARK: - BundleLoader with invalid resource
 
     func test_bundleLoader_invalidResource_returnsEmptyArray() {

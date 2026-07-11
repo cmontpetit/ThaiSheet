@@ -137,11 +137,13 @@ struct ConsonantRowView: View {
         .sheet(isPresented: $showingSheet) {
             ReferenceItemSheet(
                 title: consonant.character,
+                romanization: consonant.transcription,
                 stage: stage,
                 note: nil,
                 sampleWord: consonant.sampleWord,
                 hasSound: hasSound,
                 onPlaySound: { audioPlayer.play(.consonant, key: consonant.character) },
+                soundActionLabel: "Say Name",
                 onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
                 onPractice: { onPractice?() }
             )

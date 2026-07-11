@@ -8,12 +8,14 @@ import SwiftUI
 /// A reusable sheet for reference items showing stage, notes, and action buttons
 struct ReferenceItemSheet: View {
     let title: String
+    var romanization: String? = nil
     let stage: SRSStage
     let note: String?
     var pronunciationWord: ReferenceSampleWord? = nil
     var sampleWord: ReferenceSampleWord? = nil
     let hasSound: Bool
     let onPlaySound: () -> Void
+    var soundActionLabel: LocalizedStringKey = "Play Sound"
     var onPlayPronunciation: (ReferenceSampleWord) -> Void = { _ in }
     var onPlaySampleWord: (ReferenceSampleWord) -> Void = { _ in }
     let onPractice: () -> Void
@@ -24,14 +26,24 @@ struct ReferenceItemSheet: View {
 
     var body: some View {
         VStack(spacing: 18) {
-            // Title
-            Text(title)
-                .font(.system(size: titleSize))
-                .lineLimit(1)
-                .minimumScaleFactor(0.45)
-                .frame(height: titleFrameHeight)
-                .frame(maxWidth: .infinity)
-                .clipped()
+            // Table item and its matching romanization
+            VStack(spacing: 2) {
+                Text(title)
+                    .font(.system(size: titleSize))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.45)
+                    .frame(height: titleFrameHeight)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+
+                if let romanization, !romanization.isEmpty {
+                    Text(romanization)
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+            }
 
             // Stage indicator
             StageIndicatorView(stage: stage, isCapped: false)
@@ -57,7 +69,7 @@ struct ReferenceItemSheet: View {
                     } label: {
                         HStack {
                             Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                            Text("Play Sound")
+                            Text(soundActionLabel)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -92,7 +104,11 @@ struct ReferenceItemSheet: View {
             .padding(.bottom, 20)
         }
         .padding(.top, 18)
-        .presentationDetents(pronunciationWord == nil ? [.fraction(0.68), .large] : [.large])
+        .presentationDetents(
+            pronunciationWord == nil && romanization == nil
+                ? [.fraction(0.68), .large]
+                : [.large]
+        )
         .presentationDragIndicator(.visible)
     }
 
@@ -161,6 +177,7 @@ struct ReferenceItemSheet: View {
         .sheet(isPresented: .constant(true)) {
             ReferenceItemSheet(
                 title: "ก",
+                romanization: "gaaw gài",
                 stage: .apprentice1,
                 note: "This is a sample note explaining the character.",
                 pronunciationWord: ReferenceSampleWord(
