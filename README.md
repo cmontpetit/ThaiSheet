@@ -61,13 +61,30 @@ python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-fi
 # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
 ```
 
-The default Thai voice is `th-TH-Neural2-C`. Use `--voice-name th-TH-Standard-A` or another supported Thai voice to compare output before committing regenerated MP3s.
+The default generation voice is `th-TH-Neural2-C`. The current bundled vowel
+pronunciation words use `th-TH-Chirp3-HD-Kore`; the remaining recorded set uses
+Neural2-C. Use an explicit `--voice-name` when producing a replacement set.
 Generated responses are rejected and retried when they are too short or nearly
 silent. Loudness normalization includes a true-peak limit to avoid clipping.
 Within one generation run, exact duplicate synthesis inputs reuse the first
 processed response so their MP3 files are byte-identical.
 Candidate sets can be written safely below `scratchpad/` with `--output-dir` and
 compared with the bundled set using `scripts/generate_sound_review.py`.
+
+To review the real-word vowel pronunciation mapping, build the dedicated
+73-variant page. It uses the existing
+per-form sample words as initial candidates and compares their candidate voice
+recordings with the bundled vowel-word recordings:
+
+```bash
+python3 scripts/generate_vowel_pronunciation_review.py \
+  --candidate-dir scratchpad/kore-candidate
+```
+
+Review decisions are stored locally in the browser and can be exported as JSON.
+Forms without a defensible real-word candidate remain explicitly unvoiced.
+The page also flags unusually long or internally segmented one-word responses,
+which can indicate that a generative TTS voice added or repeated speech.
 
 The public [pronunciation catalog](https://cmontpetit.github.io/ThaiSheet/sounds.html)
 is generated from the same canonical inventory. After changing JSON data, audio,

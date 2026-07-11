@@ -41,6 +41,18 @@ struct VowelSamples: Codable {
     enum CodingKeys: String, CodingKey {
         case short_closed, short_open, long_closed, long_open
     }
+
+    func value(for duration: String, form: String) -> ReferenceSampleWord? {
+        let key: KeyPath<VowelSamples, ReferenceSampleWord?>
+        switch (duration, form) {
+        case ("Short", "Closed"): key = \.short_closed
+        case ("Short", "Open"): key = \.short_open
+        case ("Long", "Closed"): key = \.long_closed
+        case ("Long", "Open"): key = \.long_open
+        default: return nil
+        }
+        return self[keyPath: key]
+    }
 }
 
 enum VowelUsage: String, Codable {
@@ -58,11 +70,14 @@ struct Vowel: Codable, Identifiable {
     /// Row-level note (JSON "note"; ฤ/ฦ entries), shown when no
     /// form-specific note exists. Named to avoid clashing with note(for:form:).
     let rowNote: LocalizedText?
+    /// Optional dedicated pronunciation examples. Existing sample words are
+    /// used as the initial candidates when no dedicated mapping is present.
+    let pronunciations: VowelSamples?
     let samples: VowelSamples?
     let usage: VowelUsage?
 
     enum CodingKeys: String, CodingKey {
-        case short, long, sounds, notes, samples, usage
+        case short, long, sounds, notes, pronunciations, samples, usage
         case rowNote = "note"
     }
 
@@ -104,16 +119,18 @@ struct Vowel: Codable, Identifiable {
     }
 
     func sample(for duration: String, form: String) -> ReferenceSampleWord? {
-        guard let samples = samples else { return nil }
-        let key: KeyPath<VowelSamples, ReferenceSampleWord?>
-        switch (duration, form) {
-        case ("Short", "Closed"): key = \.short_closed
-        case ("Short", "Open"): key = \.short_open
-        case ("Long", "Closed"): key = \.long_closed
-        case ("Long", "Open"): key = \.long_open
-        default: return nil
-        }
-        return samples[keyPath: key]
+        samples?.value(for: duration, form: form)
+    }
+
+    func pronunciation(for duration: String, form: String) -> ReferenceSampleWord? {
+        pronunciations?.value(for: duration, form: form) ?? sample(for: duration, form: form)
+    }
+
+    func pronunciation(
+        for duration: VowelCard.VowelDuration,
+        form: VowelCard.VowelFormType
+    ) -> ReferenceSampleWord? {
+        pronunciation(for: duration.rawValue, form: form.rawValue)
     }
 
     /// Returns true if the given form appears in both short and long positions

@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 
-EXCLUDED_VOWEL_FORMS = {"ฤ-"}
 SOUND_TYPE_ORDER = (
     "tone_mark",
     "tone_rule",
@@ -175,7 +174,6 @@ def _consonant_items(cheatsheet_dir: Path) -> list[SoundItem]:
 def _vowel_items(cheatsheet_dir: Path) -> list[SoundItem]:
     data = _load(cheatsheet_dir, "vowels.json")
     items = []
-    seen = set()
     form_paths = (
         ("short", "closed", "short_closed"),
         ("short", "open", "short_open"),
@@ -183,25 +181,27 @@ def _vowel_items(cheatsheet_dir: Path) -> list[SoundItem]:
         ("long", "open", "long_open"),
     )
     for vowel in data["vowels"]:
+        pronunciations = vowel.get("pronunciations") or vowel.get("samples") or {}
         for duration, ending, sample_key in form_paths:
             form = vowel[duration].get(ending)
-            if not form or form in seen or form in EXCLUDED_VOWEL_FORMS:
+            if not form:
                 continue
-            seen.add(form)
-            sample = _sample_fields((vowel.get("samples") or {}).get(sample_key))
+            sample = _sample_fields(pronunciations.get(sample_key))
+            word = sample["word"]
+            if not word:
+                continue
             items.append(SoundItem(
-                id=f"vowel:{form}",
+                id=f"vowel:{form}:{sample_key}",
                 sound_type="vowel",
-                key=form,
+                key=word,
                 display=form,
-                synthesis_text=form.rstrip("-"),
-                filename=f"cheat_sheet_vowel_{form}.mp3",
+                synthesis_text=word,
+                filename=f"cheat_sheet_vowel_{word}.mp3",
                 description=f"{duration}, {ending}",
                 romanization=vowel["sounds"]["en"],
-                example_word=sample["word"],
+                meaning_en=sample["meaning_en"],
+                meaning_fr=sample["meaning_fr"],
                 example_romanization=sample["romanization"],
-                example_meaning_en=sample["meaning_en"],
-                example_meaning_fr=sample["meaning_fr"],
             ))
     return items
 

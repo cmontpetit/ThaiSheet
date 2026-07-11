@@ -10,9 +10,11 @@ struct ReferenceItemSheet: View {
     let title: String
     let stage: SRSStage
     let note: String?
+    var pronunciationWord: ReferenceSampleWord? = nil
     var sampleWord: ReferenceSampleWord? = nil
     let hasSound: Bool
     let onPlaySound: () -> Void
+    var onPlayPronunciation: (ReferenceSampleWord) -> Void = { _ in }
     var onPlaySampleWord: (ReferenceSampleWord) -> Void = { _ in }
     let onPractice: () -> Void
 
@@ -47,20 +49,24 @@ struct ReferenceItemSheet: View {
 
             // Action buttons
             VStack(spacing: 12) {
-                Button {
-                    onPlaySound()
-                } label: {
-                    HStack {
-                        Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                        Text("Play Sound")
+                if let pronunciationWord {
+                    pronunciationWordButton(pronunciationWord)
+                } else {
+                    Button {
+                        onPlaySound()
+                    } label: {
+                        HStack {
+                            Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                            Text("Play Sound")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(hasSound ? Color.accentColor : Color.gray.opacity(0.3))
+                        .foregroundColor(hasSound ? .white : .secondary)
+                        .cornerRadius(12)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(hasSound ? Color.accentColor : Color.gray.opacity(0.3))
-                    .foregroundColor(hasSound ? .white : .secondary)
-                    .cornerRadius(12)
+                    .disabled(!hasSound)
                 }
-                .disabled(!hasSound)
 
                 Button {
                     dismiss()
@@ -77,7 +83,8 @@ struct ReferenceItemSheet: View {
                     .cornerRadius(12)
                 }
 
-                if let sampleWord = sampleWord {
+                if let sampleWord,
+                   sampleWord.word != pronunciationWord?.word {
                     sampleWordButton(sampleWord)
                 }
             }
@@ -85,49 +92,67 @@ struct ReferenceItemSheet: View {
             .padding(.bottom, 20)
         }
         .padding(.top, 18)
-        .presentationDetents([.fraction(0.68), .large])
+        .presentationDetents(pronunciationWord == nil ? [.fraction(0.68), .large] : [.large])
         .presentationDragIndicator(.visible)
+    }
+
+    private func pronunciationWordButton(_ word: ReferenceSampleWord) -> some View {
+        Button {
+            onPlayPronunciation(word)
+        } label: {
+            wordButtonLabel(word, title: "Pronunciation Example", hasSound: hasSound)
+        }
+        .buttonStyle(.plain)
+        .disabled(!hasSound)
     }
 
     private func sampleWordButton(_ sampleWord: ReferenceSampleWord) -> some View {
         Button {
             onPlaySampleWord(sampleWord)
         } label: {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Sample Word")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                    Text(sampleWord.word)
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                    if let romanization = sampleWord.romanization {
-                        Text(romanization)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    if let meaning = sampleWord.localizedMeaning {
-                        Text(meaning)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                    }
-                }
-
-                Spacer()
-
-                Image(systemName: "speaker.wave.2.fill")
-                    .font(.title3)
-                    .foregroundStyle(Color.accentColor)
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            wordButtonLabel(sampleWord, title: "Sample Word", hasSound: true)
         }
         .buttonStyle(.plain)
+    }
+
+    private func wordButtonLabel(
+        _ word: ReferenceSampleWord,
+        title: LocalizedStringKey,
+        hasSound: Bool
+    ) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                Text(word.word)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                if let romanization = word.romanization {
+                    Text(romanization)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                if let meaning = word.localizedMeaning {
+                    Text(meaning)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                .font(.title3)
+                .foregroundStyle(hasSound ? Color.accentColor : Color.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -138,6 +163,11 @@ struct ReferenceItemSheet: View {
                 title: "ก",
                 stage: .apprentice1,
                 note: "This is a sample note explaining the character.",
+                pronunciationWord: ReferenceSampleWord(
+                    word: "กัน",
+                    romanization: "gan",
+                    meaning: LocalizedText(en: "together", fr: "ensemble")
+                ),
                 sampleWord: ReferenceSampleWord(
                     word: "ไก่",
                     romanization: "gài",
@@ -145,6 +175,7 @@ struct ReferenceItemSheet: View {
                 ),
                 hasSound: true,
                 onPlaySound: {},
+                onPlayPronunciation: { _ in },
                 onPlaySampleWord: { _ in },
                 onPractice: {}
             )

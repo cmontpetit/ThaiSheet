@@ -52,7 +52,7 @@ struct VowelFlashcardView: View {
             showResult: cardState.step == .completed,
             hasError: cardState.hasError(for: card),
             soundType: .vowel,
-            soundKey: card.display,
+            soundKey: card.pronunciationWord?.word ?? "",
             onViewInReference: { onViewInReference?(card.display) },
             onPrevious: handlePrevious,
             onNext: handleNext
@@ -188,8 +188,9 @@ struct VowelFlashcardView: View {
     }
 
     private func playVowelSound() {
-        if audioPlayer.hasSound(.vowel, key: card.display) {
-            audioPlayer.play(.vowel, key: card.display)
+        guard let word = card.pronunciationWord?.word else { return }
+        if audioPlayer.hasSound(.vowel, key: word) {
+            audioPlayer.play(.vowel, key: word)
         }
     }
 

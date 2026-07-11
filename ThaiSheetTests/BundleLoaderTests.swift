@@ -368,20 +368,52 @@ final class BundleLoaderTests: XCTestCase {
                         "Rows without keyed notes should surface their row note")
     }
 
-    func test_riVowelForm_intentionallyHasNoBundledAudio() {
-        // The shipped ฤ-.mp3 was byte-identical to ฤ.mp3 (TTS received the
-        // dash-stripped "ฤ" and spoke the rue reading — wrong for the ri
-        // entry). Removed pending the ฤ audio/quiz design decision
-        // (https://github.com/cmontpetit/ThaiSheet/issues/7);
-        // generate_sounds.py excludes it via EXCLUDED_VOWEL_FORMS.
+    func test_riVowelForm_usesRealWordAudio() {
         func bundledSound(_ name: String) -> URL? {
             Bundle.main.url(forResource: name, withExtension: "mp3", subdirectory: "sounds")
                 ?? Bundle.main.url(forResource: name, withExtension: "mp3")
         }
-        XCTAssertNil(bundledSound("cheat_sheet_vowel_ฤ-"),
-                     "ฤ- must have no bundled audio until Bucket C decides its replacement")
-        XCTAssertNotNil(bundledSound("cheat_sheet_vowel_ฤ"),
-                        "the rue reading's audio must stay bundled")
+        XCTAssertNotNil(bundledSound("cheat_sheet_vowel_ฤทธิ์"),
+                        "the ri reading must use its explicit pronunciation word")
+    }
+
+    func test_vowelPronunciations_keepDuplicateSpellingsDistinct() {
+        let vowel = Vowel.loadAll().first { $0.sound == "erh/uuhr" }
+        XCTAssertEqual(vowel?.pronunciation(for: .short, form: .closed)?.word, "เงิน")
+        XCTAssertEqual(vowel?.pronunciation(for: .long, form: .closed)?.word, "เดิน")
+    }
+
+    func test_vowelPronunciations_haveBundledRealWordAudio_orRemainSilent() {
+        let expectedMissing = Set(["เกือะ", "ก็อย", "แก็ว", "เกอว", "ฦ"])
+        var mappedCount = 0
+        var missingForms = Set<String>()
+
+        for vowel in Vowel.loadAll() {
+            let variants: [(String?, VowelCard.VowelDuration, VowelCard.VowelFormType)] = [
+                (vowel.short.closed, .short, .closed),
+                (vowel.short.open, .short, .open),
+                (vowel.long.closed, .long, .closed),
+                (vowel.long.open, .long, .open),
+            ]
+            for (display, duration, form) in variants {
+                guard let display else { continue }
+                guard let pronunciation = vowel.pronunciation(for: duration, form: form) else {
+                    missingForms.insert(display)
+                    continue
+                }
+                mappedCount += 1
+                let filename = "cheat_sheet_vowel_\(pronunciation.word)"
+                let sound = Bundle.main.url(
+                    forResource: filename,
+                    withExtension: "mp3",
+                    subdirectory: "sounds"
+                ) ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
+                XCTAssertNotNil(sound, "Missing pronunciation audio for \(display): \(pronunciation.word)")
+            }
+        }
+
+        XCTAssertEqual(mappedCount, 68)
+        XCTAssertEqual(missingForms, expectedMissing)
     }
 
     // MARK: - Device Voice Text
@@ -390,15 +422,10 @@ final class BundleLoaderTests: XCTestCase {
         XCTAssertEqual(AudioPlayer.liveText(for: .consonant, key: "ก"), "กอไก่")
     }
 
-    func test_liveText_closedVowelFillsFinalConsonantSlot() {
-        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "กั-"), "กัน")
-        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "เกิ-"), "เกิน")
-        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "กา"), "กา")
-    }
-
-    func test_liveText_riVowelIsExcludedFromDeviceVoice() {
-        XCTAssertNil(AudioPlayer.liveText(for: .vowel, key: "ฤ-"),
-                     "ฤ- must be silent for both recorded and device voice")
+    func test_liveText_vowelUsesVisiblePronunciationWord() {
+        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "กัน"), "กัน")
+        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "เงิน"), "เงิน")
+        XCTAssertEqual(AudioPlayer.liveText(for: .vowel, key: "ฤทธิ์"), "ฤทธิ์")
     }
 
     func test_liveText_sampleWordUsesThaiWord() {
