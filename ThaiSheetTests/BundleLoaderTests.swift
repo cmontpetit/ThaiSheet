@@ -265,6 +265,90 @@ final class BundleLoaderTests: XCTestCase {
         }
     }
 
+    // MARK: - Content Corrections (Bucket A, July 2026 audit)
+
+    func test_clusterSounds_aspiratedOnsetsKeepAspiration() {
+        // ข/ค = kh-, พ = ph- in the consonant scheme; cluster romanization
+        // must not drop the aspiration. (ผล- is deliberately not covered:
+        // word-specific, pending verification.)
+        let aspirated: [Character: String] = ["ข": "kh", "ค": "kh", "พ": "ph"]
+        for cluster in Cluster.loadAll() where cluster.type == .smooth {
+            guard let first = cluster.cluster.first, let prefix = aspirated[first] else { continue }
+            XCTAssertTrue(cluster.sound?.hasPrefix(prefix) ?? false,
+                          "\(cluster.cluster) should keep aspiration (\(prefix)-), got \(cluster.sound ?? "nil")")
+        }
+    }
+
+    func test_chadaaTranscription_marksHighToneOnFirstSyllable() {
+        // ช + short + dead → high tone: chá, matching the khǎaw rá khang precedent
+        let chada = Consonant.loadAll().first { $0.character == "ฎ" }
+        XCTAssertEqual(chada?.transcription, "daaw chá-daa")
+    }
+
+    func test_saraAm_isShortClosedOnly() {
+        // ◌ำ is a short vowel + final /m/; น้ำ-style lengthening is lexical,
+        // not a Long form of the pattern
+        let ahm = Vowel.loadAll().first { $0.sound == "ahm" }
+        XCTAssertEqual(ahm?.short.closed, "กำ")
+        XCTAssertNil(ahm?.long.closed)
+        XCTAssertNil(ahm?.long.open)
+    }
+
+    func test_aawyRow_examplesMatchVowelLength() {
+        // บ่อย is short (the tone mark occupies ็'s position); it must not
+        // be cited as a long -อย example
+        let notes = Vowel.loadAll().first { $0.sound == "aawy" }?.notes?.en
+        XCTAssertTrue(notes?.short_closed?.contains("บ่อย") ?? false,
+                      "บ่อย belongs with the short ก็อย examples")
+        XCTAssertFalse(notes?.long_closed?.contains("บ่อย") ?? true,
+                       "บ่อย must not appear in the long กอย examples")
+    }
+
+    func test_vowelRowNotes_decodeWithFrench() {
+        // The ฤ/ฤ-/ฦ rows carry row-level notes that were previously
+        // silently dropped (model had no scalar note property)
+        let rows = Vowel.loadAll().filter { $0.rowNote != nil }
+        XCTAssertEqual(rows.count, 3, "ฤ (rue), ฤ- (ri), and ฦ (lue) rows carry row notes")
+        for row in rows {
+            XCTAssertFalse(row.rowNote?.en.isEmpty ?? true)
+            XCTAssertFalse(row.rowNote?.fr?.isEmpty ?? true,
+                           "Row note missing French: \(row.rowNote?.en ?? "")")
+        }
+    }
+
+    func test_rueRowNote_documentsAllThreeReadings() {
+        let note = Vowel.loadAll().first { $0.sound == "rue" }?.rowNote
+        for reading in ["rue", "ri", "roe"] {
+            XCTAssertTrue(note?.en.contains(reading) ?? false,
+                          "ฤ note should document the \(reading) reading")
+        }
+        let lueNote = Vowel.loadAll().first { $0.sound == "lue" }?.rowNote
+        XCTAssertTrue(lueNote?.en.contains("obsolete") ?? false,
+                      "ฦ note should state the letters are obsolete")
+    }
+
+    func test_noteForForm_fallsBackToRowNote() {
+        let rue = Vowel.loadAll().first { $0.sound == "rue" }
+        XCTAssertNotNil(rue?.note(for: "Short", form: "Open"),
+                        "Rows without keyed notes should surface their row note")
+    }
+
+    func test_riVowelForm_intentionallyHasNoBundledAudio() {
+        // The shipped ฤ-.mp3 was byte-identical to ฤ.mp3 (TTS received the
+        // dash-stripped "ฤ" and spoke the rue reading — wrong for the ri
+        // entry). Removed pending the ฤ audio/quiz design decision
+        // (content-correction plan, Bucket C); generate_sounds.py excludes
+        // it via EXCLUDED_VOWEL_FORMS.
+        func bundledSound(_ name: String) -> URL? {
+            Bundle.main.url(forResource: name, withExtension: "mp3", subdirectory: "sounds")
+                ?? Bundle.main.url(forResource: name, withExtension: "mp3")
+        }
+        XCTAssertNil(bundledSound("cheat_sheet_vowel_ฤ-"),
+                     "ฤ- must have no bundled audio until Bucket C decides its replacement")
+        XCTAssertNotNil(bundledSound("cheat_sheet_vowel_ฤ"),
+                        "the rue reading's audio must stay bundled")
+    }
+
     func test_vowelNotes_frenchMirrorsEnglishKeys() {
         let noted = Vowel.loadAll().compactMap(\.notes)
         XCTAssertFalse(noted.isEmpty, "Some vowels should carry notes")

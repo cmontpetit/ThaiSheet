@@ -352,24 +352,32 @@ struct CheatsheetBrowserView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
 
-                                // Tone Rules table
+                                // Tone Rules table (unmarked syllables only —
+                                // marked syllables follow the tone-mark table above)
                                 if !filteredToneRules.isEmpty {
-                                    VStack(spacing: 0) {
-                                        ToneRuleHeaderView()
-                                        Divider()
-                                        ForEach(filteredToneRules) { rule in
-                                            ToneRuleRowView(
-                                                rule: rule,
-                                                isHighlighted: highlightedToneRule == rule.id
-                                            ) {
-                                                startPractice(rule.id, type: .toneRule)
-                                            }
-                                            .id("tonerule-\(rule.id)")
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text("Unmarked syllable tone rules")
+                                            .font(.footnote.weight(.semibold))
+                                            .foregroundStyle(.secondary)
+                                            .padding(.leading, 4)
+                                            .accessibilityAddTraits(.isHeader)
+                                        VStack(spacing: 0) {
+                                            ToneRuleHeaderView()
                                             Divider()
+                                            ForEach(filteredToneRules) { rule in
+                                                ToneRuleRowView(
+                                                    rule: rule,
+                                                    isHighlighted: highlightedToneRule == rule.id
+                                                ) {
+                                                    startPractice(rule.id, type: .toneRule)
+                                                }
+                                                .id("tonerule-\(rule.id)")
+                                                Divider()
+                                            }
                                         }
+                                        .background(Color(.systemBackground))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
                                     }
-                                    .background(Color(.systemBackground))
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
                             }
                             .padding(.horizontal)
