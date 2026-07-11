@@ -13,7 +13,7 @@ from generate_vowel_pronunciation_review import (
     load_candidates,
     render_review,
 )
-from sound_inventory import load_sound_inventory
+from sound_inventory import SOUND_TYPE_LABELS, load_sound_inventory
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -50,6 +50,9 @@ class SoundInventoryTests(unittest.TestCase):
         self.assertEqual(teacher.romanization, "khruu")
         self.assertEqual(teacher.meaning_en, "teacher")
         self.assertEqual(teacher.meaning_fr, "professeur")
+
+    def test_tone_rule_label_describes_the_recordings(self):
+        self.assertEqual(SOUND_TYPE_LABELS["tone_rule"], "Tone-rule examples")
 
 
 class AudioQualityTests(unittest.TestCase):

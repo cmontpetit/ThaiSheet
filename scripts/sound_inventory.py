@@ -16,7 +16,7 @@ SOUND_TYPE_ORDER = (
 )
 SOUND_TYPE_LABELS = {
     "tone_mark": "Tone marks",
-    "tone_rule": "Tone rules",
+    "tone_rule": "Tone-rule examples",
     "consonant": "Consonants",
     "vowel": "Vowels",
     "cluster": "Clusters",
