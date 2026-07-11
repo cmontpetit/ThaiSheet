@@ -13,19 +13,20 @@ struct ToneMarkSheetContext {
 
 struct ToneMarkExpressionView: View {
     let context: ToneMarkSheetContext
+    @ScaledMetric(relativeTo: .largeTitle) private var markSize: CGFloat = 48
     @ScaledMetric(relativeTo: .largeTitle) private var toneIndicatorSize: CGFloat = 40
 
     var body: some View {
         VStack(spacing: 6) {
-            HStack(spacing: 7) {
+            HStack(spacing: 18) {
+                Text(ThaiDisplay.placeholder(ToneMark.midConsonant + context.mark))
+                    .font(.system(size: markSize))
+
                 StyledConsonantClassText(
                     consonantClass: context.consonantClass,
-                    font: .headline
+                    font: .title2.weight(.semibold),
+                    verticalPadding: 8
                 )
-                Text("+")
-                    .foregroundStyle(.secondary)
-                Text(ThaiDisplay.placeholder(ToneMark.midConsonant + context.mark))
-                    .font(.title2)
             }
 
             StyledToneText(
@@ -42,7 +43,7 @@ struct ToneMarkExpressionView: View {
             localized: String.LocalizationValue(context.consonantClass),
             bundle: .appLanguage
         )
-        return "\(consonantClass) + \(context.mark) = \(ThaiColors.toneName(context.tone))"
+        return "\(context.mark), \(consonantClass): \(ThaiColors.toneName(context.tone))"
     }
 }
 
