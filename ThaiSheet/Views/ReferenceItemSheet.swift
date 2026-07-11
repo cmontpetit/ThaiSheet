@@ -9,6 +9,9 @@ import SwiftUI
 struct ReferenceItemSheet: View {
     let title: String
     var romanization: String? = nil
+    var subtitle: String? = nil
+    var toneIndicator: String? = nil
+    var usesCompactTitle: Bool = false
     let stage: SRSStage
     let note: String?
     var pronunciationWord: ReferenceSampleWord? = nil
@@ -23,17 +26,23 @@ struct ReferenceItemSheet: View {
     @Environment(\.dismiss) var dismiss
     @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
     @ScaledMetric(relativeTo: .largeTitle) private var titleFrameHeight: CGFloat = 86
+    @ScaledMetric(relativeTo: .largeTitle) private var toneIndicatorSize: CGFloat = 40
 
     var body: some View {
         VStack(spacing: 18) {
-            // Table item and its matching romanization
-            VStack(spacing: 2) {
+            // Table item and its matching transcription or tone context
+            VStack(spacing: 4) {
                 Text(title)
-                    .font(.system(size: titleSize))
-                    .lineLimit(1)
+                    .font(
+                        usesCompactTitle
+                            ? .title2.weight(.semibold)
+                            : .system(size: titleSize)
+                    )
+                    .lineLimit(usesCompactTitle ? 3 : 1)
                     .minimumScaleFactor(0.45)
                     .frame(height: titleFrameHeight)
                     .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
                     .clipped()
 
                 if let romanization, !romanization.isEmpty {
@@ -42,6 +51,21 @@ struct ReferenceItemSheet: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
+                }
+
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.title2)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+
+                if let toneIndicator, !toneIndicator.isEmpty {
+                    Text(toneIndicator)
+                        .font(.system(size: toneIndicatorSize, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(minHeight: 48)
                 }
             }
 
@@ -107,7 +131,10 @@ struct ReferenceItemSheet: View {
         }
         .padding(.top, 18)
         .presentationDetents(
-            pronunciationWord == nil && romanization == nil
+            pronunciationWord == nil
+                && romanization == nil
+                && subtitle == nil
+                && toneIndicator == nil
                 ? [.fraction(0.68), .large]
                 : [.large]
         )

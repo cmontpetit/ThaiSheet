@@ -79,6 +79,27 @@ struct ToneRuleRowView: View {
         return audioPlayer.hasSound(.toneRule, key: sample.full)
     }
 
+    private var ruleDisplay: String {
+        let initial = String(
+            localized: String.LocalizationValue(rule.initialConsonant),
+            bundle: .appLanguage
+        )
+        let duration = String(
+            localized: String.LocalizationValue(rule.vowelDuration),
+            bundle: .appLanguage
+        )
+        let end = String(
+            localized: String.LocalizationValue(rule.end),
+            bundle: .appLanguage
+        )
+        return "\(initial) + \(duration) + \(end) = \(ThaiColors.toneName(rule.tone))"
+    }
+
+    private var additionalSampleWord: ReferenceSampleWord? {
+        guard let sample = rule.samples?.dropFirst().first else { return nil }
+        return ReferenceSampleWord(word: sample.full)
+    }
+
     /// Spoken summary of the rule row, e.g. "Low, Short, Dead/None: High. คะ"
     private var ruleAccessibilityLabel: String {
         let inputs = [rule.initialConsonant, rule.vowelDuration, rule.end]
@@ -157,16 +178,20 @@ struct ToneRuleRowView: View {
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
         .sheet(isPresented: $showingSheet) {
             ReferenceItemSheet(
-                title: rule.primarySample?.full ?? String(localized: String.LocalizationValue(rule.tone), bundle: .appLanguage),
-                romanization: ThaiColors.toneDiacritic(rule.tone),
+                title: ruleDisplay,
+                subtitle: rule.primarySample?.full,
+                toneIndicator: ThaiColors.toneDiacritic(rule.tone),
+                usesCompactTitle: true,
                 stage: lowestStage,
                 note: rule.primarySample?.note?.localized,
+                sampleWord: additionalSampleWord,
                 hasSound: hasSound,
                 onPlaySound: {
                     if let sample = rule.primarySample {
                         audioPlayer.play(.toneRule, key: sample.full)
                     }
                 },
+                onPlaySampleWord: { audioPlayer.play(.toneRule, key: $0.word) },
                 onPractice: { onPractice?() }
             )
         }

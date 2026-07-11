@@ -219,6 +219,22 @@ final class BundleLoaderTests: XCTestCase {
         }
     }
 
+    func test_toneRulePopupExamples_haveBundledAudio() {
+        for rule in ToneRule.loadAll() {
+            guard let sample = rule.samples?.dropFirst().first else {
+                XCTFail("Tone rule \(rule.id) needs an additional popup example")
+                continue
+            }
+            let filename = "cheat_sheet_tone_rule_\(sample.full)"
+            let sound = Bundle.main.url(
+                forResource: filename,
+                withExtension: "mp3",
+                subdirectory: "sounds"
+            ) ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
+            XCTAssertNotNil(sound, "Missing tone-rule example audio for \(sample.full)")
+        }
+    }
+
     // MARK: - Cluster Loading
 
     func test_clusterLoadAll_returnsNonEmptyArray() {
