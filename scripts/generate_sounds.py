@@ -136,6 +136,8 @@ class SoundGenerator:
         self.skipped = 0
         self.expected_files: set[Path] = set()
         self.quality_results: dict[str, AudioQuality] = {}
+        self.processed_audio_by_text: dict[str, bytes] = {}
+        self.quality_by_text: dict[str, AudioQuality | None] = {}
 
         self.texttospeech = None
         self.client = None
@@ -203,6 +205,17 @@ class SoundGenerator:
         assert self.audio_config is not None
         assert self.google_exceptions is not None
         filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        cached_audio = self.processed_audio_by_text.get(text)
+        if cached_audio is not None:
+            filepath.write_bytes(cached_audio)
+            quality = self.quality_by_text[text]
+            if quality is not None:
+                self.quality_results[filepath.name] = quality
+            print(f"  Reused processed audio for identical input: {text}")
+            self.written += 1
+            return
+
         with tempfile.TemporaryDirectory(prefix="thaisheet-audio-") as temp_dir:
             source = Path(temp_dir) / "source.mp3"
             for quality_attempt in range(self.quality_retries + 1):
@@ -223,6 +236,8 @@ class SoundGenerator:
                     if quality is not None:
                         self.quality_results[filepath.name] = quality
                     self.write_processed_audio(source, filepath)
+                    self.processed_audio_by_text[text] = filepath.read_bytes()
+                    self.quality_by_text[text] = quality
                     self.written += 1
                     return
 
