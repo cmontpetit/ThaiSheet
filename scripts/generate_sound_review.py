@@ -235,7 +235,22 @@ def main() -> int:
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(render_review(data), encoding="utf-8")
     report_path = output.with_name("quality-report.json")
-    report_path.write_text(json.dumps(data["failedQuality"], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    report = {
+        "candidateVoice": data["candidateVoice"],
+        "totalFiles": len(data["items"]),
+        "qualityFlagCount": len(data["failedQuality"]),
+        "items": [
+            {
+                "id": item["id"],
+                "filename": item["filename"],
+                "duration": item["duration"],
+                "peakDb": item["peakDb"],
+                "qualityIssues": item["qualityIssues"],
+            }
+            for item in data["items"]
+        ],
+    }
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {output}")
     print(f"Quality flags: {len(data['failedQuality'])}")
     return 0
