@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "description": "Diagnostic Thai utterances for comparing candidate recorded-voice providers.",
+  "items": [
+    {
+      "id": "consonant-ko-kai-spaced",
+      "category": "Consonants",
+      "label": "ก (current cloud input)",
+      "text": "กอ ไก่",
+      "note": "Checks whether whitespace creates an unnatural pause."
+    },
+    {
+      "id": "consonant-ko-kai-joined",
+      "category": "Consonants",
+      "label": "ก (joined input)",
+      "text": "กอไก่",
+      "note": "Same consonant name without an explicit word boundary."
+    },
+    {
+      "id": "consonant-kho-khwai-spaced",
+      "category": "Consonants",
+      "label": "ค (current cloud input)",
+      "text": "คอ ควาย",
+      "note": "A second spaced consonant name with an aspirated onset."
+    },
+    {
+      "id": "consonant-kho-khwai-joined",
+      "category": "Consonants",
+      "label": "ค (joined input)",
+      "text": "คอควาย",
+      "note": "Same consonant name without an explicit word boundary."
+    },
+    {
+      "id": "vowel-er-short-open",
+      "category": "Vowels",
+      "label": "เกอะ",
+      "text": "เกอะ",
+      "note": "Known Apple Kanya failure: it splits or misreads this isolated form."
+    },
+    {
+      "id": "vowel-er-short-anchor",
+      "category": "Vowels",
+      "label": "เลอะ (anchor word)",
+      "text": "เลอะ",
+      "note": "Real-word anchor for the same short vowel as เกอะ."
+    },
+    {
+      "id": "vowel-a-short-closed-fragment",
+      "category": "Vowels",
+      "label": "กั- (current cloud input)",
+      "text": "กั",
+      "note": "Current generator removes the final-slot dash and sends an incomplete syllable."
+    },
+    {
+      "id": "vowel-a-short-closed-carrier",
+      "category": "Vowels",
+      "label": "กั- (complete carrier)",
+      "text": "กัน",
+      "note": "Final น completes the syllable so the vowel can be pronounced in context."
+    },
+    {
+      "id": "vowel-er-long-closed-fragment",
+      "category": "Vowels",
+      "label": "เกิ- (current cloud input)",
+      "text": "เกิ",
+      "note": "Incomplete long-vowel form used by the current cloud generator."
+    },
+    {
+      "id": "vowel-er-long-closed-carrier",
+      "category": "Vowels",
+      "label": "เกิ- (complete carrier)",
+      "text": "เกิน",
+      "note": "Complete syllable used by the device-voice transformation."
+    },
+    {
+      "id": "vowel-eu-short-open",
+      "category": "Vowels",
+      "label": "กึ",
+      "text": "กึ",
+      "note": "Combining mark that can be announced by name instead of pronounced."
+    },
+    {
+      "id": "vowel-eu-short-closed-carrier",
+      "category": "Vowels",
+      "label": "กึ- (complete carrier)",
+      "text": "กึน",
+      "note": "Complete carrier counterpart for the short closed form."
+    },
+    {
+      "id": "vowel-ia-short-open",
+      "category": "Vowels",
+      "label": "เกียะ",
+      "text": "เกียะ",
+      "note": "Short compound vowel."
+    },
+    {
+      "id": "vowel-eua-short-open",
+      "category": "Vowels",
+      "label": "เกือะ",
+      "text": "เกือะ",
+      "note": "Short compound vowel with a central component."
+    },
+    {
+      "id": "vowel-am",
+      "category": "Vowels",
+      "label": "กำ",
+      "text": "กำ",
+      "note": "Short closed sara am form."
+    },
+    {
+      "id": "tone-low",
+      "category": "Tones",
+      "label": "ก่า",
+      "text": "ก่า",
+      "note": "Low tone on a mid-class consonant."
+    },
+    {
+      "id": "tone-falling",
+      "category": "Tones",
+      "label": "ก้า",
+      "text": "ก้า",
+      "note": "Falling tone on a mid-class consonant."
+    },
+    {
+      "id": "tone-high",
+      "category": "Tones",
+      "label": "ก๊า",
+      "text": "ก๊า",
+      "note": "High tone on a mid-class consonant."
+    },
+    {
+      "id": "tone-rising",
+      "category": "Tones",
+      "label": "ก๋า",
+      "text": "ก๋า",
+      "note": "Rising tone on a mid-class consonant."
+    },
+    {
+      "id": "cluster-aspirated-r",
+      "category": "Clusters",
+      "label": "คร-",
+      "text": "ครา",
+      "note": "Aspirated smooth cluster."
+    },
+    {
+      "id": "cluster-high-r",
+      "category": "Clusters",
+      "label": "ขร-",
+      "text": "ขรา",
+      "note": "High-class aspirated smooth cluster."
+    },
+    {
+      "id": "cluster-bp-l",
+      "category": "Clusters",
+      "label": "ปล-",
+      "text": "ปลา",
+      "note": "Common smooth cluster and real word."
+    },
+    {
+      "id": "cluster-irregular-thr",
+      "category": "Clusters",
+      "label": "ทร-",
+      "text": "ทรา",
+      "note": "Irregular cluster whose expected onset differs from its spelling."
+    },
+    {
+      "id": "sample-teacher",
+      "category": "Sample words",
+      "label": "ครู",
+      "text": "ครู",
+      "note": "Cluster sample word."
+    },
+    {
+      "id": "sample-crawl",
+      "category": "Sample words",
+      "label": "คลาน",
+      "text": "คลาน",
+      "note": "Long cluster sample word."
+    },
+    {
+      "id": "sample-world",
+      "category": "Sample words",
+      "label": "โลก",
+      "text": "โลก",
+      "note": "Long vowel with a final stop."
+    },
+    {
+      "id": "sample-step",
+      "category": "Sample words",
+      "label": "ก้าว",
+      "text": "ก้าว",
+      "note": "Diphthong and falling tone."
+    }
+  ]
+}

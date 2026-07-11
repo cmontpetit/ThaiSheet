@@ -25,8 +25,15 @@ Then, to regenerate sounds (from the repository root):
 ```bash
 source scripts/venv/bin/activate
 python3 scripts/generate_sounds.py --all --dry-run --check-files
-python3 scripts/generate_sounds.py --all --force --check-files
+python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-files
+python3 scripts/generate_sound_catalog.py
+python3 scripts/generate_sound_catalog.py --check
 ```
+
+The sound catalog contains a hash for every MP3, so it must be regenerated when
+audio changes even if filenames stay the same. Update
+`scripts/recorded_audio_metadata.json` when the provider, voice, or processing
+method changes.
 
 ### Running Tests
 

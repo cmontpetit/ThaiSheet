@@ -25,7 +25,7 @@ Output files are saved to ThaiSheet/Resources/sounds/
 """
 
 import argparse
-import json
+from dataclasses import dataclass
 import re
 import shutil
 import subprocess
@@ -33,17 +33,17 @@ import tempfile
 import time
 from pathlib import Path
 
+from sound_inventory import (
+    SOUND_TYPE_LABELS,
+    SOUND_TYPE_ORDER,
+    SoundItem,
+    inventory_by_type,
+    load_sound_inventory,
+)
+
 
 DEFAULT_LANGUAGE_CODE = "th-TH"
 DEFAULT_VOICE_NAME = "th-TH-Neural2-C"
-
-# Vowel forms whose bundled audio is INTENTIONALLY absent.
-# ฤ- (the "ri" reading): dash-stripping sends bare "ฤ" to TTS, which speaks
-# the "rue" reading — wrong for this entry (the shipped file was confirmed
-# byte-identical to ฤ.mp3). Excluded pending the ฤ audio/quiz design decision
-# (https://github.com/cmontpetit/ThaiSheet/issues/7). Keeping it out of
-# expected_files also keeps --check-files green.
-EXCLUDED_VOWEL_FORMS = {"ฤ-"}
 
 
 def get_project_paths():
@@ -53,6 +53,52 @@ def get_project_paths():
     sounds_dir = project_root / "ThaiSheet" / "Resources" / "sounds"
     cheatsheet_dir = project_root / "ThaiSheet" / "Resources" / "cheatsheet"
     return project_root, sounds_dir, cheatsheet_dir
+
+
+@dataclass(frozen=True)
+class AudioQuality:
+    duration_seconds: float
+    max_volume_db: float
+
+    def issues(self, minimum_duration: float, minimum_peak_db: float) -> list[str]:
+        issues = []
+        if self.duration_seconds < minimum_duration:
+            issues.append(f"duration {self.duration_seconds:.3f}s < {minimum_duration:.3f}s")
+        if self.max_volume_db < minimum_peak_db:
+            issues.append(f"peak {self.max_volume_db:.1f} dB < {minimum_peak_db:.1f} dB")
+        return issues
+
+
+def inspect_audio(filepath: Path) -> AudioQuality:
+    """Measure duration and peak level with FFprobe/FFmpeg."""
+    try:
+        duration_result = subprocess.run(
+            [
+                "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1", str(filepath),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        volume_result = subprocess.run(
+            [
+                "ffmpeg", "-hide_banner", "-nostats", "-i", str(filepath),
+                "-af", "volumedetect", "-f", "null", "-",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (subprocess.CalledProcessError, ValueError) as error:
+        raise ValueError(f"could not inspect {filepath.name}") from error
+
+    max_volume_match = re.search(r"max_volume:\s*(-?(?:inf|\d+(?:\.\d+)?)) dB", volume_result.stderr)
+    if not max_volume_match:
+        raise ValueError(f"could not read peak level for {filepath.name}")
+    max_volume_text = max_volume_match.group(1)
+    max_volume = float("-inf") if max_volume_text == "-inf" else float(max_volume_text)
+    return AudioQuality(float(duration_result.stdout.strip()), max_volume)
 
 
 class SoundGenerator:
@@ -70,15 +116,26 @@ class SoundGenerator:
         dry_run: bool,
         retries: int,
         retry_delay: float,
+        normalize_lufs: float | None = None,
+        quality_retries: int = 4,
+        minimum_duration: float = 0.35,
+        minimum_peak_db: float = -24.0,
+        quality_check: bool = True,
     ) -> None:
         self.force = force
         self.dry_run = dry_run
         self.retries = retries
         self.retry_delay = retry_delay
         self.volume_gain_db = volume_gain_db
+        self.normalize_lufs = normalize_lufs
+        self.quality_retries = quality_retries
+        self.minimum_duration = minimum_duration
+        self.minimum_peak_db = minimum_peak_db
+        self.quality_check = quality_check
         self.written = 0
         self.skipped = 0
         self.expected_files: set[Path] = set()
+        self.quality_results: dict[str, AudioQuality] = {}
 
         self.texttospeech = None
         self.client = None
@@ -89,8 +146,14 @@ class SoundGenerator:
         if dry_run:
             return
 
-        if volume_gain_db != 0.0 and shutil.which("ffmpeg") is None:
-            raise SystemExit("--volume-gain-db requires ffmpeg on PATH")
+        required_tools = []
+        if quality_check or volume_gain_db != 0.0 or normalize_lufs is not None:
+            required_tools.append("ffmpeg")
+        if quality_check:
+            required_tools.append("ffprobe")
+        missing_tools = [tool for tool in required_tools if shutil.which(tool) is None]
+        if missing_tools:
+            raise SystemExit(f"Audio generation requires these tools on PATH: {', '.join(missing_tools)}")
 
         try:
             from google.cloud import texttospeech
@@ -139,16 +202,51 @@ class SoundGenerator:
         assert self.voice is not None
         assert self.audio_config is not None
         assert self.google_exceptions is not None
-        synthesis_input = self.texttospeech.SynthesisInput(text=text)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="thaisheet-audio-") as temp_dir:
+            source = Path(temp_dir) / "source.mp3"
+            for quality_attempt in range(self.quality_retries + 1):
+                response = self.synthesize(text)
+                source.write_bytes(response.audio_content)
+                issues = []
+                if self.quality_check:
+                    try:
+                        quality = inspect_audio(source)
+                        issues = quality.issues(self.minimum_duration, self.minimum_peak_db)
+                    except ValueError as error:
+                        quality = None
+                        issues = [str(error)]
+                else:
+                    quality = None
 
+                if not issues:
+                    if quality is not None:
+                        self.quality_results[filepath.name] = quality
+                    self.write_processed_audio(source, filepath)
+                    self.written += 1
+                    return
+
+                issue_text = "; ".join(issues)
+                if quality_attempt < self.quality_retries:
+                    print(
+                        f"  Rejected {filepath.name} ({issue_text}); "
+                        f"resynthesizing ({quality_attempt + 1}/{self.quality_retries})..."
+                    )
+                    continue
+                raise SystemExit(
+                    f"Audio quality check failed for {filepath.name} after "
+                    f"{self.quality_retries + 1} attempts: {issue_text}"
+                )
+
+    def synthesize(self, text: str):
+        synthesis_input = self.texttospeech.SynthesisInput(text=text)
         for attempt in range(self.retries + 1):
             try:
-                response = self.client.synthesize_speech(
+                return self.client.synthesize_speech(
                     input=synthesis_input,
                     voice=self.voice,
                     audio_config=self.audio_config,
                 )
-                break
             except self.google_exceptions.PermissionDenied as error:
                 if is_service_disabled_error(error) and attempt < self.retries:
                     self.retry_after_delay(error, attempt)
@@ -160,30 +258,27 @@ class SoundGenerator:
                     continue
                 raise SystemExit(format_google_api_error(error)) from error
 
-        if self.volume_gain_db == 0.0:
-            filepath.write_bytes(response.audio_content)
-        else:
-            self.write_with_volume_gain(response.audio_content, filepath)
-        self.written += 1
+    def write_processed_audio(self, source: Path, filepath: Path) -> None:
+        """Write an MP3, optionally normalizing or applying peak-limited gain."""
+        if self.normalize_lufs is None and self.volume_gain_db == 0.0:
+            shutil.copyfile(source, filepath)
+            return
 
-    def write_with_volume_gain(self, audio_content: bytes, filepath: Path) -> None:
-        """Apply gain locally because some Google voices ignore volume_gain_db."""
-        with tempfile.TemporaryDirectory(prefix="thaisheet-audio-") as temp_dir:
-            source = Path(temp_dir) / "source.mp3"
-            output = Path(temp_dir) / "output.mp3"
-            source.write_bytes(audio_content)
-            try:
-                subprocess.run(
-                    [
-                        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                        "-i", str(source), "-filter:a", f"volume={self.volume_gain_db:g}dB",
-                        "-b:a", "64k", str(output),
-                    ],
-                    check=True,
-                )
-            except subprocess.CalledProcessError as error:
-                raise SystemExit(f"ffmpeg failed while applying volume gain to {filepath.name}") from error
-            filepath.write_bytes(output.read_bytes())
+        if self.normalize_lufs is not None:
+            audio_filter = f"loudnorm=I={self.normalize_lufs:g}:LRA=7:TP=-1.5"
+        else:
+            audio_filter = f"volume={self.volume_gain_db:g}dB,alimiter=limit=0.8414:level=false"
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-i", str(source), "-filter:a", audio_filter,
+                    "-ar", "24000", "-b:a", "64k", str(filepath),
+                ],
+                check=True,
+            )
+        except subprocess.CalledProcessError as error:
+            raise SystemExit(f"ffmpeg failed while processing {filepath.name}") from error
 
     def retry_after_delay(self, error: Exception, attempt: int) -> None:
         delay = min(self.retry_delay * (2 ** attempt), 60.0)
@@ -249,6 +344,9 @@ def is_retryable_google_api_error(error: Exception) -> bool:
         "DEADLINE_EXCEEDED",
         "RESOURCE_EXHAUSTED",
         "UNAVAILABLE",
+        "failed to connect",
+        "No route to host",
+        "503",
     ])
 
 
@@ -270,213 +368,21 @@ def find_project_id(message: str) -> str | None:
     return match.group(1) if match else None
 
 
-# =============================================================================
-# TONE MARKS
-# =============================================================================
-
-def generate_tone_marks(sounds_dir: Path, cheatsheet_dir: Path, generator: SoundGenerator) -> None:
-    """Generate tone mark sound files using fixed consonants matching the reference.
-
-    Uses ค (low), ก (mid), and ข (high class) to match the reference display.
-    Generates 8 total files: 2 low + 4 mid + 2 high (a nil/absent tone means
-    the mark is not used with that class; unmarked syllables have no files —
-    they belong to the tone rules).
-    """
-    print("\n[Tone Marks]")
-
-    # Load tone marks
-    tone_marks_path = cheatsheet_dir / "tone-marks.json"
-    with open(tone_marks_path, 'r', encoding='utf-8') as f:
-        tone_marks_data = json.load(f)
-
-    # Fixed consonants matching the reference (ToneMark.lowConsonant etc.)
-    CLASS_CONSONANTS = [
-        ("onLow", "ค", "low class"),
-        ("onMid", "ก", "mid class"),
-        ("onHigh", "ข", "high class"),
-    ]
-
-    count = 0
-    for tone_mark in tone_marks_data['toneMarks']:
-        mark = tone_mark['mark']
-        for key, consonant, class_label in CLASS_CONSONANTS:
-            tone = tone_mark.get(key)
-            if not tone:
-                continue
-            display = consonant + mark + "า"
-            filename = f"cheat_sheet_tone_mark_{display}.mp3"
-            generator.generate(display, sounds_dir / filename, f"{tone} tone ({class_label})")
-            count += 1
-
-    print(f"  Processed {count} tone mark sounds")
-
-
-# =============================================================================
-# TONE RULES
-# =============================================================================
-
-def generate_tone_rules(sounds_dir: Path, cheatsheet_dir: Path, generator: SoundGenerator) -> None:
-    """Generate tone rule sample word sound files."""
-    print("\n[Tone Rules]")
-
-    json_path = cheatsheet_dir / "tone-rules.json"
-    with open(json_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    count = 0
-    seen = set()  # Avoid duplicates across rules
-
-    for rule in data['toneRules']:
-        if 'samples' in rule and rule['samples']:
-            tone = rule['tone']
-            # Generate sound for all samples in the rule
-            for sample in rule['samples']:
-                word = sample['full']
-                if word not in seen:
-                    seen.add(word)
-                    filename = f"cheat_sheet_tone_rule_{word}.mp3"
-                    generator.generate(word, sounds_dir / filename, f"{tone} tone")
-                    count += 1
-
-    print(f"  Processed {count} tone rule sounds")
-
-
-# =============================================================================
-# CONSONANTS
-# =============================================================================
-
-def generate_consonants(sounds_dir: Path, cheatsheet_dir: Path, generator: SoundGenerator) -> None:
-    """Generate consonant sound files."""
-    print("\n[Consonants]")
-
-    json_path = cheatsheet_dir / "consonants.json"
-    with open(json_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    count = 0
-    for consonant in data['consonants']:
-        char = consonant['character']
-        name = consonant['name']
-        # Use the full name for pronunciation (e.g., "กอ ไก่")
-        filename = f"cheat_sheet_consonant_{char}.mp3"
-        generator.generate(name, sounds_dir / filename, name)
-        count += 1
-
-    print(f"  Processed {count} consonant sounds")
-
-
-# =============================================================================
-# VOWELS
-# =============================================================================
-
-def generate_vowels(sounds_dir: Path, cheatsheet_dir: Path, generator: SoundGenerator) -> None:
-    """Generate vowel sound files."""
-    print("\n[Vowels]")
-
-    json_path = cheatsheet_dir / "vowels.json"
-    with open(json_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    count = 0
-    seen = set()  # Avoid duplicates
-
-    for vowel in data['vowels']:
-        # Generate sound for each vowel form (short/long, open/closed)
-        forms = [
-            vowel['short'].get('closed'),
-            vowel['short'].get('open'),
-            vowel['long'].get('closed'),
-            vowel['long'].get('open'),
-        ]
-
-        for form in forms:
-            if form and form not in seen:
-                seen.add(form)
-                if form in EXCLUDED_VOWEL_FORMS:
-                    print(f"  Skipping {form} (intentionally no audio; see EXCLUDED_VOWEL_FORMS)")
-                    continue
-                # Remove trailing dash for pronunciation
-                text = form.rstrip('-')
-                filename = f"cheat_sheet_vowel_{form}.mp3"
-                generator.generate(text, sounds_dir / filename)
-                count += 1
-
-    print(f"  Processed {count} vowel sounds")
-
-
-# =============================================================================
-# CLUSTERS
-# =============================================================================
-
-def generate_clusters(sounds_dir: Path, cheatsheet_dir: Path, generator: SoundGenerator) -> None:
-    """Generate cluster sound files using cluster + า."""
-    print("\n[Clusters]")
-
-    json_path = cheatsheet_dir / "clusters.json"
-    with open(json_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    count = 0
-    for cluster in data['clusters']:
-        cluster_text = cluster['cluster']
-        # Match Cluster.displayWithVowel in the app.
-        # e.g., "กร-" -> "กรา", but final-position "-ทร" stays as written.
-        if cluster_text.startswith('-'):
-            display = cluster_text
-        else:
-            base = cluster_text.strip('-')
-            display = base + "า"
-
-        filename = f"cheat_sheet_cluster_{display}.mp3"
-        sound_type = cluster.get('type', '')
-        generator.generate(display, sounds_dir / filename, sound_type)
-        count += 1
-
-    print(f"  Processed {count} cluster sounds")
-
-
-# =============================================================================
-# SAMPLE WORDS
-# =============================================================================
-
-def generate_sample_words(sounds_dir: Path, cheatsheet_dir: Path, generator: SoundGenerator) -> None:
-    """Generate one deduplicated sound file per reference sample word."""
-    print("\n[Sample Words]")
-
-    words: dict[str, set[str]] = {}
-
-    def add(sample: dict | None, source: str) -> None:
-        if sample and sample.get('word'):
-            words.setdefault(sample['word'], set()).add(source)
-
-    with open(cheatsheet_dir / "consonants.json", 'r', encoding='utf-8') as f:
-        for consonant in json.load(f)['consonants']:
-            sample = consonant.get('sample')
-            if sample is None:
-                name_parts = consonant['name'].split(' ', 1)
-                sample = {'word': name_parts[1]} if len(name_parts) == 2 else None
-            add(sample, 'consonant')
-
-    with open(cheatsheet_dir / "vowels.json", 'r', encoding='utf-8') as f:
-        for vowel in json.load(f)['vowels']:
-            for sample in (vowel.get('samples') or {}).values():
-                add(sample, 'vowel')
-
-    with open(cheatsheet_dir / "tone-marks.json", 'r', encoding='utf-8') as f:
-        for tone_mark in json.load(f)['toneMarks']:
-            for sample in (tone_mark.get('samples') or {}).values():
-                add(sample, 'tone mark')
-
-    with open(cheatsheet_dir / "clusters.json", 'r', encoding='utf-8') as f:
-        for cluster in json.load(f)['clusters']:
-            add(cluster.get('sample'), 'cluster')
-
-    for word in sorted(words):
-        filename = f"cheat_sheet_sample_word_{word}.mp3"
-        description = ", ".join(sorted(words[word]))
-        generator.generate(word, sounds_dir / filename, description)
-
-    print(f"  Processed {len(words)} unique sample word sounds")
+def generate_sound_type(
+    sounds_dir: Path,
+    items: list[SoundItem],
+    sound_type: str,
+    generator: SoundGenerator,
+) -> None:
+    selected_items = [item for item in items if item.sound_type == sound_type]
+    print(f"\n[{SOUND_TYPE_LABELS[sound_type]}]")
+    for item in selected_items:
+        generator.generate(
+            item.synthesis_text,
+            sounds_dir / item.filename,
+            item.description,
+        )
+    print(f"  Processed {len(selected_items)} sounds")
 
 
 def check_sound_files(sounds_dir: Path, generator: SoundGenerator) -> bool:
@@ -517,19 +423,32 @@ def main():
     parser.add_argument('--vowels', action='store_true', help='Generate vowel sounds')
     parser.add_argument('--clusters', action='store_true', help='Generate cluster sounds')
     parser.add_argument('--sample-words', action='store_true', help='Generate reference sample word sounds')
+    parser.add_argument('--sound-id', action='append', help='Generate one stable inventory ID; may be repeated')
     parser.add_argument('--language-code', default=DEFAULT_LANGUAGE_CODE, help='Google Cloud TTS language code')
     parser.add_argument('--voice-name', default=DEFAULT_VOICE_NAME, help='Google Cloud TTS voice name')
     parser.add_argument('--speaking-rate', type=float, default=1.0, help='Speaking rate, where 1.0 is normal')
     parser.add_argument('--pitch', type=float, default=0.0, help='Speaking pitch in semitones')
     parser.add_argument(
         '--volume-gain-db', type=float, default=0.0,
-        help='Post-synthesis output volume gain in dB (-96.0 to 16.0; requires ffmpeg)',
+        help='Legacy post-synthesis gain in dB; output is peak-limited to -1.5 dB',
+    )
+    parser.add_argument(
+        '--normalize-lufs', type=float,
+        help='Normalize output loudness to this LUFS target with a -1.5 dB true-peak limit',
+    )
+    parser.add_argument(
+        '--output-dir',
+        help='Candidate output directory; custom paths must be beneath the project scratchpad',
     )
     parser.add_argument('--force', action='store_true', help='Overwrite existing MP3 files')
     parser.add_argument('--dry-run', action='store_true', help='Show files that would be generated without calling the API')
-    parser.add_argument('--check-files', action='store_true', help='Fail if bundled MP3s are stale or missing')
+    parser.add_argument('--check-files', action='store_true', help='Fail if output MP3s are stale or missing')
     parser.add_argument('--retries', type=int, default=4, help='Retries for transient Google Cloud API errors')
     parser.add_argument('--retry-delay', type=float, default=5.0, help='Initial retry delay in seconds')
+    parser.add_argument('--quality-retries', type=int, default=4, help='Resynthesis attempts for rejected audio')
+    parser.add_argument('--minimum-duration', type=float, default=0.35, help='Minimum accepted duration in seconds')
+    parser.add_argument('--minimum-peak-db', type=float, default=-24.0, help='Minimum accepted peak level in dBFS')
+    parser.add_argument('--skip-quality-check', action='store_true', help='Accept synthesized audio without acoustic validation')
 
     args = parser.parse_args()
     selected_types = [
@@ -537,31 +456,75 @@ def main():
         args.clusters, args.sample_words,
     ]
 
+    if args.sound_id and any([args.all, *selected_types]):
+        parser.error("--sound-id cannot be combined with sound type options")
+
     if args.retries < 0:
         parser.error("--retries must be 0 or greater")
 
     if args.retry_delay < 0:
         parser.error("--retry-delay must be 0 or greater")
 
+    if args.quality_retries < 0:
+        parser.error("--quality-retries must be 0 or greater")
+
+    if args.minimum_duration <= 0:
+        parser.error("--minimum-duration must be greater than 0")
+
     if not -96.0 <= args.volume_gain_db <= 16.0:
         parser.error("--volume-gain-db must be between -96.0 and 16.0")
 
-    if args.check_files and not args.all and any(selected_types):
+    if args.normalize_lufs is not None and not -70.0 <= args.normalize_lufs <= -5.0:
+        parser.error("--normalize-lufs must be between -70 and -5")
+
+    if args.normalize_lufs is not None and args.volume_gain_db != 0.0:
+        parser.error("--normalize-lufs and --volume-gain-db cannot be used together")
+
+    if args.check_files and (args.sound_id or (not args.all and any(selected_types))):
         parser.error("--check-files must be used with --all or with no specific sound type")
 
     # Default to --all if no specific option provided
-    if not any([args.all, *selected_types]):
+    if not any([args.all, args.sound_id, *selected_types]):
         args.all = True
 
-    project_root, sounds_dir, cheatsheet_dir = get_project_paths()
+    project_root, production_sounds_dir, cheatsheet_dir = get_project_paths()
+    if args.output_dir:
+        sounds_dir = Path(args.output_dir).expanduser()
+        if not sounds_dir.is_absolute():
+            sounds_dir = project_root / sounds_dir
+        sounds_dir = sounds_dir.resolve()
+        scratchpad_dir = (project_root / "scratchpad").resolve()
+        if sounds_dir == scratchpad_dir or scratchpad_dir not in sounds_dir.parents:
+            parser.error(f"--output-dir must be beneath {scratchpad_dir}")
+    else:
+        sounds_dir = production_sounds_dir
 
-    if not sounds_dir.exists():
+    if sounds_dir == production_sounds_dir and not sounds_dir.exists():
         print(f"Error: Sounds directory not found: {sounds_dir}")
         return 1
+    sounds_dir.mkdir(parents=True, exist_ok=True)
+
+    inventory = load_sound_inventory(cheatsheet_dir)
+    grouped_inventory = inventory_by_type(inventory)
+    if args.sound_id:
+        inventory_ids = {item.id for item in inventory}
+        unknown_ids = sorted(set(args.sound_id) - inventory_ids)
+        if unknown_ids:
+            parser.error(f"unknown --sound-id values: {', '.join(unknown_ids)}")
 
     print(f"Output directory: {sounds_dir}")
     print(f"Voice: {args.voice_name or '(default for language)'} ({args.language_code})")
-    print(f"Volume gain: {args.volume_gain_db:g} dB")
+    if args.normalize_lufs is not None:
+        print(f"Loudness normalization: {args.normalize_lufs:g} LUFS, -1.5 dB peak limit")
+    else:
+        print(f"Volume gain: {args.volume_gain_db:g} dB")
+    if args.skip_quality_check:
+        print("Audio quality validation: disabled")
+    else:
+        print(
+            f"Audio quality validation: at least {args.minimum_duration:g}s and "
+            f"{args.minimum_peak_db:g} dBFS peak; {args.quality_retries} retries"
+        )
     if not args.force:
         print("Existing files will be skipped; pass --force to overwrite them.")
 
@@ -575,25 +538,36 @@ def main():
         dry_run=args.dry_run,
         retries=args.retries,
         retry_delay=args.retry_delay,
+        normalize_lufs=args.normalize_lufs,
+        quality_retries=args.quality_retries,
+        minimum_duration=args.minimum_duration,
+        minimum_peak_db=args.minimum_peak_db,
+        quality_check=not args.skip_quality_check,
     )
 
-    if args.all or args.tone_marks:
-        generate_tone_marks(sounds_dir, cheatsheet_dir, generator)
-
-    if args.all or args.tone_rules:
-        generate_tone_rules(sounds_dir, cheatsheet_dir, generator)
-
-    if args.all or args.consonants:
-        generate_consonants(sounds_dir, cheatsheet_dir, generator)
-
-    if args.all or args.vowels:
-        generate_vowels(sounds_dir, cheatsheet_dir, generator)
-
-    if args.all or args.clusters:
-        generate_clusters(sounds_dir, cheatsheet_dir, generator)
-
-    if args.all or args.sample_words:
-        generate_sample_words(sounds_dir, cheatsheet_dir, generator)
+    if args.sound_id:
+        selected_ids = set(args.sound_id)
+        selected_items = [item for item in inventory if item.id in selected_ids]
+        print("\n[Selected sounds]")
+        for item in selected_items:
+            generator.generate(
+                item.synthesis_text,
+                sounds_dir / item.filename,
+                item.description,
+            )
+        print(f"  Processed {len(selected_items)} sounds")
+    else:
+        selected_sound_types = {
+            "tone_mark": args.all or args.tone_marks,
+            "tone_rule": args.all or args.tone_rules,
+            "consonant": args.all or args.consonants,
+            "vowel": args.all or args.vowels,
+            "cluster": args.all or args.clusters,
+            "sample_word": args.all or args.sample_words,
+        }
+        for sound_type in SOUND_TYPE_ORDER:
+            if selected_sound_types[sound_type]:
+                generate_sound_type(sounds_dir, grouped_inventory[sound_type], sound_type, generator)
 
     action = "would be generated" if args.dry_run else "written"
     print(f"\nDone! {generator.written} files {action}; {generator.skipped} skipped.")

@@ -22,3 +22,6 @@ __pycache__/
 
 # Source cheat sheet images (copyrighted Udemy course material - local reference only)
 external-resources/
+
+# Local generated experiments and audition output
+scratchpad/

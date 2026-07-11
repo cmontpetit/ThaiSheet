@@ -1,0 +1,6 @@
+{
+  "provider": "Google Cloud Text-to-Speech",
+  "voice": "th-TH-Neural2-C",
+  "processing": "6 dB post-synthesis gain",
+  "status": "Current bundled recorded voice"
+}
