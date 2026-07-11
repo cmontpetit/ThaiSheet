@@ -37,8 +37,8 @@ DEFAULT_VOICE_NAME = "th-TH-Neural2-C"
 # ฤ- (the "ri" reading): dash-stripping sends bare "ฤ" to TTS, which speaks
 # the "rue" reading — wrong for this entry (the shipped file was confirmed
 # byte-identical to ฤ.mp3). Excluded pending the ฤ audio/quiz design decision
-# (content-correction plan, Bucket C). Keeping it out of expected_files also
-# keeps --check-files green.
+# (https://github.com/cmontpetit/ThaiSheet/issues/7). Keeping it out of
+# expected_files also keeps --check-files green.
 EXCLUDED_VOWEL_FORMS = {"ฤ-"}
 
 

@@ -372,8 +372,8 @@ final class BundleLoaderTests: XCTestCase {
         // The shipped ฤ-.mp3 was byte-identical to ฤ.mp3 (TTS received the
         // dash-stripped "ฤ" and spoke the rue reading — wrong for the ri
         // entry). Removed pending the ฤ audio/quiz design decision
-        // (content-correction plan, Bucket C); generate_sounds.py excludes
-        // it via EXCLUDED_VOWEL_FORMS.
+        // (https://github.com/cmontpetit/ThaiSheet/issues/7);
+        // generate_sounds.py excludes it via EXCLUDED_VOWEL_FORMS.
         func bundledSound(_ name: String) -> URL? {
             Bundle.main.url(forResource: name, withExtension: "mp3", subdirectory: "sounds")
                 ?? Bundle.main.url(forResource: name, withExtension: "mp3")
