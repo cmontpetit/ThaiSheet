@@ -78,9 +78,10 @@ struct Cluster: Codable, Identifiable {
         sound ?? String(localized: "(silent)", bundle: .appLanguage)
     }
 
-    /// Display form with า vowel for pronunciation (e.g., "กร-" → "กรา").
-    /// Final-position clusters (leading "-", e.g. "-ทร") display as written.
-    var displayWithVowel: String {
+    /// Playback form with า added to make an initial cluster pronounceable
+    /// (e.g., "กร-" → "กรา"). Visible UI always uses `cluster` as written.
+    /// Final-position clusters (leading "-", e.g. "-ทร") play as written.
+    var audioKey: String {
         guard !cluster.hasPrefix("-") else { return cluster }
         let base = cluster.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
         return base + "า"

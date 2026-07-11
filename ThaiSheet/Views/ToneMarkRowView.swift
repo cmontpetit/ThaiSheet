@@ -5,6 +5,51 @@
 
 import SwiftUI
 
+struct ToneMarkSheetContext {
+    let mark: String
+    let consonantClass: String
+    let tone: String
+}
+
+struct ToneMarkExpressionView: View {
+    let context: ToneMarkSheetContext
+    @ScaledMetric(relativeTo: .largeTitle) private var markSize: CGFloat = 48
+    @ScaledMetric(relativeTo: .largeTitle) private var toneIndicatorSize: CGFloat = 40
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 10) {
+                Text(ThaiDisplay.placeholder(ToneMark.midConsonant + context.mark))
+                    .font(.system(size: markSize))
+
+                Text("+")
+                    .foregroundStyle(.secondary)
+
+                StyledConsonantClassText(
+                    consonantClass: context.consonantClass,
+                    font: .title2.weight(.semibold),
+                    verticalPadding: 8
+                )
+            }
+
+            StyledToneText(
+                tone: context.tone,
+                font: .system(size: toneIndicatorSize, weight: .semibold)
+            )
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        let consonantClass = String(
+            localized: String.LocalizationValue(context.consonantClass),
+            bundle: .appLanguage
+        )
+        return "\(context.mark) + \(consonantClass): \(ThaiColors.toneName(context.tone))"
+    }
+}
+
 struct ToneMarkHeaderView: View {
     var body: some View {
         HStack(spacing: 0) {
@@ -97,7 +142,12 @@ struct ToneMarkRowView: View {
                     )
                 ) {
                     ReferenceItemSheet(
-                        title: entry.display,
+                        title: ThaiDisplay.placeholder(ToneMark.midConsonant + toneMark.mark),
+                        toneMarkContext: ToneMarkSheetContext(
+                            mark: toneMark.mark,
+                            consonantClass: entry.className,
+                            tone: tone
+                        ),
                         stage: stage(for: entry.soundKey),
                         note: nil,
                         sampleWord: toneMark.sampleWord(for: entry.soundKey),

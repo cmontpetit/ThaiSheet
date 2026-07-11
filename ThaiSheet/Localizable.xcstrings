@@ -977,18 +977,6 @@
         }
       }
     },
-    "Pronunciation Example" : {
-      "comment" : "A label for the real Thai word used to demonstrate a written vowel form.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exemple de prononciation"
-          }
-        }
-      }
-    },
     "Prioritizes cards due for review based on your progress. Uses spaced repetition to optimize learning." : {
       "localizations" : {
         "fr" : {
@@ -1269,6 +1257,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mot exemple"
+          }
+        }
+      }
+    },
+    "Say Name" : {
+      "comment" : "The action that pronounces a Thai consonant's full letter name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prononcer le nom"
           }
         }
       }

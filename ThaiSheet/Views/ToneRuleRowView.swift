@@ -5,24 +5,108 @@
 
 import SwiftUI
 
+struct StyledConsonantClassText: View {
+    let consonantClass: String
+    var width: CGFloat? = nil
+    var font: Font = .subheadline
+    var verticalPadding: CGFloat = 6
+
+    var body: some View {
+        Text(localizedConsonantClass)
+            .font(font)
+            .frame(width: width)
+            .padding(.horizontal, width == nil ? 10 : 0)
+            .padding(.vertical, verticalPadding)
+            .background(backgroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+    }
+
+    private var localizedConsonantClass: String {
+        String(
+            localized: String.LocalizationValue(consonantClass),
+            bundle: .appLanguage
+        )
+    }
+
+    private var backgroundColor: Color {
+        ConsonantClass(rawValue: consonantClass.lowercased())?.color
+            ?? Color(.systemGray5)
+    }
+}
+
 struct StyledToneText: View {
     /// Tone data identifier from JSON (e.g. "Falling"); shown as the
     /// Paiboon-style diacritic on ◌ over a tone-colored chip, matching the
     /// transcriptions and flashcard answer buttons. Language-neutral.
     let tone: String
+    var font: Font = .title2
 
     var body: some View {
         if tone.isEmpty {
             Text("")
         } else {
             Text(ThaiColors.toneDiacritic(tone))
-                .font(.title2)
+                .font(font)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 3)
                 .background(ThaiColors.toneButtonBackground(tone))
                 .clipShape(RoundedRectangle(cornerRadius: 6))
                 .accessibilityLabel(ThaiColors.toneName(tone))
         }
+    }
+}
+
+struct ToneRuleExpressionView: View {
+    let rule: ToneRule
+    @ScaledMetric(relativeTo: .largeTitle) private var toneIndicatorSize: CGFloat = 40
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 7) {
+                ruleInputs
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+
+            toneResult
+        }
+        .font(.title3)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var ruleInputs: some View {
+        Group {
+            StyledConsonantClassText(
+                consonantClass: rule.initialConsonant,
+                font: .headline
+            )
+            operatorSign("+")
+            Text(localized(rule.vowelDuration))
+            operatorSign("+")
+            Text(localized(rule.end))
+        }
+    }
+
+    private var toneResult: some View {
+        StyledToneText(
+            tone: rule.tone,
+            font: .system(size: toneIndicatorSize, weight: .semibold)
+        )
+    }
+
+    private var accessibilityLabel: String {
+        "\(localized(rule.initialConsonant)) + \(localized(rule.vowelDuration)) + "
+            + "\(localized(rule.end)) = \(ThaiColors.toneName(rule.tone))"
+    }
+
+    private func localized(_ value: String) -> String {
+        String(localized: String.LocalizationValue(value), bundle: .appLanguage)
+    }
+
+    private func operatorSign(_ value: String) -> some View {
+        Text(value)
+            .foregroundStyle(.secondary)
     }
 }
 
@@ -79,6 +163,31 @@ struct ToneRuleRowView: View {
         return audioPlayer.hasSound(.toneRule, key: sample.full)
     }
 
+    private var ruleDisplay: String {
+        let initial = String(
+            localized: String.LocalizationValue(rule.initialConsonant),
+            bundle: .appLanguage
+        )
+        let duration = String(
+            localized: String.LocalizationValue(rule.vowelDuration),
+            bundle: .appLanguage
+        )
+        let end = String(
+            localized: String.LocalizationValue(rule.end),
+            bundle: .appLanguage
+        )
+        return "\(initial) + \(duration) + \(end) = \(ThaiColors.toneName(rule.tone))"
+    }
+
+    private var additionalSampleWord: ReferenceSampleWord? {
+        guard let sample = rule.samples?.dropFirst().first else { return nil }
+        return ReferenceSampleWord(
+            word: sample.full,
+            romanization: sample.romanization,
+            meaning: sample.meaning
+        )
+    }
+
     /// Spoken summary of the rule row, e.g. "Low, Short, Dead/None: High. คะ"
     private var ruleAccessibilityLabel: String {
         let inputs = [rule.initialConsonant, rule.vowelDuration, rule.end]
@@ -111,11 +220,10 @@ struct ToneRuleRowView: View {
 
             // Row content: tap plays the sound, long press opens the sheet
             HStack(spacing: 0) {
-                Text(String(localized: String.LocalizationValue(rule.initialConsonant), bundle: .appLanguage))
-                    .frame(width: 60)
-                    .padding(.vertical, 6)
-                    .background(rule.consonantColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                StyledConsonantClassText(
+                    consonantClass: rule.initialConsonant,
+                    width: 60
+                )
 
                 Text("+")
                     .foregroundStyle(.quaternary)
@@ -157,15 +265,20 @@ struct ToneRuleRowView: View {
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
         .sheet(isPresented: $showingSheet) {
             ReferenceItemSheet(
-                title: rule.primarySample?.full ?? String(localized: String.LocalizationValue(rule.tone), bundle: .appLanguage),
+                title: ruleDisplay,
+                subtitle: rule.primarySample?.full,
+                toneRule: rule,
+                usesCompactTitle: true,
                 stage: lowestStage,
                 note: rule.primarySample?.note?.localized,
+                sampleWord: additionalSampleWord,
                 hasSound: hasSound,
                 onPlaySound: {
                     if let sample = rule.primarySample {
                         audioPlayer.play(.toneRule, key: sample.full)
                     }
                 },
+                onPlaySampleWord: { audioPlayer.play(.toneRule, key: $0.word) },
                 onPractice: { onPractice?() }
             )
         }

@@ -51,13 +51,13 @@ struct ClusterFlashcardView: View {
             showResult: cardState.step == .completed,
             hasError: cardState.hasError(for: cluster),
             soundType: .cluster,
-            soundKey: cluster.displayWithVowel,
+            soundKey: cluster.audioKey,
             displayHeight: 140,
             onViewInReference: { onViewInReference?(cluster.id) },
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {
-            Text(cluster.displayWithVowel)
+            Text(cluster.cluster)
                 .font(.system(size: glyphSize))
                 .minimumScaleFactor(0.5)
         }
@@ -145,8 +145,8 @@ struct ClusterFlashcardView: View {
         cardState.step = .completed
         // Revealed early counts as incorrect; otherwise correct if no errors were made
         onComplete?(revealed ? false : !cardState.hasError(for: cluster))
-        if audioPlayer.hasSound(.cluster, key: cluster.displayWithVowel) {
-            audioPlayer.play(.cluster, key: cluster.displayWithVowel)
+        if audioPlayer.hasSound(.cluster, key: cluster.audioKey) {
+            audioPlayer.play(.cluster, key: cluster.audioKey)
         }
     }
 

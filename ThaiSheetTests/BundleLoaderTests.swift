@@ -219,6 +219,34 @@ final class BundleLoaderTests: XCTestCase {
         }
     }
 
+    func test_toneRulePopupExamples_haveBundledAudio() {
+        for rule in ToneRule.loadAll() {
+            guard let sample = rule.samples?.dropFirst().first else {
+                XCTFail("Tone rule \(rule.id) needs an additional popup example")
+                continue
+            }
+            let filename = "cheat_sheet_tone_rule_\(sample.full)"
+            let sound = Bundle.main.url(
+                forResource: filename,
+                withExtension: "mp3",
+                subdirectory: "sounds"
+            ) ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
+            XCTAssertNotNil(sound, "Missing tone-rule example audio for \(sample.full)")
+            XCTAssertFalse(
+                sample.romanization?.isEmpty ?? true,
+                "Tone-rule example \(sample.full) needs romanization"
+            )
+            XCTAssertFalse(
+                sample.meaning?.en.isEmpty ?? true,
+                "Tone-rule example \(sample.full) needs an English meaning"
+            )
+            XCTAssertFalse(
+                sample.meaning?.fr?.isEmpty ?? true,
+                "Tone-rule example \(sample.full) needs a French meaning"
+            )
+        }
+    }
+
     // MARK: - Cluster Loading
 
     func test_clusterLoadAll_returnsNonEmptyArray() {
@@ -269,6 +297,28 @@ final class BundleLoaderTests: XCTestCase {
         // Total count across groups should equal total clusters
         let totalGrouped = grouped.reduce(0) { $0 + $1.clusters.count }
         XCTAssertEqual(totalGrouped, clusters.count)
+    }
+
+    func test_clusterAudioKey_keepsDisplayNotationSeparateFromPlayback() {
+        let initial = Cluster.loadAll().first { $0.cluster == "กร-" }
+        XCTAssertEqual(initial?.cluster, "กร-")
+        XCTAssertEqual(initial?.audioKey, "กรา")
+
+        let final = Cluster.loadAll().first { $0.cluster == "-ทร" }
+        XCTAssertEqual(final?.cluster, "-ทร")
+        XCTAssertEqual(final?.audioKey, "-ทร")
+    }
+
+    func test_clusterAudioKeys_resolveToBundledSounds() {
+        for cluster in Cluster.loadAll() {
+            let filename = "cheat_sheet_cluster_\(cluster.audioKey)"
+            let sound = Bundle.main.url(
+                forResource: filename,
+                withExtension: "mp3",
+                subdirectory: "sounds"
+            ) ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
+            XCTAssertNotNil(sound, "Missing cluster audio for \(cluster.cluster): \(cluster.audioKey)")
+        }
     }
 
     // MARK: - BundleLoader with invalid resource

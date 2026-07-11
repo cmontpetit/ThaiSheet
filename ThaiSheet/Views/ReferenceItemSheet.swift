@@ -8,12 +8,18 @@ import SwiftUI
 /// A reusable sheet for reference items showing stage, notes, and action buttons
 struct ReferenceItemSheet: View {
     let title: String
+    var romanization: String? = nil
+    var subtitle: String? = nil
+    var toneMarkContext: ToneMarkSheetContext? = nil
+    var toneRule: ToneRule? = nil
+    var usesCompactTitle: Bool = false
     let stage: SRSStage
     let note: String?
     var pronunciationWord: ReferenceSampleWord? = nil
     var sampleWord: ReferenceSampleWord? = nil
     let hasSound: Bool
     let onPlaySound: () -> Void
+    var soundActionLabel: LocalizedStringKey = "Play Sound"
     var onPlayPronunciation: (ReferenceSampleWord) -> Void = { _ in }
     var onPlaySampleWord: (ReferenceSampleWord) -> Void = { _ in }
     let onPractice: () -> Void
@@ -21,17 +27,54 @@ struct ReferenceItemSheet: View {
     @Environment(\.dismiss) var dismiss
     @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
     @ScaledMetric(relativeTo: .largeTitle) private var titleFrameHeight: CGFloat = 86
+    @ScaledMetric(relativeTo: .largeTitle) private var toneHeaderFrameHeight: CGFloat = 124
 
     var body: some View {
         VStack(spacing: 18) {
-            // Title
-            Text(title)
-                .font(.system(size: titleSize))
-                .lineLimit(1)
-                .minimumScaleFactor(0.45)
-                .frame(height: titleFrameHeight)
-                .frame(maxWidth: .infinity)
-                .clipped()
+            // Table item and its matching transcription or tone context
+            VStack(spacing: 4) {
+                Group {
+                    if let toneRule {
+                        ToneRuleExpressionView(rule: toneRule)
+                            .padding(.horizontal)
+                    } else if let toneMarkContext {
+                        ToneMarkExpressionView(context: toneMarkContext)
+                    } else {
+                        Text(title)
+                            .font(
+                                usesCompactTitle
+                                    ? .title2.weight(.semibold)
+                                    : .system(size: titleSize)
+                            )
+                            .lineLimit(usesCompactTitle ? 3 : 1)
+                            .minimumScaleFactor(0.45)
+                    }
+                }
+                    .frame(
+                        height: toneRule != nil || toneMarkContext != nil
+                            ? toneHeaderFrameHeight
+                            : titleFrameHeight
+                    )
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+
+                if let romanization, !romanization.isEmpty {
+                    Text(romanization)
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.title2)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+
+            }
 
             // Stage indicator
             StageIndicatorView(stage: stage, isCapped: false)
@@ -49,24 +92,24 @@ struct ReferenceItemSheet: View {
 
             // Action buttons
             VStack(spacing: 12) {
-                if let pronunciationWord {
-                    pronunciationWordButton(pronunciationWord)
-                } else {
-                    Button {
+                Button {
+                    if let pronunciationWord {
+                        onPlayPronunciation(pronunciationWord)
+                    } else {
                         onPlaySound()
-                    } label: {
-                        HStack {
-                            Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                            Text("Play Sound")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(hasSound ? Color.accentColor : Color.gray.opacity(0.3))
-                        .foregroundColor(hasSound ? .white : .secondary)
-                        .cornerRadius(12)
                     }
-                    .disabled(!hasSound)
+                } label: {
+                    HStack {
+                        Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                        Text(soundActionLabel)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(hasSound ? Color.accentColor : Color.gray.opacity(0.3))
+                    .foregroundColor(hasSound ? .white : .secondary)
+                    .cornerRadius(12)
                 }
+                .disabled(!hasSound)
 
                 Button {
                     dismiss()
@@ -83,32 +126,39 @@ struct ReferenceItemSheet: View {
                     .cornerRadius(12)
                 }
 
-                if let sampleWord,
-                   sampleWord.word != pronunciationWord?.word {
-                    sampleWordButton(sampleWord)
+                if let exampleWord = sampleWord ?? pronunciationWord {
+                    sampleWordButton(
+                        exampleWord,
+                        usesPronunciationAudio: exampleWord.word == pronunciationWord?.word
+                    )
                 }
             }
             .padding(.horizontal)
             .padding(.bottom, 20)
         }
         .padding(.top, 18)
-        .presentationDetents(pronunciationWord == nil ? [.fraction(0.68), .large] : [.large])
+        .presentationDetents(
+                pronunciationWord == nil
+                && romanization == nil
+                && subtitle == nil
+                && toneMarkContext == nil
+                && toneRule == nil
+                ? [.fraction(0.68), .large]
+                : [.large]
+        )
         .presentationDragIndicator(.visible)
     }
 
-    private func pronunciationWordButton(_ word: ReferenceSampleWord) -> some View {
+    private func sampleWordButton(
+        _ sampleWord: ReferenceSampleWord,
+        usesPronunciationAudio: Bool = false
+    ) -> some View {
         Button {
-            onPlayPronunciation(word)
-        } label: {
-            wordButtonLabel(word, title: "Pronunciation Example", hasSound: hasSound)
-        }
-        .buttonStyle(.plain)
-        .disabled(!hasSound)
-    }
-
-    private func sampleWordButton(_ sampleWord: ReferenceSampleWord) -> some View {
-        Button {
-            onPlaySampleWord(sampleWord)
+            if usesPronunciationAudio {
+                onPlayPronunciation(sampleWord)
+            } else {
+                onPlaySampleWord(sampleWord)
+            }
         } label: {
             wordButtonLabel(sampleWord, title: "Sample Word", hasSound: true)
         }
@@ -161,6 +211,7 @@ struct ReferenceItemSheet: View {
         .sheet(isPresented: .constant(true)) {
             ReferenceItemSheet(
                 title: "ก",
+                romanization: "gaaw gài",
                 stage: .apprentice1,
                 note: "This is a sample note explaining the character.",
                 pronunciationWord: ReferenceSampleWord(

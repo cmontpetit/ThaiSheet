@@ -10,6 +10,22 @@ struct ToneSample: Codable {
     let full: String
     let focus: String
     let note: LocalizedText?
+    let romanization: String?
+    let meaning: LocalizedText?
+
+    init(
+        full: String,
+        focus: String,
+        note: LocalizedText? = nil,
+        romanization: String? = nil,
+        meaning: LocalizedText? = nil
+    ) {
+        self.full = full
+        self.focus = focus
+        self.note = note
+        self.romanization = romanization
+        self.meaning = meaning
+    }
 }
 
 struct ToneRule: Codable, Identifiable {
