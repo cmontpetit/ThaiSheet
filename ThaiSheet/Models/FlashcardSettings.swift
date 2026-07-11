@@ -18,7 +18,7 @@ class FlashcardSettings {
         "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
-        "fc_useIntelligentSelection", "fc_appLanguage", "fc_iCloudSyncEnabled",
+        "fc_useIntelligentSelection", "fc_audioSource", "fc_appLanguage", "fc_iCloudSyncEnabled",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -112,6 +112,10 @@ class FlashcardSettings {
         didSet { persist(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
     }
 
+    var audioSource: AudioSource = .recorded {
+        didSet { persist(audioSource.rawValue, forKey: "fc_audioSource") }
+    }
+
     var appLanguage = "system" {
         didSet {
             persist(appLanguage, forKey: "fc_appLanguage")
@@ -192,6 +196,7 @@ class FlashcardSettings {
         irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
 
         useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
+        audioSource = defaults.string(forKey: "fc_audioSource").flatMap(AudioSource.init(rawValue:)) ?? .recorded
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
     }

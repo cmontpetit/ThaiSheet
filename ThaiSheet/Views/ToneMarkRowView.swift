@@ -103,7 +103,7 @@ struct ToneMarkRowView: View {
                         sampleWord: toneMark.sampleWord(for: entry.soundKey),
                         hasSound: hasSound,
                         onPlaySound: { audioPlayer.play(.toneMark, key: entry.soundKey) },
-                        onPlaySampleWord: { audioPlayer.speak($0.word) },
+                        onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
                         onPractice: { onPractice?(entry.soundKey) }
                     )
                 }

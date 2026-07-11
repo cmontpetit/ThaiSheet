@@ -12,6 +12,14 @@ enum SoundType: String {
     case cluster
     case toneMark = "tone_mark"
     case toneRule = "tone_rule"
+    case sampleWord = "sample_word"
+}
+
+enum AudioSource: String, CaseIterable, Identifiable {
+    case recorded
+    case device
+
+    var id: String { rawValue }
 }
 
 /// Protocol for audio playback, enabling test mocking
@@ -24,7 +32,13 @@ protocol AudioPlaying {
 // MARK: - Environment Key
 
 private struct AudioPlayerKey: EnvironmentKey {
-    static let defaultValue: AudioPlaying = AudioPlayer.shared
+    static let defaultValue: AudioPlaying = NoOpAudioPlayer()
+}
+
+private struct NoOpAudioPlayer: AudioPlaying {
+    func play(_ type: SoundType, key: String) {}
+    func speak(_ text: String) {}
+    func hasSound(_ type: SoundType, key: String) -> Bool { false }
 }
 
 extension EnvironmentValues {
@@ -37,11 +51,12 @@ extension EnvironmentValues {
 // MARK: - AudioPlayer Implementation
 
 class AudioPlayer: NSObject, AudioPlaying {
-    static let shared = AudioPlayer()
     private var player: AVAudioPlayer?
     private let speechSynthesizer = AVSpeechSynthesizer()
+    var audioSource: AudioSource
 
-    private override init() {
+    init(audioSource: AudioSource = .recorded) {
+        self.audioSource = audioSource
         super.init()
         speechSynthesizer.delegate = self
         // Skip audio session configuration during unit tests to avoid CoreAudio crashes
@@ -61,12 +76,18 @@ class AudioPlayer: NSObject, AudioPlaying {
     }
 
     func play(_ type: SoundType, key: String) {
-        speechSynthesizer.stopSpeaking(at: .immediate)
-        let filename = "cheat_sheet_\(type.rawValue)_\(key)"
-        playFile(filename: filename)
+        switch effectiveAudioSource {
+        case .recorded:
+            speechSynthesizer.stopSpeaking(at: .immediate)
+            playFile(filename: Self.filename(type, key: key))
+        case .device:
+            guard let text = Self.liveText(for: type, key: key) else { return }
+            speak(text)
+        }
     }
 
     func speak(_ text: String) {
+        guard let voice = AVSpeechSynthesisVoice(language: "th-TH") else { return }
         player?.stop()
         speechSynthesizer.stopSpeaking(at: .immediate)
 
@@ -77,13 +98,61 @@ class AudioPlayer: NSObject, AudioPlaying {
         }
 
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "th-TH")
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.9
+        utterance.voice = voice
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         speechSynthesizer.speak(utterance)
     }
 
     func hasSound(_ type: SoundType, key: String) -> Bool {
-        let filename = "cheat_sheet_\(type.rawValue)_\(key)"
+        switch effectiveAudioSource {
+        case .recorded:
+            return Self.hasRecordedSound(type, key: key)
+        case .device:
+            return Self.liveText(for: type, key: key) != nil
+        }
+    }
+
+    static var isThaiVoiceAvailable: Bool {
+        AVSpeechSynthesisVoice(language: "th-TH") != nil
+    }
+
+    static func resolvedAudioSource(
+        _ requestedSource: AudioSource,
+        isThaiVoiceAvailable: Bool
+    ) -> AudioSource {
+        requestedSource == .device && !isThaiVoiceAvailable ? .recorded : requestedSource
+    }
+
+    static func liveText(for type: SoundType, key: String) -> String? {
+        switch type {
+        case .consonant:
+            return consonantNamesByCharacter[key]
+        case .vowel:
+            guard key != "ฤ-" else { return nil }
+            return key.hasSuffix("-") ? String(key.dropLast()) + "น" : key
+        case .cluster:
+            return key.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        case .toneMark, .toneRule, .sampleWord:
+            return key
+        }
+    }
+
+    private var effectiveAudioSource: AudioSource {
+        Self.resolvedAudioSource(audioSource, isThaiVoiceAvailable: Self.isThaiVoiceAvailable)
+    }
+
+    private static let consonantNamesByCharacter = Dictionary(
+        uniqueKeysWithValues: Consonant.loadAll().map {
+            ($0.character, $0.name.replacingOccurrences(of: " ", with: ""))
+        }
+    )
+
+    private static func filename(_ type: SoundType, key: String) -> String {
+        "cheat_sheet_\(type.rawValue)_\(key)"
+    }
+
+    private static func hasRecordedSound(_ type: SoundType, key: String) -> Bool {
+        let filename = filename(type, key: key)
         return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
                Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
     }

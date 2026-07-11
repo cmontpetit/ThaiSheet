@@ -12,6 +12,8 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        let isThaiVoiceAvailable = AudioPlayer.isThaiVoiceAvailable
+
         NavigationStack {
             Form {
                 // Language override is a dev-only tool for checking translations;
@@ -29,6 +31,26 @@ struct SettingsView: View {
                     Text("Language")
                 }
                 #endif
+
+                Section {
+                    Picker(
+                        "Voice",
+                        selection: availableAudioSourceBinding(isThaiVoiceAvailable: isThaiVoiceAvailable)
+                    ) {
+                        Text("Recorded voice").tag(AudioSource.recorded)
+                        Text("Device voice")
+                            .tag(AudioSource.device)
+                            .disabled(!isThaiVoiceAvailable)
+                    }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
+                } header: {
+                    Text("Audio")
+                } footer: {
+                    if !isThaiVoiceAvailable {
+                        Text("A Thai device voice is not available on this device.")
+                    }
+                }
 
                 Section {
                     strategyOption(
@@ -86,6 +108,21 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func availableAudioSourceBinding(isThaiVoiceAvailable: Bool) -> Binding<AudioSource> {
+        Binding {
+            AudioPlayer.resolvedAudioSource(
+                settings.audioSource,
+                isThaiVoiceAvailable: isThaiVoiceAvailable
+            )
+        } set: { source in
+            guard AudioPlayer.resolvedAudioSource(
+                source,
+                isThaiVoiceAvailable: isThaiVoiceAvailable
+            ) == source else { return }
+            settings.audioSource = source
         }
     }
 

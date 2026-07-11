@@ -245,7 +245,7 @@ struct ClusterDetailSheet: View {
             onPlaySound: {
                 audioPlayer.play(.cluster, key: cluster.displayWithVowel)
             },
-            onPlaySampleWord: { audioPlayer.speak($0.word) },
+            onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
             onPractice: {
                 dismiss()
                 onPractice?(cluster.id)

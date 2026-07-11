@@ -67,6 +67,10 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertFalse(settings.useIntelligentSelection)
     }
 
+    func test_defaults_audioSource_isRecorded() {
+        XCTAssertEqual(settings.audioSource, .recorded)
+    }
+
     func test_defaults_appLanguage_isSystem() {
         XCTAssertEqual(settings.appLanguage, "system")
     }
@@ -484,6 +488,12 @@ final class FlashcardSettingsTests: XCTestCase {
         settings.appLanguage = "fr"
 
         XCTAssertEqual(defaults.string(forKey: "fc_appLanguage"), "fr")
+    }
+
+    func test_persistence_audioSource_roundTrip() {
+        settings.audioSource = .device
+
+        XCTAssertEqual(defaults.string(forKey: "fc_audioSource"), AudioSource.device.rawValue)
     }
 
     // MARK: - appLanguage and resolvedLocale
