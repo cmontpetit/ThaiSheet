@@ -13,7 +13,12 @@ from generate_vowel_pronunciation_review import (
     load_candidates,
     render_review,
 )
-from sound_inventory import CATALOG_TYPE_LABELS, SOUND_TYPE_LABELS, load_sound_inventory
+from sound_inventory import (
+    CATALOG_TYPE_LABELS,
+    SOUND_TYPE_LABELS,
+    is_alternate_voice_file,
+    load_sound_inventory,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -31,7 +36,11 @@ class SoundInventoryTests(unittest.TestCase):
     def test_inventory_matches_bundled_files(self):
         self.assertEqual(len(self.items), 388)
         expected = {item.filename for item in self.items}
-        existing = {path.name for path in SOUNDS_DIR.glob("*.mp3")}
+        # Ignore alternate voice sets (kore/matilda); only the canonical set is inventoried.
+        existing = {
+            path.name for path in SOUNDS_DIR.glob("*.mp3")
+            if not is_alternate_voice_file(path.name)
+        }
         self.assertEqual(expected, existing)
 
     def test_synthesis_rules_are_preserved(self):

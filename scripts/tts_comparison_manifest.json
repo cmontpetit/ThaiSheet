@@ -108,6 +108,13 @@
       "note": "Short closed sara am form."
     },
     {
+      "id": "tone-mid",
+      "category": "Tones",
+      "label": "กา",
+      "text": "กา",
+      "note": "Unmarked mid tone; completes the controlled 5-tone minimal set on ก."
+    },
+    {
       "id": "tone-low",
       "category": "Tones",
       "label": "ก่า",
@@ -134,6 +141,27 @@
       "label": "ก๋า",
       "text": "ก๋า",
       "note": "Rising tone on a mid-class consonant."
+    },
+    {
+      "id": "tone-word-rising",
+      "category": "Tones",
+      "label": "ขา (khǎa, leg)",
+      "text": "ขา",
+      "note": "Real-word rising tone for a natural-prosody contrast with the ค่า/ค้า pair."
+    },
+    {
+      "id": "tone-word-falling",
+      "category": "Tones",
+      "label": "ค่า (khâa, value)",
+      "text": "ค่า",
+      "note": "Real-word falling tone; same khaa base, hear whether the fall is distinct."
+    },
+    {
+      "id": "tone-word-high",
+      "category": "Tones",
+      "label": "ค้า (kháa, trade)",
+      "text": "ค้า",
+      "note": "Real-word high tone; the hardest contrast against the falling ค่า."
     },
     {
       "id": "cluster-aspirated-r",

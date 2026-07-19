@@ -27,14 +27,34 @@ DEFAULT_MANIFEST = SCRIPT_DIR / "tts_comparison_manifest.json"
 DEFAULT_OUTPUT = SCRATCHPAD_ROOT / "tts-comparison"
 DEFAULT_GOOGLE_VOICES = [
     "th-TH-Neural2-C",
+    "th-TH-Standard-A",
     "th-TH-Chirp3-HD-Aoede",
     "th-TH-Chirp3-HD-Kore",
+    "th-TH-Chirp3-HD-Charon",
+    "th-TH-Chirp3-HD-Puck",
+    "th-TH-Chirp3-HD-Leda",
 ]
 DEFAULT_AZURE_VOICES = [
     "th-TH-PremwadeeNeural",
     "th-TH-AcharaNeural",
     "th-TH-NiwatNeural",
 ]
+# ElevenLabs voice IDs are opaque; pass "Label=voice_id" for readable columns.
+# IMPORTANT: Thai is ONLY supported by the eleven_v3 model — eleven_multilingual_v2
+# and the flash/turbo v2.5 models do NOT support Thai (they produce garbled output).
+# The public voice library currently has no Thai-native voices, so these are clear,
+# education-oriented premade voices rendered through the Thai-capable v3 model.
+DEFAULT_ELEVENLABS_VOICES = [
+    "Alice=Xb7hH8MSUJpSbSDYk0k2",
+    "Matilda=XrExE9yKIg1WjnnlVkGX",
+    "Daniel=onwK4e9ZLuTAKqWW03F9",
+]
+DEFAULT_ELEVENLABS_MODEL = "eleven_v3"
+DEFAULT_OPENAI_VOICES = [
+    "alloy",
+    "shimmer",
+]
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini-tts"
 
 
 def load_manifest(path: Path) -> list[dict[str, str]]:
@@ -108,6 +128,43 @@ def apply_volume_gain(audio_content: bytes, filepath: Path, volume_gain_db: floa
         filepath.write_bytes(output.read_bytes())
 
 
+def request_audio_bytes(
+    request: urllib.request.Request, *, retries: int, provider_label: str
+) -> bytes:
+    """POST a synthesis request, retrying transient errors, and return MP3 bytes."""
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return response.read()
+        except urllib.error.HTTPError as error:
+            retryable = error.code == 429 or 500 <= error.code < 600
+            if retryable and attempt < retries:
+                delay = min(2 ** attempt, 30)
+                print(f"  {provider_label} returned HTTP {error.code}; retrying in {delay}s...")
+                time.sleep(delay)
+                continue
+            detail = error.read().decode("utf-8", errors="replace")
+            raise SystemExit(f"{provider_label} failed with HTTP {error.code}: {detail}") from error
+        except urllib.error.URLError as error:
+            if attempt < retries:
+                delay = min(2 ** attempt, 30)
+                print(f"  {provider_label} is unavailable; retrying in {delay}s...")
+                time.sleep(delay)
+                continue
+            raise SystemExit(f"{provider_label} request failed: {error.reason}") from error
+    raise SystemExit(f"{provider_label} request failed after {retries} retries")
+
+
+def split_labeled_voice(voice: str) -> tuple[str, str]:
+    """Split an optional "Label=identifier" voice string into (label, identifier)."""
+    if "=" in voice:
+        label, _, identifier = voice.partition("=")
+        label, identifier = label.strip(), identifier.strip()
+        if label and identifier:
+            return label, identifier
+    return voice, voice
+
+
 class AzureGenerator:
     """Generate MP3 files through Azure Speech's REST endpoint."""
 
@@ -158,28 +215,114 @@ class AzureGenerator:
             method="POST",
         )
 
-        for attempt in range(self.retries + 1):
-            try:
-                with urllib.request.urlopen(request, timeout=60) as response:
-                    audio_content = response.read()
-                break
-            except urllib.error.HTTPError as error:
-                retryable = error.code == 429 or 500 <= error.code < 600
-                if retryable and attempt < self.retries:
-                    delay = min(2 ** attempt, 30)
-                    print(f"  Azure Speech returned HTTP {error.code}; retrying in {delay}s...")
-                    time.sleep(delay)
-                    continue
-                detail = error.read().decode("utf-8", errors="replace")
-                raise SystemExit(f"Azure Speech failed with HTTP {error.code}: {detail}") from error
-            except urllib.error.URLError as error:
-                if attempt < self.retries:
-                    delay = min(2 ** attempt, 30)
-                    print(f"  Azure Speech is unavailable; retrying in {delay}s...")
-                    time.sleep(delay)
-                    continue
-                raise SystemExit(f"Azure Speech request failed: {error.reason}") from error
+        audio_content = request_audio_bytes(
+            request, retries=self.retries, provider_label="Azure Speech"
+        )
+        apply_volume_gain(audio_content, filepath, self.volume_gain_db)
 
+
+class ElevenLabsGenerator:
+    """Generate MP3 files through the ElevenLabs text-to-speech REST endpoint."""
+
+    def __init__(
+        self,
+        *,
+        voice_id: str,
+        model_id: str,
+        api_key: str,
+        volume_gain_db: float,
+        force: bool,
+        dry_run: bool,
+        retries: int,
+    ) -> None:
+        self.voice_id = voice_id
+        self.model_id = model_id
+        self.api_key = api_key
+        self.volume_gain_db = volume_gain_db
+        self.force = force
+        self.dry_run = dry_run
+        self.retries = retries
+
+    def generate(self, text: str, filepath: Path, description: str) -> None:
+        if filepath.exists() and not self.force:
+            print(f"  Skipping {filepath.name} ({description}; exists)")
+            return
+        action = "Would generate" if self.dry_run else "Generating"
+        print(f"  {action} {filepath.name} ({description})...")
+        if self.dry_run:
+            return
+
+        payload = json.dumps({"text": text, "model_id": self.model_id}).encode("utf-8")
+        request = urllib.request.Request(
+            f"https://api.elevenlabs.io/v1/text-to-speech/{self.voice_id}"
+            "?output_format=mp3_44100_128",
+            data=payload,
+            headers={
+                "xi-api-key": self.api_key,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg",
+                "User-Agent": "ThaiSheet-TTS-Comparison",
+            },
+            method="POST",
+        )
+        audio_content = request_audio_bytes(
+            request, retries=self.retries, provider_label="ElevenLabs"
+        )
+        apply_volume_gain(audio_content, filepath, self.volume_gain_db)
+
+
+class OpenAIGenerator:
+    """Generate MP3 files through the OpenAI text-to-speech REST endpoint."""
+
+    def __init__(
+        self,
+        *,
+        voice: str,
+        model: str,
+        api_key: str,
+        volume_gain_db: float,
+        force: bool,
+        dry_run: bool,
+        retries: int,
+    ) -> None:
+        self.voice = voice
+        self.model = model
+        self.api_key = api_key
+        self.volume_gain_db = volume_gain_db
+        self.force = force
+        self.dry_run = dry_run
+        self.retries = retries
+
+    def generate(self, text: str, filepath: Path, description: str) -> None:
+        if filepath.exists() and not self.force:
+            print(f"  Skipping {filepath.name} ({description}; exists)")
+            return
+        action = "Would generate" if self.dry_run else "Generating"
+        print(f"  {action} {filepath.name} ({description})...")
+        if self.dry_run:
+            return
+
+        payload = json.dumps(
+            {
+                "model": self.model,
+                "input": text,
+                "voice": self.voice,
+                "response_format": "mp3",
+            }
+        ).encode("utf-8")
+        request = urllib.request.Request(
+            "https://api.openai.com/v1/audio/speech",
+            data=payload,
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "ThaiSheet-TTS-Comparison",
+            },
+            method="POST",
+        )
+        audio_content = request_audio_bytes(
+            request, retries=self.retries, provider_label="OpenAI"
+        )
         apply_volume_gain(audio_content, filepath, self.volume_gain_db)
 
 
@@ -207,8 +350,11 @@ def generate_google(
         )
         target = output / directory
         target.mkdir(parents=True, exist_ok=True)
-        for item in items:
-            generator.generate(item["text"], target / f"{item['id']}.mp3", item["label"])
+        try:
+            for item in items:
+                generator.generate(item["text"], target / f"{item['id']}.mp3", item["label"])
+        except (Exception, SystemExit) as error:
+            print(f"  ⚠️  Skipping remaining items for this voice: {error}")
     return columns
 
 
@@ -242,8 +388,86 @@ def generate_azure(
         )
         target = output / directory
         target.mkdir(parents=True, exist_ok=True)
-        for item in items:
-            generator.generate(item["text"], target / f"{item['id']}.mp3", item["label"])
+        try:
+            for item in items:
+                generator.generate(item["text"], target / f"{item['id']}.mp3", item["label"])
+        except (Exception, SystemExit) as error:
+            print(f"  ⚠️  Skipping remaining items for this voice: {error}")
+    return columns
+
+
+def generate_elevenlabs(
+    items: list[dict[str, str]],
+    voices: list[str],
+    output: Path,
+    args: argparse.Namespace,
+) -> list[tuple[str, str]]:
+    api_key = os.environ.get("ELEVENLABS_API_KEY", "")
+    if not args.dry_run and not api_key:
+        raise SystemExit(
+            "ElevenLabs generation requires ELEVENLABS_API_KEY. "
+            "Use --dry-run to inspect the pack without credentials."
+        )
+
+    columns = []
+    for voice in voices:
+        label, voice_id = split_labeled_voice(voice)
+        directory = voice_directory("elevenlabs", label if label != voice_id else voice_id)
+        columns.append((f"ElevenLabs {label}", directory))
+        print(f"\n[ElevenLabs: {label} ({voice_id})]")
+        generator = ElevenLabsGenerator(
+            voice_id=voice_id,
+            model_id=args.elevenlabs_model,
+            api_key=api_key,
+            volume_gain_db=args.volume_gain_db,
+            force=args.force,
+            dry_run=args.dry_run,
+            retries=args.retries,
+        )
+        target = output / directory
+        target.mkdir(parents=True, exist_ok=True)
+        try:
+            for item in items:
+                generator.generate(item["text"], target / f"{item['id']}.mp3", item["label"])
+        except (Exception, SystemExit) as error:
+            print(f"  ⚠️  Skipping remaining items for this voice: {error}")
+    return columns
+
+
+def generate_openai(
+    items: list[dict[str, str]],
+    voices: list[str],
+    output: Path,
+    args: argparse.Namespace,
+) -> list[tuple[str, str]]:
+    api_key = os.environ.get("OPENAI_API_KEY", "")
+    if not args.dry_run and not api_key:
+        raise SystemExit(
+            "OpenAI generation requires OPENAI_API_KEY. "
+            "Use --dry-run to inspect the pack without credentials."
+        )
+
+    columns = []
+    for voice in voices:
+        directory = voice_directory("openai", voice)
+        columns.append((f"OpenAI {voice}", directory))
+        print(f"\n[OpenAI: {voice}]")
+        generator = OpenAIGenerator(
+            voice=voice,
+            model=args.openai_model,
+            api_key=api_key,
+            volume_gain_db=args.volume_gain_db,
+            force=args.force,
+            dry_run=args.dry_run,
+            retries=args.retries,
+        )
+        target = output / directory
+        target.mkdir(parents=True, exist_ok=True)
+        try:
+            for item in items:
+                generator.generate(item["text"], target / f"{item['id']}.mp3", item["label"])
+        except (Exception, SystemExit) as error:
+            print(f"  ⚠️  Skipping remaining items for this voice: {error}")
     return columns
 
 
@@ -335,9 +559,19 @@ def write_index(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate a local Thai TTS provider comparison pack")
-    parser.add_argument("--provider", choices=["google", "azure"], action="append")
+    parser.add_argument(
+        "--provider", choices=["google", "azure", "elevenlabs", "openai"], action="append"
+    )
     parser.add_argument("--google-voice", action="append", help="Google voice name; may be repeated")
     parser.add_argument("--azure-voice", action="append", help="Azure voice name; may be repeated")
+    parser.add_argument(
+        "--elevenlabs-voice",
+        action="append",
+        help="ElevenLabs voice as 'Label=voice_id' or bare voice_id; may be repeated",
+    )
+    parser.add_argument("--elevenlabs-model", default=DEFAULT_ELEVENLABS_MODEL)
+    parser.add_argument("--openai-voice", action="append", help="OpenAI voice name; may be repeated")
+    parser.add_argument("--openai-model", default=DEFAULT_OPENAI_MODEL)
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     parser.add_argument("--volume-gain-db", type=float, default=6.0)
@@ -354,10 +588,24 @@ def main() -> int:
     providers = args.provider or ["google"]
     google_voices = args.google_voice or DEFAULT_GOOGLE_VOICES
     azure_voices = args.azure_voice or DEFAULT_AZURE_VOICES
-    if "azure" in providers and not args.dry_run:
-        if not os.environ.get("AZURE_SPEECH_KEY") or not os.environ.get("AZURE_SPEECH_REGION"):
+    elevenlabs_voices = args.elevenlabs_voice or DEFAULT_ELEVENLABS_VOICES
+    openai_voices = args.openai_voice or DEFAULT_OPENAI_VOICES
+    if not args.dry_run:
+        if "azure" in providers and (
+            not os.environ.get("AZURE_SPEECH_KEY") or not os.environ.get("AZURE_SPEECH_REGION")
+        ):
             parser.error(
                 "Azure generation requires AZURE_SPEECH_KEY and AZURE_SPEECH_REGION; "
+                "use --dry-run to inspect it without credentials"
+            )
+        if "elevenlabs" in providers and not os.environ.get("ELEVENLABS_API_KEY"):
+            parser.error(
+                "ElevenLabs generation requires ELEVENLABS_API_KEY; "
+                "use --dry-run to inspect it without credentials"
+            )
+        if "openai" in providers and not os.environ.get("OPENAI_API_KEY"):
+            parser.error(
+                "OpenAI generation requires OPENAI_API_KEY; "
                 "use --dry-run to inspect it without credentials"
             )
     output = validated_output_path(args.output)
@@ -373,6 +621,10 @@ def main() -> int:
         columns.extend(generate_google(items, google_voices, output, args))
     if "azure" in providers:
         columns.extend(generate_azure(items, azure_voices, output, args))
+    if "elevenlabs" in providers:
+        columns.extend(generate_elevenlabs(items, elevenlabs_voices, output, args))
+    if "openai" in providers:
+        columns.extend(generate_openai(items, openai_voices, output, args))
 
     write_index(output, items, columns, args.volume_gain_db)
     print(f"\nAudition page: {output / 'index.html'}")

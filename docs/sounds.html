@@ -33,6 +33,10 @@
       <p>The longer-term goal is to produce a reviewed recording set with a native
       Thai speaker. Until then, please use the report links below to flag anything
       that sounds wrong.</p>
+      <p>The app bundles three recorded voices &mdash; the default is
+      <strong>ElevenLabs Matilda</strong>, alongside Google Neural2-C and Chirp3-HD
+      Kore. This catalog previews the Neural2-C set, so when you report a problem,
+      the form asks which voice you heard.</p>
     </section>
 
     <section class="catalog-summary" aria-labelledby="catalog-provenance-title">
@@ -158,7 +162,13 @@
           `- Synthesis input: ${item.synthesis_text}`,
           `- File: \`${item.filename}\``,
           `- Audio revision: \`${item.revision}\``,
-          `- Voice: ${catalog.audio.voice}`,
+          `- Catalog preview voice: ${catalog.audio.voice}`,
+          "",
+          "### Which app voice sounds wrong?",
+          "The app bundles three recorded voices. Please keep the one you mean:",
+          "- ElevenLabs Matilda (app default)",
+          "- Google Neural2-C (previewed in this catalog)",
+          "- Google Chirp3-HD Kore",
           "",
           "### What sounds incorrect?",
           "",
