@@ -71,7 +71,7 @@ struct AboutView: View {
                     Text("Sound Generation")
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("Google Cloud TTS")
+                    Text("Google Cloud TTS & ElevenLabs")
                 }
                 HStack {
                     Text("Built with")

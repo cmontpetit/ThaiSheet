@@ -18,7 +18,7 @@ class FlashcardSettings {
         "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
-        "fc_useIntelligentSelection", "fc_audioSource", "fc_appLanguage", "fc_iCloudSyncEnabled",
+        "fc_useIntelligentSelection", "fc_audioSource", "fc_recordedVoice", "fc_appLanguage", "fc_iCloudSyncEnabled",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -116,6 +116,11 @@ class FlashcardSettings {
         didSet { persist(audioSource.rawValue, forKey: "fc_audioSource") }
     }
 
+    /// Selected bundled recorded-voice set. Defaults to Matilda (ElevenLabs).
+    var recordedVoice: RecordedVoice = .matilda {
+        didSet { persist(recordedVoice.rawValue, forKey: "fc_recordedVoice") }
+    }
+
     var appLanguage = "system" {
         didSet {
             persist(appLanguage, forKey: "fc_appLanguage")
@@ -197,6 +202,7 @@ class FlashcardSettings {
 
         useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
         audioSource = defaults.string(forKey: "fc_audioSource").flatMap(AudioSource.init(rawValue:)) ?? .recorded
+        recordedVoice = defaults.string(forKey: "fc_recordedVoice").flatMap(RecordedVoice.init(rawValue:)) ?? .matilda
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
     }

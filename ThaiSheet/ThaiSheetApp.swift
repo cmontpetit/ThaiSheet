@@ -19,7 +19,7 @@ struct ThaiSheetApp: App {
         let settings = FlashcardSettings(defaults: store)
         self.syncedStore = store
         _settings = State(initialValue: settings)
-        _audioPlayer = State(initialValue: AudioPlayer(audioSource: settings.audioSource))
+        _audioPlayer = State(initialValue: AudioPlayer(audioSource: settings.audioSource, recordedVoice: settings.recordedVoice))
     }
 
     var body: some Scene {
@@ -30,6 +30,9 @@ struct ThaiSheetApp: App {
                 .environment(\.audioPlayer, audioPlayer)
                 .onChange(of: settings.audioSource) { _, source in
                     audioPlayer.audioSource = source
+                }
+                .onChange(of: settings.recordedVoice) { _, voice in
+                    audioPlayer.recordedVoice = voice
                 }
         }
     }

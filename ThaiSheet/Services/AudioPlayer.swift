@@ -22,6 +22,36 @@ enum AudioSource: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+/// Which bundled recorded-voice set to play. The app bundle flattens all resources
+/// to the root (the synchronized file group does not preserve subfolders), so the
+/// voice sets are disambiguated by a filename suffix rather than a folder: the current
+/// shipping voice keeps the unsuffixed names, alternates append `_kore` / `_matilda`.
+/// This is a DEBUG-only comparison aid; release ships a single voice.
+enum RecordedVoice: String, CaseIterable, Identifiable {
+    case current      // Google Neural2-C — the shipping bundled voice
+    case kore         // Google Chirp3-HD-Kore
+    case matilda      // ElevenLabs Matilda (eleven_v3)
+
+    var id: String { rawValue }
+
+    /// Suffix appended to the base `cheat_sheet_<type>_<key>` filename.
+    var filenameSuffix: String {
+        switch self {
+        case .current: return ""
+        case .kore: return "_kore"
+        case .matilda: return "_matilda"
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .current: return "Google Neural2-C"
+        case .kore: return "Google Chirp3-HD Kore"
+        case .matilda: return "ElevenLabs Matilda"
+        }
+    }
+}
+
 /// Protocol for audio playback, enabling test mocking
 protocol AudioPlaying {
     func play(_ type: SoundType, key: String)
@@ -54,9 +84,11 @@ class AudioPlayer: NSObject, AudioPlaying {
     private var player: AVAudioPlayer?
     private let speechSynthesizer = AVSpeechSynthesizer()
     var audioSource: AudioSource
+    var recordedVoice: RecordedVoice
 
-    init(audioSource: AudioSource = .recorded) {
+    init(audioSource: AudioSource = .recorded, recordedVoice: RecordedVoice = .current) {
         self.audioSource = audioSource
+        self.recordedVoice = recordedVoice
         super.init()
         speechSynthesizer.delegate = self
         // Skip audio session configuration during unit tests to avoid CoreAudio crashes
@@ -79,7 +111,7 @@ class AudioPlayer: NSObject, AudioPlaying {
         switch effectiveAudioSource {
         case .recorded:
             speechSynthesizer.stopSpeaking(at: .immediate)
-            playFile(filename: Self.filename(type, key: key))
+            playRecorded(type, key: key)
         case .device:
             guard let text = Self.liveText(for: type, key: key) else { return }
             speak(text)
@@ -106,7 +138,7 @@ class AudioPlayer: NSObject, AudioPlaying {
     func hasSound(_ type: SoundType, key: String) -> Bool {
         switch effectiveAudioSource {
         case .recorded:
-            return Self.hasRecordedSound(type, key: key)
+            return Self.hasRecordedSound(type, key: key, voice: recordedVoice)
         case .device:
             return Self.liveText(for: type, key: key) != nil
         }
@@ -146,24 +178,28 @@ class AudioPlayer: NSObject, AudioPlaying {
         }
     )
 
-    private static func filename(_ type: SoundType, key: String) -> String {
-        "cheat_sheet_\(type.rawValue)_\(key)"
+    private static func filename(_ type: SoundType, key: String, voice: RecordedVoice) -> String {
+        "cheat_sheet_\(type.rawValue)_\(key)\(voice.filenameSuffix)"
     }
 
-    private static func hasRecordedSound(_ type: SoundType, key: String) -> Bool {
-        let filename = filename(type, key: key)
-        return Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") != nil ||
-               Bundle.main.url(forResource: filename, withExtension: "mp3") != nil
+    private static func recordedURL(_ filename: String) -> URL? {
+        // Resources flatten to the bundle root; keep the subdirectory lookup first for safety.
+        Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds")
+            ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
     }
 
-    private func playFile(filename: String) {
-        guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3", subdirectory: "sounds") else {
-            // Try without subdirectory
-            guard let url = Bundle.main.url(forResource: filename, withExtension: "mp3") else {
-                print("Sound file not found: \(filename).mp3")
-                return
-            }
-            playURL(url)
+    private static func hasRecordedSound(_ type: SoundType, key: String, voice: RecordedVoice) -> Bool {
+        recordedURL(filename(type, key: key, voice: voice)) != nil ||
+            recordedURL(filename(type, key: key, voice: .current)) != nil
+    }
+
+    private func playRecorded(_ type: SoundType, key: String) {
+        // Prefer the selected voice; fall back to the current set if a clip is missing
+        // (e.g. an alternate voice that could not synthesize a rare glyph).
+        let name = Self.filename(type, key: key, voice: recordedVoice)
+        guard let url = Self.recordedURL(name)
+            ?? Self.recordedURL(Self.filename(type, key: key, voice: .current)) else {
+            print("Sound file not found: \(name).mp3")
             return
         }
         playURL(url)
