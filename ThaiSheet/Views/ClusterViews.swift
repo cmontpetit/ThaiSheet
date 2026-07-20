@@ -250,17 +250,29 @@ struct ClusterDetailSheet: View {
     }
 
     var body: some View {
+        let wordAudios = cluster.sample.map { sample in
+            [
+                ReferenceWordAudio(
+                    role: .sampleWord,
+                    word: sample,
+                    hasSound: audioPlayer.hasSound(.sampleWord, key: sample.word),
+                    onPlay: { audioPlayer.play(.sampleWord, key: sample.word) }
+                )
+            ]
+        } ?? []
         ReferenceItemSheet(
             title: cluster.cluster,
             romanization: cluster.sound,
             stage: stage,
             note: combinedNote,
-            sampleWord: cluster.sample,
-            hasSound: hasSound,
-            onPlaySound: {
-                audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID)
-            },
-            onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
+            primaryAudio: ReferencePrimaryAudio(
+                role: .cluster,
+                hasSound: hasSound,
+                onPlay: {
+                    audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID)
+                }
+            ),
+            wordAudios: wordAudios,
             onPractice: {
                 dismiss()
                 onPractice?(cluster.id)

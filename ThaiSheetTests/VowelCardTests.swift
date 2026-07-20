@@ -277,7 +277,68 @@ final class VowelCardTests: XCTestCase {
         }
     }
 
+    // MARK: - Reference detail audio roles
+
+    func test_referenceWordSources_fallbackSampleIsPresentedOnceAsPronunciation() {
+        let vowel = makeReferenceVowel(pronunciation: nil, sample: "กัน")
+
+        let sources = vowelReferenceWordSources(for: vowel, duration: .short, form: .closed)
+
+        XCTAssertEqual(sources.count, 1)
+        XCTAssertEqual(sources.first?.role, .pronunciationExample)
+        XCTAssertEqual(sources.first?.word.word, "กัน")
+        XCTAssertEqual(sources.first?.soundType, .vowel)
+        XCTAssertEqual(sources.first?.usesItemVoiceOverride, true)
+    }
+
+    func test_referenceWordSources_dedicatedPronunciationKeepsSampleDistinct() {
+        let vowel = makeReferenceVowel(pronunciation: "กั้น", sample: "กัน")
+
+        let sources = vowelReferenceWordSources(for: vowel, duration: .short, form: .closed)
+
+        XCTAssertEqual(sources.count, 2)
+        XCTAssertEqual(sources.map(\.role), [.pronunciationExample, .sampleWord])
+        XCTAssertEqual(sources.map(\.word.word), ["กั้น", "กัน"])
+        XCTAssertEqual(sources.map(\.soundType), [.vowel, .sampleWord])
+        XCTAssertEqual(sources.map(\.usesItemVoiceOverride), [true, false])
+    }
+
+    func test_referenceAudioRoles_haveTypeSpecificLabels() {
+        XCTAssertEqual(ReferencePrimaryAudioRole.name.rawValue, "Say Name")
+        XCTAssertEqual(ReferencePrimaryAudioRole.cluster.rawValue, "Hear Cluster")
+        XCTAssertEqual(ReferencePrimaryAudioRole.tone.rawValue, "Hear Tone")
+        XCTAssertEqual(
+            ReferenceWordAudioRole.pronunciationExample.rawValue,
+            "Pronunciation Example"
+        )
+        XCTAssertEqual(ReferenceWordAudioRole.primaryExample.rawValue, "Primary Example")
+        XCTAssertEqual(ReferenceWordAudioRole.additionalExample.rawValue, "Additional Example")
+    }
+
     // MARK: - Helpers
+
+    private func makeReferenceVowel(pronunciation: String?, sample: String) -> Vowel {
+        Vowel(
+            short: VowelForm(closed: "กั-", open: nil),
+            long: VowelForm(closed: nil, open: nil),
+            sounds: VowelSounds(en: "a"),
+            notes: nil,
+            rowNote: nil,
+            pronunciations: VowelSamples(
+                short_closed: pronunciation.map { ReferenceSampleWord(word: $0) },
+                short_open: nil,
+                long_closed: nil,
+                long_open: nil
+            ),
+            samples: VowelSamples(
+                short_closed: ReferenceSampleWord(word: sample),
+                short_open: nil,
+                long_closed: nil,
+                long_open: nil
+            ),
+            usage: nil
+        )
+    }
 
     private func findDuplicates(in array: [String]) -> [String] {
         var seen = Set<String>()

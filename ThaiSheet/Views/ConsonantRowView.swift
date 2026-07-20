@@ -147,16 +147,29 @@ struct ConsonantRowView: View {
         .padding(.trailing, 4)
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
         .sheet(isPresented: $showingSheet) {
+            let wordAudios = consonant.sampleWord.map { sample in
+                [
+                    ReferenceWordAudio(
+                        role: .sampleWord,
+                        word: sample,
+                        hasSound: audioPlayer.hasSound(.sampleWord, key: sample.word),
+                        onPlay: { audioPlayer.play(.sampleWord, key: sample.word) }
+                    )
+                ]
+            } ?? []
             ReferenceItemSheet(
                 title: consonant.character,
                 romanization: consonant.transcription,
                 stage: stage,
                 note: nil,
-                sampleWord: consonant.sampleWord,
-                hasSound: hasSound,
-                onPlaySound: { audioPlayer.play(.consonant, key: consonant.character, itemID: concealID) },
-                soundActionLabel: "Say Name",
-                onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
+                primaryAudio: ReferencePrimaryAudio(
+                    role: .name,
+                    hasSound: hasSound,
+                    onPlay: {
+                        audioPlayer.play(.consonant, key: consonant.character, itemID: concealID)
+                    }
+                ),
+                wordAudios: wordAudios,
                 onPractice: { onPractice?() },
                 voiceOverride: voiceOverride
             )
