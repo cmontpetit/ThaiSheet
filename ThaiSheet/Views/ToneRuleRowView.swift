@@ -186,13 +186,42 @@ struct ToneRuleRowView: View {
         return "\(initial) + \(duration) + \(end) = \(ThaiColors.toneName(rule.tone))"
     }
 
-    private var additionalSampleWord: ReferenceSampleWord? {
-        guard let sample = rule.samples?.dropFirst().first else { return nil }
+    private func referenceWord(from sample: ToneSample) -> ReferenceSampleWord {
         return ReferenceSampleWord(
             word: sample.full,
             romanization: sample.romanization,
             meaning: sample.meaning
         )
+    }
+
+    /// The first rule example is the audio demonstrated by the table row; the
+    /// next sample is supplementary vocabulary. Present both as word roles rather
+    /// than treating the primary example as an inherent sound of the rule.
+    private var referenceWordAudios: [ReferenceWordAudio] {
+        var audios: [ReferenceWordAudio] = []
+        if let primary = rule.primarySample {
+            audios.append(
+                ReferenceWordAudio(
+                    role: .primaryExample,
+                    word: referenceWord(from: primary),
+                    hasSound: audioPlayer.hasSound(.toneRule, key: primary.full),
+                    onPlay: {
+                        audioPlayer.play(.toneRule, key: primary.full, itemID: concealID)
+                    }
+                )
+            )
+        }
+        if let additional = rule.samples?.dropFirst().first {
+            audios.append(
+                ReferenceWordAudio(
+                    role: .additionalExample,
+                    word: referenceWord(from: additional),
+                    hasSound: audioPlayer.hasSound(.toneRule, key: additional.full),
+                    onPlay: { audioPlayer.play(.toneRule, key: additional.full) }
+                )
+            )
+        }
+        return audios
     }
 
     /// The rule inputs alone (no resulting tone) — the concealed VoiceOver label.
@@ -279,19 +308,11 @@ struct ToneRuleRowView: View {
         .sheet(isPresented: $showingSheet) {
             ReferenceItemSheet(
                 title: ruleDisplay,
-                subtitle: rule.primarySample?.full,
                 toneRule: rule,
                 usesCompactTitle: true,
                 stage: lowestStage,
                 note: rule.primarySample?.note?.localized,
-                sampleWord: additionalSampleWord,
-                hasSound: hasSound,
-                onPlaySound: {
-                    if let sample = rule.primarySample {
-                        audioPlayer.play(.toneRule, key: sample.full, itemID: concealID)
-                    }
-                },
-                onPlaySampleWord: { audioPlayer.play(.toneRule, key: $0.word) },
+                wordAudios: referenceWordAudios,
                 onPractice: { onPractice?() },
                 voiceOverride: voiceOverride
             )

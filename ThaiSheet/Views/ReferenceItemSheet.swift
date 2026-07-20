@@ -5,23 +5,47 @@
 
 import SwiftUI
 
+enum ReferencePrimaryAudioRole: String {
+    case name = "Say Name"
+    case cluster = "Hear Cluster"
+    case tone = "Hear Tone"
+
+    var label: LocalizedStringKey { LocalizedStringKey(rawValue) }
+}
+
+struct ReferencePrimaryAudio {
+    let role: ReferencePrimaryAudioRole
+    let hasSound: Bool
+    let onPlay: () -> Void
+}
+
+enum ReferenceWordAudioRole: String {
+    case pronunciationExample = "Pronunciation Example"
+    case sampleWord = "Sample Word"
+    case primaryExample = "Primary Example"
+    case additionalExample = "Additional Example"
+
+    var label: LocalizedStringKey { LocalizedStringKey(rawValue) }
+}
+
+struct ReferenceWordAudio {
+    let role: ReferenceWordAudioRole
+    let word: ReferenceSampleWord
+    let hasSound: Bool
+    let onPlay: () -> Void
+}
+
 /// A reusable sheet for reference items showing stage, notes, and action buttons
 struct ReferenceItemSheet: View {
     let title: String
     var romanization: String? = nil
-    var subtitle: String? = nil
     var toneMarkContext: ToneMarkSheetContext? = nil
     var toneRule: ToneRule? = nil
     var usesCompactTitle: Bool = false
     let stage: SRSStage
     let note: String?
-    var pronunciationWord: ReferenceSampleWord? = nil
-    var sampleWord: ReferenceSampleWord? = nil
-    let hasSound: Bool
-    let onPlaySound: () -> Void
-    var soundActionLabel: LocalizedStringKey = "Play Sound"
-    var onPlayPronunciation: (ReferenceSampleWord) -> Void = { _ in }
-    var onPlaySampleWord: (ReferenceSampleWord) -> Void = { _ in }
+    var primaryAudio: ReferencePrimaryAudio? = nil
+    var wordAudios: [ReferenceWordAudio] = []
     let onPractice: () -> Void
     /// When set (and audio is in recorded mode), shows a per-item Voice override row.
     var voiceOverride: (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget)? = nil
@@ -71,14 +95,6 @@ struct ReferenceItemSheet: View {
                             .minimumScaleFactor(0.7)
                     }
 
-                    if let subtitle, !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.title2)
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                    }
-
                 }
 
                 // Stage indicator
@@ -95,31 +111,12 @@ struct ReferenceItemSheet: View {
 
                 // Action buttons
                 VStack(spacing: 12) {
-                    Button {
-                        if let pronunciationWord {
-                            onPlayPronunciation(pronunciationWord)
-                        } else {
-                            onPlaySound()
-                        }
-                    } label: {
-                        HStack {
-                            Image(
-                                systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                            Text(soundActionLabel)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(hasSound ? Color.accentColor : Color.gray.opacity(0.3))
-                        .foregroundColor(hasSound ? .white : .secondary)
-                        .cornerRadius(12)
+                    if let primaryAudio {
+                        primaryAudioButton(primaryAudio)
                     }
-                    .disabled(!hasSound)
 
-                    if let exampleWord = sampleWord ?? pronunciationWord {
-                        sampleWordButton(
-                            exampleWord,
-                            usesPronunciationAudio: exampleWord.word == pronunciationWord?.word
-                        )
+                    ForEach(Array(wordAudios.enumerated()), id: \.offset) { _, audio in
+                        wordAudioButton(audio)
                     }
 
                     Button {
@@ -186,24 +183,31 @@ struct ReferenceItemSheet: View {
     }
 
     private var preferredDetent: PresentationDetent {
-        sampleWord != nil || pronunciationWord != nil
+        !wordAudios.isEmpty
             ? .fraction(0.78)
             : .fraction(0.68)
     }
 
-    private func sampleWordButton(
-        _ sampleWord: ReferenceSampleWord,
-        usesPronunciationAudio: Bool = false
-    ) -> some View {
-        Button {
-            if usesPronunciationAudio {
-                onPlayPronunciation(sampleWord)
-            } else {
-                onPlaySampleWord(sampleWord)
+    private func primaryAudioButton(_ audio: ReferencePrimaryAudio) -> some View {
+        Button(action: audio.onPlay) {
+            HStack {
+                Image(systemName: audio.hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                Text(audio.role.label)
             }
-        } label: {
-            wordButtonLabel(sampleWord, title: "Sample Word", hasSound: true)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(audio.hasSound ? Color.accentColor : Color.gray.opacity(0.3))
+            .foregroundColor(audio.hasSound ? .white : .secondary)
+            .cornerRadius(12)
         }
+        .disabled(!audio.hasSound)
+    }
+
+    private func wordAudioButton(_ audio: ReferenceWordAudio) -> some View {
+        Button(action: audio.onPlay) {
+            wordButtonLabel(audio.word, title: audio.role.label, hasSound: audio.hasSound)
+        }
+        .disabled(!audio.hasSound)
         .buttonStyle(.plain)
     }
 
@@ -256,20 +260,23 @@ struct ReferenceItemSheet: View {
                 romanization: "gaaw gài",
                 stage: .apprentice1,
                 note: "This is a sample note explaining the character.",
-                pronunciationWord: ReferenceSampleWord(
-                    word: "กัน",
-                    romanization: "gan",
-                    meaning: LocalizedText(en: "together", fr: "ensemble")
+                primaryAudio: ReferencePrimaryAudio(
+                    role: .name,
+                    hasSound: true,
+                    onPlay: {}
                 ),
-                sampleWord: ReferenceSampleWord(
-                    word: "ไก่",
-                    romanization: "gài",
-                    meaning: LocalizedText(en: "chicken", fr: "poulet")
-                ),
-                hasSound: true,
-                onPlaySound: {},
-                onPlayPronunciation: { _ in },
-                onPlaySampleWord: { _ in },
+                wordAudios: [
+                    ReferenceWordAudio(
+                        role: .sampleWord,
+                        word: ReferenceSampleWord(
+                            word: "ไก่",
+                            romanization: "gài",
+                            meaning: LocalizedText(en: "chicken", fr: "poulet")
+                        ),
+                        hasSound: true,
+                        onPlay: {}
+                    )
+                ],
                 onPractice: {}
             )
         }

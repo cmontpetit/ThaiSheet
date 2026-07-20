@@ -17,6 +17,60 @@ struct VowelFormVariant: Equatable {
     static let longOpen = VowelFormVariant(duration: .long, form: .open)
 }
 
+struct VowelReferenceWordSource {
+    let role: ReferenceWordAudioRole
+    let word: ReferenceSampleWord
+    let soundType: SoundType
+    let usesItemVoiceOverride: Bool
+}
+
+/// Resolves the semantic word roles before UI and playback closures are added.
+/// A fallback sample represents the pronunciation once; only a dedicated
+/// pronunciation creates a second, distinct Sample Word role.
+func vowelReferenceWordSources(
+    for vowel: Vowel,
+    duration: VowelCard.VowelDuration,
+    form: VowelCard.VowelFormType
+) -> [VowelReferenceWordSource] {
+    let dedicatedPronunciation = vowel.pronunciations?.value(
+        for: duration.rawValue,
+        form: form.rawValue
+    )
+    let sample = vowel.sample(for: duration.rawValue, form: form.rawValue)
+
+    if let dedicatedPronunciation {
+        var sources = [
+            VowelReferenceWordSource(
+                role: .pronunciationExample,
+                word: dedicatedPronunciation,
+                soundType: .vowel,
+                usesItemVoiceOverride: true
+            )
+        ]
+        if let sample {
+            sources.append(
+                VowelReferenceWordSource(
+                    role: .sampleWord,
+                    word: sample,
+                    soundType: .sampleWord,
+                    usesItemVoiceOverride: false
+                )
+            )
+        }
+        return sources
+    }
+
+    guard let sample else { return [] }
+    return [
+        VowelReferenceWordSource(
+            role: .pronunciationExample,
+            word: sample,
+            soundType: .vowel,
+            usesItemVoiceOverride: true
+        )
+    ]
+}
+
 struct VowelHeaderView: View {
     /// When set, only that duration's columns are shown (full width)
     var visibleDuration: VowelCard.VowelDuration? = nil
@@ -165,6 +219,30 @@ struct VowelRowView: View {
         vowel.pronunciation(for: formType.duration, form: formType.form)
     }
 
+    /// A dedicated pronunciation and a vocabulary sample are distinct roles.
+    /// When pronunciation falls back to the sample, present that word once as the
+    /// pronunciation example and play the same clip used by the reference table.
+    private func referenceWordAudios(for formType: VowelFormVariant) -> [ReferenceWordAudio] {
+        vowelReferenceWordSources(
+            for: vowel,
+            duration: formType.duration,
+            form: formType.form
+        ).map { source in
+            ReferenceWordAudio(
+                role: source.role,
+                word: source.word,
+                hasSound: audioPlayer.hasSound(source.soundType, key: source.word.word),
+                onPlay: {
+                    audioPlayer.play(
+                        source.soundType,
+                        key: source.word.word,
+                        itemID: source.usesItemVoiceOverride ? concealID : nil
+                    )
+                }
+            )
+        }
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Highlight indicator
@@ -206,10 +284,6 @@ struct VowelRowView: View {
         ) {
             if let text = selectedText, let formType = selectedFormType {
                 let pronunciation = pronunciation(for: formType)
-                let sample = vowel.sample(
-                    for: formType.duration.rawValue,
-                    form: formType.form.rawValue
-                )
                 // Descriptor is centralized; preview target is the exact opened form.
                 let voiceOverride = thaiData.voiceOverrideCatalogEntry(for: concealID).map {
                     entry -> (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget) in
@@ -223,14 +297,7 @@ struct VowelRowView: View {
                     romanization: vowel.sound,
                     stage: learningModel.getProgress(forId: FlashcardType.vowel.cardId(for: text)).srsStage,
                     note: vowel.note(for: formType.duration.rawValue, form: formType.form.rawValue),
-                    pronunciationWord: pronunciation,
-                    sampleWord: sample,
-                    hasSound: pronunciation.map {
-                        audioPlayer.hasSound(.vowel, key: $0.word)
-                    } ?? false,
-                    onPlaySound: {},
-                    onPlayPronunciation: { audioPlayer.play(.vowel, key: $0.word, itemID: concealID) },
-                    onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
+                    wordAudios: referenceWordAudios(for: formType),
                     onPractice: { onPractice?(text) },
                     voiceOverride: voiceOverride
                 )

@@ -148,6 +148,17 @@ struct ToneMarkRowView: View {
                         set: { if !$0 { selectedDisplay = nil } }
                     )
                 ) {
+                    let sampleWord = toneMark.sampleWord(for: entry.soundKey)
+                    let wordAudios = sampleWord.map { sample in
+                        [
+                            ReferenceWordAudio(
+                                role: .sampleWord,
+                                word: sample,
+                                hasSound: audioPlayer.hasSound(.sampleWord, key: sample.word),
+                                onPlay: { audioPlayer.play(.sampleWord, key: sample.word) }
+                            )
+                        ]
+                    } ?? []
                     ReferenceItemSheet(
                         title: ThaiDisplay.placeholder(ToneMark.midConsonant + toneMark.mark),
                         toneMarkContext: ToneMarkSheetContext(
@@ -157,10 +168,14 @@ struct ToneMarkRowView: View {
                         ),
                         stage: stage(for: entry.soundKey),
                         note: nil,
-                        sampleWord: toneMark.sampleWord(for: entry.soundKey),
-                        hasSound: hasSound,
-                        onPlaySound: { audioPlayer.play(.toneMark, key: entry.soundKey, itemID: concealID) },
-                        onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
+                        primaryAudio: ReferencePrimaryAudio(
+                            role: .tone,
+                            hasSound: hasSound,
+                            onPlay: {
+                                audioPlayer.play(.toneMark, key: entry.soundKey, itemID: concealID)
+                            }
+                        ),
+                        wordAudios: wordAudios,
                         onPractice: { onPractice?(entry.soundKey) },
                         voiceOverride: voiceOverride
                     )
