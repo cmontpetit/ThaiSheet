@@ -39,23 +39,28 @@ struct PlayableItemModifier: ViewModifier {
             : String(localized: "Shows details.", bundle: .appLanguage)
     }
 
-    private func play() {
-        if let conceal {
-            if conceal.revealOnly {
-                practiceMode.reveal(conceal.id)
-            } else {
-                practiceMode.handleTap(conceal.id)
-            }
+    private func applyConceal() {
+        guard let conceal else { return }
+        if conceal.revealOnly {
+            practiceMode.reveal(conceal.id)
+        } else {
+            practiceMode.handleTap(conceal.id)
         }
-        onPlay()
     }
 
     func body(content: Content) -> some View {
         content
             .contentShape(Rectangle())
             .onTapGesture {
-                if hasSound {
-                    play()
+                // In practice mode a tap reveals (or re-hides) this item's reading
+                // and still plays its sound if it has one — so even a no-audio row
+                // can be revealed. Details stay reachable via long press. Outside
+                // practice mode: play, or open details when there's no sound.
+                if conceal != nil, practiceMode.isActive {
+                    applyConceal()
+                    if hasSound { onPlay() }
+                } else if hasSound {
+                    onPlay()
                 } else {
                     onDetails()
                 }

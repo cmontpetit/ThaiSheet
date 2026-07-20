@@ -137,6 +137,21 @@ struct VowelRowView: View {
         soundForm != nil
     }
 
+    /// The form the Sound column labels and opens details for: prefer one with
+    /// audio, else any real form so a soundless row still conceals its reading,
+    /// reveals on tap, and can open details.
+    private var displayForm: (text: String, formType: VowelFormVariant)? {
+        if let sound = soundForm { return (sound.text, sound.formType) }
+        let candidates: [(String?, VowelFormVariant)] = [
+            (vowel.long.closed, .longClosed), (vowel.long.open, .longOpen),
+            (vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen),
+        ]
+        for (formText, formType) in candidates where formText != nil {
+            return (formText!, formType)
+        }
+        return nil
+    }
+
     // One reveal per row: tapping any of its form cells reveals the shared reading
     private var concealID: String { FlashcardType.vowel.cardId(for: vowel.id) }
 
@@ -238,12 +253,17 @@ struct VowelRowView: View {
             .concealedReading(id: concealID)
             .frame(width: 60)
             .frame(maxHeight: .infinity)
-        if let form = soundForm {
+        if let form = displayForm {
+            // concealedLabel is the Thai form (the question), never vowel.sound
+            // (the answer), so soundless rows don't leak via VoiceOver either.
             text.playableItem(
                 label: "\(vowel.sound), \(form.text)",
-                hasSound: true,
+                hasSound: hasSound,
                 conceal: PracticeConceal(id: concealID, concealedLabel: form.text),
-                onPlay: { audioPlayer.play(.vowel, key: form.pronunciation.word) },
+                onPlay: {
+                    guard let sound = soundForm else { return }
+                    audioPlayer.play(.vowel, key: sound.pronunciation.word)
+                },
                 onDetails: { showSheet(for: form.text, formType: form.formType) }
             )
         } else {

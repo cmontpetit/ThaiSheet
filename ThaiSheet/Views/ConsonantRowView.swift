@@ -128,7 +128,9 @@ struct ConsonantRowView: View {
                 .padding(.horizontal, 8)
             }
             .playableItem(
-                label: "\(consonant.character), \(consonant.transcription)",
+                // Full label carries the concealed answers (transcription + both
+                // sounds) so a revealed VoiceOver user can check them.
+                label: "\(consonant.character), \(consonant.transcription), \(consonant.initialSound), \(consonant.finalSound)",
                 hasSound: hasSound,
                 conceal: PracticeConceal(id: concealID, concealedLabel: consonant.character),
                 onPlay: { audioPlayer.play(.consonant, key: consonant.character) },
