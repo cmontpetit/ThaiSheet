@@ -30,13 +30,29 @@ struct PlayableItemModifier: ViewModifier {
         isConcealed ? (conceal?.concealedLabel ?? label) : label
     }
 
+    /// Describes what a tap actually does, given practice state. In practice
+    /// mode a tap reveals a concealed reading, re-hides a revealed toggle item,
+    /// and plays the sound when there is one; a revealed reveal-only cell only
+    /// re-plays (or does nothing without audio).
     private var hint: String {
-        if isConcealed {
-            return String(localized: "Plays the sound and reveals the answer. Touch and hold for details.", bundle: .appLanguage)
+        guard let conceal, practiceMode.isActive else {
+            return hasSound
+                ? String(localized: "Plays the sound. Touch and hold for details.", bundle: .appLanguage)
+                : String(localized: "Shows details.", bundle: .appLanguage)
+        }
+        if practiceMode.isConcealed(conceal.id) {
+            return hasSound
+                ? String(localized: "Plays the sound and reveals the answer. Touch and hold for details.", bundle: .appLanguage)
+                : String(localized: "Reveals the answer. Touch and hold for details.", bundle: .appLanguage)
+        }
+        if conceal.revealOnly {
+            return hasSound
+                ? String(localized: "Plays the sound. Touch and hold for details.", bundle: .appLanguage)
+                : String(localized: "Touch and hold for details.", bundle: .appLanguage)
         }
         return hasSound
-            ? String(localized: "Plays the sound. Touch and hold for details.", bundle: .appLanguage)
-            : String(localized: "Shows details.", bundle: .appLanguage)
+            ? String(localized: "Plays the sound and hides the answer. Touch and hold for details.", bundle: .appLanguage)
+            : String(localized: "Hides the answer. Touch and hold for details.", bundle: .appLanguage)
     }
 
     private func applyConceal() {
