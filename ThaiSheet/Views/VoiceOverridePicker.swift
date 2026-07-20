@@ -52,7 +52,7 @@ struct VoiceOverridePicker: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Use Default", bundle: .appLanguage)
                         .foregroundStyle(.primary)
-                    Text("\(String(localized: "Currently", bundle: .appLanguage)) \(defaultVoice.displayName)")
+                    Text(verbatim: "\(String(localized: "Currently", bundle: .appLanguage)) \(defaultVoice.displayName)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
