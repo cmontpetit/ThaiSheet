@@ -14,6 +14,9 @@ struct ToneRuleFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneRuleCardState()
+
+    // Rule-level override (applies to every sample card of the rule), matching Reference.
+    private var overrideItemID: String { FlashcardType.toneRule.cardId(for: card.rule.id) }
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
 
     // Selection options (value = data identifier matching JSON, label = localized display)
@@ -65,6 +68,7 @@ struct ToneRuleFlashcardView: View {
             hasError: cardState.hasError(for: card),
             soundType: .toneRule,
             soundKey: card.sample.full,
+            overrideItemID: overrideItemID,
             onViewInReference: { onViewInReference?(card.rule.id) },
             onPrevious: handlePrevious,
             onNext: handleNext
@@ -276,7 +280,7 @@ struct ToneRuleFlashcardView: View {
         // Revealed early counts as incorrect; otherwise correct if no errors were made
         onComplete?(revealed ? false : !cardState.hasError(for: card))
         if audioPlayer.hasSound(.toneRule, key: card.sample.full) {
-            audioPlayer.play(.toneRule, key: card.sample.full)
+            audioPlayer.play(.toneRule, key: card.sample.full, itemID: overrideItemID)
         }
     }
 

@@ -14,6 +14,9 @@ struct ToneMarkFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneMarkCardState()
+
+    // card.display is the soundKey (ค่า), matching the Reference tone-mark override id.
+    private var overrideItemID: String { FlashcardType.toneMark.cardId(for: card.display) }
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 100
 
     // All possible tones for selection
@@ -51,6 +54,7 @@ struct ToneMarkFlashcardView: View {
             hasError: cardState.hasError(for: card),
             soundType: .toneMark,
             soundKey: card.display,
+            overrideItemID: overrideItemID,
             onViewInReference: { onViewInReference?(card.display) },
             onPrevious: handlePrevious,
             onNext: handleNext
@@ -145,7 +149,7 @@ struct ToneMarkFlashcardView: View {
         // Revealed early counts as incorrect; otherwise correct if no errors were made
         onComplete?(revealed ? false : !cardState.hasError(for: card))
         if audioPlayer.hasSound(.toneMark, key: card.display) {
-            audioPlayer.play(.toneMark, key: card.display)
+            audioPlayer.play(.toneMark, key: card.display, itemID: overrideItemID)
         }
     }
 
