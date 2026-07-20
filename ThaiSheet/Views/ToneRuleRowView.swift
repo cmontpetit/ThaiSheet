@@ -156,6 +156,7 @@ struct ToneRuleRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
+    @Environment(\.thaiData) private var thaiData
     @State private var showingSheet = false
 
     private var hasSound: Bool {
@@ -164,6 +165,10 @@ struct ToneRuleRowView: View {
     }
 
     private var concealID: String { FlashcardType.toneRule.cardId(for: rule.id) }
+
+    private var voiceOverride: (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget)? {
+        thaiData.voiceOverrideCatalogEntry(for: concealID).map { ($0.descriptor, $0.canonicalPreview) }
+    }
 
     private var ruleDisplay: String {
         let initial = String(
@@ -260,7 +265,7 @@ struct ToneRuleRowView: View {
                 conceal: PracticeConceal(id: concealID, concealedLabel: ruleInputsLabel),
                 onPlay: {
                     if let sample = rule.primarySample {
-                        audioPlayer.play(.toneRule, key: sample.full)
+                        audioPlayer.play(.toneRule, key: sample.full, itemID: concealID)
                     }
                 },
                 onDetails: { showingSheet = true }
@@ -283,11 +288,12 @@ struct ToneRuleRowView: View {
                 hasSound: hasSound,
                 onPlaySound: {
                     if let sample = rule.primarySample {
-                        audioPlayer.play(.toneRule, key: sample.full)
+                        audioPlayer.play(.toneRule, key: sample.full, itemID: concealID)
                     }
                 },
                 onPlaySampleWord: { audioPlayer.play(.toneRule, key: $0.word) },
-                onPractice: { onPractice?() }
+                onPractice: { onPractice?() },
+                voiceOverride: voiceOverride
             )
         }
     }

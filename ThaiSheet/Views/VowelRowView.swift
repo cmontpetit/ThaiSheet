@@ -88,6 +88,7 @@ struct VowelRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
+    @Environment(\.thaiData) private var thaiData
     @State private var selectedFormType: VowelFormVariant? = nil
     @State private var selectedText: String? = nil
     @ScaledMetric(relativeTo: .title2) private var singleDurationFormSize: CGFloat = 34
@@ -209,6 +210,14 @@ struct VowelRowView: View {
                     for: formType.duration.rawValue,
                     form: formType.form.rawValue
                 )
+                // Descriptor is centralized; preview target is the exact opened form.
+                let voiceOverride = thaiData.voiceOverrideCatalogEntry(for: concealID).map {
+                    entry -> (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget) in
+                    let target = pronunciation
+                        .map { VoicePreviewTarget(soundType: .vowel, playbackKey: $0.word) }
+                        ?? entry.canonicalPreview
+                    return (entry.descriptor, target)
+                }
                 ReferenceItemSheet(
                     title: ThaiDisplay.placeholder(text),
                     romanization: vowel.sound,
@@ -220,9 +229,10 @@ struct VowelRowView: View {
                         audioPlayer.hasSound(.vowel, key: $0.word)
                     } ?? false,
                     onPlaySound: {},
-                    onPlayPronunciation: { audioPlayer.play(.vowel, key: $0.word) },
+                    onPlayPronunciation: { audioPlayer.play(.vowel, key: $0.word, itemID: concealID) },
                     onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
-                    onPractice: { onPractice?(text) }
+                    onPractice: { onPractice?(text) },
+                    voiceOverride: voiceOverride
                 )
             }
         }
@@ -262,7 +272,7 @@ struct VowelRowView: View {
                 conceal: PracticeConceal(id: concealID, concealedLabel: form.text),
                 onPlay: {
                     guard let sound = soundForm else { return }
-                    audioPlayer.play(.vowel, key: sound.pronunciation.word)
+                    audioPlayer.play(.vowel, key: sound.pronunciation.word, itemID: concealID)
                 },
                 onDetails: { showSheet(for: form.text, formType: form.formType) }
             )
@@ -319,7 +329,7 @@ struct VowelRowView: View {
                     conceal: PracticeConceal(id: concealID, concealedLabel: text, revealOnly: true),
                     onPlay: {
                         guard let pronunciation else { return }
-                        audioPlayer.play(.vowel, key: pronunciation.word)
+                        audioPlayer.play(.vowel, key: pronunciation.word, itemID: concealID)
                     },
                     onDetails: { showSheet(for: text, formType: formType) }
                 )

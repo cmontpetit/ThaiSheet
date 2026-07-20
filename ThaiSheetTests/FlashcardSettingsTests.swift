@@ -529,4 +529,72 @@ final class FlashcardSettingsTests: XCTestCase {
         let codes = FlashcardSettings.supportedLanguages.map(\.code)
         XCTAssertEqual(codes, ["system", "en", "fr"])
     }
+
+    // MARK: - Voice overrides
+
+    func test_voiceOverride_persistsAndReloadsInSecondInstance() {
+        settings.setVoiceOverride(.kore, for: "consonant-ก")
+        let reloaded = FlashcardSettings(defaults: defaults)
+        XCTAssertEqual(reloaded.voiceOverride(for: "consonant-ก"), .kore)
+    }
+
+    func test_voiceOverride_corruptDataDecodesToEmptyMap() {
+        defaults.set(Data("not json".utf8), forKey: "fc_voiceOverrides")
+        let reloaded = FlashcardSettings(defaults: defaults)
+        XCTAssertTrue(reloaded.voiceOverrides.isEmpty)
+    }
+
+    func test_voiceOverride_removeOne() {
+        settings.setVoiceOverride(.kore, for: "consonant-ก")
+        settings.setVoiceOverride(.matilda, for: "consonant-ข")
+        settings.setVoiceOverride(nil, for: "consonant-ก")
+        XCTAssertNil(settings.voiceOverride(for: "consonant-ก"))
+        XCTAssertEqual(settings.voiceOverride(for: "consonant-ข"), .matilda)
+    }
+
+    func test_resetVoiceOverrides_empties() {
+        settings.setVoiceOverride(.kore, for: "consonant-ก")
+        settings.setVoiceOverride(.matilda, for: "vowel-x")
+        settings.resetVoiceOverrides()
+        XCTAssertTrue(settings.voiceOverrides.isEmpty)
+        XCTAssertTrue(settings.overriddenItemIDs.isEmpty)
+    }
+
+    func test_changingDefaultVoice_preservesOverrides() {
+        settings.setVoiceOverride(.kore, for: "consonant-ก")
+        settings.recordedVoice = .current
+        XCTAssertEqual(settings.voiceOverride(for: "consonant-ก"), .kore)
+    }
+
+    func test_reload_picksUpExternalOverrideChange() {
+        defaults.set(FlashcardSettings.encodeVoiceOverrides(["cluster-กร": .matilda]), forKey: "fc_voiceOverrides")
+        settings.reload()
+        XCTAssertEqual(settings.voiceOverride(for: "cluster-กร"), .matilda)
+    }
+
+    func test_syncedKeys_containsVoiceOverrides() {
+        XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_voiceOverrides"))
+    }
+
+    func test_voiceOverrides_encodeDecodeRoundTrip() {
+        let map: [String: RecordedVoice] = ["a": .kore, "b": .matilda, "c": .current]
+        let decoded = FlashcardSettings.decodeVoiceOverrides(FlashcardSettings.encodeVoiceOverrides(map))
+        XCTAssertEqual(decoded, map)
+        XCTAssertTrue(FlashcardSettings.decodeVoiceOverrides(nil).isEmpty)
+    }
+
+    // MARK: - AudioPlayer voice resolution
+
+    func test_audioPlayer_initializedWithOverrides_resolvesImmediately() {
+        let player = AudioPlayer(recordedVoice: .current, voiceOverrides: ["consonant-ก": .kore])
+        XCTAssertEqual(player.resolvedVoice(for: "consonant-ก", previewVoice: nil), .kore)
+    }
+
+    func test_audioPlayer_resolutionPrecedence() {
+        let player = AudioPlayer(recordedVoice: .matilda, voiceOverrides: ["x": .kore])
+        XCTAssertEqual(player.resolvedVoice(for: "x", previewVoice: .current), .current) // preview wins
+        XCTAssertEqual(player.resolvedVoice(for: "x", previewVoice: nil), .kore)          // then override
+        XCTAssertEqual(player.resolvedVoice(for: "y", previewVoice: nil), .matilda)       // then default
+        XCTAssertEqual(player.resolvedVoice(for: nil, previewVoice: nil), .matilda)
+    }
 }

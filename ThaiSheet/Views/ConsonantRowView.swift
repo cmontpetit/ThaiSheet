@@ -71,6 +71,7 @@ struct ConsonantRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
+    @Environment(\.thaiData) private var thaiData
     @State private var showingSheet = false
 
     private var hasSound: Bool {
@@ -78,6 +79,10 @@ struct ConsonantRowView: View {
     }
 
     private var concealID: String { FlashcardType.consonant.cardId(for: consonant.id) }
+
+    private var voiceOverride: (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget)? {
+        thaiData.voiceOverrideCatalogEntry(for: concealID).map { ($0.descriptor, $0.canonicalPreview) }
+    }
 
     private var stage: SRSStage {
         learningModel.getProgress(forId: FlashcardType.consonant.cardId(for: consonant.id)).srsStage
@@ -133,7 +138,7 @@ struct ConsonantRowView: View {
                 label: "\(consonant.character), \(consonant.transcription), \(consonant.initialSound), \(consonant.finalSound)",
                 hasSound: hasSound,
                 conceal: PracticeConceal(id: concealID, concealedLabel: consonant.character),
-                onPlay: { audioPlayer.play(.consonant, key: consonant.character) },
+                onPlay: { audioPlayer.play(.consonant, key: consonant.character, itemID: concealID) },
                 onDetails: { showingSheet = true }
             )
         }
@@ -149,10 +154,11 @@ struct ConsonantRowView: View {
                 note: nil,
                 sampleWord: consonant.sampleWord,
                 hasSound: hasSound,
-                onPlaySound: { audioPlayer.play(.consonant, key: consonant.character) },
+                onPlaySound: { audioPlayer.play(.consonant, key: consonant.character, itemID: concealID) },
                 soundActionLabel: "Say Name",
                 onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
-                onPractice: { onPractice?() }
+                onPractice: { onPractice?() },
+                voiceOverride: voiceOverride
             )
         }
     }

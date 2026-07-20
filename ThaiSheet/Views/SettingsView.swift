@@ -73,6 +73,17 @@ struct SettingsView: View {
                         }
                         .pickerStyle(.inline)
                         .labelsHidden()
+
+                        NavigationLink {
+                            VoiceOverridesView()
+                        } label: {
+                            HStack {
+                                Text("Item voice overrides", bundle: .appLanguage)
+                                Spacer()
+                                Text("\(settings.overriddenItemIDs.count)")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     } header: {
                         Text("Pronunciation voice")
                     } footer: {

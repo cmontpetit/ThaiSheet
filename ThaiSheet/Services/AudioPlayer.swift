@@ -26,8 +26,9 @@ enum AudioSource: String, CaseIterable, Identifiable {
 /// to the root (the synchronized file group does not preserve subfolders), so the
 /// voice sets are disambiguated by a filename suffix rather than a folder: the current
 /// shipping voice keeps the unsuffixed names, alternates append `_kore` / `_matilda`.
-/// This is a DEBUG-only comparison aid; release ships a single voice.
-enum RecordedVoice: String, CaseIterable, Identifiable {
+/// Selectable in release (global default + per-item overrides). `Codable` so the
+/// per-item override map persists as JSON.
+enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
     case current      // Google Neural2-C — the shipping bundled voice
     case kore         // Google Chirp3-HD-Kore
     case matilda      // ElevenLabs Matilda (eleven_v3)
@@ -54,9 +55,24 @@ enum RecordedVoice: String, CaseIterable, Identifiable {
 
 /// Protocol for audio playback, enabling test mocking
 protocol AudioPlaying {
-    func play(_ type: SoundType, key: String)
+    /// `itemID` selects a per-item voice override; `previewVoice` forces a specific
+    /// recorded voice (for auditioning in the override picker).
+    func play(_ type: SoundType, key: String, itemID: String?, previewVoice: RecordedVoice?)
     func speak(_ text: String)
     func hasSound(_ type: SoundType, key: String) -> Bool
+    /// Whether a specific voice has this exact clip (no fallback) — for the picker.
+    func hasRecordedSound(_ type: SoundType, key: String, voice: RecordedVoice) -> Bool
+}
+
+extension AudioPlaying {
+    /// Convenience overloads so call sites need only what they use (protocol
+    /// requirements can't carry defaults through the existential).
+    func play(_ type: SoundType, key: String) {
+        play(type, key: key, itemID: nil, previewVoice: nil)
+    }
+    func play(_ type: SoundType, key: String, itemID: String?) {
+        play(type, key: key, itemID: itemID, previewVoice: nil)
+    }
 }
 
 // MARK: - Environment Key
@@ -66,9 +82,10 @@ private struct AudioPlayerKey: EnvironmentKey {
 }
 
 private struct NoOpAudioPlayer: AudioPlaying {
-    func play(_ type: SoundType, key: String) {}
+    func play(_ type: SoundType, key: String, itemID: String?, previewVoice: RecordedVoice?) {}
     func speak(_ text: String) {}
     func hasSound(_ type: SoundType, key: String) -> Bool { false }
+    func hasRecordedSound(_ type: SoundType, key: String, voice: RecordedVoice) -> Bool { false }
 }
 
 extension EnvironmentValues {
@@ -85,10 +102,18 @@ class AudioPlayer: NSObject, AudioPlaying {
     private let speechSynthesizer = AVSpeechSynthesizer()
     var audioSource: AudioSource
     var recordedVoice: RecordedVoice
+    /// Per-item voice overrides, keyed by `FlashcardType.cardId(for:)`. Loaded at init
+    /// (onChange does not fire for the already-persisted value at launch).
+    var voiceOverrides: [String: RecordedVoice]
 
-    init(audioSource: AudioSource = .recorded, recordedVoice: RecordedVoice = .current) {
+    init(
+        audioSource: AudioSource = .recorded,
+        recordedVoice: RecordedVoice = .current,
+        voiceOverrides: [String: RecordedVoice] = [:]
+    ) {
         self.audioSource = audioSource
         self.recordedVoice = recordedVoice
+        self.voiceOverrides = voiceOverrides
         super.init()
         speechSynthesizer.delegate = self
         // Skip audio session configuration during unit tests to avoid CoreAudio crashes
@@ -107,15 +132,21 @@ class AudioPlayer: NSObject, AudioPlaying {
         }
     }
 
-    func play(_ type: SoundType, key: String) {
-        switch effectiveAudioSource {
-        case .recorded:
-            speechSynthesizer.stopSpeaking(at: .immediate)
-            playRecorded(type, key: key)
-        case .device:
+    func play(_ type: SoundType, key: String, itemID: String? = nil, previewVoice: RecordedVoice? = nil) {
+        // A preview forces the recorded source so the picker can audition a voice even
+        // when DEBUG Device-Voice mode is active.
+        if previewVoice == nil, effectiveAudioSource == .device {
             guard let text = Self.liveText(for: type, key: key) else { return }
             speak(text)
+            return
         }
+        speechSynthesizer.stopSpeaking(at: .immediate)
+        playRecorded(type, key: key, voice: resolvedVoice(for: itemID, previewVoice: previewVoice))
+    }
+
+    /// Precedence: an explicit preview wins, then a per-item override, then the default.
+    func resolvedVoice(for itemID: String?, previewVoice: RecordedVoice?) -> RecordedVoice {
+        previewVoice ?? itemID.flatMap { voiceOverrides[$0] } ?? recordedVoice
     }
 
     func speak(_ text: String) {
@@ -138,10 +169,18 @@ class AudioPlayer: NSObject, AudioPlaying {
     func hasSound(_ type: SoundType, key: String) -> Bool {
         switch effectiveAudioSource {
         case .recorded:
-            return Self.hasRecordedSound(type, key: key, voice: recordedVoice)
+            // Available if the default voice has it, or the current-voice fallback does.
+            return Self.recordedClipExists(type, key: key, voice: recordedVoice)
+                || Self.recordedClipExists(type, key: key, voice: .current)
         case .device:
             return Self.liveText(for: type, key: key) != nil
         }
+    }
+
+    /// Whether a *specific* voice has this exact clip, with no fallback — the override
+    /// picker uses this to disable a voice that is missing the item's clip.
+    func hasRecordedSound(_ type: SoundType, key: String, voice: RecordedVoice) -> Bool {
+        Self.recordedClipExists(type, key: key, voice: voice)
     }
 
     static var isThaiVoiceAvailable: Bool {
@@ -188,15 +227,15 @@ class AudioPlayer: NSObject, AudioPlaying {
             ?? Bundle.main.url(forResource: filename, withExtension: "mp3")
     }
 
-    private static func hasRecordedSound(_ type: SoundType, key: String, voice: RecordedVoice) -> Bool {
-        recordedURL(filename(type, key: key, voice: voice)) != nil ||
-            recordedURL(filename(type, key: key, voice: .current)) != nil
+    /// Exact existence for one voice, no fallback.
+    private static func recordedClipExists(_ type: SoundType, key: String, voice: RecordedVoice) -> Bool {
+        recordedURL(filename(type, key: key, voice: voice)) != nil
     }
 
-    private func playRecorded(_ type: SoundType, key: String) {
-        // Prefer the selected voice; fall back to the current set if a clip is missing
+    private func playRecorded(_ type: SoundType, key: String, voice: RecordedVoice) {
+        // Prefer the resolved voice; fall back to the current set if a clip is missing
         // (e.g. an alternate voice that could not synthesize a rare glyph).
-        let name = Self.filename(type, key: key, voice: recordedVoice)
+        let name = Self.filename(type, key: key, voice: voice)
         guard let url = Self.recordedURL(name)
             ?? Self.recordedURL(Self.filename(type, key: key, voice: .current)) else {
             print("Sound file not found: \(name).mp3")

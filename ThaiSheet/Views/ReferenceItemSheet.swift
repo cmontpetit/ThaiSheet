@@ -23,8 +23,12 @@ struct ReferenceItemSheet: View {
     var onPlayPronunciation: (ReferenceSampleWord) -> Void = { _ in }
     var onPlaySampleWord: (ReferenceSampleWord) -> Void = { _ in }
     let onPractice: () -> Void
+    /// When set (and audio is in recorded mode), shows a per-item Voice override row.
+    var voiceOverride: (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget)? = nil
 
     @Environment(\.dismiss) var dismiss
+    @Environment(\.flashcardSettings) private var settings
+    @State private var showingVoicePicker = false
     @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
     @ScaledMetric(relativeTo: .largeTitle) private var titleFrameHeight: CGFloat = 86
     @ScaledMetric(relativeTo: .largeTitle) private var toneHeaderFrameHeight: CGFloat = 124
@@ -111,6 +115,30 @@ struct ReferenceItemSheet: View {
                     }
                     .disabled(!hasSound)
 
+                    if let voiceOverride, showsVoiceOverride {
+                        Button {
+                            showingVoicePicker = true
+                        } label: {
+                            HStack {
+                                Text("Voice", bundle: .appLanguage)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                Text(voiceStateLabel)
+                                    .foregroundStyle(.secondary)
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                        }
+                        .buttonStyle(.plain)
+                        .sheet(isPresented: $showingVoicePicker) {
+                            VoiceOverridePicker(descriptor: voiceOverride.descriptor, preview: voiceOverride.preview)
+                        }
+                    }
+
                     Button {
                         dismiss()
                         onPractice()
@@ -141,6 +169,26 @@ struct ReferenceItemSheet: View {
         .scrollIndicators(.hidden)
         .presentationDetents([preferredDetent, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    /// Overrides only make sense with a settings store and the recorded source
+    /// (hidden under DEBUG Device-Voice mode).
+    private var showsVoiceOverride: Bool {
+        guard let settings else { return false }
+        return AudioPlayer.resolvedAudioSource(
+            settings.audioSource,
+            isThaiVoiceAvailable: AudioPlayer.isThaiVoiceAvailable
+        ) == .recorded
+    }
+
+    /// "Use Default · Matilda" (follows the default) vs "Google Kore · Override" (locked).
+    private var voiceStateLabel: String {
+        guard let voiceOverride else { return "" }
+        if let override = settings?.voiceOverride(for: voiceOverride.descriptor.id) {
+            return "\(override.displayName) · \(String(localized: "Override", bundle: .appLanguage))"
+        }
+        let def = settings?.recordedVoice ?? .current
+        return "\(String(localized: "Use Default", bundle: .appLanguage)) · \(def.displayName)"
     }
 
     private var preferredDetent: PresentationDetent {
