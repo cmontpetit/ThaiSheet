@@ -115,6 +115,29 @@ struct ReferenceItemSheet: View {
                     }
                     .disabled(!hasSound)
 
+                    if let exampleWord = sampleWord ?? pronunciationWord {
+                        sampleWordButton(
+                            exampleWord,
+                            usesPronunciationAudio: exampleWord.word == pronunciationWord?.word
+                        )
+                    }
+
+                    Button {
+                        dismiss()
+                        onPractice()
+                    } label: {
+                        HStack {
+                            Image(systemName: "rectangle.stack")
+                            Text("Practice")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+
+                    // De-emphasized: the per-item voice override sits at the bottom.
                     if let voiceOverride, showsVoiceOverride {
                         Button {
                             showingVoicePicker = true
@@ -137,28 +160,6 @@ struct ReferenceItemSheet: View {
                         .sheet(isPresented: $showingVoicePicker) {
                             VoiceOverridePicker(descriptor: voiceOverride.descriptor, preview: voiceOverride.preview)
                         }
-                    }
-
-                    Button {
-                        dismiss()
-                        onPractice()
-                    } label: {
-                        HStack {
-                            Image(systemName: "rectangle.stack")
-                            Text("Practice")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                    }
-
-                    if let exampleWord = sampleWord ?? pronunciationWord {
-                        sampleWordButton(
-                            exampleWord,
-                            usesPronunciationAudio: exampleWord.word == pronunciationWord?.word
-                        )
                     }
                 }
                 .padding(.horizontal)
