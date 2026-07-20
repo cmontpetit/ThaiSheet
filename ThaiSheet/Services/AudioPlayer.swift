@@ -15,32 +15,33 @@ enum SoundType: String {
     case sampleWord = "sample_word"
 }
 
-enum AudioSource: String, CaseIterable, Identifiable {
-    case recorded
-    case device
-
-    var id: String { rawValue }
-}
-
-/// Which bundled recorded-voice set to play. The app bundle flattens all resources
-/// to the root (the synchronized file group does not preserve subfolders), so the
-/// voice sets are disambiguated by a filename suffix rather than a folder: the current
-/// shipping voice keeps the unsuffixed names, alternates append `_kore` / `_matilda`.
-/// Selectable in release (global default + per-item overrides). `Codable` so the
-/// per-item override map persists as JSON.
+/// A selectable pronunciation voice. The three recorded sets are bundled MP3s
+/// (disambiguated by a filename suffix — the app bundle flattens resources to the
+/// root, so folders can't); `.device` is the live Apple system voice (availability
+/// is device-dependent, so it's only offered when a Thai system voice is installed).
+/// `Codable` so the per-item override map persists as JSON.
+/// (Named `RecordedVoice` for history; `.device` is the one non-recorded member.)
 enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
     case current      // Google Neural2-C — the shipping bundled voice
     case kore         // Google Chirp3-HD-Kore
     case matilda      // ElevenLabs Matilda (eleven_v3)
+    case device       // Apple system voice (AVSpeechSynthesizer)
 
     var id: String { rawValue }
 
-    /// Suffix appended to the base `cheat_sheet_<type>_<key>` filename.
+    /// The bundled recorded voices (everything but the live device voice).
+    static var recordedCases: [RecordedVoice] { [.current, .kore, .matilda] }
+
+    var isDevice: Bool { self == .device }
+
+    /// Suffix appended to the base `cheat_sheet_<type>_<key>` filename. Unused for
+    /// `.device` (which never plays a bundled file).
     var filenameSuffix: String {
         switch self {
         case .current: return ""
         case .kore: return "_kore"
         case .matilda: return "_matilda"
+        case .device: return ""
         }
     }
 
@@ -49,6 +50,7 @@ enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
         case .current: return "Google Neural2-C"
         case .kore: return "Google Chirp3-HD Kore"
         case .matilda: return "ElevenLabs Matilda"
+        case .device: return String(localized: "Device voice (system)", bundle: .appLanguage)
         }
     }
 }
@@ -100,18 +102,15 @@ extension EnvironmentValues {
 class AudioPlayer: NSObject, AudioPlaying {
     private var player: AVAudioPlayer?
     private let speechSynthesizer = AVSpeechSynthesizer()
-    var audioSource: AudioSource
     var recordedVoice: RecordedVoice
     /// Per-item voice overrides, keyed by `FlashcardType.cardId(for:)`. Loaded at init
     /// (onChange does not fire for the already-persisted value at launch).
     var voiceOverrides: [String: RecordedVoice]
 
     init(
-        audioSource: AudioSource = .recorded,
         recordedVoice: RecordedVoice = .current,
         voiceOverrides: [String: RecordedVoice] = [:]
     ) {
-        self.audioSource = audioSource
         self.recordedVoice = recordedVoice
         self.voiceOverrides = voiceOverrides
         super.init()
@@ -133,15 +132,20 @@ class AudioPlayer: NSObject, AudioPlaying {
     }
 
     func play(_ type: SoundType, key: String, itemID: String? = nil, previewVoice: RecordedVoice? = nil) {
-        // A preview forces the recorded source so the picker can audition a voice even
-        // when DEBUG Device-Voice mode is active.
-        if previewVoice == nil, effectiveAudioSource == .device {
-            guard let text = Self.liveText(for: type, key: key) else { return }
-            speak(text)
+        let voice = resolvedVoice(for: itemID, previewVoice: previewVoice)
+        if voice == .device {
+            // Live Apple voice; if a Thai system voice isn't installed, fall back to
+            // the recorded default so the item still plays.
+            if Self.isThaiVoiceAvailable, let text = Self.liveText(for: type, key: key) {
+                speak(text)
+                return
+            }
+            speechSynthesizer.stopSpeaking(at: .immediate)
+            playRecorded(type, key: key, voice: .current)
             return
         }
         speechSynthesizer.stopSpeaking(at: .immediate)
-        playRecorded(type, key: key, voice: resolvedVoice(for: itemID, previewVoice: previewVoice))
+        playRecorded(type, key: key, voice: voice)
     }
 
     /// Precedence: an explicit preview wins, then a per-item override, then the default.
@@ -167,31 +171,24 @@ class AudioPlayer: NSObject, AudioPlaying {
     }
 
     func hasSound(_ type: SoundType, key: String) -> Bool {
-        switch effectiveAudioSource {
-        case .recorded:
-            // Available if the default voice has it, or the current-voice fallback does.
-            return Self.recordedClipExists(type, key: key, voice: recordedVoice)
-                || Self.recordedClipExists(type, key: key, voice: .current)
-        case .device:
-            return Self.liveText(for: type, key: key) != nil
-        }
+        // A bundled clip exists (default or current fallback), or the system voice can speak it.
+        Self.recordedClipExists(type, key: key, voice: recordedVoice)
+            || Self.recordedClipExists(type, key: key, voice: .current)
+            || (Self.isThaiVoiceAvailable && Self.liveText(for: type, key: key) != nil)
     }
 
-    /// Whether a *specific* voice has this exact clip, with no fallback — the override
-    /// picker uses this to disable a voice that is missing the item's clip.
+    /// Whether a *specific* voice can play this exact item, with no fallback — the
+    /// override picker uses this to disable a voice that can't. Device availability is
+    /// "a Thai system voice is installed and the item has speakable text."
     func hasRecordedSound(_ type: SoundType, key: String, voice: RecordedVoice) -> Bool {
-        Self.recordedClipExists(type, key: key, voice: voice)
+        if voice == .device {
+            return Self.isThaiVoiceAvailable && Self.liveText(for: type, key: key) != nil
+        }
+        return Self.recordedClipExists(type, key: key, voice: voice)
     }
 
     static var isThaiVoiceAvailable: Bool {
         AVSpeechSynthesisVoice(language: "th-TH") != nil
-    }
-
-    static func resolvedAudioSource(
-        _ requestedSource: AudioSource,
-        isThaiVoiceAvailable: Bool
-    ) -> AudioSource {
-        requestedSource == .device && !isThaiVoiceAvailable ? .recorded : requestedSource
     }
 
     static func liveText(for type: SoundType, key: String) -> String? {
@@ -207,9 +204,6 @@ class AudioPlayer: NSObject, AudioPlaying {
         }
     }
 
-    private var effectiveAudioSource: AudioSource {
-        Self.resolvedAudioSource(audioSource, isThaiVoiceAvailable: Self.isThaiVoiceAvailable)
-    }
 
     private static let consonantNamesByCharacter = Dictionary(
         uniqueKeysWithValues: Consonant.loadAll().map {

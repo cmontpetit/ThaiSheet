@@ -18,7 +18,7 @@ class FlashcardSettings {
         "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
-        "fc_useIntelligentSelection", "fc_audioSource", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage", "fc_iCloudSyncEnabled",
+        "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage", "fc_iCloudSyncEnabled",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -112,11 +112,7 @@ class FlashcardSettings {
         didSet { persist(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
     }
 
-    var audioSource: AudioSource = .recorded {
-        didSet { persist(audioSource.rawValue, forKey: "fc_audioSource") }
-    }
-
-    /// Selected bundled recorded-voice set. Defaults to Matilda (ElevenLabs).
+    /// Selected pronunciation voice (bundled recorded set or the live device voice).
     var recordedVoice: RecordedVoice = .matilda {
         didSet { persist(recordedVoice.rawValue, forKey: "fc_recordedVoice") }
     }
@@ -193,6 +189,16 @@ class FlashcardSettings {
         suppressPersistence = true
         reload()
         suppressPersistence = false
+        migrateLegacyAudioSourceIfNeeded()
+    }
+
+    /// The retired recorded/device source toggle is folded into `recordedVoice`:
+    /// a legacy "device" source becomes the `.device` voice. Runs once, then the key
+    /// is removed. (persist is active here, so the migrated value sticks.)
+    private func migrateLegacyAudioSourceIfNeeded() {
+        guard let legacy = defaults.string(forKey: "fc_audioSource") else { return }
+        if legacy == "device" { recordedVoice = .device }
+        defaults.removeObject(forKey: "fc_audioSource")
     }
 
     // MARK: - Persistence
@@ -230,7 +236,6 @@ class FlashcardSettings {
         irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
 
         useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
-        audioSource = defaults.string(forKey: "fc_audioSource").flatMap(AudioSource.init(rawValue:)) ?? .recorded
         recordedVoice = defaults.string(forKey: "fc_recordedVoice").flatMap(RecordedVoice.init(rawValue:)) ?? .matilda
         voiceOverrides = Self.decodeVoiceOverrides(defaults.data(forKey: "fc_voiceOverrides"))
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"

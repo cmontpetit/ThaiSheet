@@ -67,10 +67,6 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertFalse(settings.useIntelligentSelection)
     }
 
-    func test_defaults_audioSource_isRecorded() {
-        XCTAssertEqual(settings.audioSource, .recorded)
-    }
-
     func test_defaults_appLanguage_isSystem() {
         XCTAssertEqual(settings.appLanguage, "system")
     }
@@ -490,10 +486,15 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertEqual(defaults.string(forKey: "fc_appLanguage"), "fr")
     }
 
-    func test_persistence_audioSource_roundTrip() {
-        settings.audioSource = .device
+    func test_migration_legacyDeviceSource_becomesDeviceVoice() {
+        let suite = "VoiceMigration_\(UUID().uuidString)"
+        let store = UserDefaults(suiteName: suite)!
+        defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
+        store.set("device", forKey: "fc_audioSource")
 
-        XCTAssertEqual(defaults.string(forKey: "fc_audioSource"), AudioSource.device.rawValue)
+        let migrated = FlashcardSettings(defaults: store)
+        XCTAssertEqual(migrated.recordedVoice, .device)
+        XCTAssertNil(store.string(forKey: "fc_audioSource")) // legacy key cleared
     }
 
     // MARK: - appLanguage and resolvedLocale
@@ -596,5 +597,12 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertEqual(player.resolvedVoice(for: "x", previewVoice: nil), .kore)          // then override
         XCTAssertEqual(player.resolvedVoice(for: "y", previewVoice: nil), .matilda)       // then default
         XCTAssertEqual(player.resolvedVoice(for: nil, previewVoice: nil), .matilda)
+    }
+
+    func test_audioPlayer_resolvesDeviceVoice() {
+        let player = AudioPlayer(recordedVoice: .device, voiceOverrides: ["x": .kore])
+        XCTAssertEqual(player.resolvedVoice(for: "y", previewVoice: nil), .device)  // device as default
+        XCTAssertEqual(player.resolvedVoice(for: "x", previewVoice: nil), .kore)    // override still wins
+        XCTAssertEqual(player.resolvedVoice(for: nil, previewVoice: .device), .device) // device preview
     }
 }
