@@ -156,12 +156,17 @@ struct ToneRuleRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
+    @Environment(\.practiceMode) private var practiceMode
     @State private var showingSheet = false
 
     private var hasSound: Bool {
         guard let sample = rule.primarySample else { return false }
         return audioPlayer.hasSound(.toneRule, key: sample.full)
     }
+
+    private var concealID: String { "tonerule-\(rule.id)" }
+
+    private var isConcealed: Bool { practiceMode.isConcealed(concealID) }
 
     private var ruleDisplay: String {
         let initial = String(
@@ -188,11 +193,15 @@ struct ToneRuleRowView: View {
         )
     }
 
-    /// Spoken summary of the rule row, e.g. "Low, Short, Dead/None: High. คะ"
+    /// Spoken summary of the rule row, e.g. "Low, Short, Dead/None: High. คะ".
+    /// While concealed, the resulting tone stays out of the label.
     private var ruleAccessibilityLabel: String {
         let inputs = [rule.initialConsonant, rule.vowelDuration, rule.end]
             .map { String(localized: String.LocalizationValue($0), bundle: .appLanguage) }
             .joined(separator: ", ")
+        if isConcealed {
+            return inputs
+        }
         let tone = ThaiColors.toneName(rule.tone)
         if let sample = rule.primarySample {
             return "\(inputs): \(tone). \(sample.full)"
@@ -245,12 +254,14 @@ struct ToneRuleRowView: View {
 
                 StyledToneText(tone: rule.tone)
                     .foregroundColor(hasSound ? .accentColor : .primary)
+                    .concealedReading(isConcealed)
                     .frame(width: 60)
             }
             .playableItem(
                 label: ruleAccessibilityLabel,
                 hasSound: hasSound && rule.primarySample != nil,
                 onPlay: {
+                    practiceMode.handleTap(concealID)
                     if let sample = rule.primarySample {
                         audioPlayer.play(.toneRule, key: sample.full)
                     }

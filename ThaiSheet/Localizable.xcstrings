@@ -591,6 +591,28 @@
         }
       }
     },
+    "Hide readings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer les lectures"
+          }
+        }
+      }
+    },
+    "Show readings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les lectures"
+          }
+        }
+      }
+    },
     "High" : {
       "extractionState" : "manual",
       "localizations" : {

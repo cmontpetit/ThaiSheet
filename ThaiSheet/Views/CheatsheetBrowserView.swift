@@ -49,6 +49,8 @@ struct CheatsheetBrowserView: View {
     @State private var selectedType: CheatsheetEntryType = .consonants
     @State private var showingSettings = false
     @State private var showingToneLegend = false
+    // Session-only by design: the app always opens with readings visible
+    @State private var practiceMode = PracticeMode()
 
     private var consonants: [Consonant] { thaiData.consonants }
     private var vowels: [Vowel] { thaiData.vowels }
@@ -433,10 +435,21 @@ struct CheatsheetBrowserView: View {
                     }
                 }
             }
+            .environment(\.practiceMode, practiceMode)
             .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
+                        Button {
+                            practiceMode.toggleActive()
+                        } label: {
+                            Image(systemName: practiceMode.isActive ? "eye.slash" : "eye")
+                        }
+                        .accessibilityLabel(
+                            practiceMode.isActive
+                                ? String(localized: "Show readings", bundle: .appLanguage)
+                                : String(localized: "Hide readings", bundle: .appLanguage)
+                        )
                         if selectedType == .tones {
                             Button {
                                 showingToneLegend = true

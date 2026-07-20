@@ -88,6 +88,7 @@ struct VowelRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
+    @Environment(\.practiceMode) private var practiceMode
     @State private var selectedFormType: VowelFormVariant? = nil
     @State private var selectedText: String? = nil
     @ScaledMetric(relativeTo: .title2) private var singleDurationFormSize: CGFloat = 34
@@ -136,6 +137,11 @@ struct VowelRowView: View {
     private var hasSound: Bool {
         soundForm != nil
     }
+
+    // One reveal per row: tapping any of its form cells reveals the shared reading
+    private var concealID: String { "vowel-\(vowel.id)" }
+
+    private var isConcealed: Bool { practiceMode.isConcealed(concealID) }
 
     private func showSheet(for text: String, formType: VowelFormVariant) {
         selectedFormType = formType
@@ -232,13 +238,17 @@ struct VowelRowView: View {
         let text = Text(vowel.sound)
             .font(.caption)
             .foregroundColor(hasSound ? .accentColor : .primary)
+            .concealedReading(isConcealed)
             .frame(width: 60)
             .frame(maxHeight: .infinity)
         if let form = soundForm {
             text.playableItem(
-                label: "\(vowel.sound), \(form.text)",
+                label: isConcealed ? form.text : "\(vowel.sound), \(form.text)",
                 hasSound: true,
-                onPlay: { audioPlayer.play(.vowel, key: form.pronunciation.word) },
+                onPlay: {
+                    practiceMode.handleTap(concealID)
+                    audioPlayer.play(.vowel, key: form.pronunciation.word)
+                },
                 onDetails: { showSheet(for: form.text, formType: form.formType) }
             )
         } else {
@@ -291,6 +301,7 @@ struct VowelRowView: View {
                     hasSound: hasSound,
                     onPlay: {
                         guard let pronunciation else { return }
+                        practiceMode.handleTap(concealID)
                         audioPlayer.play(.vowel, key: pronunciation.word)
                     },
                     onDetails: { showSheet(for: text, formType: formType) }
