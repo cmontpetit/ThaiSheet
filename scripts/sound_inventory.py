@@ -15,17 +15,26 @@ SOUND_TYPE_ORDER = (
     "sample_word",
 )
 
-# The app bundles alternate recorded-voice sets alongside the canonical (unsuffixed)
-# Neural2-C set, distinguished by these filename suffixes (e.g.
-# cheat_sheet_consonant_ก_kore.mp3). They are extra bundle resources, NOT part of the
-# inventory or the public catalog, so tooling that matches the inventory ignores them.
-ALTERNATE_VOICE_SUFFIXES = ("_kore", "_matilda")
+# The inventory is voice-neutral. Every bundled recorded set appends an explicit
+# suffix because Xcode flattens the synchronized resources into one bundle directory.
+BUNDLED_VOICE_KEYS = ("neural2", "kore", "matilda")
 
 
-def is_alternate_voice_file(filename: str) -> bool:
-    """True if the filename belongs to an alternate voice set (kore/matilda)."""
-    stem = filename[:-4] if filename.endswith(".mp3") else filename
-    return any(stem.endswith(suffix) for suffix in ALTERNATE_VOICE_SUFFIXES)
+def bundled_voice_filename(filename: str, voice_key: str) -> str:
+    """Add a recorded-voice suffix to one canonical inventory filename."""
+    if voice_key not in BUNDLED_VOICE_KEYS:
+        raise ValueError(f"Unknown bundled voice key: {voice_key}")
+    path = Path(filename)
+    return f"{path.stem}_{voice_key}{path.suffix}"
+
+
+def expected_bundled_filenames(items: list["SoundItem"]) -> set[str]:
+    """Every MP3 that must be present in the production sound directory."""
+    return {
+        bundled_voice_filename(item.filename, voice_key)
+        for item in items
+        for voice_key in BUNDLED_VOICE_KEYS
+    }
 SOUND_TYPE_LABELS = {
     "tone_mark": "Tone marks",
     "tone_rule": "Tone rules",

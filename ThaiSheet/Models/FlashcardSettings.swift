@@ -146,6 +146,13 @@ class FlashcardSettings {
         return decoded
     }
 
+    private static func containsLegacyCurrentVoice(_ data: Data?) -> Bool {
+        guard let data,
+              let values = try? JSONDecoder().decode([String: String].self, from: data)
+        else { return false }
+        return values.values.contains("current")
+    }
+
     var appLanguage = "system" {
         didSet {
             persist(appLanguage, forKey: "fc_appLanguage")
@@ -204,6 +211,20 @@ class FlashcardSettings {
         defaults.removeObject(forKey: "fc_audioSource")
     }
 
+    /// Rename the old Neural2 identifier in both persisted voice locations. Decoding
+    /// already accepts it, so this only canonicalizes storage for future reads/syncs.
+    private func migrateLegacyCurrentVoiceIfNeeded(
+        recordedVoiceValue: String?,
+        voiceOverridesData: Data?
+    ) {
+        if recordedVoiceValue == "current" {
+            defaults.set(RecordedVoice.neural2.rawValue, forKey: "fc_recordedVoice")
+        }
+        if Self.containsLegacyCurrentVoice(voiceOverridesData) {
+            defaults.set(Self.encodeVoiceOverrides(voiceOverrides), forKey: "fc_voiceOverrides")
+        }
+    }
+
     // MARK: - Persistence
 
     @ObservationIgnored private var suppressPersistence = false
@@ -239,10 +260,17 @@ class FlashcardSettings {
         irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
 
         useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
-        recordedVoice = defaults.string(forKey: "fc_recordedVoice").flatMap(RecordedVoice.init(rawValue:)) ?? .matilda
-        voiceOverrides = Self.decodeVoiceOverrides(defaults.data(forKey: "fc_voiceOverrides"))
+        let recordedVoiceValue = defaults.string(forKey: "fc_recordedVoice")
+        let voiceOverridesData = defaults.data(forKey: "fc_voiceOverrides")
+        recordedVoice = recordedVoiceValue.flatMap(RecordedVoice.persistedValue) ?? .matilda
+        voiceOverrides = Self.decodeVoiceOverrides(voiceOverridesData)
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
+        migrateLegacyCurrentVoiceIfNeeded(
+            recordedVoiceValue: recordedVoiceValue,
+            voiceOverridesData: voiceOverridesData
+        )
+        // The retired source toggle wins if both legacy formats arrive together.
         migrateLegacyAudioSourceIfNeeded()
     }
 

@@ -545,6 +545,17 @@
         }
       }
     },
+    "Falls back to ElevenLabs Matilda" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repli sur ElevenLabs Matilda"
+          }
+        }
+      }
+    },
     "Familiar" : {
       "localizations" : {
         "fr" : {
@@ -1944,13 +1955,13 @@
         }
       }
     },
-    "Unavailable — using Google Neural2-C" : {
+    "Unavailable — using ElevenLabs Matilda" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Indisponible — utilise Google Neural2-C"
+            "value" : "Indisponible — utilise ElevenLabs Matilda"
           }
         }
       }

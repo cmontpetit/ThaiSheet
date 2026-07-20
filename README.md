@@ -61,7 +61,8 @@ python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-fi
 # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
 ```
 
-The bundled and default generation voice is `th-TH-Neural2-C`. The complete
+The bundled Google generation voice is `th-TH-Neural2-C`; generated production
+files use the `_neural2` suffix. The complete
 recorded set is normalized to -18 LUFS. Use an explicit `--voice-name` when
 producing a candidate with another voice.
 Generated responses are rejected and retried when they are too short or nearly
@@ -106,9 +107,9 @@ consonant classes, sounds, tone rules — expressed in this project's own struct
 wording, with corrections and additions by the author. No third-party images, prose,
 or artwork are included.
 
-All pronunciation audio was generated with
-[Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech) (see Sound
-Generation above).
+Bundled pronunciation audio was generated with
+[Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech) and
+ElevenLabs (see Sound Generation above).
 
 ## Contributing
 

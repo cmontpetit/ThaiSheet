@@ -505,6 +505,24 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertNil(defaults.string(forKey: "fc_audioSource"))
     }
 
+    func test_migration_legacyCurrentVoice_becomesNeural2() {
+        defaults.set("current", forKey: "fc_recordedVoice")
+        settings.reload()
+
+        XCTAssertEqual(settings.recordedVoice, .neural2)
+        XCTAssertEqual(defaults.string(forKey: "fc_recordedVoice"), "neural2")
+    }
+
+    func test_migration_legacyCurrentVoiceOverride_becomesNeural2() throws {
+        defaults.set(Data(#"{"consonant-ก":"current"}"#.utf8), forKey: "fc_voiceOverrides")
+        settings.reload()
+
+        XCTAssertEqual(settings.voiceOverride(for: "consonant-ก"), .neural2)
+        let stored = try XCTUnwrap(defaults.data(forKey: "fc_voiceOverrides"))
+        XCTAssertFalse(String(decoding: stored, as: UTF8.self).contains("current"))
+        XCTAssertTrue(String(decoding: stored, as: UTF8.self).contains("neural2"))
+    }
+
     // MARK: - appLanguage and resolvedLocale
 
     func test_appLanguage_defaultIsSystem() {
@@ -571,7 +589,7 @@ final class FlashcardSettingsTests: XCTestCase {
 
     func test_changingDefaultVoice_preservesOverrides() {
         settings.setVoiceOverride(.kore, for: "consonant-ก")
-        settings.recordedVoice = .current
+        settings.recordedVoice = .neural2
         XCTAssertEqual(settings.voiceOverride(for: "consonant-ก"), .kore)
     }
 
@@ -586,7 +604,7 @@ final class FlashcardSettingsTests: XCTestCase {
     }
 
     func test_voiceOverrides_encodeDecodeRoundTrip() {
-        let map: [String: RecordedVoice] = ["a": .kore, "b": .matilda, "c": .current]
+        let map: [String: RecordedVoice] = ["a": .kore, "b": .matilda, "c": .neural2]
         let decoded = FlashcardSettings.decodeVoiceOverrides(FlashcardSettings.encodeVoiceOverrides(map))
         XCTAssertEqual(decoded, map)
         XCTAssertTrue(FlashcardSettings.decodeVoiceOverrides(nil).isEmpty)
@@ -595,13 +613,13 @@ final class FlashcardSettingsTests: XCTestCase {
     // MARK: - AudioPlayer voice resolution
 
     func test_audioPlayer_initializedWithOverrides_resolvesImmediately() {
-        let player = AudioPlayer(recordedVoice: .current, voiceOverrides: ["consonant-ก": .kore])
+        let player = AudioPlayer(recordedVoice: .neural2, voiceOverrides: ["consonant-ก": .kore])
         XCTAssertEqual(player.resolvedVoice(for: "consonant-ก", previewVoice: nil), .kore)
     }
 
     func test_audioPlayer_resolutionPrecedence() {
         let player = AudioPlayer(recordedVoice: .matilda, voiceOverrides: ["x": .kore])
-        XCTAssertEqual(player.resolvedVoice(for: "x", previewVoice: .current), .current) // preview wins
+        XCTAssertEqual(player.resolvedVoice(for: "x", previewVoice: .neural2), .neural2) // preview wins
         XCTAssertEqual(player.resolvedVoice(for: "x", previewVoice: nil), .kore)          // then override
         XCTAssertEqual(player.resolvedVoice(for: "y", previewVoice: nil), .matilda)       // then default
         XCTAssertEqual(player.resolvedVoice(for: nil, previewVoice: nil), .matilda)
@@ -612,5 +630,12 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertEqual(player.resolvedVoice(for: "y", previewVoice: nil), .device)  // device as default
         XCTAssertEqual(player.resolvedVoice(for: "x", previewVoice: nil), .kore)    // override still wins
         XCTAssertEqual(player.resolvedVoice(for: nil, previewVoice: .device), .device) // device preview
+    }
+
+    func test_audioPlayer_recordedFallbackOrder() {
+        XCTAssertEqual(AudioPlayer.recordedPlaybackOrder(for: .kore), [.kore, .matilda, .neural2])
+        XCTAssertEqual(AudioPlayer.recordedPlaybackOrder(for: .matilda), [.matilda, .neural2])
+        XCTAssertEqual(AudioPlayer.recordedPlaybackOrder(for: .neural2), [.neural2, .matilda])
+        XCTAssertEqual(AudioPlayer.recordedPlaybackOrder(for: .device), [.matilda, .neural2])
     }
 }

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 
 from generate_sound_catalog import build_catalog, rendered_catalog
-from generate_sound_review import current_voice_label
+from generate_sound_review import bundled_voice_label
 from generate_sounds import AudioQuality, SoundGenerator
 from generate_vowel_pronunciation_review import (
     internal_silence_intervals,
@@ -14,9 +14,11 @@ from generate_vowel_pronunciation_review import (
     render_review,
 )
 from sound_inventory import (
+    BUNDLED_VOICE_KEYS,
     CATALOG_TYPE_LABELS,
     SOUND_TYPE_LABELS,
-    is_alternate_voice_file,
+    bundled_voice_filename,
+    expected_bundled_filenames,
     load_sound_inventory,
 )
 
@@ -35,13 +37,11 @@ class SoundInventoryTests(unittest.TestCase):
 
     def test_inventory_matches_bundled_files(self):
         self.assertEqual(len(self.items), 388)
-        expected = {item.filename for item in self.items}
-        # Ignore alternate voice sets (kore/matilda); only the canonical set is inventoried.
-        existing = {
-            path.name for path in SOUNDS_DIR.glob("*.mp3")
-            if not is_alternate_voice_file(path.name)
-        }
+        expected = expected_bundled_filenames(self.items)
+        existing = {path.name for path in SOUNDS_DIR.glob("*.mp3")}
         self.assertEqual(expected, existing)
+        self.assertEqual(BUNDLED_VOICE_KEYS, ("neural2", "kore", "matilda"))
+        self.assertEqual(sum(name.endswith("_neural2.mp3") for name in expected), 388)
 
     def test_synthesis_rules_are_preserved(self):
         self.assertEqual(self.by_id["consonant:ก"].synthesis_text, "กอ ไก่")
@@ -53,6 +53,10 @@ class SoundInventoryTests(unittest.TestCase):
         ri = self.by_id["vowel:ฤ-:short_closed"]
         self.assertEqual(ri.synthesis_text, "ฤทธิ์")
         self.assertEqual(ri.filename, "cheat_sheet_vowel_ฤทธิ์.mp3")
+        self.assertEqual(
+            bundled_voice_filename(ri.filename, "neural2"),
+            "cheat_sheet_vowel_ฤทธิ์_neural2.mp3",
+        )
 
     def test_sample_word_metadata_is_available(self):
         teacher = self.by_id["sample-word:ครู"]
@@ -138,8 +142,8 @@ class SoundCatalogTests(unittest.TestCase):
 
 
 class SoundReviewTests(unittest.TestCase):
-    def test_current_voice_comes_from_recorded_audio_metadata(self):
-        self.assertEqual(current_voice_label(), "th-TH-Neural2-C")
+    def test_bundled_voice_comes_from_recorded_audio_metadata(self):
+        self.assertEqual(bundled_voice_label(), "th-TH-Neural2-C")
 
 
 class VowelPronunciationReviewTests(unittest.TestCase):
@@ -169,7 +173,7 @@ class VowelPronunciationReviewTests(unittest.TestCase):
     def test_review_page_embeds_candidate_data(self):
         page = render_review({
             "candidateVoice": "test-voice",
-            "currentVoice": "current",
+            "bundledVoice": "bundled",
             "items": self.candidates[:1],
             "counts": {
                 "variants": 1,

@@ -37,6 +37,8 @@ from sound_inventory import (
     SOUND_TYPE_LABELS,
     SOUND_TYPE_ORDER,
     SoundItem,
+    bundled_voice_filename,
+    expected_bundled_filenames,
     inventory_by_type,
     load_sound_inventory,
 )
@@ -388,23 +390,30 @@ def generate_sound_type(
     items: list[SoundItem],
     sound_type: str,
     generator: SoundGenerator,
+    bundled_voice_key: str | None,
 ) -> None:
     selected_items = [item for item in items if item.sound_type == sound_type]
     print(f"\n[{SOUND_TYPE_LABELS[sound_type]}]")
     for item in selected_items:
         generator.generate(
             item.synthesis_text,
-            sounds_dir / item.filename,
+            sounds_dir / output_filename(item, bundled_voice_key),
             item.description,
         )
     print(f"  Processed {len(selected_items)} sounds")
 
 
-def check_sound_files(sounds_dir: Path, generator: SoundGenerator) -> bool:
+def output_filename(item: SoundItem, bundled_voice_key: str | None) -> str:
+    if bundled_voice_key is None:
+        return item.filename
+    return bundled_voice_filename(item.filename, bundled_voice_key)
+
+
+def check_sound_files(sounds_dir: Path, expected_filenames: set[str]) -> bool:
     """Check that bundled MP3s match the files generated from current JSON data."""
-    existing_files = set(sounds_dir.glob("*.mp3"))
-    stale_files = sorted(existing_files - generator.expected_files)
-    missing_files = sorted(generator.expected_files - existing_files)
+    existing_files = {path.name for path in sounds_dir.glob("*.mp3")}
+    stale_files = sorted(existing_files - expected_filenames)
+    missing_files = sorted(expected_filenames - existing_files)
 
     if not stale_files and not missing_files:
         print("\nSound file check passed.")
@@ -514,6 +523,10 @@ def main():
     else:
         sounds_dir = production_sounds_dir
 
+    # Candidate directories contain one isolated, voice-neutral set. Production
+    # filenames carry the explicit Neural2 suffix alongside Kore and Matilda.
+    bundled_voice_key = "neural2" if sounds_dir == production_sounds_dir else None
+
     if sounds_dir == production_sounds_dir and not sounds_dir.exists():
         print(f"Error: Sounds directory not found: {sounds_dir}")
         return 1
@@ -567,7 +580,7 @@ def main():
         for item in selected_items:
             generator.generate(
                 item.synthesis_text,
-                sounds_dir / item.filename,
+                sounds_dir / output_filename(item, bundled_voice_key),
                 item.description,
             )
         print(f"  Processed {len(selected_items)} sounds")
@@ -582,13 +595,25 @@ def main():
         }
         for sound_type in SOUND_TYPE_ORDER:
             if selected_sound_types[sound_type]:
-                generate_sound_type(sounds_dir, grouped_inventory[sound_type], sound_type, generator)
+                generate_sound_type(
+                    sounds_dir,
+                    grouped_inventory[sound_type],
+                    sound_type,
+                    generator,
+                    bundled_voice_key,
+                )
 
     action = "would be generated" if args.dry_run else "written"
     print(f"\nDone! {generator.written} files {action}; {generator.skipped} skipped.")
 
-    if args.check_files and not check_sound_files(sounds_dir, generator):
-        return 1
+    if args.check_files:
+        expected_filenames = (
+            expected_bundled_filenames(inventory)
+            if bundled_voice_key is not None
+            else {item.filename for item in inventory}
+        )
+        if not check_sound_files(sounds_dir, expected_filenames):
+            return 1
 
     return 0
 
