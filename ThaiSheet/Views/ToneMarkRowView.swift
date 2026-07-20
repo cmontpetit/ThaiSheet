@@ -127,11 +127,15 @@ struct ToneMarkRowView: View {
     private func toneCell(_ entry: ToneMark.ClassEntry) -> some View {
         if let tone = entry.tone {
             let hasSound = audioPlayer.hasSound(.toneMark, key: entry.soundKey)
+            // Each class column is its own answer, so cells conceal individually
+            let concealID = FlashcardType.toneMark.cardId(for: entry.soundKey)
             StyledToneText(tone: tone)
                 .font(.subheadline)
+                .concealedReading(id: concealID)
                 .playableItem(
                     label: "\(entry.display), \(ThaiColors.toneName(tone))",
                     hasSound: hasSound,
+                    conceal: PracticeConceal(id: concealID, concealedLabel: entry.display),
                     onPlay: { audioPlayer.play(.toneMark, key: entry.soundKey) },
                     onDetails: { selectedDisplay = entry.display }
                 )

@@ -77,6 +77,8 @@ struct ConsonantRowView: View {
         audioPlayer.hasSound(.consonant, key: consonant.character)
     }
 
+    private var concealID: String { FlashcardType.consonant.cardId(for: consonant.id) }
+
     private var stage: SRSStage {
         learningModel.getProgress(forId: FlashcardType.consonant.cardId(for: consonant.id)).srsStage
     }
@@ -99,6 +101,7 @@ struct ConsonantRowView: View {
                 Text(consonant.transcription)
                     .font(.subheadline)
                     .foregroundStyle(.primary)
+                    .concealedReading(id: concealID)
 
                 Spacer()
 
@@ -112,6 +115,7 @@ struct ConsonantRowView: View {
                             .monospacedDigit()
                     }
                     .foregroundColor(hasSound ? .accentColor : .primary)
+                    .concealedReading(id: concealID)
 
                     if consonant.usage != .common {
                         Text(consonant.usage.label)
@@ -124,8 +128,11 @@ struct ConsonantRowView: View {
                 .padding(.horizontal, 8)
             }
             .playableItem(
-                label: "\(consonant.character), \(consonant.transcription)",
+                // Full label carries the concealed answers (transcription + both
+                // sounds) so a revealed VoiceOver user can check them.
+                label: "\(consonant.character), \(consonant.transcription), \(consonant.initialSound), \(consonant.finalSound)",
                 hasSound: hasSound,
+                conceal: PracticeConceal(id: concealID, concealedLabel: consonant.character),
                 onPlay: { audioPlayer.play(.consonant, key: consonant.character) },
                 onDetails: { showingSheet = true }
             )

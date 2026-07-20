@@ -91,6 +91,7 @@ struct ClusterMatrixCell: View {
 
     var body: some View {
         if let cluster = cluster {
+            let concealID = FlashcardType.cluster.cardId(for: cluster.id)
             // Tap plays the sound, long press opens the sheet
             VStack(spacing: 2) {
                 Text(cluster.cluster)
@@ -100,6 +101,7 @@ struct ClusterMatrixCell: View {
                     Text(sound)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                        .concealedReading(id: concealID)
                 }
             }
             .foregroundColor(cluster.usageLabel != nil ? .secondary : .primary)
@@ -109,6 +111,7 @@ struct ClusterMatrixCell: View {
             .playableItem(
                 label: clusterAccessibilityLabel(cluster),
                 hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
+                conceal: PracticeConceal(id: concealID, concealedLabel: cluster.cluster),
                 onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey) },
                 onDetails: { showingSheet = true }
             )
@@ -161,6 +164,8 @@ struct ClusterCompactCell: View {
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var showingSheet = false
 
+    private var concealID: String { FlashcardType.cluster.cardId(for: cluster.id) }
+
     var body: some View {
         // Tap plays the sound, long press opens the sheet
         VStack(spacing: 2) {
@@ -170,6 +175,7 @@ struct ClusterCompactCell: View {
                 Text(sound)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .concealedReading(id: concealID)
             }
         }
         .frame(maxWidth: .infinity)
@@ -183,6 +189,7 @@ struct ClusterCompactCell: View {
         .playableItem(
             label: clusterAccessibilityLabel(cluster),
             hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
+            conceal: PracticeConceal(id: concealID, concealedLabel: cluster.cluster),
             onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey) },
             onDetails: { showingSheet = true }
         )

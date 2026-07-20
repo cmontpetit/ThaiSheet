@@ -591,6 +591,28 @@
         }
       }
     },
+    "Hide readings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer les lectures"
+          }
+        }
+      }
+    },
+    "Show readings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les lectures"
+          }
+        }
+      }
+    },
     "High" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -984,6 +1006,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Joue le son. Maintenir pour les détails."
+          }
+        }
+      }
+    },
+    "Plays the sound and reveals the answer. Touch and hold for details." : {
+      "comment" : "VoiceOver hint on reference items while practice mode conceals the reading.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue le son et révèle la réponse. Maintenir pour les détails."
+          }
+        }
+      }
+    },
+    "Reveals the answer. Touch and hold for details." : {
+      "comment" : "VoiceOver hint: concealed practice item with no audio (tap reveals only).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Révèle la réponse. Maintenir pour les détails."
+          }
+        }
+      }
+    },
+    "Plays the sound and hides the answer. Touch and hold for details." : {
+      "comment" : "VoiceOver hint: revealed practice item with audio (tap re-hides and plays).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue le son et masque la réponse. Maintenir pour les détails."
+          }
+        }
+      }
+    },
+    "Hides the answer. Touch and hold for details." : {
+      "comment" : "VoiceOver hint: revealed practice item with no audio (tap re-hides).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masque la réponse. Maintenir pour les détails."
+          }
+        }
+      }
+    },
+    "Touch and hold for details." : {
+      "comment" : "VoiceOver hint: revealed reveal-only practice item with no audio (tap does nothing).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintenir pour les détails."
           }
         }
       }

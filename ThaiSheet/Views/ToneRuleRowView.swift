@@ -163,6 +163,8 @@ struct ToneRuleRowView: View {
         return audioPlayer.hasSound(.toneRule, key: sample.full)
     }
 
+    private var concealID: String { FlashcardType.toneRule.cardId(for: rule.id) }
+
     private var ruleDisplay: String {
         let initial = String(
             localized: String.LocalizationValue(rule.initialConsonant),
@@ -188,16 +190,20 @@ struct ToneRuleRowView: View {
         )
     }
 
-    /// Spoken summary of the rule row, e.g. "Low, Short, Dead/None: High. คะ"
-    private var ruleAccessibilityLabel: String {
-        let inputs = [rule.initialConsonant, rule.vowelDuration, rule.end]
+    /// The rule inputs alone (no resulting tone) — the concealed VoiceOver label.
+    private var ruleInputsLabel: String {
+        [rule.initialConsonant, rule.vowelDuration, rule.end]
             .map { String(localized: String.LocalizationValue($0), bundle: .appLanguage) }
             .joined(separator: ", ")
+    }
+
+    /// Spoken summary of the rule row, e.g. "Low, Short, Dead/None: High. คะ".
+    private var ruleAccessibilityLabel: String {
         let tone = ThaiColors.toneName(rule.tone)
         if let sample = rule.primarySample {
-            return "\(inputs): \(tone). \(sample.full)"
+            return "\(ruleInputsLabel): \(tone). \(sample.full)"
         }
-        return "\(inputs): \(tone)"
+        return "\(ruleInputsLabel): \(tone)"
     }
 
     /// Lowest stage among all sample cards for this rule
@@ -245,11 +251,13 @@ struct ToneRuleRowView: View {
 
                 StyledToneText(tone: rule.tone)
                     .foregroundColor(hasSound ? .accentColor : .primary)
+                    .concealedReading(id: concealID)
                     .frame(width: 60)
             }
             .playableItem(
                 label: ruleAccessibilityLabel,
                 hasSound: hasSound && rule.primarySample != nil,
+                conceal: PracticeConceal(id: concealID, concealedLabel: ruleInputsLabel),
                 onPlay: {
                     if let sample = rule.primarySample {
                         audioPlayer.play(.toneRule, key: sample.full)
