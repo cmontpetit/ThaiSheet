@@ -25,10 +25,19 @@ final class PracticeMode {
         isActive && revealedID != id
     }
 
-    /// Row tap: reveal this reading (re-conceal it if it was the revealed one).
+    /// Row tap on the sole tap target for a reading: reveal it, or re-conceal
+    /// it if it was already the revealed one.
     func handleTap(_ id: String) {
         guard isActive else { return }
         revealedID = (revealedID == id) ? nil : id
+    }
+
+    /// Reveal a reading without toggling. Used when several tap targets share
+    /// one reading (a vowel row's form cells): tapping a sibling cell to hear a
+    /// different form should keep the answer shown, not hide it.
+    func reveal(_ id: String) {
+        guard isActive else { return }
+        revealedID = id
     }
 }
 

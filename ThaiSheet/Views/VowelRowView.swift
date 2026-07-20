@@ -300,8 +300,10 @@ struct VowelRowView: View {
                     label: text,
                     hasSound: hasSound,
                     onPlay: {
+                        // Form cells share the row's single reading, so reveal
+                        // (don't toggle) — a sibling tap must not hide the answer
+                        practiceMode.reveal(concealID)
                         guard let pronunciation else { return }
-                        practiceMode.handleTap(concealID)
                         audioPlayer.play(.vowel, key: pronunciation.word)
                     },
                     onDetails: { showSheet(for: text, formType: formType) }
