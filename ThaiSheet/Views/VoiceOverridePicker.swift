@@ -101,7 +101,7 @@ struct VoiceOverridePicker: View {
             }
             .buttonStyle(.borderless)
             .disabled(!available)
-            .accessibilityLabel("\(String(localized: "Preview", bundle: .appLanguage)) \(voice.displayName)")
+            .accessibilityLabel(Text(verbatim: "\(String(localized: "Preview", bundle: .appLanguage)) \(voice.displayName)"))
         }
     }
 

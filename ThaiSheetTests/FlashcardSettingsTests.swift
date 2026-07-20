@@ -497,6 +497,14 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertNil(store.string(forKey: "fc_audioSource")) // legacy key cleared
     }
 
+    func test_migration_legacyDeviceSource_appliesOnReload() {
+        // iCloud can deliver the legacy key after launch → reload() must migrate too.
+        defaults.set("device", forKey: "fc_audioSource")
+        settings.reload()
+        XCTAssertEqual(settings.recordedVoice, .device)
+        XCTAssertNil(defaults.string(forKey: "fc_audioSource"))
+    }
+
     // MARK: - appLanguage and resolvedLocale
 
     func test_appLanguage_defaultIsSystem() {

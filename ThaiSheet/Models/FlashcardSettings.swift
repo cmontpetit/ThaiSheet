@@ -189,15 +189,18 @@ class FlashcardSettings {
         suppressPersistence = true
         reload()
         suppressPersistence = false
-        migrateLegacyAudioSourceIfNeeded()
     }
 
     /// The retired recorded/device source toggle is folded into `recordedVoice`:
-    /// a legacy "device" source becomes the `.device` voice. Runs once, then the key
-    /// is removed. (persist is active here, so the migrated value sticks.)
+    /// a legacy "device" source becomes the `.device` voice, then the key is removed.
+    /// Called at the end of every `reload()` (init *and* iCloud sync), and writes
+    /// directly so it sticks even during the suppressed initial load.
     private func migrateLegacyAudioSourceIfNeeded() {
         guard let legacy = defaults.string(forKey: "fc_audioSource") else { return }
-        if legacy == "device" { recordedVoice = .device }
+        if legacy == "device" {
+            recordedVoice = .device
+            defaults.set(RecordedVoice.device.rawValue, forKey: "fc_recordedVoice")
+        }
         defaults.removeObject(forKey: "fc_audioSource")
     }
 
@@ -240,6 +243,7 @@ class FlashcardSettings {
         voiceOverrides = Self.decodeVoiceOverrides(defaults.data(forKey: "fc_voiceOverrides"))
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
+        migrateLegacyAudioSourceIfNeeded()
     }
 
     // MARK: - Filter Counts
