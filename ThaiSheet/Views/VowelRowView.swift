@@ -88,7 +88,6 @@ struct VowelRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
-    @Environment(\.practiceMode) private var practiceMode
     @State private var selectedFormType: VowelFormVariant? = nil
     @State private var selectedText: String? = nil
     @ScaledMetric(relativeTo: .title2) private var singleDurationFormSize: CGFloat = 34
@@ -139,9 +138,7 @@ struct VowelRowView: View {
     }
 
     // One reveal per row: tapping any of its form cells reveals the shared reading
-    private var concealID: String { "vowel-\(vowel.id)" }
-
-    private var isConcealed: Bool { practiceMode.isConcealed(concealID) }
+    private var concealID: String { FlashcardType.vowel.cardId(for: vowel.id) }
 
     private func showSheet(for text: String, formType: VowelFormVariant) {
         selectedFormType = formType
@@ -238,17 +235,15 @@ struct VowelRowView: View {
         let text = Text(vowel.sound)
             .font(.caption)
             .foregroundColor(hasSound ? .accentColor : .primary)
-            .concealedReading(isConcealed)
+            .concealedReading(id: concealID)
             .frame(width: 60)
             .frame(maxHeight: .infinity)
         if let form = soundForm {
             text.playableItem(
-                label: isConcealed ? form.text : "\(vowel.sound), \(form.text)",
+                label: "\(vowel.sound), \(form.text)",
                 hasSound: true,
-                onPlay: {
-                    practiceMode.handleTap(concealID)
-                    audioPlayer.play(.vowel, key: form.pronunciation.word)
-                },
+                conceal: PracticeConceal(id: concealID, concealedLabel: form.text),
+                onPlay: { audioPlayer.play(.vowel, key: form.pronunciation.word) },
                 onDetails: { showSheet(for: form.text, formType: form.formType) }
             )
         } else {
@@ -299,10 +294,10 @@ struct VowelRowView: View {
                 .playableItem(
                     label: text,
                     hasSound: hasSound,
+                    // Form cells share the row's single reading, so reveal (don't
+                    // toggle) — a sibling tap must not hide the answer.
+                    conceal: PracticeConceal(id: concealID, concealedLabel: text, revealOnly: true),
                     onPlay: {
-                        // Form cells share the row's single reading, so reveal
-                        // (don't toggle) — a sibling tap must not hide the answer
-                        practiceMode.reveal(concealID)
                         guard let pronunciation else { return }
                         audioPlayer.play(.vowel, key: pronunciation.word)
                     },

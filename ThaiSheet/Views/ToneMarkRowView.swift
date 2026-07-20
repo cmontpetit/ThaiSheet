@@ -90,7 +90,6 @@ struct ToneMarkRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
-    @Environment(\.practiceMode) private var practiceMode
     @State private var selectedDisplay: String? = nil
 
     private func stage(for display: String) -> SRSStage {
@@ -129,20 +128,15 @@ struct ToneMarkRowView: View {
         if let tone = entry.tone {
             let hasSound = audioPlayer.hasSound(.toneMark, key: entry.soundKey)
             // Each class column is its own answer, so cells conceal individually
-            let concealID = "tonemark-\(entry.soundKey)"
-            let isConcealed = practiceMode.isConcealed(concealID)
+            let concealID = FlashcardType.toneMark.cardId(for: entry.soundKey)
             StyledToneText(tone: tone)
                 .font(.subheadline)
-                .concealedReading(isConcealed)
+                .concealedReading(id: concealID)
                 .playableItem(
-                    label: isConcealed
-                        ? entry.display
-                        : "\(entry.display), \(ThaiColors.toneName(tone))",
+                    label: "\(entry.display), \(ThaiColors.toneName(tone))",
                     hasSound: hasSound,
-                    onPlay: {
-                        practiceMode.handleTap(concealID)
-                        audioPlayer.play(.toneMark, key: entry.soundKey)
-                    },
+                    conceal: PracticeConceal(id: concealID, concealedLabel: entry.display),
+                    onPlay: { audioPlayer.play(.toneMark, key: entry.soundKey) },
                     onDetails: { selectedDisplay = entry.display }
                 )
                 .sheet(

@@ -87,12 +87,11 @@ struct ClusterMatrixCell: View {
     var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
     @Environment(\.audioPlayer) private var audioPlayer
-    @Environment(\.practiceMode) private var practiceMode
     @State private var showingSheet = false
 
     var body: some View {
         if let cluster = cluster {
-            let isConcealed = practiceMode.isConcealed("cluster-\(cluster.id)")
+            let concealID = FlashcardType.cluster.cardId(for: cluster.id)
             // Tap plays the sound, long press opens the sheet
             VStack(spacing: 2) {
                 Text(cluster.cluster)
@@ -102,7 +101,7 @@ struct ClusterMatrixCell: View {
                     Text(sound)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .concealedReading(isConcealed)
+                        .concealedReading(id: concealID)
                 }
             }
             .foregroundColor(cluster.usageLabel != nil ? .secondary : .primary)
@@ -110,12 +109,10 @@ struct ClusterMatrixCell: View {
             .background(isHighlighted ? Color.accentColor.opacity(0.2) : Color.clear)
             .cornerRadius(6)
             .playableItem(
-                label: isConcealed ? cluster.cluster : clusterAccessibilityLabel(cluster),
+                label: clusterAccessibilityLabel(cluster),
                 hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
-                onPlay: {
-                    practiceMode.handleTap("cluster-\(cluster.id)")
-                    audioPlayer.play(.cluster, key: cluster.audioKey)
-                },
+                conceal: PracticeConceal(id: concealID, concealedLabel: cluster.cluster),
+                onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey) },
                 onDetails: { showingSheet = true }
             )
             .sheet(isPresented: $showingSheet) {
@@ -165,10 +162,9 @@ struct ClusterCompactCell: View {
     var isHighlighted: Bool = false
     var onPractice: ((String) -> Void)?
     @Environment(\.audioPlayer) private var audioPlayer
-    @Environment(\.practiceMode) private var practiceMode
     @State private var showingSheet = false
 
-    private var isConcealed: Bool { practiceMode.isConcealed("cluster-\(cluster.id)") }
+    private var concealID: String { FlashcardType.cluster.cardId(for: cluster.id) }
 
     var body: some View {
         // Tap plays the sound, long press opens the sheet
@@ -179,7 +175,7 @@ struct ClusterCompactCell: View {
                 Text(sound)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .concealedReading(isConcealed)
+                    .concealedReading(id: concealID)
             }
         }
         .frame(maxWidth: .infinity)
@@ -191,12 +187,10 @@ struct ClusterCompactCell: View {
                 .stroke(isHighlighted ? Color.accentColor : Color.clear, lineWidth: 2)
         )
         .playableItem(
-            label: isConcealed ? cluster.cluster : clusterAccessibilityLabel(cluster),
+            label: clusterAccessibilityLabel(cluster),
             hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
-            onPlay: {
-                practiceMode.handleTap("cluster-\(cluster.id)")
-                audioPlayer.play(.cluster, key: cluster.audioKey)
-            },
+            conceal: PracticeConceal(id: concealID, concealedLabel: cluster.cluster),
+            onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey) },
             onDetails: { showingSheet = true }
         )
         .sheet(isPresented: $showingSheet) {

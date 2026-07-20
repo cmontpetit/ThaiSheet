@@ -25,8 +25,8 @@ final class PracticeMode {
         isActive && revealedID != id
     }
 
-    /// Row tap on the sole tap target for a reading: reveal it, or re-conceal
-    /// it if it was already the revealed one.
+    /// Tap on the sole tap target for a reading: reveal it, or re-conceal it if
+    /// it was already the revealed one.
     func handleTap(_ id: String) {
         guard isActive else { return }
         revealedID = (revealedID == id) ? nil : id
@@ -39,6 +39,19 @@ final class PracticeMode {
         guard isActive else { return }
         revealedID = id
     }
+}
+
+/// Describes how a `playableItem` participates in practice mode. Passing this
+/// makes `PlayableItemModifier` own the whole conceal contract in one place:
+/// reveal-on-tap, the concealed VoiceOver label, and the concealed hint.
+struct PracticeConceal {
+    /// Stable per-reading id (use `FlashcardType.cardId(for:)`).
+    let id: String
+    /// VoiceOver label to use while the reading is concealed (answer omitted).
+    let concealedLabel: String
+    /// When several tap targets share one reading, sibling taps must reveal
+    /// rather than toggle it off (vowel form cells).
+    var revealOnly = false
 }
 
 // MARK: - Environment
@@ -57,13 +70,30 @@ extension EnvironmentValues {
 
 // MARK: - Conceal modifier
 
+/// Blurs a reading while practice mode conceals the given id. Reads the
+/// environment itself, so a reading only needs its id — no per-row plumbing —
+/// and only these leaf modifiers re-evaluate when the revealed row changes.
+/// Desaturates too: tone chips are color-coded, so a colored smudge would leak
+/// the answer.
+private struct ConcealedReadingModifier: ViewModifier {
+    let id: String
+    @Environment(\.practiceMode) private var practiceMode
+
+    func body(content: Content) -> some View {
+        if practiceMode.isActive {
+            let concealed = practiceMode.revealedID != id
+            content
+                .saturation(concealed ? 0 : 1)
+                .blur(radius: concealed ? 5 : 0)
+                .animation(.easeInOut(duration: 0.15), value: concealed)
+        } else {
+            content
+        }
+    }
+}
+
 extension View {
-    /// Blurs a reading while practice mode conceals it. Desaturates too:
-    /// tone chips are color-coded, so a colored smudge would leak the answer.
-    func concealedReading(_ concealed: Bool) -> some View {
-        self
-            .saturation(concealed ? 0 : 1)
-            .blur(radius: concealed ? 5 : 0)
-            .animation(.easeInOut(duration: 0.15), value: concealed)
+    func concealedReading(id: String) -> some View {
+        modifier(ConcealedReadingModifier(id: id))
     }
 }

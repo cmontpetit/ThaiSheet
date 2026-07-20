@@ -71,16 +71,13 @@ struct ConsonantRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
-    @Environment(\.practiceMode) private var practiceMode
     @State private var showingSheet = false
 
     private var hasSound: Bool {
         audioPlayer.hasSound(.consonant, key: consonant.character)
     }
 
-    private var concealID: String { "consonant-\(consonant.character)" }
-
-    private var isConcealed: Bool { practiceMode.isConcealed(concealID) }
+    private var concealID: String { FlashcardType.consonant.cardId(for: consonant.id) }
 
     private var stage: SRSStage {
         learningModel.getProgress(forId: FlashcardType.consonant.cardId(for: consonant.id)).srsStage
@@ -104,7 +101,7 @@ struct ConsonantRowView: View {
                 Text(consonant.transcription)
                     .font(.subheadline)
                     .foregroundStyle(.primary)
-                    .concealedReading(isConcealed)
+                    .concealedReading(id: concealID)
 
                 Spacer()
 
@@ -118,7 +115,7 @@ struct ConsonantRowView: View {
                             .monospacedDigit()
                     }
                     .foregroundColor(hasSound ? .accentColor : .primary)
-                    .concealedReading(isConcealed)
+                    .concealedReading(id: concealID)
 
                     if consonant.usage != .common {
                         Text(consonant.usage.label)
@@ -131,15 +128,10 @@ struct ConsonantRowView: View {
                 .padding(.horizontal, 8)
             }
             .playableItem(
-                // Concealed reading stays out of the VoiceOver label too
-                label: isConcealed
-                    ? consonant.character
-                    : "\(consonant.character), \(consonant.transcription)",
+                label: "\(consonant.character), \(consonant.transcription)",
                 hasSound: hasSound,
-                onPlay: {
-                    practiceMode.handleTap(concealID)
-                    audioPlayer.play(.consonant, key: consonant.character)
-                },
+                conceal: PracticeConceal(id: concealID, concealedLabel: consonant.character),
+                onPlay: { audioPlayer.play(.consonant, key: consonant.character) },
                 onDetails: { showingSheet = true }
             )
         }
