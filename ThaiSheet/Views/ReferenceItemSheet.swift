@@ -172,15 +172,8 @@ struct ReferenceItemSheet: View {
         .presentationDragIndicator(.visible)
     }
 
-    /// Overrides only make sense with a settings store and the recorded source
-    /// (hidden under DEBUG Device-Voice mode).
-    private var showsVoiceOverride: Bool {
-        guard let settings else { return false }
-        return AudioPlayer.resolvedAudioSource(
-            settings.audioSource,
-            isThaiVoiceAvailable: AudioPlayer.isThaiVoiceAvailable
-        ) == .recorded
-    }
+    /// Overrides need a settings store (absent only in previews).
+    private var showsVoiceOverride: Bool { settings != nil }
 
     /// "Use Default · Matilda" (follows the default) vs "Google Kore · Override" (locked).
     private var voiceStateLabel: String {

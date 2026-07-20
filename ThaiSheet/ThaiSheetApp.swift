@@ -20,7 +20,6 @@ struct ThaiSheetApp: App {
         self.syncedStore = store
         _settings = State(initialValue: settings)
         _audioPlayer = State(initialValue: AudioPlayer(
-            audioSource: settings.audioSource,
             recordedVoice: settings.recordedVoice,
             voiceOverrides: settings.voiceOverrides
         ))
@@ -33,9 +32,6 @@ struct ThaiSheetApp: App {
                 .environment(\.thaiData, thaiData)
                 .environment(\.audioPlayer, audioPlayer)
                 .environment(\.flashcardSettings, settings)
-                .onChange(of: settings.audioSource) { _, source in
-                    audioPlayer.audioSource = source
-                }
                 .onChange(of: settings.recordedVoice) { _, voice in
                     audioPlayer.recordedVoice = voice
                 }

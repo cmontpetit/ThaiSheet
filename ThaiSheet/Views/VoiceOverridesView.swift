@@ -117,7 +117,7 @@ struct VoiceOverridesView: View {
                     Image(systemName: "speaker.wave.2.fill")
                 }
                 .buttonStyle(.borderless)
-                .accessibilityLabel("\(String(localized: "Preview", bundle: .appLanguage)) \(row.voice.displayName)")
+                .accessibilityLabel(Text(verbatim: "\(String(localized: "Preview", bundle: .appLanguage)) \(row.voice.displayName)"))
             }
         }
         .swipeActions {

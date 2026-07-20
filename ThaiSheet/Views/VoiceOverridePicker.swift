@@ -20,12 +20,19 @@ struct VoiceOverridePicker: View {
     private var current: RecordedVoice? { settings?.voiceOverride(for: descriptor.id) }
     private var defaultVoice: RecordedVoice { settings?.recordedVoice ?? .current }
 
+    /// Offer the live device voice only when a Thai system voice is installed (or it's
+    /// already this item's override, so a stored choice isn't hidden).
+    private var availableVoices: [RecordedVoice] {
+        RecordedVoice.recordedCases
+            + ((AudioPlayer.isThaiVoiceAvailable || current == .device) ? [.device] : [])
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     useDefaultRow
-                    ForEach(RecordedVoice.allCases) { voice in
+                    ForEach(availableVoices) { voice in
                         voiceRow(voice)
                     }
                 } footer: {
@@ -94,7 +101,7 @@ struct VoiceOverridePicker: View {
             }
             .buttonStyle(.borderless)
             .disabled(!available)
-            .accessibilityLabel("\(String(localized: "Preview", bundle: .appLanguage)) \(voice.displayName)")
+            .accessibilityLabel(Text(verbatim: "\(String(localized: "Preview", bundle: .appLanguage)) \(voice.displayName)"))
         }
     }
 

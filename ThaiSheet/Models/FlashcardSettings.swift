@@ -18,7 +18,7 @@ class FlashcardSettings {
         "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
-        "fc_useIntelligentSelection", "fc_audioSource", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage", "fc_iCloudSyncEnabled",
+        "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage", "fc_iCloudSyncEnabled",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -112,11 +112,7 @@ class FlashcardSettings {
         didSet { persist(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
     }
 
-    var audioSource: AudioSource = .recorded {
-        didSet { persist(audioSource.rawValue, forKey: "fc_audioSource") }
-    }
-
-    /// Selected bundled recorded-voice set. Defaults to Matilda (ElevenLabs).
+    /// Selected pronunciation voice (bundled recorded set or the live device voice).
     var recordedVoice: RecordedVoice = .matilda {
         didSet { persist(recordedVoice.rawValue, forKey: "fc_recordedVoice") }
     }
@@ -195,6 +191,19 @@ class FlashcardSettings {
         suppressPersistence = false
     }
 
+    /// The retired recorded/device source toggle is folded into `recordedVoice`:
+    /// a legacy "device" source becomes the `.device` voice, then the key is removed.
+    /// Called at the end of every `reload()` (init *and* iCloud sync), and writes
+    /// directly so it sticks even during the suppressed initial load.
+    private func migrateLegacyAudioSourceIfNeeded() {
+        guard let legacy = defaults.string(forKey: "fc_audioSource") else { return }
+        if legacy == "device" {
+            recordedVoice = .device
+            defaults.set(RecordedVoice.device.rawValue, forKey: "fc_recordedVoice")
+        }
+        defaults.removeObject(forKey: "fc_audioSource")
+    }
+
     // MARK: - Persistence
 
     @ObservationIgnored private var suppressPersistence = false
@@ -230,11 +239,11 @@ class FlashcardSettings {
         irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
 
         useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
-        audioSource = defaults.string(forKey: "fc_audioSource").flatMap(AudioSource.init(rawValue:)) ?? .recorded
         recordedVoice = defaults.string(forKey: "fc_recordedVoice").flatMap(RecordedVoice.init(rawValue:)) ?? .matilda
         voiceOverrides = Self.decodeVoiceOverrides(defaults.data(forKey: "fc_voiceOverrides"))
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
+        migrateLegacyAudioSourceIfNeeded()
     }
 
     // MARK: - Filter Counts
