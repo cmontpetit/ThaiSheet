@@ -18,7 +18,7 @@ struct VoiceOverridePicker: View {
     @Environment(\.dismiss) private var dismiss
 
     private var current: RecordedVoice? { settings?.voiceOverride(for: descriptor.id) }
-    private var defaultVoice: RecordedVoice { settings?.recordedVoice ?? .current }
+    private var defaultVoice: RecordedVoice { settings?.recordedVoice ?? .matilda }
 
     /// Offer the live device voice only when a Thai system voice is installed (or it's
     /// already this item's override, so a stored choice isn't hidden).
@@ -81,9 +81,7 @@ struct VoiceOverridePicker: View {
                         Text(voice.displayName)
                             .foregroundStyle(available || selected ? .primary : .secondary)
                         if !available {
-                            Text(selected
-                                 ? String(localized: "Unavailable — using Google Neural2-C", bundle: .appLanguage)
-                                 : String(localized: "Falls back to Google Neural2-C", bundle: .appLanguage))
+                            Text(fallbackDescription(for: voice, selected: selected))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -103,6 +101,16 @@ struct VoiceOverridePicker: View {
             .disabled(!available)
             .accessibilityLabel(Text(verbatim: "\(String(localized: "Preview", bundle: .appLanguage)) \(voice.displayName)"))
         }
+    }
+
+    private func fallbackDescription(for voice: RecordedVoice, selected: Bool) -> String {
+        if voice == .device && selected {
+            return String(localized: "Unavailable — using ElevenLabs Matilda", bundle: .appLanguage)
+        }
+        if voice == .matilda {
+            return String(localized: "Falls back to Google Neural2-C", bundle: .appLanguage)
+        }
+        return String(localized: "Falls back to ElevenLabs Matilda", bundle: .appLanguage)
     }
 
     private func checkmark(_ on: Bool) -> some View {

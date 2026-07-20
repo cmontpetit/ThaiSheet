@@ -22,15 +22,17 @@ enum SoundType: String {
 /// `Codable` so the per-item override map persists as JSON.
 /// (Named `RecordedVoice` for history; `.device` is the one non-recorded member.)
 enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
-    case current      // Google Neural2-C — the shipping bundled voice
+    case neural2      // Google Neural2-C
     case kore         // Google Chirp3-HD-Kore
     case matilda      // ElevenLabs Matilda (eleven_v3)
     case device       // Apple system voice (AVSpeechSynthesizer)
 
+    private static let legacyCurrentRawValue = "current"
+
     var id: String { rawValue }
 
     /// The bundled recorded voices (everything but the live device voice).
-    static var recordedCases: [RecordedVoice] { [.current, .kore, .matilda] }
+    static var recordedCases: [RecordedVoice] { [.neural2, .kore, .matilda] }
 
     var isDevice: Bool { self == .device }
 
@@ -38,7 +40,7 @@ enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
     /// `.device` (which never plays a bundled file).
     var filenameSuffix: String {
         switch self {
-        case .current: return ""
+        case .neural2: return "_neural2"
         case .kore: return "_kore"
         case .matilda: return "_matilda"
         case .device: return ""
@@ -47,11 +49,34 @@ enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
 
     var displayName: String {
         switch self {
-        case .current: return "Google Neural2-C"
+        case .neural2: return "Google Neural2-C"
         case .kore: return "Google Chirp3-HD Kore"
         case .matilda: return "ElevenLabs Matilda"
         case .device: return String(localized: "Device voice (system)", bundle: .appLanguage)
         }
+    }
+
+    /// Accept the pre-rename `current` value without keeping that misleading name in
+    /// the model. New values always encode as `neural2`.
+    static func persistedValue(_ value: String) -> RecordedVoice? {
+        value == legacyCurrentRawValue ? .neural2 : RecordedVoice(rawValue: value)
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self)
+        guard let voice = Self.persistedValue(value) else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Unknown recorded voice: \(value)"
+            )
+        }
+        self = voice
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }
 
@@ -108,7 +133,7 @@ class AudioPlayer: NSObject, AudioPlaying {
     var voiceOverrides: [String: RecordedVoice]
 
     init(
-        recordedVoice: RecordedVoice = .current,
+        recordedVoice: RecordedVoice = .matilda,
         voiceOverrides: [String: RecordedVoice] = [:]
     ) {
         self.recordedVoice = recordedVoice
@@ -141,7 +166,7 @@ class AudioPlayer: NSObject, AudioPlaying {
                 return
             }
             speechSynthesizer.stopSpeaking(at: .immediate)
-            playRecorded(type, key: key, voice: .current)
+            playRecorded(type, key: key, voice: .matilda)
             return
         }
         speechSynthesizer.stopSpeaking(at: .immediate)
@@ -171,10 +196,14 @@ class AudioPlayer: NSObject, AudioPlaying {
     }
 
     func hasSound(_ type: SoundType, key: String) -> Bool {
-        // A bundled clip exists (default or current fallback), or the system voice can speak it.
-        Self.recordedClipExists(type, key: key, voice: recordedVoice)
-            || Self.recordedClipExists(type, key: key, voice: .current)
-            || (Self.isThaiVoiceAvailable && Self.liveText(for: type, key: key) != nil)
+        if recordedVoice == .device,
+           Self.isThaiVoiceAvailable,
+           Self.liveText(for: type, key: key) != nil {
+            return true
+        }
+        return Self.recordedPlaybackOrder(for: recordedVoice).contains {
+            Self.recordedClipExists(type, key: key, voice: $0)
+        }
     }
 
     /// Whether a *specific* voice can play this exact item, with no fallback — the
@@ -226,13 +255,22 @@ class AudioPlayer: NSObject, AudioPlaying {
         recordedURL(filename(type, key: key, voice: voice)) != nil
     }
 
+    /// The selected voice is preferred. Matilda is the app's recorded fallback;
+    /// Neural2 is retained only as a final safety net if Matilda is missing a clip.
+    static func recordedPlaybackOrder(for voice: RecordedVoice) -> [RecordedVoice] {
+        let preferred = voice == .device ? RecordedVoice.matilda : voice
+        return [preferred, .matilda, .neural2].reduce(into: []) { order, candidate in
+            if !order.contains(candidate) { order.append(candidate) }
+        }
+    }
+
     private func playRecorded(_ type: SoundType, key: String, voice: RecordedVoice) {
-        // Prefer the resolved voice; fall back to the current set if a clip is missing
-        // (e.g. an alternate voice that could not synthesize a rare glyph).
-        let name = Self.filename(type, key: key, voice: voice)
-        guard let url = Self.recordedURL(name)
-            ?? Self.recordedURL(Self.filename(type, key: key, voice: .current)) else {
-            print("Sound file not found: \(name).mp3")
+        let order = Self.recordedPlaybackOrder(for: voice)
+        guard let url = order.lazy.compactMap({ candidate in
+            Self.recordedURL(Self.filename(type, key: key, voice: candidate))
+        }).first else {
+            let attempted = order.map { Self.filename(type, key: key, voice: $0) }.joined(separator: ", ")
+            print("Sound file not found (tried: \(attempted); all with .mp3 extension)")
             return
         }
         playURL(url)

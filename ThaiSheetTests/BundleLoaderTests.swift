@@ -225,7 +225,7 @@ final class BundleLoaderTests: XCTestCase {
                 XCTFail("Tone rule \(rule.id) needs an additional popup example")
                 continue
             }
-            let filename = "cheat_sheet_tone_rule_\(sample.full)"
+            let filename = "cheat_sheet_tone_rule_\(sample.full)_neural2"
             let sound = Bundle.main.url(
                 forResource: filename,
                 withExtension: "mp3",
@@ -311,7 +311,7 @@ final class BundleLoaderTests: XCTestCase {
 
     func test_clusterAudioKeys_resolveToBundledSounds() {
         for cluster in Cluster.loadAll() {
-            let filename = "cheat_sheet_cluster_\(cluster.audioKey)"
+            let filename = "cheat_sheet_cluster_\(cluster.audioKey)_neural2"
             let sound = Bundle.main.url(
                 forResource: filename,
                 withExtension: "mp3",
@@ -423,7 +423,7 @@ final class BundleLoaderTests: XCTestCase {
             Bundle.main.url(forResource: name, withExtension: "mp3", subdirectory: "sounds")
                 ?? Bundle.main.url(forResource: name, withExtension: "mp3")
         }
-        XCTAssertNotNil(bundledSound("cheat_sheet_vowel_ฤทธิ์"),
+        XCTAssertNotNil(bundledSound("cheat_sheet_vowel_ฤทธิ์_neural2"),
                         "the ri reading must use its explicit pronunciation word")
     }
 
@@ -452,7 +452,7 @@ final class BundleLoaderTests: XCTestCase {
                     continue
                 }
                 mappedCount += 1
-                let filename = "cheat_sheet_vowel_\(pronunciation.word)"
+                let filename = "cheat_sheet_vowel_\(pronunciation.word)_neural2"
                 let sound = Bundle.main.url(
                     forResource: filename,
                     withExtension: "mp3",

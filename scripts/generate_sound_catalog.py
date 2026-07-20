@@ -6,7 +6,12 @@ import hashlib
 import json
 from pathlib import Path
 
-from sound_inventory import CATALOG_TYPE_LABELS, is_alternate_voice_file, load_sound_inventory
+from sound_inventory import (
+    CATALOG_TYPE_LABELS,
+    bundled_voice_filename,
+    expected_bundled_filenames,
+    load_sound_inventory,
+)
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -19,11 +24,8 @@ OUTPUT_PATH = PROJECT_ROOT / "docs" / "sounds-data.js"
 
 def build_catalog(audio_dir: Path, metadata_path: Path) -> dict:
     items = load_sound_inventory(CHEATSHEET_DIR)
-    expected_files = {item.filename for item in items}
-    existing_files = {
-        path.name for path in audio_dir.glob("*.mp3")
-        if not is_alternate_voice_file(path.name)
-    }
+    expected_files = expected_bundled_filenames(items)
+    existing_files = {path.name for path in audio_dir.glob("*.mp3")}
     missing = sorted(expected_files - existing_files)
     stale = sorted(existing_files - expected_files)
     if missing or stale:
@@ -43,8 +45,10 @@ def build_catalog(audio_dir: Path, metadata_path: Path) -> dict:
 
     catalog_items = []
     for item in items:
-        filepath = audio_dir / item.filename
+        filename = bundled_voice_filename(item.filename, "neural2")
+        filepath = audio_dir / filename
         item_data = item.catalog_dict()
+        item_data["filename"] = filename
         digest = hashlib.sha256(filepath.read_bytes()).hexdigest()
         item_data.update({
             "bytes": filepath.stat().st_size,

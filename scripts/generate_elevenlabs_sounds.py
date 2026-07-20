@@ -7,7 +7,10 @@ the recorded voices are level-matched. Reads ELEVENLABS_API_KEY from the environ
 
     python3 scripts/generate_elevenlabs_sounds.py \
         --voice-id XrExE9yKIg1WjnnlVkGX \
-        --output-dir ThaiSheet/Resources/sounds/matilda
+        --output-dir scratchpad/matilda-candidate
+
+Candidate directories use voice-neutral inventory names. Passing the production
+`ThaiSheet/Resources/sounds` directory writes the explicit `_matilda` suffix.
 
 Empty responses (ElevenLabs returns 0 bytes for glyphs it cannot voice, e.g. an isolated
 ฦๅ) are retried, then reported and skipped rather than crashing.
@@ -27,7 +30,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from sound_inventory import load_sound_inventory  # noqa: E402
+from sound_inventory import bundled_voice_filename, load_sound_inventory  # noqa: E402
 from generate_sounds import inspect_audio  # noqa: E402
 
 DEFAULT_MODEL = "eleven_v3"
@@ -96,6 +99,8 @@ def main() -> int:
     if not out.is_absolute():
         out = PROJECT_ROOT / out
     out.mkdir(parents=True, exist_ok=True)
+    production_sounds_dir = (PROJECT_ROOT / "ThaiSheet" / "Resources" / "sounds").resolve()
+    writes_bundled_set = out.resolve() == production_sounds_dir
 
     inv = load_sound_inventory(PROJECT_ROOT / "ThaiSheet" / "Resources" / "cheatsheet")
     print(f"Voice {args.voice_id} · model {args.model} · {len(inv)} clips -> {out}")
@@ -107,7 +112,8 @@ def main() -> int:
     for it in inv:
         if args.only_type and it.sound_type != args.only_type:
             continue
-        dst = out / it.filename
+        filename = bundled_voice_filename(it.filename, "matilda") if writes_bundled_set else it.filename
+        dst = out / filename
         if dst.exists() and not args.force:
             skipped += 1
             continue

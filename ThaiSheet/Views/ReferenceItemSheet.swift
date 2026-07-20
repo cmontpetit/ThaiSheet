@@ -181,7 +181,7 @@ struct ReferenceItemSheet: View {
         if let override = settings?.voiceOverride(for: voiceOverride.descriptor.id) {
             return "\(override.displayName) · \(String(localized: "Override", bundle: .appLanguage))"
         }
-        let def = settings?.recordedVoice ?? .current
+        let def = settings?.recordedVoice ?? .matilda
         return "\(String(localized: "Use Default", bundle: .appLanguage)) · \(def.displayName)"
     }
 

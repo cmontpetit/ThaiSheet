@@ -8,13 +8,18 @@ from pathlib import Path
 from urllib.parse import quote
 
 from generate_sounds import inspect_audio
-from sound_inventory import CATALOG_TYPE_LABELS, load_sound_inventory
+from sound_inventory import (
+    CATALOG_TYPE_LABELS,
+    bundled_voice_filename,
+    expected_bundled_filenames,
+    load_sound_inventory,
+)
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 CHEATSHEET_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "cheatsheet"
-CURRENT_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "sounds"
+BUNDLED_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "sounds"
 SCRATCHPAD_DIR = PROJECT_ROOT / "scratchpad"
 RECORDED_AUDIO_METADATA = SCRIPT_DIR / "recorded_audio_metadata.json"
 
@@ -37,7 +42,7 @@ def relative_audio_url(page: Path, audio_file: Path) -> str:
     return quote(relative, safe="/.-_")
 
 
-def current_voice_label() -> str:
+def bundled_voice_label() -> str:
     metadata = json.loads(RECORDED_AUDIO_METADATA.read_text())
     return metadata["voice"]
 
@@ -45,18 +50,23 @@ def current_voice_label() -> str:
 def build_review_data(candidate_dir: Path, output: Path, candidate_voice: str) -> dict:
     inventory = load_sound_inventory(CHEATSHEET_DIR)
     expected_files = {item.filename for item in inventory}
-    validate_complete_set(CURRENT_DIR, expected_files, "Current sound set")
+    validate_complete_set(
+        BUNDLED_DIR,
+        expected_bundled_filenames(inventory),
+        "Bundled sound directory",
+    )
     validate_complete_set(candidate_dir, expected_files, "Candidate sound set")
 
     items = []
     failed_quality = []
     for item in inventory:
         candidate_file = candidate_dir / item.filename
+        bundled_file = BUNDLED_DIR / bundled_voice_filename(item.filename, "neural2")
         quality = inspect_audio(candidate_file)
         issues = quality.issues(0.35, -24.0)
         item_data = item.catalog_dict()
         item_data.update({
-            "currentAudio": relative_audio_url(output, CURRENT_DIR / item.filename),
+            "bundledAudio": relative_audio_url(output, bundled_file),
             "candidateAudio": relative_audio_url(output, candidate_file),
             "duration": round(quality.duration_seconds, 3),
             "peakDb": quality.max_volume_db,
@@ -68,7 +78,7 @@ def build_review_data(candidate_dir: Path, output: Path, candidate_voice: str) -
 
     return {
         "candidateVoice": candidate_voice,
-        "currentVoice": current_voice_label(),
+        "bundledVoice": bundled_voice_label(),
         "counts": {
             catalog_type: sum(
                 (item.catalog_type or item.sound_type) == catalog_type
@@ -120,7 +130,7 @@ def render_review(data: dict) -> str:
 <body>
   <header>
     <h1>ThaiSheet recorded-voice review</h1>
-    <p>{data['currentVoice']} compared with {data['candidateVoice']}</p>
+    <p>{data['bundledVoice']} compared with {data['candidateVoice']}</p>
   </header>
   <main>
     <div class="tools">
@@ -189,7 +199,7 @@ def render_review(data: dict) -> str:
       addText(synthesis, "span", item.synthesis_text, "thai");
       addText(synthesis, "small", item.description);
       const current = document.createElement("td");
-      current.append(audio(item.currentAudio, `Play current ${{item.display}}`));
+      current.append(audio(item.bundledAudio, `Play bundled ${{item.display}}`));
       const candidate = document.createElement("td");
       candidate.append(audio(item.candidateAudio, `Play candidate ${{item.display}}`));
       const quality = document.createElement("td");
@@ -219,7 +229,7 @@ def render_review(data: dict) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate a local current-versus-candidate review page")
+    parser = argparse.ArgumentParser(description="Generate a local bundled-versus-candidate review page")
     parser.add_argument("--candidate-dir", required=True)
     parser.add_argument("--candidate-voice", required=True)
     parser.add_argument("--output")

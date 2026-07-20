@@ -10,12 +10,13 @@ from pathlib import Path
 
 from generate_sound_review import relative_audio_url
 from generate_sounds import inspect_audio
+from sound_inventory import bundled_voice_filename
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 VOWELS_PATH = PROJECT_ROOT / "ThaiSheet" / "Resources" / "cheatsheet" / "vowels.json"
-CURRENT_SOUNDS_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "sounds"
+BUNDLED_SOUNDS_DIR = PROJECT_ROOT / "ThaiSheet" / "Resources" / "sounds"
 SCRATCHPAD_DIR = PROJECT_ROOT / "scratchpad"
 DEFAULT_CANDIDATE_DIR = SCRATCHPAD_DIR / "kore-candidate"
 DEFAULT_OUTPUT = SCRATCHPAD_DIR / "vowel-pronunciation-review" / "index.html"
@@ -117,7 +118,7 @@ def build_review_data(
     output: Path,
     candidate_voice: str,
     vowels_path: Path = VOWELS_PATH,
-    current_sounds_dir: Path = CURRENT_SOUNDS_DIR,
+    bundled_sounds_dir: Path = BUNDLED_SOUNDS_DIR,
 ) -> dict:
     candidates = load_candidates(vowels_path)
     form_counts: dict[str, int] = {}
@@ -130,12 +131,15 @@ def build_review_data(
     speech_quality_by_word = {}
     for candidate in candidates:
         word = candidate["word"]
-        current_file = current_sounds_dir / f"cheat_sheet_vowel_{word}.mp3" if word else None
+        bundled_file = (
+            bundled_sounds_dir / bundled_voice_filename(f"cheat_sheet_vowel_{word}.mp3", "neural2")
+            if word else None
+        )
         candidate_file = candidate_dir / f"cheat_sheet_sample_word_{word}.mp3" if word else None
         candidate["duplicateSpelling"] = form_counts[candidate["form"]] > 1
-        candidate["currentAudio"] = (
-            relative_audio_url(output, current_file)
-            if current_file is not None and current_file.exists()
+        candidate["bundledAudio"] = (
+            relative_audio_url(output, bundled_file)
+            if bundled_file is not None and bundled_file.exists()
             else ""
         )
         candidate["candidateAudio"] = (
@@ -158,7 +162,7 @@ def build_review_data(
 
     return {
         "candidateVoice": candidate_voice,
-        "currentVoice": "Bundled vowel pronunciation words",
+        "bundledVoice": "Bundled vowel pronunciation words",
         "items": candidates,
         "counts": {
             "variants": len(candidates),
@@ -315,8 +319,8 @@ REVIEW_TEMPLATE = """<!doctype html>
         text(word, "span", "No real-word candidate", "missing");
       }
 
-      const current = document.createElement("td");
-      current.append(player(item.currentAudio, `Play bundled pronunciation word for ${item.form}`));
+      const bundled = document.createElement("td");
+      bundled.append(player(item.bundledAudio, `Play bundled pronunciation word for ${item.form}`));
       const candidate = document.createElement("td");
       candidate.append(player(item.candidateAudio, `Play ${item.word || item.form} with ${review.candidateVoice}`));
       if (item.candidateDuration) text(candidate, "small", `${item.candidateDuration.toFixed(3)} seconds`);
@@ -340,7 +344,7 @@ REVIEW_TEMPLATE = """<!doctype html>
       select.addEventListener("change", () => persist(item.id, select.value, note.value));
       note.addEventListener("change", () => persist(item.id, select.value, note.value));
       decision.append(select, note);
-      tr.append(form, word, current, candidate, decision);
+      tr.append(form, word, bundled, candidate, decision);
       return tr;
     }
 
