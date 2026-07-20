@@ -90,6 +90,7 @@ struct ToneMarkRowView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
+    @Environment(\.thaiData) private var thaiData
     @State private var selectedDisplay: String? = nil
 
     private func stage(for display: String) -> SRSStage {
@@ -129,6 +130,8 @@ struct ToneMarkRowView: View {
             let hasSound = audioPlayer.hasSound(.toneMark, key: entry.soundKey)
             // Each class column is its own answer, so cells conceal individually
             let concealID = FlashcardType.toneMark.cardId(for: entry.soundKey)
+            let voiceOverride = thaiData.voiceOverrideCatalogEntry(for: concealID)
+                .map { ($0.descriptor, $0.canonicalPreview) }
             StyledToneText(tone: tone)
                 .font(.subheadline)
                 .concealedReading(id: concealID)
@@ -136,7 +139,7 @@ struct ToneMarkRowView: View {
                     label: "\(entry.display), \(ThaiColors.toneName(tone))",
                     hasSound: hasSound,
                     conceal: PracticeConceal(id: concealID, concealedLabel: entry.display),
-                    onPlay: { audioPlayer.play(.toneMark, key: entry.soundKey) },
+                    onPlay: { audioPlayer.play(.toneMark, key: entry.soundKey, itemID: concealID) },
                     onDetails: { selectedDisplay = entry.display }
                 )
                 .sheet(
@@ -156,9 +159,10 @@ struct ToneMarkRowView: View {
                         note: nil,
                         sampleWord: toneMark.sampleWord(for: entry.soundKey),
                         hasSound: hasSound,
-                        onPlaySound: { audioPlayer.play(.toneMark, key: entry.soundKey) },
+                        onPlaySound: { audioPlayer.play(.toneMark, key: entry.soundKey, itemID: concealID) },
                         onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
-                        onPractice: { onPractice?(entry.soundKey) }
+                        onPractice: { onPractice?(entry.soundKey) },
+                        voiceOverride: voiceOverride
                     )
                 }
         } else {

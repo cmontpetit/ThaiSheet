@@ -15,6 +15,8 @@ struct ClusterFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ClusterCardState()
+
+    private var overrideItemID: String { FlashcardType.cluster.cardId(for: cluster.id) }
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
     @State private var soundOptions: [String] = []
 
@@ -52,6 +54,7 @@ struct ClusterFlashcardView: View {
             hasError: cardState.hasError(for: cluster),
             soundType: .cluster,
             soundKey: cluster.audioKey,
+            overrideItemID: overrideItemID,
             displayHeight: 140,
             onViewInReference: { onViewInReference?(cluster.id) },
             onPrevious: handlePrevious,
@@ -146,7 +149,7 @@ struct ClusterFlashcardView: View {
         // Revealed early counts as incorrect; otherwise correct if no errors were made
         onComplete?(revealed ? false : !cardState.hasError(for: cluster))
         if audioPlayer.hasSound(.cluster, key: cluster.audioKey) {
-            audioPlayer.play(.cluster, key: cluster.audioKey)
+            audioPlayer.play(.cluster, key: cluster.audioKey, itemID: overrideItemID)
         }
     }
 

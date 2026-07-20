@@ -112,7 +112,7 @@ struct ClusterMatrixCell: View {
                 label: clusterAccessibilityLabel(cluster),
                 hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
                 conceal: PracticeConceal(id: concealID, concealedLabel: cluster.cluster),
-                onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey) },
+                onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID) },
                 onDetails: { showingSheet = true }
             )
             .sheet(isPresented: $showingSheet) {
@@ -190,7 +190,7 @@ struct ClusterCompactCell: View {
             label: clusterAccessibilityLabel(cluster),
             hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
             conceal: PracticeConceal(id: concealID, concealedLabel: cluster.cluster),
-            onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey) },
+            onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID) },
             onDetails: { showingSheet = true }
         )
         .sheet(isPresented: $showingSheet) {
@@ -214,10 +214,17 @@ struct ClusterDetailSheet: View {
     var onPractice: ((String) -> Void)?
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
+    @Environment(\.thaiData) private var thaiData
     @Environment(\.dismiss) var dismiss
 
     private var hasSound: Bool {
         audioPlayer.hasSound(.cluster, key: cluster.audioKey)
+    }
+
+    private var concealID: String { FlashcardType.cluster.cardId(for: cluster.id) }
+
+    private var voiceOverride: (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget)? {
+        thaiData.voiceOverrideCatalogEntry(for: concealID).map { ($0.descriptor, $0.canonicalPreview) }
     }
 
     private var stage: SRSStage {
@@ -251,13 +258,14 @@ struct ClusterDetailSheet: View {
             sampleWord: cluster.sample,
             hasSound: hasSound,
             onPlaySound: {
-                audioPlayer.play(.cluster, key: cluster.audioKey)
+                audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID)
             },
             onPlaySampleWord: { audioPlayer.play(.sampleWord, key: $0.word) },
             onPractice: {
                 dismiss()
                 onPractice?(cluster.id)
-            }
+            },
+            voiceOverride: voiceOverride
         )
     }
 }

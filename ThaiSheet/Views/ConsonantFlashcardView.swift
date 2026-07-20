@@ -17,6 +17,8 @@ struct ConsonantFlashcardView: View {
     @State private var cardState = CardState()
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 100
 
+    private var overrideItemID: String { FlashcardType.consonant.cardId(for: consonant.character) }
+
     // Generated options for current card
     @State private var initialSoundOptions: [String] = []
     @State private var finalSoundOptions: [String] = []
@@ -55,6 +57,7 @@ struct ConsonantFlashcardView: View {
             hasError: cardState.hasError(for: consonant),
             soundType: .consonant,
             soundKey: consonant.character,
+            overrideItemID: overrideItemID,
             onViewInReference: { onViewInReference?(consonant.character) },
             onPrevious: handlePrevious,
             onNext: handleNext
@@ -202,7 +205,7 @@ struct ConsonantFlashcardView: View {
         cardState.step = .completed
         // Revealed early counts as incorrect; otherwise correct if no errors were made
         onComplete?(revealed ? false : !cardState.hasError(for: consonant))
-        audioPlayer.play(.consonant, key: consonant.character)
+        audioPlayer.play(.consonant, key: consonant.character, itemID: overrideItemID)
     }
 
     private func completeCardEarly() {

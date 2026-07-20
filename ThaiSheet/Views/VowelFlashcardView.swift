@@ -15,6 +15,9 @@ struct VowelFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = VowelCardState()
+
+    // Row-level override keyed by the parent vowel (applies to all forms), matching Reference.
+    private var overrideItemID: String { FlashcardType.vowel.cardId(for: card.vowel.id) }
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
 
     // Generated options for sound selection
@@ -53,6 +56,7 @@ struct VowelFlashcardView: View {
             hasError: cardState.hasError(for: card),
             soundType: .vowel,
             soundKey: card.pronunciationWord?.word ?? "",
+            overrideItemID: overrideItemID,
             onViewInReference: { onViewInReference?(card.display) },
             onPrevious: handlePrevious,
             onNext: handleNext
@@ -190,7 +194,7 @@ struct VowelFlashcardView: View {
     private func playVowelSound() {
         guard let word = card.pronunciationWord?.word else { return }
         if audioPlayer.hasSound(.vowel, key: word) {
-            audioPlayer.play(.vowel, key: word)
+            audioPlayer.play(.vowel, key: word, itemID: overrideItemID)
         }
     }
 

@@ -56,6 +56,9 @@ struct FlashcardFace<Content: View>: View {
     let hasError: Bool
     let soundType: SoundType
     let soundKey: String
+    /// Per-item voice override id (FlashcardType.cardId) so flashcards honor the
+    /// same override as the Reference tab.
+    var overrideItemID: String? = nil
     var displayHeight: CGFloat = 160
     var onViewInReference: (() -> Void)?
     let onPrevious: () -> Void
@@ -90,7 +93,7 @@ struct FlashcardFace<Content: View>: View {
                     if showResult {
                         let hasSound = audioPlayer.hasSound(soundType, key: soundKey)
                         Button {
-                            audioPlayer.play(soundType, key: soundKey)
+                            audioPlayer.play(soundType, key: soundKey, itemID: overrideItemID)
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")

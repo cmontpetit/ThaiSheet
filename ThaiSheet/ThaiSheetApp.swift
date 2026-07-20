@@ -19,7 +19,11 @@ struct ThaiSheetApp: App {
         let settings = FlashcardSettings(defaults: store)
         self.syncedStore = store
         _settings = State(initialValue: settings)
-        _audioPlayer = State(initialValue: AudioPlayer(audioSource: settings.audioSource, recordedVoice: settings.recordedVoice))
+        _audioPlayer = State(initialValue: AudioPlayer(
+            audioSource: settings.audioSource,
+            recordedVoice: settings.recordedVoice,
+            voiceOverrides: settings.voiceOverrides
+        ))
     }
 
     var body: some Scene {
@@ -28,11 +32,15 @@ struct ThaiSheetApp: App {
                 .environment(\.locale, settings.resolvedLocale)
                 .environment(\.thaiData, thaiData)
                 .environment(\.audioPlayer, audioPlayer)
+                .environment(\.flashcardSettings, settings)
                 .onChange(of: settings.audioSource) { _, source in
                     audioPlayer.audioSource = source
                 }
                 .onChange(of: settings.recordedVoice) { _, voice in
                     audioPlayer.recordedVoice = voice
+                }
+                .onChange(of: settings.voiceOverrides) { _, overrides in
+                    audioPlayer.voiceOverrides = overrides
                 }
         }
     }

@@ -18,7 +18,7 @@ class FlashcardSettings {
         "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
-        "fc_useIntelligentSelection", "fc_audioSource", "fc_recordedVoice", "fc_appLanguage", "fc_iCloudSyncEnabled",
+        "fc_useIntelligentSelection", "fc_audioSource", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage", "fc_iCloudSyncEnabled",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -121,6 +121,35 @@ class FlashcardSettings {
         didSet { persist(recordedVoice.rawValue, forKey: "fc_recordedVoice") }
     }
 
+    /// Per-item recorded-voice overrides, keyed by `FlashcardType.cardId(for:)`.
+    /// Persisted as JSON and independent of `recordedVoice` — changing the global
+    /// default never touches these.
+    var voiceOverrides: [String: RecordedVoice] = [:] {
+        didSet { persist(Self.encodeVoiceOverrides(voiceOverrides), forKey: "fc_voiceOverrides") }
+    }
+
+    func voiceOverride(for id: String) -> RecordedVoice? { voiceOverrides[id] }
+
+    /// Set (or clear, with `nil`) the override for one item.
+    func setVoiceOverride(_ voice: RecordedVoice?, for id: String) {
+        voiceOverrides[id] = voice
+    }
+
+    func resetVoiceOverrides() { voiceOverrides = [:] }
+
+    var overriddenItemIDs: [String] { voiceOverrides.keys.sorted() }
+
+    /// Pure, testable JSON codec for the override map (corrupt data → empty map).
+    static func encodeVoiceOverrides(_ overrides: [String: RecordedVoice]) -> Data? {
+        try? JSONEncoder().encode(overrides)
+    }
+    static func decodeVoiceOverrides(_ data: Data?) -> [String: RecordedVoice] {
+        guard let data,
+              let decoded = try? JSONDecoder().decode([String: RecordedVoice].self, from: data)
+        else { return [:] }
+        return decoded
+    }
+
     var appLanguage = "system" {
         didSet {
             persist(appLanguage, forKey: "fc_appLanguage")
@@ -203,6 +232,7 @@ class FlashcardSettings {
         useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
         audioSource = defaults.string(forKey: "fc_audioSource").flatMap(AudioSource.init(rawValue:)) ?? .recorded
         recordedVoice = defaults.string(forKey: "fc_recordedVoice").flatMap(RecordedVoice.init(rawValue:)) ?? .matilda
+        voiceOverrides = Self.decodeVoiceOverrides(defaults.data(forKey: "fc_voiceOverrides"))
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
     }
@@ -423,5 +453,21 @@ extension Bundle {
         #endif
         appLanguage = .main
         appLanguageCode = Bundle.main.preferredLocalizations.first ?? "en"
+    }
+}
+
+// MARK: - Environment
+
+/// Optional so an uninjected view/preview never touches a live settings object
+/// backed by `UserDefaults.standard`. The app root injects the canonical instance;
+/// consumers guard `if let settings`.
+private struct FlashcardSettingsKey: EnvironmentKey {
+    static let defaultValue: FlashcardSettings? = nil
+}
+
+extension EnvironmentValues {
+    var flashcardSettings: FlashcardSettings? {
+        get { self[FlashcardSettingsKey.self] }
+        set { self[FlashcardSettingsKey.self] = newValue }
     }
 }
