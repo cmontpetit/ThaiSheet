@@ -130,8 +130,22 @@ class SoundCatalogTests(unittest.TestCase):
     def test_catalog_contains_hashes_and_metadata(self):
         catalog = build_catalog(SOUNDS_DIR, METADATA_PATH)
         self.assertEqual(len(catalog["items"]), 388)
-        self.assertEqual(catalog["audio"]["voice"], "th-TH-Neural2-C")
-        self.assertTrue(all(len(item["sha256"]) == 64 for item in catalog["items"]))
+        self.assertEqual(catalog["schemaVersion"], 2)
+        self.assertEqual(catalog["defaultVoice"], "matilda")
+        self.assertEqual(catalog["fileCount"], 1164)
+        self.assertEqual(
+            {voice["key"] for voice in catalog["voices"]},
+            set(BUNDLED_VOICE_KEYS),
+        )
+        self.assertTrue(all(
+            set(item["recordings"]) == set(BUNDLED_VOICE_KEYS)
+            for item in catalog["items"]
+        ))
+        self.assertTrue(all(
+            len(recording["sha256"]) == 64
+            for item in catalog["items"]
+            for recording in item["recordings"].values()
+        ))
         self.assertIn("window.THAISHEET_SOUND_CATALOG", rendered_catalog(catalog))
 
     def test_local_catalog_plays_working_tree_audio(self):
@@ -139,6 +153,7 @@ class SoundCatalogTests(unittest.TestCase):
         self.assertIn('window.location.protocol === "file:"', html)
         self.assertIn('["localhost", "127.0.0.1", "::1"]', html)
         self.assertIn('"../ThaiSheet/Resources/sounds/"', html)
+        self.assertIn('id="voice-select"', html)
 
 
 class SoundReviewTests(unittest.TestCase):

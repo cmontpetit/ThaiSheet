@@ -13,7 +13,9 @@ Thank you for your interest in contributing to ThaiSheet! This guide will help y
 
 ### Sound Files
 
-Sound files are generated with Google Cloud Text-to-Speech. First-time setup (from the repository root):
+ThaiSheet bundles complete Neural2, Kore, and Matilda recording sets. The two
+Google sets are generated with Google Cloud Text-to-Speech; Matilda is generated
+with ElevenLabs `eleven_v3`. First-time Google setup (from the repository root):
 
 ```bash
 cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && cd ..
@@ -30,8 +32,8 @@ python3 scripts/generate_sound_catalog.py
 python3 scripts/generate_sound_catalog.py --check
 ```
 
-The sound catalog contains a hash for every MP3, so it must be regenerated when
-audio changes even if filenames stay the same. Update
+The sound catalog contains a hash for all three versions of every recording, so
+it must be regenerated when any bundled audio changes even if filenames stay the same. Update
 `scripts/recorded_audio_metadata.json` when the provider, voice, or processing
 method changes.
 

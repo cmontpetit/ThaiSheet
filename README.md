@@ -2,26 +2,33 @@
 
 An open-source iOS quick reference to help you learn to read Thai, based on a comprehensive cheatsheet.
 
-App Store release preparation is tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
+**Latest release: 1.1.** App Store release details are tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
 
 ## Screenshots
 
-| Reference | Vowels | Tones | Flashcards |
-|---|---|---|---|
-| ![Consonant reference](docs/screenshots/iphone-reference-consonants.png) | ![Vowel reference](docs/screenshots/iphone-reference-vowels.png) | ![Tone marks and rules](docs/screenshots/iphone-reference-tones.png) | ![Flashcard quiz](docs/screenshots/iphone-flashcard.png) |
+| Vowels | Reading practice | Consonant details |
+|---|---|---|
+| ![Vowel reference](docs/screenshots/appstore-1.1/iphone/01-vowels.jpg) | ![Vowel practice with hidden transcriptions](docs/screenshots/appstore-1.1/iphone/02-vowels-practice.jpg) | ![Consonant details](docs/screenshots/appstore-1.1/iphone/03-consonant-details.jpg) |
 
-More (dark mode, French, iPad) in [docs/screenshots/](docs/screenshots/), also shown on the [website](https://cmontpetit.github.io/ThaiSheet/).
+| Tones | Completed flashcard | Progress |
+|---|---|---|
+| ![Tone marks and rules](docs/screenshots/appstore-1.1/iphone/04-tones.jpg) | ![Completed flashcard](docs/screenshots/appstore-1.1/iphone/05-flashcard-completed.jpg) | ![SRS learning progress](docs/screenshots/appstore-1.1/iphone/06-progress.jpg) |
+
+The latest iPhone screenshots are also shown on the [website](https://cmontpetit.github.io/ThaiSheet/). App Store-sized iPhone and iPad sets are kept in [docs/screenshots/appstore-1.1/](docs/screenshots/appstore-1.1/).
 
 ## Features
 
 - **Reference Browser** - Browse consonants, vowels, tone rules, tone marks, and clusters with search and filtering
-- **Audio Playback** - Hear pronunciation for characters and syllables
+- **Multiple Pronunciation Voices** - Choose ElevenLabs Matilda (default), Google Neural2-C, Google Chirp3-HD Kore, or an installed Thai system voice
+- **Per-Item Voice Overrides** - Keep one default voice while assigning a different voice to individual reference entries
+- **Reading Practice** - Hide reference transcriptions until you reveal them
 - **Complementary Flashcards** - Practice what you look up with multiple-choice questions, using a Wanikani-style spaced repetition system with 8 progression stages
 - **Smart Card Selection** - Choose between intelligent SRS-based ordering or sequential study
 - **Customizable Filters** - Focus on specific consonant classes, vowel types, or tone rules
 - **Progress Tracking** - Detailed statistics showing mastery levels across all card types
 - **Optional iCloud Sync** - Sync learning progress and settings across devices when enabled
 - **Localized** - Available in English and French, with easy community translation support
+- **Accessible** - VoiceOver labels and hints across playable reference items
 
 ## Requirements
 
@@ -45,7 +52,13 @@ scripts/check_release_binary.sh /path/to/ThaiSheet.app
 
 ## Sound Generation
 
-Sound files are generated with [Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech). First-time setup:
+ThaiSheet bundles three complete, explicitly suffixed recording sets:
+
+- `matilda` — ElevenLabs Matilda using `eleven_v3` (the app default)
+- `neural2` — Google Cloud Text-to-Speech `th-TH-Neural2-C`
+- `kore` — Google Cloud Text-to-Speech `th-TH-Chirp3-HD-Kore`
+
+Installed Apple Thai voices are synthesized live on-device and are never bundled. For Google voice generation, first-time setup is:
 
 ```bash
 cd scripts && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
@@ -61,10 +74,11 @@ python3 scripts/generate_sounds.py --all --force --normalize-lufs -18 --check-fi
 # Or specific types: --consonants, --vowels, --tone-marks, --tone-rules
 ```
 
-The bundled Google generation voice is `th-TH-Neural2-C`; generated production
-files use the `_neural2` suffix. The complete
-recorded set is normalized to -18 LUFS. Use an explicit `--voice-name` when
-producing a candidate with another voice.
+Google production files use the `_neural2` or `_kore` suffix. Matilda files are
+generated with `scripts/generate_elevenlabs_sounds.py` and use `_matilda`.
+All three complete sets are normalized to -18 LUFS with a -1.5 dB true-peak
+limit. Use an explicit `--voice-name` when producing a Google candidate, or a
+scratchpad output directory when producing an ElevenLabs candidate.
 Generated responses are rejected and retried when they are too short or nearly
 silent. Loudness normalization includes a true-peak limit to avoid clipping.
 Within one generation run, exact duplicate synthesis inputs reuse the first
@@ -88,8 +102,9 @@ The page also flags unusually long or internally segmented one-word responses,
 which can indicate that a generative TTS voice added or repeated speech.
 
 The public [pronunciation catalog](https://cmontpetit.github.io/ThaiSheet/sounds.html)
-is generated from the same canonical inventory. After changing JSON data, audio,
-or recorded-voice metadata, update and verify it with:
+is generated from the same canonical inventory and lets reviewers switch among
+all three bundled voices. After changing JSON data, audio, or recorded-voice
+metadata, update and verify it with:
 
 ```bash
 python3 scripts/generate_sound_catalog.py
@@ -119,11 +134,11 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for guidelines on how to contribu
 
 ThaiSheet does not include analytics, ads, tracking, or third-party SDKs. Learning progress and settings are stored locally with UserDefaults. If iCloud Sync is enabled, the app syncs learning progress and settings through Apple's iCloud key-value store.
 
-See [PRIVACY.md](PRIVACY.md) for the full privacy policy draft.
+See [PRIVACY.md](PRIVACY.md) for the full privacy policy.
 
 ## Support
 
-Use [GitHub Issues](https://github.com/cmontpetit/ThaiSheet/issues) for bug reports and feature requests once the repository is public. See [SUPPORT.md](SUPPORT.md) for details.
+Use [GitHub Issues](https://github.com/cmontpetit/ThaiSheet/issues) for bug reports and feature requests. See [SUPPORT.md](SUPPORT.md) for details.
 
 ## License
 
