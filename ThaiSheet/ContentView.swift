@@ -349,7 +349,10 @@ struct FlashcardsView: View {
         ))
         .onAppear {
             #if DEBUG
-            if ScreenshotScenario.current == .progress {
+            if ScreenshotScenario.current == .flashcardCompleted,
+               let currentCard = manager.currentCard {
+                manager.learningModel.seedScreenshotCompletion(for: currentCard)
+            } else if ScreenshotScenario.current == .progress {
                 manager.learningModel.seedScreenshotProgress(for: manager.allCards)
             }
             #endif

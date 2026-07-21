@@ -217,6 +217,18 @@ class LearningModel {
     }
 
     #if DEBUG
+    /// Marks one card as successfully completed without persisting fake progress.
+    func seedScreenshotCompletion(for card: FlashcardItem) {
+        progressByCardId[card.id] = CardProgress(
+            cardId: card.id,
+            correctCount: 1,
+            incorrectCount: 0,
+            lastReviewed: Date(),
+            srsStage: .learning1,
+            nextReviewDate: Date().addingTimeInterval(SRSStage.learning1.intervalSeconds)
+        )
+    }
+
     /// Populates a deterministic, in-memory distribution for App Store screenshots.
     /// It deliberately does not save, so no fake progress can reach user storage.
     func seedScreenshotProgress(for cards: [FlashcardItem]) {
