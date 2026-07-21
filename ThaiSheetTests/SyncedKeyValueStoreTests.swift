@@ -6,156 +6,280 @@
 import XCTest
 @testable import ThaiSheet
 
+private final class InMemoryCloudKeyValueStore: CloudKeyValueStore {
+    private var values: [String: Any] = [:]
+    private(set) var writtenKeys: [String] = []
+    private(set) var synchronizeCallCount = 0
+    var synchronizeResult = true
+
+    var notificationObject: AnyObject { self }
+
+    func seed(_ value: Any, forKey key: String) {
+        values[key] = value
+    }
+
+    func resetRecordedWrites() {
+        writtenKeys = []
+    }
+
+    func set(_ value: Any, forKey key: String) {
+        values[key] = value
+        writtenKeys.append(key)
+    }
+
+    func object(forKey key: String) -> Any? {
+        values[key]
+    }
+
+    func removeObject(forKey key: String) {
+        values.removeValue(forKey: key)
+        writtenKeys.append(key)
+    }
+
+    @discardableResult
+    func synchronize() -> Bool {
+        synchronizeCallCount += 1
+        return synchronizeResult
+    }
+}
+
 @MainActor
 final class SyncedKeyValueStoreTests: XCTestCase {
+    private var suiteName: String!
+    private var local: UserDefaults!
+    private var cloud: InMemoryCloudKeyValueStore!
+    private var notificationCenter: NotificationCenter!
+    private let syncDate = Date(timeIntervalSince1970: 3_000)
 
-    // MARK: - Learning progress merge logic
-    // Tests verify the merge-by-lastReviewed strategy used by SyncedKeyValueStore
-
-    func test_mergeByLastReviewed_moreRecentWins() {
-        let oldDate = Date(timeIntervalSince1970: 1000)
-        let newDate = Date(timeIntervalSince1970: 2000)
-
-        var localProgress = CardProgress(cardId: "test")
-        localProgress.correctCount = 1
-        localProgress.lastReviewed = oldDate
-        localProgress.srsStage = .learning1
-
-        var cloudProgress = CardProgress(cardId: "test")
-        cloudProgress.correctCount = 3
-        cloudProgress.lastReviewed = newDate
-        cloudProgress.srsStage = .apprentice1
-
-        // Cloud has more recent review — cloud wins
-        let localDate = localProgress.lastReviewed ?? .distantPast
-        let cloudDate = cloudProgress.lastReviewed ?? .distantPast
-        let winner = cloudDate > localDate ? cloudProgress : localProgress
-
-        XCTAssertEqual(winner.srsStage, .apprentice1)
-        XCTAssertEqual(winner.correctCount, 3)
+    override func setUp() {
+        super.setUp()
+        suiteName = "SyncedKeyValueStoreTests_\(UUID().uuidString)"
+        local = UserDefaults(suiteName: suiteName)!
+        cloud = InMemoryCloudKeyValueStore()
+        notificationCenter = NotificationCenter()
     }
 
-    func test_mergeByLastReviewed_localMoreRecent_localWins() {
-        let oldDate = Date(timeIntervalSince1970: 1000)
-        let newDate = Date(timeIntervalSince1970: 2000)
-
-        var localProgress = CardProgress(cardId: "test")
-        localProgress.correctCount = 5
-        localProgress.incorrectCount = 1
-        localProgress.lastReviewed = newDate
-        localProgress.srsStage = .familiar1
-
-        var cloudProgress = CardProgress(cardId: "test")
-        cloudProgress.correctCount = 2
-        cloudProgress.lastReviewed = oldDate
-        cloudProgress.srsStage = .learning2
-
-        let localDate = localProgress.lastReviewed ?? .distantPast
-        let cloudDate = cloudProgress.lastReviewed ?? .distantPast
-        let winner = cloudDate > localDate ? cloudProgress : localProgress
-
-        XCTAssertEqual(winner.srsStage, .familiar1)
-        XCTAssertEqual(winner.correctCount, 5)
+    override func tearDown() {
+        local.removePersistentDomain(forName: suiteName)
+        local = nil
+        cloud = nil
+        notificationCenter = nil
+        suiteName = nil
+        super.tearDown()
     }
 
-    func test_mergeByLastReviewed_nilDates_treatAsDistantPast() {
-        let localProgress = CardProgress(cardId: "test")
-        var cloudProgress = CardProgress(cardId: "test")
-        cloudProgress.correctCount = 1
-        cloudProgress.lastReviewed = Date()
-        cloudProgress.srsStage = .learning1
+    // MARK: - Activation and settings
 
-        let localDate = localProgress.lastReviewed ?? .distantPast
-        let cloudDate = cloudProgress.lastReviewed ?? .distantPast
-        let winner = cloudDate > localDate ? cloudProgress : localProgress
+    func test_activateCloud_reconcilesCloudBeforeSeedingLocalValues() {
+        local.set(false, forKey: "fc_longVowels")
+        cloud.seed(true, forKey: "fc_longVowels")
+        let store = makeStore()
 
-        XCTAssertEqual(winner.srsStage, .learning1)
+        store.activateCloud()
+
+        XCTAssertEqual(local.object(forKey: "fc_longVowels") as? Bool, true)
+        XCTAssertFalse(cloud.writtenKeys.contains("fc_longVowels"))
+        XCTAssertEqual(cloud.synchronizeCallCount, 1)
     }
 
-    func test_merge_cloudOnlyCard_isAdded() {
-        var merged: [String: CardProgress] = [:]
-        var cloudCard = CardProgress(cardId: "cloud-only")
-        cloudCard.correctCount = 2
-        cloudCard.lastReviewed = Date()
-        cloudCard.srsStage = .learning2
+    func test_activateCloud_seedsOnlyMissingCloudValues() {
+        local.set(false, forKey: "fc_shortVowels")
+        let store = makeStore()
 
-        if merged["cloud-only"] == nil {
-            merged["cloud-only"] = cloudCard
+        store.activateCloud()
+
+        XCTAssertEqual(cloud.object(forKey: "fc_shortVowels") as? Bool, false)
+        XCTAssertTrue(cloud.writtenKeys.contains("fc_shortVowels"))
+    }
+
+    func test_activateCloud_doesNotSeedWhenCloudSnapshotCannotSynchronize() {
+        local.set(false, forKey: "fc_shortVowels")
+        cloud.synchronizeResult = false
+        let store = makeStore()
+
+        store.activateCloud()
+
+        XCTAssertNil(cloud.object(forKey: "fc_shortVowels"))
+        XCTAssertTrue(cloud.writtenKeys.isEmpty)
+        XCTAssertNil(store.lastSyncDate)
+    }
+
+    func test_iCloudOptIn_remainsDeviceLocal() {
+        let store = makeStore()
+
+        store.set(true, forKey: "fc_iCloudSyncEnabled")
+
+        XCTAssertEqual(local.object(forKey: "fc_iCloudSyncEnabled") as? Bool, true)
+        XCTAssertNil(cloud.object(forKey: "fc_iCloudSyncEnabled"))
+        XCTAssertFalse(cloud.writtenKeys.contains("fc_iCloudSyncEnabled"))
+    }
+
+    func test_externalSettingChange_reloadDoesNotRepublishAllSettings() {
+        local.set(true, forKey: "fc_longVowels")
+        cloud.seed(true, forKey: "fc_longVowels")
+        let store = makeStore()
+        store.activateCloud()
+        let settings = FlashcardSettings(defaults: store)
+        cloud.seed(false, forKey: "fc_longVowels")
+        cloud.resetRecordedWrites()
+
+        store.handleExternalChange(
+            reason: NSUbiquitousKeyValueStoreServerChange,
+            changedKeys: ["fc_longVowels"]
+        )
+        settings.reload()
+
+        XCTAssertFalse(settings.longVowels)
+        XCTAssertTrue(cloud.writtenKeys.isEmpty)
+    }
+
+    func test_externalChange_ignoresUnknownKeys() {
+        local.set("local", forKey: "not-owned-by-sync")
+        cloud.seed("cloud", forKey: "not-owned-by-sync")
+        let store = makeStore()
+        store.activateCloud()
+
+        store.handleExternalChange(
+            reason: NSUbiquitousKeyValueStoreServerChange,
+            changedKeys: ["not-owned-by-sync"]
+        )
+
+        XCTAssertEqual(local.string(forKey: "not-owned-by-sync"), "local")
+    }
+
+    func test_externalChange_recordsDateAndPostsNotification() {
+        let store = makeStore()
+        store.activateCloud()
+        var notificationCount = 0
+        let token = notificationCenter.addObserver(
+            forName: .syncedStoreDidChange,
+            object: store,
+            queue: nil
+        ) { _ in
+            notificationCount += 1
         }
+        defer { notificationCenter.removeObserver(token) }
 
-        XCTAssertEqual(merged["cloud-only"]?.srsStage, .learning2)
+        store.handleExternalChange(
+            reason: NSUbiquitousKeyValueStoreServerChange,
+            changedKeys: []
+        )
+
+        XCTAssertEqual(store.lastSyncDate, syncDate)
+        XCTAssertEqual(notificationCount, 1)
     }
 
-    func test_merge_localOnlyCard_isPreserved() {
-        var localCard = CardProgress(cardId: "local-only")
-        localCard.correctCount = 3
-        localCard.lastReviewed = Date()
-        localCard.srsStage = .apprentice1
+    // MARK: - Learning progress reconciliation
 
-        var merged: [String: CardProgress] = ["local-only": localCard]
-        let cloudProgress: [String: CardProgress] = [:]
+    func test_activateCloud_mergesProgressThroughProductionPath() throws {
+        let oldDate = Date(timeIntervalSince1970: 1_000)
+        let newDate = Date(timeIntervalSince1970: 2_000)
+        let localOnly = progress(id: "local-only", stage: .learning1, reviewed: oldDate)
+        let localOlder = progress(id: "shared", stage: .learning1, reviewed: oldDate)
+        let cloudNewer = progress(id: "shared", stage: .apprentice1, reviewed: newDate)
+        local.set(try encoded(["local-only": localOnly, "shared": localOlder]),
+                  forKey: LearningModel.storageKey)
+        cloud.seed(try encoded(["shared": cloudNewer]), forKey: LearningModel.storageKey)
+        let store = makeStore()
 
-        // Merge: cloud has no matching card, local stays
-        for (cardId, cloudCard) in cloudProgress {
-            if let localCard = merged[cardId] {
-                let localDate = localCard.lastReviewed ?? .distantPast
-                let cloudDate = cloudCard.lastReviewed ?? .distantPast
-                if cloudDate > localDate {
-                    merged[cardId] = cloudCard
-                }
-            } else {
-                merged[cardId] = cloudCard
-            }
-        }
+        store.activateCloud()
 
-        XCTAssertEqual(merged["local-only"]?.srsStage, .apprentice1)
-        XCTAssertEqual(merged["local-only"]?.correctCount, 3)
+        let merged = try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey)))
+        XCTAssertEqual(merged["local-only"]?.srsStage, .learning1)
+        XCTAssertEqual(merged["shared"]?.srsStage, .apprentice1)
+        let cloudMerged = try decoded(XCTUnwrap(cloud.object(forKey: LearningModel.storageKey) as? Data))
+        XCTAssertEqual(cloudMerged["local-only"]?.srsStage, .learning1)
     }
 
-    func test_merge_multipleCards_eachMergedIndependently() {
-        let oldDate = Date(timeIntervalSince1970: 1000)
-        let newDate = Date(timeIntervalSince1970: 2000)
+    func test_activateCloud_preservesCorruptLocalProgressBeforeUsingCloud() throws {
+        let corruptLocal = Data("not-json-local".utf8)
+        let validCloud = ["card": progress(id: "card", stage: .learning2, reviewed: syncDate)]
+        local.set(corruptLocal, forKey: LearningModel.storageKey)
+        cloud.seed(try encoded(validCloud), forKey: LearningModel.storageKey)
+        let store = makeStore()
 
-        // Card A: local is more recent
-        var localA = CardProgress(cardId: "cardA")
-        localA.correctCount = 5
-        localA.lastReviewed = newDate
-        localA.srsStage = .familiar1
+        store.activateCloud()
 
-        // Card B: cloud is more recent
-        var localB = CardProgress(cardId: "cardB")
-        localB.correctCount = 1
-        localB.lastReviewed = oldDate
-        localB.srsStage = .learning1
+        XCTAssertEqual(local.data(forKey: LearningModel.corruptedBackupKey), corruptLocal)
+        let restored = try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey)))
+        XCTAssertEqual(restored["card"]?.srsStage, .learning2)
+    }
 
-        var cloudA = CardProgress(cardId: "cardA")
-        cloudA.correctCount = 2
-        cloudA.lastReviewed = oldDate
-        cloudA.srsStage = .learning2
+    func test_activateCloud_preservesCorruptCloudProgressBeforeUsingLocal() throws {
+        let corruptCloud = Data("not-json-cloud".utf8)
+        let validLocal = ["card": progress(id: "card", stage: .familiar1, reviewed: syncDate)]
+        local.set(try encoded(validLocal), forKey: LearningModel.storageKey)
+        cloud.seed(corruptCloud, forKey: LearningModel.storageKey)
+        let store = makeStore()
 
-        var cloudB = CardProgress(cardId: "cardB")
-        cloudB.correctCount = 4
-        cloudB.lastReviewed = newDate
-        cloudB.srsStage = .apprentice2
+        store.activateCloud()
 
-        var merged: [String: CardProgress] = ["cardA": localA, "cardB": localB]
-        let cloudProgress: [String: CardProgress] = ["cardA": cloudA, "cardB": cloudB]
+        XCTAssertEqual(local.data(forKey: LearningModel.corruptedCloudBackupKey), corruptCloud)
+        let repairedCloud = try decoded(XCTUnwrap(cloud.object(forKey: LearningModel.storageKey) as? Data))
+        XCTAssertEqual(repairedCloud["card"]?.srsStage, .familiar1)
+    }
 
-        for (cardId, cloudCard) in cloudProgress {
-            if let localCard = merged[cardId] {
-                let localDate = localCard.lastReviewed ?? .distantPast
-                let cloudDate = cloudCard.lastReviewed ?? .distantPast
-                if cloudDate > localDate {
-                    merged[cardId] = cloudCard
-                }
-            } else {
-                merged[cardId] = cloudCard
-            }
-        }
+    func test_activateCloud_preservesBothCorruptBlobsWithoutOverwritingEither() {
+        let corruptLocal = Data("not-json-local".utf8)
+        let corruptCloud = Data("not-json-cloud".utf8)
+        local.set(corruptLocal, forKey: LearningModel.storageKey)
+        cloud.seed(corruptCloud, forKey: LearningModel.storageKey)
+        let store = makeStore()
 
-        // Card A: local wins (more recent)
-        XCTAssertEqual(merged["cardA"]?.srsStage, .familiar1)
-        // Card B: cloud wins (more recent)
-        XCTAssertEqual(merged["cardB"]?.srsStage, .apprentice2)
+        store.activateCloud()
+
+        XCTAssertEqual(local.data(forKey: LearningModel.storageKey), corruptLocal)
+        XCTAssertEqual(cloud.object(forKey: LearningModel.storageKey) as? Data, corruptCloud)
+        XCTAssertEqual(local.data(forKey: LearningModel.corruptedBackupKey), corruptLocal)
+        XCTAssertEqual(local.data(forKey: LearningModel.corruptedCloudBackupKey), corruptCloud)
+        XCTAssertFalse(cloud.writtenKeys.contains(LearningModel.storageKey))
+    }
+
+    func test_mergeProgress_keepsNewestVersionForEachCard() {
+        let oldDate = Date(timeIntervalSince1970: 1_000)
+        let newDate = Date(timeIntervalSince1970: 2_000)
+        let local = [
+            "local-wins": progress(id: "local-wins", stage: .familiar1, reviewed: newDate),
+            "cloud-wins": progress(id: "cloud-wins", stage: .learning1, reviewed: oldDate),
+        ]
+        let cloud = [
+            "local-wins": progress(id: "local-wins", stage: .learning2, reviewed: oldDate),
+            "cloud-wins": progress(id: "cloud-wins", stage: .apprentice2, reviewed: newDate),
+        ]
+
+        let merged = SyncedKeyValueStore.mergeProgress(local: local, cloud: cloud)
+
+        XCTAssertEqual(merged["local-wins"]?.srsStage, .familiar1)
+        XCTAssertEqual(merged["cloud-wins"]?.srsStage, .apprentice2)
+    }
+
+    // MARK: - Helpers
+
+    private func makeStore() -> SyncedKeyValueStore {
+        SyncedKeyValueStore(
+            local: local,
+            cloud: cloud,
+            notificationCenter: notificationCenter,
+            now: { self.syncDate }
+        )
+    }
+
+    private func progress(
+        id: String,
+        stage: SRSStage,
+        reviewed: Date
+    ) -> CardProgress {
+        var value = CardProgress(cardId: id)
+        value.srsStage = stage
+        value.lastReviewed = reviewed
+        return value
+    }
+
+    private func encoded(_ progress: [String: CardProgress]) throws -> Data {
+        try JSONEncoder().encode(progress)
+    }
+
+    private func decoded(_ data: Data) throws -> [String: CardProgress] {
+        try JSONDecoder().decode([String: CardProgress].self, from: data)
     }
 }

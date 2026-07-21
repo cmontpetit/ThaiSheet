@@ -327,7 +327,7 @@ final class FlashcardSettingsTests: XCTestCase {
     func test_isPartialTesting_vowel_trueWhenOnlyOneDurationEnabled() {
         settings.longVowels = true
         settings.shortVowels = false
-        settings.uncommonVowels = false
+        settings.uncommonVowels = true
         XCTAssertTrue(settings.isPartialTesting(for: .vowel))
     }
 
@@ -445,8 +445,8 @@ final class FlashcardSettingsTests: XCTestCase {
     }
 
     // MARK: - UserDefaults Persistence
-    // Note: Verify defaults directly to avoid @Observable + test host conflicts
-    // that cause CoreAudio malloc crashes when creating multiple instances.
+    // Direct assertions keep these tests focused on the persisted representation;
+    // second-instance tests below cover model reload and lifecycle behavior.
 
     func test_persistence_boolSettingRoundTrip() {
         settings.highConsonants = false
@@ -546,8 +546,8 @@ final class FlashcardSettingsTests: XCTestCase {
 
     // MARK: - Filter Counts
 
-    func test_enabledVowelFilterCount_allEnabled_returns3() {
-        XCTAssertEqual(settings.enabledVowelFilterCount, 3)
+    func test_enabledVowelDurationCount_allEnabled_returns2() {
+        XCTAssertEqual(settings.enabledVowelDurationCount, 2)
     }
 
     // MARK: - Supported Languages

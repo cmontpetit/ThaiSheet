@@ -29,15 +29,15 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - `FlashcardSettings` (`@Observable`) — filter toggles and preferences, persisted via `didSet`. Accepts a `KeyValueStore` for testability. Also owns the dev-only language override (`Bundle.appLanguage`).
 - `LearningModel` (`@Observable`) — SRS progress tracking (`CardProgress` per card). Accepts a `KeyValueStore`.
 - `CardProgress` — per-card SRS stage, review timestamps, streak
-- `KeyValueStore` — protocol abstracting the UserDefaults API (`UserDefaults` conforms); `SyncedKeyValueStore` dual-writes UserDefaults + `NSUbiquitousKeyValueStore` for iCloud sync (cloud activated lazily)
+- `KeyValueStore` — protocol abstracting the UserDefaults API (`UserDefaults` conforms); `SyncedKeyValueStore` mirrors an allowlist of settings and progress to `NSUbiquitousKeyValueStore` after opt-in, reconciling existing cloud data before seeding missing values
 
 ### Services (`ThaiSheet/Services/`)
 
 - **`FlashcardManager`** (`@Observable`) — owns card filtering, ordering, navigation. Delegates card selection to a `CardSelectionStrategy`.
 - **`CardSelectionStrategy`** (protocol) — `SequentialStrategy` (fixed order) and `WanikaniStrategy` (SRS-prioritized).
-- **`AudioPlayer`** — singleton conforming to `AudioPlaying` protocol. Injected via `@Environment(\.audioPlayer)`. Uses `SoundType` enum (`.consonant`, `.vowel`, `.toneMark`, `.toneRule`, `.cluster`) for unified `play`/`hasSound` methods.
+- **`AudioPlayer`** — app-owned service conforming to `AudioPlaying`, created by `ThaiSheetApp` and injected via `@Environment(\.audioPlayer)`. Uses `SoundType` enum (`.consonant`, `.vowel`, `.toneMark`, `.toneRule`, `.cluster`) for unified `play`/`hasSound` methods.
 - **`BundleLoader`** — generic JSON loading utility. All models use `BundleLoader.load(_:as:keyPath:)` instead of duplicated boilerplate.
-- **`ThaiDataStore`** — loads all bundled JSON once; injected via `@Environment(\.thaiData)` into `FlashcardManager` and `CheatsheetBrowserView`.
+- **`ThaiDataStore`** — centralizes the bundled reference and flashcard data shared by `FlashcardManager` and `CheatsheetBrowserView`; injected via `@Environment(\.thaiData)`.
 
 ### Views (`ThaiSheet/Views/`)
 
@@ -77,7 +77,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 | `AudioPlaying` | `@Environment(\.audioPlayer)` — protocol, mockable |
 | `LearningModel` | `@Environment(\.learningModel)` |
 | `ThaiDataStore` | `@Environment(\.thaiData)` |
-| `FlashcardSettings` | Passed as parameter; accepts `KeyValueStore` in init |
+| `FlashcardSettings` | Canonical instance passed into the app shell and manager, and injected via `@Environment(\.flashcardSettings)` for settings-aware detail views; accepts `KeyValueStore` in init |
 | `FlashcardManager` | Passed as parameter to `FlashcardsView` |
 
 ## Data Flow

@@ -27,7 +27,7 @@ enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
     case matilda      // ElevenLabs Matilda (eleven_v3)
     case device       // Apple system voice (AVSpeechSynthesizer)
 
-    private static let legacyCurrentRawValue = "current"
+    private nonisolated static let legacyCurrentRawValue = "current"
 
     var id: String { rawValue }
 
@@ -58,7 +58,7 @@ enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
 
     /// Accept the pre-rename `current` value without keeping that misleading name in
     /// the model. New values always encode as `neural2`.
-    static func persistedValue(_ value: String) -> RecordedVoice? {
+    nonisolated static func persistedValue(_ value: String) -> RecordedVoice? {
         value == legacyCurrentRawValue ? .neural2 : RecordedVoice(rawValue: value)
     }
 

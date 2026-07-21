@@ -28,12 +28,12 @@ This file is a working draft for App Store Connect. Review it before submission,
 
 ThaiSheet is a quick reference to help you learn to read Thai script: look up consonants, vowels, consonant clusters, tone marks, and tone rules in the classic cheat-sheet tables — searchable, filterable, and with pronunciation audio throughout.
 
-Tap any character, vowel form, cluster, or tone example to hear it. Look up a consonant's class, its initial and final sounds, or which tone a syllable takes — the way the tables teach it.
+Tap any character, cluster, tone example, or most vowel forms to hear it; the five vowel forms without a real-word audio mapping open their details instead. Look up a consonant's class, its initial and final sounds, or which tone a syllable takes — the way the tables teach it.
 
 When you want to practice, complementary flashcards quiz you on what you look up, with a Wanikani-style spaced repetition system (SRS) tracking each card from Learning to Mastered.
 
 - Complete script reference: 44 consonants, 33 vowels, consonant clusters, tone marks, and the 7 tone rules
-- Pronunciation audio for every entry
+- Pronunciation audio throughout (five vowel forms are intentionally text-only)
 - Search by character or sound; filter by class, duration, or type
 - Multiple-choice flashcards with SRS and progress statistics
 - Optional iCloud sync of progress and settings
@@ -72,12 +72,12 @@ keywords), optionally duplicated to French (France).
 
 ThaiSheet est un aide-mémoire pour apprendre à lire l'écriture thaïe : retrouvez consonnes, voyelles, groupes de consonnes, signes de ton et règles de ton dans les tableaux classiques — avec recherche, filtres et audio de prononciation partout.
 
-Touchez un caractère, une forme de voyelle, un groupe ou un exemple de ton pour l'entendre. Retrouvez la classe d'une consonne, ses sons initial et final, ou le ton d'une syllabe — tels que les tableaux les enseignent.
+Touchez un caractère, un groupe, un exemple de ton ou la plupart des formes de voyelles pour l'entendre ; les cinq formes sans correspondance audio dans un mot réel ouvrent plutôt leur fiche. Retrouvez la classe d'une consonne, ses sons initial et final, ou le ton d'une syllabe — tels que les tableaux les enseignent.
 
 Pour pratiquer, des cartes-éclair complémentaires vous interrogent sur ce que vous consultez, avec un système de répétition espacée (SRS) de style Wanikani qui suit chaque carte de « Apprentissage » à « Maîtrisé ».
 
 - Référence complète : 44 consonnes, 33 voyelles, groupes de consonnes, signes de ton et les 7 règles de ton
-- Audio de prononciation pour chaque entrée
+- Audio de prononciation partout (cinq formes de voyelles sont volontairement sans audio)
 - Recherche par caractère ou par son ; filtres par classe, durée ou type
 - Cartes-éclair à choix multiples avec SRS et statistiques de progression
 - Synchronisation iCloud optionnelle de la progression et des réglages

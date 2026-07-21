@@ -38,13 +38,13 @@ The latest iPhone screenshots are also shown on the [website](https://cmontpetit
 ## Build & Run
 
 ```bash
-# Build for simulator
+# Build for any installed simulator runtime
 xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet \
-  -destination 'platform=iOS Simulator,name=iPhone 17' build
+  -destination 'generic/platform=iOS Simulator' build
 
-# Run tests
+# Run tests on an installed simulator (replace the example if needed)
 xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet \
-  -destination 'platform=iOS Simulator,name=iPhone 17' test
+  -destination 'platform=iOS Simulator,name=iPhone 16' test
 
 # Verify an App Store release build has no coverage instrumentation
 scripts/check_release_binary.sh /path/to/ThaiSheet.app

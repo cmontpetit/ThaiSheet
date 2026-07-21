@@ -10,68 +10,119 @@ extension Notification.Name {
     static let syncedStoreDidChange = Notification.Name("SyncedStoreDidChange")
 }
 
-/// A key-value store that writes to both local UserDefaults and iCloud NSUbiquitousKeyValueStore.
-/// Reads come from local UserDefaults for speed. Cloud sync only activates when iCloudSyncEnabled is true.
-class SyncedKeyValueStore: KeyValueStore {
+/// The small cloud-store surface used by `SyncedKeyValueStore`.
+/// Kept separate from `KeyValueStore` because the ubiquitous store's `set` API
+/// does not accept optional values. Tests inject an in-memory implementation.
+protocol CloudKeyValueStore: AnyObject {
+    var notificationObject: AnyObject { get }
+    func set(_ value: Any, forKey key: String)
+    func object(forKey key: String) -> Any?
+    func removeObject(forKey key: String)
+    @discardableResult func synchronize() -> Bool
+}
+
+private final class UbiquitousCloudKeyValueStore: CloudKeyValueStore {
+    private let store: NSUbiquitousKeyValueStore
+
+    init(store: NSUbiquitousKeyValueStore = .default) {
+        self.store = store
+    }
+
+    var notificationObject: AnyObject { store }
+
+    func set(_ value: Any, forKey key: String) {
+        store.set(value, forKey: key)
+    }
+
+    func object(forKey key: String) -> Any? {
+        store.object(forKey: key)
+    }
+
+    func removeObject(forKey key: String) {
+        store.removeObject(forKey: key)
+    }
+
+    @discardableResult
+    func synchronize() -> Bool {
+        store.synchronize()
+    }
+}
+
+/// A key-value store that writes selected values to local UserDefaults and iCloud.
+/// Reads come from local storage for speed. Cloud sync activates only after the
+/// user opts in on this device.
+final class SyncedKeyValueStore: KeyValueStore {
+    private static let lastSyncDateKey = "sync_lastSyncDate"
+    private static let cloudSyncedKeys = Set(FlashcardSettings.syncedKeys + [LearningModel.storageKey])
+
     private let local: UserDefaults
+    private let cloud: CloudKeyValueStore
+    private let notificationCenter: NotificationCenter
+    private let now: () -> Date
 
-    /// Last time an external sync was received
-    var lastSyncDate: Date?
+    /// Last time a cloud reconciliation completed.
+    private(set) var lastSyncDate: Date?
 
-    /// Whether cloud sync is currently active
+    /// Whether cloud sync is currently active.
     private var cloudActive = false
-    private var cloud: NSUbiquitousKeyValueStore?
     private var observer: NSObjectProtocol?
 
-    init(local: UserDefaults = .standard) {
+    init(
+        local: UserDefaults = .standard,
+        cloud: CloudKeyValueStore = UbiquitousCloudKeyValueStore(),
+        notificationCenter: NotificationCenter = .default,
+        now: @escaping () -> Date = Date.init
+    ) {
         self.local = local
+        self.cloud = cloud
+        self.notificationCenter = notificationCenter
+        self.now = now
+        lastSyncDate = local.object(forKey: Self.lastSyncDateKey) as? Date
 
-        // Load persisted last sync date
-        if let date = local.object(forKey: "sync_lastSyncDate") as? Date {
-            lastSyncDate = date
-        }
-
-        // Activate cloud if previously enabled
         if local.object(forKey: "fc_iCloudSyncEnabled") as? Bool == true {
             activateCloud()
         }
     }
 
     deinit {
-        deactivateCloud()
+        if let observer {
+            notificationCenter.removeObserver(observer)
+        }
     }
 
     // MARK: - Cloud Activation
 
-    /// Start syncing with iCloud. Called when user enables iCloud sync.
+    /// Start syncing with iCloud. Existing cloud data is reconciled before any
+    /// missing cloud values are seeded from this device.
     func activateCloud() {
         guard !cloudActive else { return }
-        let kvStore = NSUbiquitousKeyValueStore.default
-        self.cloud = kvStore
         cloudActive = true
 
-        observer = NotificationCenter.default.addObserver(
+        observer = notificationCenter.addObserver(
             forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-            object: kvStore,
+            object: cloud.notificationObject,
             queue: .main
         ) { [weak self] notification in
             self?.handleExternalChange(notification)
         }
 
-        // Push all current local data to cloud
-        pushAllToCloud()
-
-        kvStore.synchronize()
+        // Refresh the ubiquitous store's local cache, then reconcile cloud-first.
+        // A later initial-sync notification will reconcile again if newer data arrives.
+        // A failed synchronization means the in-memory cloud snapshot is not a
+        // safe basis for deciding that a key is missing. Wait for a later external
+        // change instead of seeding potentially stale local values.
+        guard cloud.synchronize() else { return }
+        reconcileAllKeys()
+        finishCloudChange()
     }
 
-    /// Stop syncing with iCloud. Called when user disables iCloud sync.
+    /// Stop syncing with iCloud. Called when the user disables sync on this device.
     func deactivateCloud() {
         guard cloudActive else { return }
-        if let observer = observer {
-            NotificationCenter.default.removeObserver(observer)
+        if let observer {
+            notificationCenter.removeObserver(observer)
             self.observer = nil
         }
-        cloud = nil
         cloudActive = false
     }
 
@@ -79,29 +130,22 @@ class SyncedKeyValueStore: KeyValueStore {
 
     func set(_ value: Any?, forKey key: String) {
         local.set(value, forKey: key)
-        cloud?.set(value, forKey: key)
 
-        // Handle sync toggle changes
         if key == "fc_iCloudSyncEnabled" {
-            if value as? Bool == true {
-                activateCloud()
-            } else {
-                deactivateCloud()
-            }
+            value as? Bool == true ? activateCloud() : deactivateCloud()
+            return
+        }
+
+        guard cloudActive, Self.cloudSyncedKeys.contains(key) else { return }
+        if let value {
+            cloud.set(value, forKey: key)
+        } else {
+            cloud.removeObject(forKey: key)
         }
     }
 
     func set(_ value: Bool, forKey key: String) {
-        local.set(value, forKey: key)
-        cloud?.set(value, forKey: key)
-
-        if key == "fc_iCloudSyncEnabled" {
-            if value {
-                activateCloud()
-            } else {
-                deactivateCloud()
-            }
-        }
+        set(value as Any?, forKey: key)
     }
 
     func object(forKey key: String) -> Any? {
@@ -118,53 +162,55 @@ class SyncedKeyValueStore: KeyValueStore {
 
     func removeObject(forKey key: String) {
         local.removeObject(forKey: key)
-        cloud?.removeObject(forKey: key)
+        if cloudActive, Self.cloudSyncedKeys.contains(key) {
+            cloud.removeObject(forKey: key)
+        }
     }
 
     @discardableResult
     func synchronize() -> Bool {
-        cloud?.synchronize()
+        if cloudActive {
+            cloud.synchronize()
+        }
         return local.synchronize()
     }
 
-    // MARK: - Push Local to Cloud
+    // MARK: - Reconciliation
 
-    /// Push all known keys from local to cloud (used on first enable)
-    private func pushAllToCloud() {
-        guard let cloud = cloud else { return }
-
+    private func reconcileAllKeys() {
         for key in FlashcardSettings.syncedKeys {
-            if let value = local.object(forKey: key) {
-                cloud.set(value, forKey: key)
+            if let cloudValue = cloud.object(forKey: key) {
+                // Cloud wins when both stores have a setting. This prevents a stale
+                // device that is re-enabling sync from clobbering the cloud value.
+                local.set(cloudValue, forKey: key)
+            } else if let localValue = local.object(forKey: key) {
+                cloud.set(localValue, forKey: key)
             }
         }
 
-        // Push learning progress
-        if let data = local.data(forKey: LearningModel.storageKey) {
-            cloud.set(data, forKey: LearningModel.storageKey)
-        }
+        reconcileLearningProgress()
     }
 
-    // MARK: - External Change Handling
-
     private func handleExternalChange(_ notification: Notification) {
-        guard cloudActive,
-              let cloud = cloud,
-              let userInfo = notification.userInfo,
-              let changeReason = userInfo[NSUbiquitousKeyValueStoreChangeReasonKey] as? Int,
+        guard let userInfo = notification.userInfo,
+              let reason = userInfo[NSUbiquitousKeyValueStoreChangeReasonKey] as? Int,
               let changedKeys = userInfo[NSUbiquitousKeyValueStoreChangedKeysKey] as? [String]
         else { return }
 
-        // Only process server changes and initial syncs
-        guard changeReason == NSUbiquitousKeyValueStoreServerChange ||
-              changeReason == NSUbiquitousKeyValueStoreInitialSyncChange
+        handleExternalChange(reason: reason, changedKeys: changedKeys)
+    }
+
+    /// Internal seam used by tests to exercise the production change handler.
+    func handleExternalChange(reason: Int, changedKeys: [String]) {
+        guard cloudActive,
+              reason == NSUbiquitousKeyValueStoreServerChange ||
+              reason == NSUbiquitousKeyValueStoreInitialSyncChange
         else { return }
 
         for key in changedKeys {
             if key == LearningModel.storageKey {
-                mergeLearningProgress(cloud: cloud)
-            } else {
-                // For settings keys, cloud value wins (last-write-wins)
+                reconcileLearningProgress()
+            } else if FlashcardSettings.syncedKeys.contains(key) {
                 if let cloudValue = cloud.object(forKey: key) {
                     local.set(cloudValue, forKey: key)
                 } else {
@@ -173,53 +219,101 @@ class SyncedKeyValueStore: KeyValueStore {
             }
         }
 
-        lastSyncDate = Date()
-        local.set(lastSyncDate, forKey: "sync_lastSyncDate")
-
-        // Notify models to reload
-        NotificationCenter.default.post(name: .syncedStoreDidChange, object: self)
+        finishCloudChange()
     }
 
-    /// Merge learning progress by comparing lastReviewed dates per card
-    private func mergeLearningProgress(cloud: NSUbiquitousKeyValueStore) {
-        let decoder = JSONDecoder()
-        let encoder = JSONEncoder()
+    private func finishCloudChange() {
+        lastSyncDate = now()
+        local.set(lastSyncDate, forKey: Self.lastSyncDateKey)
+        notificationCenter.post(name: .syncedStoreDidChange, object: self)
+    }
 
-        let localData = local.data(forKey: LearningModel.storageKey)
-        let cloudData = cloud.object(forKey: LearningModel.storageKey) as? Data
-        let localProgress = decodeLearningProgress(from: localData, using: decoder)
-        let cloudProgress = decodeLearningProgress(from: cloudData, using: decoder)
+    private enum DecodedProgress {
+        case missing
+        case valid([String: CardProgress])
+        case corrupted(Data)
+    }
 
-        // Merge: for each card, keep the version with the more recent lastReviewed date
-        var merged = localProgress
-        for (cardId, cloudCard) in cloudProgress {
-            if let localCard = merged[cardId] {
-                // Compare lastReviewed dates — more recent wins
-                let localDate = localCard.lastReviewed ?? .distantPast
-                let cloudDate = cloudCard.lastReviewed ?? .distantPast
-                if cloudDate > localDate {
-                    merged[cardId] = cloudCard
-                }
-            } else {
-                // Card only exists in cloud — add it
+    private func reconcileLearningProgress() {
+        let localProgress = decodeLearningProgress(local.data(forKey: LearningModel.storageKey))
+        let cloudProgress = decodeLearningProgress(cloud.object(forKey: LearningModel.storageKey) as? Data)
+
+        switch (localProgress, cloudProgress) {
+        case (.missing, .missing):
+            return
+
+        case let (.valid(localValue), .missing):
+            writeProgress(localValue, toLocal: false, toCloud: true)
+
+        case let (.missing, .valid(cloudValue)):
+            writeProgress(cloudValue, toLocal: true, toCloud: false)
+
+        case let (.valid(localValue), .valid(cloudValue)):
+            writeProgress(Self.mergeProgress(local: localValue, cloud: cloudValue))
+
+        case let (.corrupted(localData), .valid(cloudValue)):
+            preserveCorrupted(localData, forKey: LearningModel.corruptedBackupKey)
+            writeProgress(cloudValue)
+
+        case let (.valid(localValue), .corrupted(cloudData)):
+            preserveCorrupted(cloudData, forKey: LearningModel.corruptedCloudBackupKey)
+            writeProgress(localValue)
+
+        case let (.corrupted(localData), .corrupted(cloudData)):
+            preserveCorrupted(localData, forKey: LearningModel.corruptedBackupKey)
+            preserveCorrupted(cloudData, forKey: LearningModel.corruptedCloudBackupKey)
+
+        case let (.corrupted(localData), .missing):
+            preserveCorrupted(localData, forKey: LearningModel.corruptedBackupKey)
+
+        case let (.missing, .corrupted(cloudData)):
+            preserveCorrupted(cloudData, forKey: LearningModel.corruptedCloudBackupKey)
+        }
+    }
+
+    /// Merge progress card-by-card, keeping whichever review happened most recently.
+    static func mergeProgress(
+        local: [String: CardProgress],
+        cloud: [String: CardProgress]
+    ) -> [String: CardProgress] {
+        var merged = local
+        for (cardId, cloudCard) in cloud {
+            guard let localCard = merged[cardId] else {
+                merged[cardId] = cloudCard
+                continue
+            }
+
+            if (cloudCard.lastReviewed ?? .distantPast) >
+                (localCard.lastReviewed ?? .distantPast) {
                 merged[cardId] = cloudCard
             }
         }
+        return merged
+    }
 
-        // Save merged result to both stores
-        if let data = try? encoder.encode(merged) {
+    private func decodeLearningProgress(_ data: Data?) -> DecodedProgress {
+        guard let data else { return .missing }
+        guard let progress = try? JSONDecoder().decode([String: CardProgress].self, from: data) else {
+            return .corrupted(data)
+        }
+        return .valid(progress)
+    }
+
+    private func writeProgress(
+        _ progress: [String: CardProgress],
+        toLocal: Bool = true,
+        toCloud: Bool = true
+    ) {
+        guard let data = try? JSONEncoder().encode(progress) else { return }
+        if toLocal {
             local.set(data, forKey: LearningModel.storageKey)
+        }
+        if toCloud {
             cloud.set(data, forKey: LearningModel.storageKey)
         }
     }
 
-    private func decodeLearningProgress(
-        from data: Data?,
-        using decoder: JSONDecoder
-    ) -> [String: CardProgress] {
-        guard let data = data,
-              let progress = try? decoder.decode([String: CardProgress].self, from: data)
-        else { return [:] }
-        return progress
+    private func preserveCorrupted(_ data: Data, forKey key: String) {
+        local.set(data, forKey: key)
     }
 }

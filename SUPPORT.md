@@ -1,6 +1,6 @@
 # ThaiSheet Support
 
-Use GitHub Issues for support once the repository is public:
+Use GitHub Issues for support:
 
 https://github.com/cmontpetit/ThaiSheet/issues
 
@@ -14,4 +14,4 @@ Before opening an issue, please include:
 
 The user-facing support page (used as the App Store Support URL) is
 https://cmontpetit.github.io/ThaiSheet/support.html (`docs/support.html`, served by
-GitHub Pages once the repository is public). Keep it in sync with this file.
+GitHub Pages). Keep it in sync with this file.

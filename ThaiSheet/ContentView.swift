@@ -420,6 +420,7 @@ struct ConsonantVowelSettingsModifier: ViewModifier {
             .onChange(of: manager.settings.uncommonConsonants) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.longVowels) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.shortVowels) { _, _ in manager.resetToStart() }
+            .onChange(of: manager.settings.uncommonVowels) { _, _ in manager.resetToStart() }
     }
 }
 

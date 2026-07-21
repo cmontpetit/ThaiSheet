@@ -48,11 +48,11 @@ Other useful docs in that folder:
 ## Build & Run
 
 ```bash
-# Build for simulator (use an available simulator, e.g. iPhone 17)
-xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 17' build
+# Build for any installed simulator runtime
+xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'generic/platform=iOS Simulator' build
 
-# Run tests
-xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 17' test
+# Run tests on an installed simulator (replace the example if needed)
+xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet -destination 'platform=iOS Simulator,name=iPhone 16' test
 
 # Verify an App Store release build has no coverage instrumentation
 scripts/check_release_binary.sh /path/to/ThaiSheet.app
@@ -65,7 +65,7 @@ scripts/check_release_binary.sh /path/to/ThaiSheet.app
 
 ### @Observable and UserDefaults
 - `FlashcardSettings` and `LearningModel` use `@Observable` with stored properties and `didSet` for persistence
-- Both accept a `KeyValueStore` as init param (default `.standard`) for testability; `SyncedKeyValueStore` dual-writes UserDefaults + NSUbiquitousKeyValueStore for iCloud sync
+- Both accept a `KeyValueStore` as init param (default `.standard`) for testability; `SyncedKeyValueStore` mirrors an allowlist to `NSUbiquitousKeyValueStore` after opt-in, with cloud-first settings reconciliation and per-card progress merging
 - **Important:** Computed properties bypass `@Observable` tracking - always use stored properties
 - Pattern: `var setting: Bool { didSet { defaults.set(setting, forKey: "key") } }`
 - Initialize from the store in `init()`, not via computed getters
@@ -258,7 +258,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 
 **Progression rules:**
 - Correct answer: advance 1 stage
-- Incorrect answer: drop 2 stages (minimum Apprentice 1)
+- Incorrect answer: drop 2 stages (minimum Learning 1)
 - Stage 0 (New) = never reviewed
 
 **Capped advancement:**
@@ -276,14 +276,13 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - Filter icon filled when not all card types selected
 
 ### Testing Gotchas
-- Creating `FlashcardSettings` or `LearningModel` instances in **new** test files causes CoreAudio malloc crashes in the test host
-- Existing test files (e.g., `LearningModelTests`) work because they were part of the original target setup
-- For new test files, test pure data logic only — avoid instantiating `@Observable` model classes
+- With Swift 6.2+, `FlashcardSettings` and `LearningModel` compile empty `nonisolated deinit` implementations because newer toolchains' back-deployed MainActor deinit thunk can invalid-free short-lived `@Observable` instances at the iOS 17 deployment target. Keep the compiler guard: Xcode 16.4 requires an experimental flag for this syntax
+- Tests may instantiate these models normally; lifecycle and second-instance regression tests cover the toolchain workaround
 - The project uses `PBXFileSystemSynchronizedRootGroup` — new source files are auto-discovered, no pbxproj edits needed
 
 ### Build Notes
 - **Deployment target:** iOS 17.0 (supports iPhone XR and newer)
-- **Simulator:** any available iPhone simulator (e.g. `iPhone 17`)
+- **Simulator:** any available iPhone simulator (the examples use `iPhone 16`, available with the minimum Xcode 16 requirement)
 - **SourceKit/editor diagnostics** like "Cannot find type X in scope" for types defined in other files are cross-file resolution noise, NOT real errors — always verify with `xcodebuild`
 - Release builds must keep `ENABLE_CODE_COVERAGE = NO`; before App Store submission, run `scripts/check_release_binary.sh` against the archived `.app` product to catch LLVM coverage/profile sections and confirm `ITSAppUsesNonExemptEncryption = false`
 

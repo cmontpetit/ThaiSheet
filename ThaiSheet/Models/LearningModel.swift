@@ -26,6 +26,8 @@ class LearningModel {
     static let storageKey = "learningProgress"
     /// Where an undecodable progress blob is preserved before being overwritten
     static let corruptedBackupKey = "learningProgress.corrupted-backup"
+    /// Where an undecodable cloud blob is preserved during reconciliation
+    static let corruptedCloudBackupKey = "learningProgress.corrupted-cloud-backup"
     private static let logger = Logger(subsystem: "net.montpetit.thaisheet", category: "LearningModel")
 
     /// Set when the stored blob exists but can't be decoded; save() preserves
@@ -41,6 +43,13 @@ class LearningModel {
         self.store = store
         load()
     }
+
+    #if compiler(>=6.2)
+    /// This model has no actor-isolated cleanup. Keeping destruction nonisolated
+    /// avoids the back-deployed MainActor deinit thunk used by newer toolchains,
+    /// which crashes when short-lived instances are released in iOS 17 tests.
+    nonisolated deinit {}
+    #endif
 
     // MARK: - Public API
 
