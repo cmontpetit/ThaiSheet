@@ -10,15 +10,15 @@ import SwiftUI
 class FlashcardSettings {
     private let defaults: KeyValueStore
 
-    /// All keys persisted by this class, in one place so sync code
-    /// (SyncedKeyValueStore.pushAllToCloud) stays in step automatically.
+    /// Settings shared across devices. The iCloud opt-in itself is deliberately
+    /// device-local so one device cannot enable or disable another device's sync.
     static let syncedKeys: [String] = [
         "fc_consonantsEnabled", "fc_vowelsEnabled", "fc_tonesEnabled", "fc_clusters",
         "fc_highConsonants", "fc_midConsonants", "fc_lowConsonants", "fc_uncommonConsonants",
         "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
-        "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage", "fc_iCloudSyncEnabled",
+        "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -191,12 +191,13 @@ class FlashcardSettings {
 
     init(defaults: KeyValueStore = UserDefaults.standard) {
         self.defaults = defaults
-        // Load without persisting: reading a default must not write it back
-        // (unset keys stay unset so future default changes still apply).
-        suppressPersistence = true
         reload()
-        suppressPersistence = false
     }
+
+    /// This model has no actor-isolated cleanup. Keeping destruction nonisolated
+    /// avoids the back-deployed MainActor deinit thunk used by the current toolchain,
+    /// which crashes when short-lived instances are released in iOS 17 tests.
+    nonisolated deinit {}
 
     /// The retired recorded/device source toggle is folded into `recordedVoice`:
     /// a legacy "device" source becomes the `.device` voice, then the key is removed.
@@ -236,6 +237,12 @@ class FlashcardSettings {
 
     /// Reload all settings from the store (called when external sync updates arrive)
     func reload() {
+        // Loading must never write every observed property back through the synced
+        // store. Preserve nesting in case reload is called from another load path.
+        let wasSuppressingPersistence = suppressPersistence
+        suppressPersistence = true
+        defer { suppressPersistence = wasSuppressingPersistence }
+
         consonantsEnabled = defaults.object(forKey: "fc_consonantsEnabled") as? Bool ?? true
         vowelsEnabled = defaults.object(forKey: "fc_vowelsEnabled") as? Bool ?? true
         tonesEnabled = defaults.object(forKey: "fc_tonesEnabled") as? Bool ?? true
@@ -276,11 +283,10 @@ class FlashcardSettings {
 
     // MARK: - Filter Counts
 
-    var enabledVowelFilterCount: Int {
+    var enabledVowelDurationCount: Int {
         var count = 0
         if longVowels { count += 1 }
         if shortVowels { count += 1 }
-        if uncommonVowels { count += 1 }
         return count
     }
 
@@ -431,7 +437,7 @@ class FlashcardSettings {
 
         case .vowel:
             // Duration question is trivial if only one duration is enabled
-            return enabledVowelFilterCount == 1
+            return enabledVowelDurationCount == 1
 
         case .toneMark:
             return false

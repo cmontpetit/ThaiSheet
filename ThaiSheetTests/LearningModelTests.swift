@@ -41,6 +41,13 @@ final class LearningModelTests: XCTestCase {
     private var card2: FlashcardItem { testCards[1] }
     private var card3: FlashcardItem { testCards[2] }
 
+    // MARK: - Lifecycle
+
+    func test_shortLivedSecondInstance_deinitializesSafely() {
+        let secondaryModel = LearningModel(store: testDefaults)
+        XCTAssertEqual(secondaryModel.totalReviews, 0)
+    }
+
     // MARK: - recordResult correct with full testing
 
     func test_recordResult_correctFullTesting_advancesStage() {

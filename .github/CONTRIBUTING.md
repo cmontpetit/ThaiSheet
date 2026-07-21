@@ -7,7 +7,7 @@ Thank you for your interest in contributing to ThaiSheet! This guide will help y
 1. Fork the repository
 2. Clone your fork locally
 3. Open `ThaiSheet.xcodeproj` in Xcode 16+
-4. Build and run on the iOS Simulator (iPhone 17 recommended)
+4. Build and run on an available iOS Simulator (the examples use iPhone 16)
 
 ## Development Setup
 
@@ -41,7 +41,7 @@ method changes.
 
 ```bash
 xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet \
-  -destination 'platform=iOS Simulator,name=iPhone 17' test
+  -destination 'platform=iOS Simulator,name=iPhone 16' test
 ```
 
 ## Code Style
