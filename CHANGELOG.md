@@ -2,15 +2,13 @@
 
 All notable changes to ThaiSheet will be documented in this file.
 
-## Unreleased
+## 1.1 - 2026-07-21
 
 - Fixed uncommon-vowel filter changes not refreshing the cached flashcard selection.
 - Fixed partial vowel testing so usage filters do not make a single duration look like a full quiz.
 - Made iCloud activation reconcile existing cloud state before seeding missing values, preserve corrupt progress blobs, and avoid republishing all settings after remote changes.
 - Added production-path iCloud sync tests and stabilized short-lived observable model instances at the iOS 17 deployment target.
 - Corrected architecture, testing, build, support, security, and audio-coverage documentation.
-
-## 1.1 - 2026-07-20
 
 - Added three bundled pronunciation voices (Google Neural2, Google Kore, and ElevenLabs Matilda) plus installed Thai system voices.
 - Added per-item pronunciation voice overrides while keeping Matilda as the default.
