@@ -11,7 +11,7 @@ This file is a working draft for App Store Connect. Review it before submission,
 - Bundle ID: `net.montpetit.thaisheet`
 - SKU: `thaisheet`
 - Version: `1.1`
-- Build: `5`
+- Build: `6`
 - Copyright: `2026 Claude Montpetit`
 - Pricing: Free
 - In-App Purchases: None
@@ -137,10 +137,10 @@ No user-generated content, web browsing, purchases, gambling, violence, medical 
 - [x] Regenerate bundled audio with official Google Cloud Text-to-Speech credentials (commit 46c0ffd, July 2026).
 - [x] Document rights/attribution for learning data and audio (Content Rights above).
 - [x] Run `scripts/check_release_binary.sh` on the unsigned 1.1 (5) Release product (passed July 20, 2026).
-- [ ] Re-run `scripts/check_release_binary.sh` on the final signed archive before upload.
+- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.1 (6) archive before upload.
 - [ ] Complete the account-level EU Digital Services Act trader-status declaration in Business.
 - [ ] Optionally complete the App Accessibility questionnaire after VoiceOver and Dynamic Type device testing.
 - [x] Create the App Store Connect app record.
-- [ ] Upload and select build 5 for version 1.1.
-- [ ] Create an internal TestFlight group, add build 5, and perform the upgrade/device test pass.
+- [ ] Upload and select build 6 for version 1.1.
+- [ ] Create an internal TestFlight group, add build 6, and perform the upgrade/device test pass.
 - [ ] Create the 1.1 App Store version, add the What's New text, and upload the new screenshots.
