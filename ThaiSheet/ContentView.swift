@@ -46,7 +46,7 @@ struct ContentView: View {
     @Environment(\.thaiData) private var thaiData
     @State private var learningModel: LearningModel
     @State private var manager: FlashcardManager?
-    @State private var selectedTab: AppTab = .reference
+    @State private var selectedTab: AppTab = ScreenshotScenario.current?.initialTab ?? .reference
     @State private var highlighted: [FlashcardType: String] = [:]
     @State private var flashcardStarting: [FlashcardType: String] = [:]
 
@@ -132,7 +132,7 @@ struct FlashcardsView: View {
     @Binding var selectedTab: AppTab
 
     @State private var showingSettings = false
-    @State private var showingStats = false
+    @State private var showingStats = ScreenshotScenario.current == .progress
     @State private var showingFilter = false
     @State private var filterRefreshID = UUID()
 
@@ -347,6 +347,13 @@ struct FlashcardsView: View {
             manager: manager,
             flashcardStarting: $flashcardStarting
         ))
+        .onAppear {
+            #if DEBUG
+            if ScreenshotScenario.current == .progress {
+                manager.learningModel.seedScreenshotProgress(for: manager.allCards)
+            }
+            #endif
+        }
     }
 }
 

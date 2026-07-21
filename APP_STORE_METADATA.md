@@ -9,9 +9,9 @@ This file is a working draft for App Store Connect. Review it before submission,
 - Primary category: Education
 - Secondary category: Reference
 - Bundle ID: `net.montpetit.thaisheet`
-- SKU: `thaisheet-ios`
-- Version: `1.0`
-- Build: `1`
+- SKU: `thaisheet`
+- Version: `1.1`
+- Build: `5`
 - Copyright: `2026 Claude Montpetit`
 - Pricing: Free
 - In-App Purchases: None
@@ -22,7 +22,7 @@ This file is a working draft for App Store Connect. Review it before submission,
 - Support URL: https://cmontpetit.github.io/ThaiSheet/support.html
 - Marketing URL (optional): https://cmontpetit.github.io/ThaiSheet/
 
-(Live once the repo is public and GitHub Pages is enabled on `main:/docs`.)
+(Verified live on July 20, 2026.)
 
 ## Description
 
@@ -52,7 +52,10 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 
 ## What's New
 
-Initial release.
+- Choose from three recorded Thai pronunciation voices, or use an installed Thai system voice.
+- Set a different pronunciation voice for individual reference items.
+- Practice reading by hiding transcriptions until you reveal them.
+- Improved audio fallback behavior and VoiceOver accessibility.
 
 ## French Store Metadata — DEFERRED
 
@@ -126,10 +129,18 @@ No user-generated content, web browsing, purchases, gambling, violence, medical 
 
 ## Required Before Submission
 
-- [x] Capture App Store screenshots for iPhone and iPad (`docs/screenshots/`, July 2026).
-- [ ] Publish the GitHub repository and enable GitHub Pages (`main:/docs`).
-- [ ] Verify the privacy/support/marketing URLs above are live.
+- [x] Capture App Store screenshots for iPhone and iPad (`docs/screenshots/appstore-1.1/`, July 20, 2026).
+- [x] Publish the GitHub repository and enable GitHub Pages (`main:/docs`).
+- [x] Verify the privacy/support/marketing URLs above are live (HTTP 200, July 20, 2026).
+- [x] Verify App Privacy declares no data collected and uses the published privacy URL.
+- [x] Verify the age-rating questionnaire declares no social, chat, user-generated content, advertising, or unrestricted web access (4+ rating).
 - [x] Regenerate bundled audio with official Google Cloud Text-to-Speech credentials (commit 46c0ffd, July 2026).
 - [x] Document rights/attribution for learning data and audio (Content Rights above).
-- [x] Run `scripts/check_release_binary.sh` on a Release archive (passed July 10, 2026 — re-run on the final signed archive before upload).
-- [ ] Create the App Store Connect app record and select the signed archive build.
+- [x] Run `scripts/check_release_binary.sh` on the unsigned 1.1 (5) Release product (passed July 20, 2026).
+- [ ] Re-run `scripts/check_release_binary.sh` on the final signed archive before upload.
+- [ ] Complete the account-level EU Digital Services Act trader-status declaration in Business.
+- [ ] Optionally complete the App Accessibility questionnaire after VoiceOver and Dynamic Type device testing.
+- [x] Create the App Store Connect app record.
+- [ ] Upload and select build 5 for version 1.1.
+- [ ] Create an internal TestFlight group, add build 5, and perform the upgrade/device test pass.
+- [ ] Create the 1.1 App Store version, add the What's New text, and upload the new screenshots.

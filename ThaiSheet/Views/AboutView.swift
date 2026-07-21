@@ -9,13 +9,15 @@ struct AboutView: View {
     // Force-unwraps are safe: literal URLs, validated at development time
     private static let repositoryURL = URL(string: "https://github.com/cmontpetit/ThaiSheet")!
     private static let websiteURL = URL(string: "https://cmontpetit.github.io/ThaiSheet/")!
+    private static let privacyURL = URL(string: "https://cmontpetit.github.io/ThaiSheet/privacy.html")!
+    private static let supportURL = URL(string: "https://cmontpetit.github.io/ThaiSheet/support.html")!
 
     private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.1"
     }
 
     private var buildNumber: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "5"
     }
 
     var body: some View {
@@ -85,6 +87,8 @@ struct AboutView: View {
                 Text("ThaiSheet does not include analytics, ads, or tracking. Progress and settings stay on device unless you enable iCloud Sync, which uses Apple's iCloud key-value store.")
                     .font(.footnote)
                     .foregroundColor(.secondary)
+                Link("Privacy Policy", destination: Self.privacyURL)
+                Link("Support", destination: Self.supportURL)
             }
         }
         .navigationTitle("About")

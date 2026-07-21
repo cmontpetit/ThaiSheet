@@ -302,7 +302,8 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 
 ### Verifying UI in the simulator (no UI automation)
 `xcrun simctl` cannot tap or scroll, so to see a specific screen:
-- Temporarily change `@State` defaults and rebuild — e.g. `selectedTab: AppTab = .reference` in ContentView.swift, `selectedType: CheatsheetEntryType = .vowels` in CheatsheetBrowserView.swift — then `simctl install`/`launch` and `simctl io <device> screenshot`. Revert afterward
+- Debug builds accept `-screenshotScenario` with `vowels`, `vowels-blurred`, `consonant-details`, `tones`, `flashcard-completed`, or `progress`. These deterministic states are disabled in Release builds
+- Generate the App Store set with `scripts/capture_app_store_screenshots.sh <simulator-udid> <output-directory> <debug-app-path>`; the script standardizes the status bar and exports JPEGs without alpha
 - Persisted settings can be injected as launch arguments (NSArgumentDomain overrides the plist): `xcrun simctl launch <device> net.montpetit.thaisheet -fc_appLanguage en -AppleLanguages "(fr)"`. Writing the container plist by hand does NOT work (cfprefsd ignores it), and `defaults write` only works after the app has created its prefs domain
 - **Stale-build trap:** xcodebuild sometimes reports BUILD SUCCEEDED without recompiling a just-edited file — and fresh file mtimes can hide stale content (the debug dylib gets relinked from stale objects). Definitive check: `nm ThaiSheet.app/ThaiSheet.debug.dylib | grep <aNewSymbolName>` (the real code is in the dylib; the main executable is a stub). If the symbol is missing, `xcodebuild clean build`. Alternatively add an unmistakable marker string to a `body` literal and rebuild: marker visible = pipeline fresh
 - Zoom screenshots before judging Thai glyph details — small renderings mislead

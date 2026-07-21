@@ -46,11 +46,12 @@ struct CheatsheetBrowserView: View {
     @Environment(\.thaiData) private var thaiData
 
     @State private var searchText = ""
-    @State private var selectedType: CheatsheetEntryType = .consonants
+    @State private var selectedType: CheatsheetEntryType =
+        ScreenshotScenario.current?.referenceType ?? .consonants
     @State private var showingSettings = false
     @State private var showingToneLegend = false
     // Session-only by design: the app always opens with readings visible
-    @State private var practiceMode = PracticeMode()
+    @State private var practiceMode = ScreenshotScenario.initialPracticeMode
 
     private var consonants: [Consonant] { thaiData.consonants }
     private var vowels: [Vowel] { thaiData.vowels }
