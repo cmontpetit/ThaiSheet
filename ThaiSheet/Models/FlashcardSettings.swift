@@ -194,10 +194,12 @@ class FlashcardSettings {
         reload()
     }
 
+    #if compiler(>=6.2)
     /// This model has no actor-isolated cleanup. Keeping destruction nonisolated
-    /// avoids the back-deployed MainActor deinit thunk used by the current toolchain,
+    /// avoids the back-deployed MainActor deinit thunk used by newer toolchains,
     /// which crashes when short-lived instances are released in iOS 17 tests.
     nonisolated deinit {}
+    #endif
 
     /// The retired recorded/device source toggle is folded into `recordedVoice`:
     /// a legacy "device" source becomes the `.device` voice, then the key is removed.
