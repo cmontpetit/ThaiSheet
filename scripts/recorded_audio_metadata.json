@@ -4,5 +4,32 @@
   "processing": "EBU R128 normalization to -18 LUFS with a -1.5 dB true-peak limit",
   "status": "Public catalog reference voice; one of three bundled sets (ElevenLabs Matilda is the in-app default)",
   "generatedOn": "2026-07-11",
-  "generationCommand": "python3 scripts/generate_sounds.py --all --force --voice-name th-TH-Neural2-C --normalize-lufs -18 --output-dir scratchpad/neural2-all-candidate --check-files"
+  "generationCommand": "python3 scripts/generate_sounds.py --all --force --voice-name th-TH-Neural2-C --normalize-lufs -18 --output-dir scratchpad/neural2-all-candidate --check-files",
+  "voices": [
+    {
+      "key": "matilda",
+      "label": "ElevenLabs Matilda",
+      "provider": "ElevenLabs",
+      "voice": "Matilda",
+      "model": "eleven_v3",
+      "processing": "EBU R128 normalization to -18 LUFS with a -1.5 dB true-peak limit; consonant padding trimmed",
+      "default": true
+    },
+    {
+      "key": "neural2",
+      "label": "Google Neural2-C",
+      "provider": "Google Cloud Text-to-Speech",
+      "voice": "th-TH-Neural2-C",
+      "processing": "EBU R128 normalization to -18 LUFS with a -1.5 dB true-peak limit",
+      "default": false
+    },
+    {
+      "key": "kore",
+      "label": "Google Chirp3-HD Kore",
+      "provider": "Google Cloud Text-to-Speech",
+      "voice": "th-TH-Chirp3-HD-Kore",
+      "processing": "EBU R128 normalization to -18 LUFS with a -1.5 dB true-peak limit",
+      "default": false
+    }
+  ]
 }

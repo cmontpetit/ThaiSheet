@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ThaiSheet — Pronunciation catalog</title>
-  <meta name="description" content="Review every ThaiSheet recorded pronunciation and report pronunciation problems on GitHub.">
+  <meta name="description" content="Compare all three ThaiSheet recorded pronunciation voices and report pronunciation problems on GitHub.">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
   <link rel="apple-touch-icon" href="icon-180.png">
@@ -35,8 +35,7 @@
       that sounds wrong.</p>
       <p>The app bundles three recorded voices &mdash; the default is
       <strong>ElevenLabs Matilda</strong>, alongside Google Neural2-C and Chirp3-HD
-      Kore. This catalog previews the Neural2-C set, so when you report a problem,
-      the form asks which voice you heard.</p>
+      Kore. Choose a voice below to preview and compare the complete recording sets.</p>
     </section>
 
     <section class="catalog-summary" aria-labelledby="catalog-provenance-title">
@@ -50,10 +49,16 @@
     </section>
 
     <section class="catalog-tools" aria-label="Catalog filters">
-      <label class="catalog-search">
-        <span>Search</span>
-        <input id="sound-search" type="search" placeholder="Thai, romanization, meaning, or sound ID" autocomplete="off">
-      </label>
+      <div class="catalog-filter-row">
+        <label class="catalog-voice">
+          <span>Voice</span>
+          <select id="voice-select"></select>
+        </label>
+        <label class="catalog-search">
+          <span>Search</span>
+          <input id="sound-search" type="search" placeholder="Thai, romanization, meaning, or sound ID" autocomplete="off">
+        </label>
+      </div>
       <div id="sound-type-tabs" class="catalog-tabs" role="tablist" aria-label="Sound type"></div>
     </section>
 
@@ -88,16 +93,32 @@
         ? "../ThaiSheet/Resources/sounds/"
         : `https://raw.githubusercontent.com/${catalog.repository}/${catalog.branch}/ThaiSheet/Resources/sounds/`;
       const typeOrder = ["consonant", "vowel", "cluster", "tone_mark", "tone_rule", "tone_rule_example", "sample_word"];
+      const voicesByKey = Object.fromEntries(catalog.voices.map(voice => [voice.key, voice]));
+      const voiceSelect = document.querySelector("#voice-select");
       const search = document.querySelector("#sound-search");
       const tabs = document.querySelector("#sound-type-tabs");
       const tableBody = document.querySelector("#sound-table-body");
       const results = document.querySelector("#catalog-results");
       let selectedType = "consonant";
+      let selectedVoice = catalog.defaultVoice;
 
-      document.querySelector("#audio-provider").textContent = catalog.audio.provider;
-      document.querySelector("#audio-voice").textContent = catalog.audio.voice;
-      document.querySelector("#audio-processing").textContent = catalog.audio.processing;
-      document.querySelector("#audio-count").textContent = `${catalog.items.length} MP3 files`;
+      catalog.voices.forEach(voice => {
+        const option = document.createElement("option");
+        option.value = voice.key;
+        option.textContent = voice.label + (voice.default ? " (app default)" : "");
+        option.selected = voice.key === selectedVoice;
+        voiceSelect.append(option);
+      });
+
+      function updateVoiceSummary() {
+        const voice = voicesByKey[selectedVoice];
+        const voiceDescription = voice.model ? `${voice.voice} · ${voice.model}` : voice.voice;
+        document.querySelector("#audio-provider").textContent = voice.provider;
+        document.querySelector("#audio-voice").textContent = voiceDescription;
+        document.querySelector("#audio-processing").textContent = voice.processing;
+        document.querySelector("#audio-count").textContent =
+          `${catalog.items.length} for this voice · ${catalog.fileCount} total`;
+      }
 
       function makeTab(type, label, count) {
         const button = document.createElement("button");
@@ -153,22 +174,19 @@
       }
 
       function reportURL(item) {
-        const title = `Pronunciation: ${item.display}`;
+        const voice = voicesByKey[selectedVoice];
+        const recording = item.recordings[selectedVoice];
+        const title = `Pronunciation (${voice.label}): ${item.display}`;
         const body = [
           "## Pronunciation report",
           "",
           `- Sound ID: \`${item.id}\``,
           `- Display: ${item.display}`,
           `- Synthesis input: ${item.synthesis_text}`,
-          `- File: \`${item.filename}\``,
-          `- Audio revision: \`${item.revision}\``,
-          `- Catalog preview voice: ${catalog.audio.voice}`,
-          "",
-          "### Which app voice sounds wrong?",
-          "The app bundles three recorded voices. Please keep the one you mean:",
-          "- ElevenLabs Matilda (app default)",
-          "- Google Neural2-C (previewed in this catalog)",
-          "- Google Chirp3-HD Kore",
+          `- Voice: ${voice.label}`,
+          `- Provider: ${voice.provider}`,
+          `- File: \`${recording.filename}\``,
+          `- Audio revision: \`${recording.revision}\``,
           "",
           "### What sounds incorrect?",
           "",
@@ -194,18 +212,21 @@
         row.append(contextCell(item));
 
         const recording = document.createElement("td");
+        const selectedRecording = item.recordings[selectedVoice];
+        const selectedVoiceLabel = voicesByKey[selectedVoice].label;
         const audio = document.createElement("audio");
         audio.controls = true;
         audio.preload = "none";
-        audio.src = `${rawBase}${encodeURIComponent(item.filename)}?v=${item.revision}`;
-        audio.setAttribute("aria-label", `Play ${item.display}`);
+        audio.src = `${rawBase}${encodeURIComponent(selectedRecording.filename)}?v=${selectedRecording.revision}`;
+        audio.setAttribute("aria-label", `Play ${item.display} with ${selectedVoiceLabel}`);
         audio.addEventListener("play", () => {
           document.querySelectorAll("audio").forEach(other => {
             if (other !== audio) other.pause();
           });
         });
         recording.append(audio);
-        addText(recording, "code", item.revision, "catalog-revision");
+        addText(recording, "span", selectedVoiceLabel, "catalog-voice-label");
+        addText(recording, "code", selectedRecording.revision, "catalog-revision");
         row.append(recording);
 
         const report = document.createElement("td");
@@ -230,6 +251,12 @@
       }
 
       search.addEventListener("input", render);
+      voiceSelect.addEventListener("change", () => {
+        selectedVoice = voiceSelect.value;
+        updateVoiceSummary();
+        render();
+      });
+      updateVoiceSummary();
       render();
     })();
   </script>

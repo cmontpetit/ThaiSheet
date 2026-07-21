@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from sound_inventory import (
+    BUNDLED_VOICE_KEYS,
     CATALOG_TYPE_LABELS,
     bundled_voice_filename,
     expected_bundled_filenames,
@@ -38,23 +39,42 @@ def build_catalog(audio_dir: Path, metadata_path: Path) -> dict:
 
     with metadata_path.open(encoding="utf-8") as metadata_file:
         metadata = json.load(metadata_file)
-    required_metadata = {"provider", "voice", "processing", "status"}
+    required_metadata = {"provider", "voice", "processing", "status", "voices"}
     if not required_metadata.issubset(metadata):
         missing_metadata = ", ".join(sorted(required_metadata - set(metadata)))
         raise SystemExit(f"Recorded audio metadata is missing: {missing_metadata}")
 
+    voices = metadata["voices"]
+    required_voice_metadata = {"key", "label", "provider", "voice", "processing", "default"}
+    for voice in voices:
+        if not required_voice_metadata.issubset(voice):
+            missing_voice_metadata = ", ".join(sorted(required_voice_metadata - set(voice)))
+            raise SystemExit(f"Recorded voice metadata is missing: {missing_voice_metadata}")
+    voice_keys = tuple(voice["key"] for voice in voices)
+    if set(voice_keys) != set(BUNDLED_VOICE_KEYS) or len(voice_keys) != len(BUNDLED_VOICE_KEYS):
+        raise SystemExit(
+            "Recorded voice metadata must contain each bundled voice exactly once: "
+            + ", ".join(BUNDLED_VOICE_KEYS)
+        )
+    default_voices = [voice["key"] for voice in voices if voice["default"]]
+    if len(default_voices) != 1:
+        raise SystemExit("Recorded voice metadata must identify exactly one default voice")
+
     catalog_items = []
     for item in items:
-        filename = bundled_voice_filename(item.filename, "neural2")
-        filepath = audio_dir / filename
         item_data = item.catalog_dict()
-        item_data["filename"] = filename
-        digest = hashlib.sha256(filepath.read_bytes()).hexdigest()
-        item_data.update({
-            "bytes": filepath.stat().st_size,
-            "sha256": digest,
-            "revision": digest[:12],
-        })
+        recordings = {}
+        for voice_key in voice_keys:
+            filename = bundled_voice_filename(item.filename, voice_key)
+            filepath = audio_dir / filename
+            digest = hashlib.sha256(filepath.read_bytes()).hexdigest()
+            recordings[voice_key] = {
+                "filename": filename,
+                "bytes": filepath.stat().st_size,
+                "sha256": digest,
+                "revision": digest[:12],
+            }
+        item_data["recordings"] = recordings
         catalog_items.append(item_data)
 
     counts = {
@@ -65,10 +85,12 @@ def build_catalog(audio_dir: Path, metadata_path: Path) -> dict:
         for catalog_type in CATALOG_TYPE_LABELS
     }
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "repository": "cmontpetit/ThaiSheet",
         "branch": "main",
-        "audio": metadata,
+        "defaultVoice": default_voices[0],
+        "voices": voices,
+        "fileCount": len(catalog_items) * len(voices),
         "counts": counts,
         "typeLabels": CATALOG_TYPE_LABELS,
         "items": catalog_items,
@@ -99,7 +121,10 @@ def main() -> int:
             print("Website sound catalog is stale.")
             print("Run: python3 scripts/generate_sound_catalog.py")
             return 1
-        print(f"Website sound catalog is current ({len(catalog['items'])} MP3 files).")
+        print(
+            "Website sound catalog is current "
+            f"({len(catalog['items'])} entries / {catalog['fileCount']} MP3 files)."
+        )
         return 0
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

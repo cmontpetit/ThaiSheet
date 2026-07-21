@@ -72,7 +72,20 @@ struct ConsonantRowView: View {
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
     @Environment(\.thaiData) private var thaiData
-    @State private var showingSheet = false
+    @State private var showingSheet: Bool
+
+    init(
+        consonant: Consonant,
+        isHighlighted: Bool = false,
+        onPractice: (() -> Void)? = nil
+    ) {
+        self.consonant = consonant
+        self.isHighlighted = isHighlighted
+        self.onPractice = onPractice
+        _showingSheet = State(initialValue:
+            ScreenshotScenario.current == .consonantDetails && consonant.character == "ค"
+        )
+    }
 
     private var hasSound: Bool {
         audioPlayer.hasSound(.consonant, key: consonant.character)

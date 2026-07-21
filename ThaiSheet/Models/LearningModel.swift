@@ -215,4 +215,52 @@ class LearningModel {
     func reload() {
         load()
     }
+
+    #if DEBUG
+    /// Marks one card as successfully completed without persisting fake progress.
+    func seedScreenshotCompletion(for card: FlashcardItem) {
+        progressByCardId[card.id] = CardProgress(
+            cardId: card.id,
+            correctCount: 1,
+            incorrectCount: 0,
+            lastReviewed: Date(),
+            srsStage: .learning1,
+            nextReviewDate: Date().addingTimeInterval(SRSStage.learning1.intervalSeconds)
+        )
+    }
+
+    /// Populates a deterministic, in-memory distribution for App Store screenshots.
+    /// It deliberately does not save, so no fake progress can reach user storage.
+    func seedScreenshotProgress(for cards: [FlashcardItem]) {
+        let stages: [SRSStage] = [
+            .new, .new, .new, .new, .new, .new,
+            .learning1, .learning2, .learning2,
+            .apprentice1, .apprentice1, .apprentice2, .apprentice2,
+            .familiar1, .familiar1, .familiar2,
+            .confident, .confident,
+            .mastered, .mastered,
+        ]
+
+        var seeded: [String: CardProgress] = [:]
+        for (index, card) in cards.enumerated() {
+            let stage = stages[index % stages.count]
+            let reviewed = stage != .new
+            let correct = reviewed ? 4 + (index % 9) : 0
+            let incorrect = reviewed ? index % 3 : 0
+            let isDue = reviewed && stage != .mastered && index.isMultiple(of: 3)
+
+            seeded[card.id] = CardProgress(
+                cardId: card.id,
+                correctCount: correct,
+                incorrectCount: incorrect,
+                lastReviewed: reviewed ? Date().addingTimeInterval(-86_400) : nil,
+                srsStage: stage,
+                nextReviewDate: stage == .mastered || !reviewed
+                    ? nil
+                    : Date().addingTimeInterval(isDue ? -3_600 : 86_400)
+            )
+        }
+        progressByCardId = seeded
+    }
+    #endif
 }

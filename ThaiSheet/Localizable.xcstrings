@@ -1204,6 +1204,16 @@
         }
       }
     },
+    "Privacy Policy" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Politique de confidentialité"
+          }
+        }
+      }
+    },
     "Progress" : {
       "localizations" : {
         "fr" : {
@@ -1743,6 +1753,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "SwiftUI"
+          }
+        }
+      }
+    },
+    "Support" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assistance"
           }
         }
       }

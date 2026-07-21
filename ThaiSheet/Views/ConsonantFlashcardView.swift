@@ -14,7 +14,7 @@ struct ConsonantFlashcardView: View {
     let onPrevious: () -> Void
 
     @Environment(\.audioPlayer) private var audioPlayer
-    @State private var cardState = CardState()
+    @State private var cardState: CardState
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 100
 
     private var overrideItemID: String { FlashcardType.consonant.cardId(for: consonant.character) }
@@ -23,6 +23,34 @@ struct ConsonantFlashcardView: View {
     @State private var initialSoundOptions: [String] = []
     @State private var finalSoundOptions: [String] = []
     @State private var transcriptionOptions: [String] = []
+
+    init(
+        consonant: Consonant,
+        allConsonants: [Consonant],
+        onViewInReference: ((String) -> Void)? = nil,
+        onComplete: ((Bool) -> Void)? = nil,
+        onNext: @escaping () -> Void,
+        onPrevious: @escaping () -> Void
+    ) {
+        self.consonant = consonant
+        self.allConsonants = allConsonants
+        self.onViewInReference = onViewInReference
+        self.onComplete = onComplete
+        self.onNext = onNext
+        self.onPrevious = onPrevious
+
+        if ScreenshotScenario.current == .flashcardCompleted {
+            _cardState = State(initialValue: CardState(
+                step: .completed,
+                selectedClass: consonant.consonantClass,
+                selectedInitial: consonant.initialSound,
+                selectedFinal: consonant.finalSound,
+                selectedTranscription: consonant.transcription
+            ))
+        } else {
+            _cardState = State(initialValue: CardState())
+        }
+    }
 
     var body: some View {
         ScrollView {
