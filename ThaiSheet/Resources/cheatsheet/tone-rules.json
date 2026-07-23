@@ -17,10 +17,15 @@
           "romanization": "ná",
           "meaning": { "en": "particle", "fr": "particule" }
         },
-        { "full": "ละ", "focus": "ละ" },
+        {
+          "full": "ละ",
+          "focus": "ละ",
+          "meaning": { "en": "particle", "fr": "particule" }
+        },
         {
           "full": "วัด",
           "focus": "วัด",
+          "meaning": { "en": "temple", "fr": "temple" },
           "note": {
             "en": "Short dead syllable with low-class consonant; produces high tone (often counter-intuitive).",
             "fr": "Syllabe morte courte avec consonne de classe basse ; produit un ton haut (souvent contre-intuitif)."
@@ -29,6 +34,7 @@
         {
           "full": "พระ",
           "focus": "พระ",
+          "meaning": { "en": "monk", "fr": "moine" },
           "note": {
             "en": "Unstressed syllable in natural speech; tone movement may sound reduced.",
             "fr": "Syllabe non accentuée en parole naturelle ; le mouvement tonal peut sembler réduit."
@@ -37,6 +43,7 @@
         {
           "full": "มะลิ",
           "focus": "มะ",
+          "meaning": { "en": "jasmine", "fr": "jasmin" },
           "note": {
             "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
             "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
@@ -45,6 +52,7 @@
         {
           "full": "มะม่วง",
           "focus": "มะ",
+          "meaning": { "en": "mango", "fr": "mangue" },
           "note": {
             "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
             "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
@@ -53,6 +61,7 @@
         {
           "full": "มะพร้าว",
           "focus": "มะ",
+          "meaning": { "en": "coconut", "fr": "noix de coco" },
           "note": {
             "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
             "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
@@ -61,6 +70,7 @@
         {
           "full": "มะนาว",
           "focus": "มะ",
+          "meaning": { "en": "lime", "fr": "citron vert" },
           "note": {
             "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
             "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
@@ -69,6 +79,7 @@
         {
           "full": "มะเขือ",
           "focus": "มะ",
+          "meaning": { "en": "eggplant", "fr": "aubergine" },
           "note": {
             "en": "Unstressed prefix syllable; tone applies but is reduced in speech.",
             "fr": "Syllabe préfixe non accentuée ; le ton s'applique mais est réduit à l'oral."
@@ -77,6 +88,7 @@
         {
           "full": "ทะเล",
           "focus": "ทะ",
+          "meaning": { "en": "sea", "fr": "mer" },
           "note": {
             "en": "First syllable is unstressed; tone is correct but reduced.",
             "fr": "La première syllabe est non accentuée ; le ton est correct mais réduit."
@@ -102,19 +114,60 @@
           "romanization": "lâak",
           "meaning": { "en": "to drag", "fr": "traîner" }
         },
-        { "full": "พูด", "focus": "พูด" },
-        { "full": "ลูก", "focus": "ลูก" },
-        { "full": "นาก", "focus": "นาก" },
-        { "full": "ราก", "focus": "ราก" },
-        { "full": "ทอด", "focus": "ทอด" },
-        { "full": "พลาด", "focus": "พลาด" },
-        { "full": "ซาก", "focus": "ซาก" },
-        { "full": "ยาก", "focus": "ยาก" },
-        { "full": "โลก", "focus": "โลก" },
-        { "full": "เมือก", "focus": "เมือก" },
+        {
+          "full": "พูด",
+          "focus": "พูด",
+          "meaning": { "en": "to speak", "fr": "parler" }
+        },
+        {
+          "full": "ลูก",
+          "focus": "ลูก",
+          "meaning": { "en": "child", "fr": "enfant" }
+        },
+        {
+          "full": "นาก",
+          "focus": "นาก",
+          "meaning": { "en": "otter", "fr": "loutre" }
+        },
+        {
+          "full": "ราก",
+          "focus": "ราก",
+          "meaning": { "en": "root", "fr": "racine" }
+        },
+        {
+          "full": "ทอด",
+          "focus": "ทอด",
+          "meaning": { "en": "to fry", "fr": "frire" }
+        },
+        {
+          "full": "พลาด",
+          "focus": "พลาด",
+          "meaning": { "en": "to miss; to err", "fr": "manquer ; se tromper" }
+        },
+        {
+          "full": "ซาก",
+          "focus": "ซาก",
+          "meaning": { "en": "carcass; remains", "fr": "carcasse ; restes" }
+        },
+        {
+          "full": "ยาก",
+          "focus": "ยาก",
+          "meaning": { "en": "difficult", "fr": "difficile" }
+        },
+        {
+          "full": "โลก",
+          "focus": "โลก",
+          "meaning": { "en": "world", "fr": "monde" }
+        },
+        {
+          "full": "เมือก",
+          "focus": "เมือก",
+          "meaning": { "en": "slime; mucus", "fr": "mucus ; substance visqueuse" }
+        },
         {
           "full": "ชอบ",
           "focus": "ชอบ",
+          "meaning": { "en": "to like", "fr": "aimer" },
           "note": {
             "en": "Low-class ช; long dead syllable → falling tone.",
             "fr": "ช de classe basse ; syllabe morte longue → ton descendant."
@@ -123,6 +176,7 @@
         {
           "full": "ชาติ",
           "focus": "ชาติ",
+          "meaning": { "en": "nation", "fr": "nation" },
           "note": {
             "en": "Low-class ช; long dead syllable → falling tone.",
             "fr": "ช de classe basse ; syllabe morte longue → ton descendant."
@@ -148,18 +202,66 @@
           "romanization": "naa",
           "meaning": { "en": "rice field", "fr": "rizière" }
         },
-        { "full": "ยา", "focus": "ยา" },
-        { "full": "ลม", "focus": "ลม" },
-        { "full": "คน", "focus": "คน" },
-        { "full": "ทาง", "focus": "ทาง" },
-        { "full": "ลาน", "focus": "ลาน" },
-        { "full": "ยาว", "focus": "ยาว" },
-        { "full": "คาง", "focus": "คาง" },
-        { "full": "นม", "focus": "นม" },
-        { "full": "งาม", "focus": "งาม" },
-        { "full": "ยาม", "focus": "ยาม" },
-        { "full": "งู", "focus": "งู" },
-        { "full": "รู", "focus": "รู" }
+        {
+          "full": "ยา",
+          "focus": "ยา",
+          "meaning": { "en": "medicine", "fr": "médicament" }
+        },
+        {
+          "full": "ลม",
+          "focus": "ลม",
+          "meaning": { "en": "wind", "fr": "vent" }
+        },
+        {
+          "full": "คน",
+          "focus": "คน",
+          "meaning": { "en": "person", "fr": "personne" }
+        },
+        {
+          "full": "ทาง",
+          "focus": "ทาง",
+          "meaning": { "en": "way; path", "fr": "chemin ; voie" }
+        },
+        {
+          "full": "ลาน",
+          "focus": "ลาน",
+          "meaning": { "en": "yard; open area", "fr": "cour ; esplanade" }
+        },
+        {
+          "full": "ยาว",
+          "focus": "ยาว",
+          "meaning": { "en": "long", "fr": "long" }
+        },
+        {
+          "full": "คาง",
+          "focus": "คาง",
+          "meaning": { "en": "chin", "fr": "menton" }
+        },
+        {
+          "full": "นม",
+          "focus": "นม",
+          "meaning": { "en": "milk", "fr": "lait" }
+        },
+        {
+          "full": "งาม",
+          "focus": "งาม",
+          "meaning": { "en": "beautiful", "fr": "beau" }
+        },
+        {
+          "full": "ยาม",
+          "focus": "ยาม",
+          "meaning": { "en": "guard; watchman", "fr": "gardien" }
+        },
+        {
+          "full": "งู",
+          "focus": "งู",
+          "meaning": { "en": "snake", "fr": "serpent" }
+        },
+        {
+          "full": "รู",
+          "focus": "รู",
+          "meaning": { "en": "hole", "fr": "trou" }
+        }
       ]
     },
 
@@ -180,19 +282,71 @@
           "romanization": "dtaa",
           "meaning": { "en": "eye", "fr": "œil" }
         },
-        { "full": "ดี", "focus": "ดี" },
-        { "full": "ใจ", "focus": "ใจ" },
-        { "full": "ปลา", "focus": "ปลา" },
-        { "full": "จาน", "focus": "จาน" },
-        { "full": "กิน", "focus": "กิน" },
-        { "full": "ดาว", "focus": "ดาว" },
-        { "full": "ตาม", "focus": "ตาม" },
-        { "full": "จริง", "focus": "จริง" },
-        { "full": "ดิน", "focus": "ดิน" },
-        { "full": "กาง", "focus": "กาง" },
-        { "full": "ออม", "focus": "ออม" },
-        { "full": "เดิน", "focus": "เดิน" },
-        { "full": "บิน", "focus": "บิน" }
+        {
+          "full": "ดี",
+          "focus": "ดี",
+          "meaning": { "en": "good", "fr": "bon" }
+        },
+        {
+          "full": "ใจ",
+          "focus": "ใจ",
+          "meaning": { "en": "heart; mind", "fr": "cœur ; esprit" }
+        },
+        {
+          "full": "ปลา",
+          "focus": "ปลา",
+          "meaning": { "en": "fish", "fr": "poisson" }
+        },
+        {
+          "full": "จาน",
+          "focus": "จาน",
+          "meaning": { "en": "plate; dish", "fr": "assiette" }
+        },
+        {
+          "full": "กิน",
+          "focus": "กิน",
+          "meaning": { "en": "to eat", "fr": "manger" }
+        },
+        {
+          "full": "ดาว",
+          "focus": "ดาว",
+          "meaning": { "en": "star", "fr": "étoile" }
+        },
+        {
+          "full": "ตาม",
+          "focus": "ตาม",
+          "meaning": { "en": "to follow", "fr": "suivre" }
+        },
+        {
+          "full": "จริง",
+          "focus": "จริง",
+          "meaning": { "en": "real; true", "fr": "vrai" }
+        },
+        {
+          "full": "ดิน",
+          "focus": "ดิน",
+          "meaning": { "en": "earth; soil", "fr": "terre ; sol" }
+        },
+        {
+          "full": "กาง",
+          "focus": "กาง",
+          "meaning": { "en": "to spread out", "fr": "déployer ; étendre" }
+        },
+        {
+          "full": "ออม",
+          "focus": "ออม",
+          "meaning": { "en": "to save (up)", "fr": "épargner" }
+        },
+        {
+          "full": "เดิน",
+          "focus": "เดิน",
+          "meaning": { "en": "to walk", "fr": "marcher" }
+        },
+        {
+          "full": "บิน",
+          "focus": "บิน",
+          "meaning": { "en": "to fly", "fr": "voler" }
+        }
       ]
     },
 
@@ -213,19 +367,71 @@
           "romanization": "bpìt",
           "meaning": { "en": "to close", "fr": "fermer" }
         },
-        { "full": "จบ", "focus": "จบ" },
-        { "full": "ตัด", "focus": "ตัด" },
-        { "full": "กด", "focus": "กด" },
-        { "full": "ปก", "focus": "ปก" },
-        { "full": "จุด", "focus": "จุด" },
-        { "full": "ตก", "focus": "ตก" },
-        { "full": "บท", "focus": "บท" },
-        { "full": "จัก", "focus": "จัก" },
-        { "full": "กับ", "focus": "กับ" },
-        { "full": "ตับ", "focus": "ตับ" },
-        { "full": "เด็ก", "focus": "เด็ก" },
-        { "full": "ดัก", "focus": "ดัก" },
-        { "full": "ปะ", "focus": "ปะ" }
+        {
+          "full": "จบ",
+          "focus": "จบ",
+          "meaning": { "en": "to finish; to end", "fr": "finir ; terminer" }
+        },
+        {
+          "full": "ตัด",
+          "focus": "ตัด",
+          "meaning": { "en": "to cut", "fr": "couper" }
+        },
+        {
+          "full": "กด",
+          "focus": "กด",
+          "meaning": { "en": "to press", "fr": "appuyer" }
+        },
+        {
+          "full": "ปก",
+          "focus": "ปก",
+          "meaning": { "en": "cover", "fr": "couverture" }
+        },
+        {
+          "full": "จุด",
+          "focus": "จุด",
+          "meaning": { "en": "point; dot", "fr": "point" }
+        },
+        {
+          "full": "ตก",
+          "focus": "ตก",
+          "meaning": { "en": "to fall", "fr": "tomber" }
+        },
+        {
+          "full": "บท",
+          "focus": "บท",
+          "meaning": { "en": "chapter; lesson", "fr": "chapitre ; leçon" }
+        },
+        {
+          "full": "จัก",
+          "focus": "จัก",
+          "meaning": { "en": "to shred; to notch", "fr": "déchiqueter ; entailler" }
+        },
+        {
+          "full": "กับ",
+          "focus": "กับ",
+          "meaning": { "en": "with", "fr": "avec" }
+        },
+        {
+          "full": "ตับ",
+          "focus": "ตับ",
+          "meaning": { "en": "liver", "fr": "foie" }
+        },
+        {
+          "full": "เด็ก",
+          "focus": "เด็ก",
+          "meaning": { "en": "child", "fr": "enfant" }
+        },
+        {
+          "full": "ดัก",
+          "focus": "ดัก",
+          "meaning": { "en": "to trap; to lie in wait", "fr": "piéger ; guetter" }
+        },
+        {
+          "full": "ปะ",
+          "focus": "ปะ",
+          "meaning": { "en": "to patch", "fr": "rapiécer" }
+        }
       ]
     },
 
@@ -246,10 +452,15 @@
           "romanization": "khǎao",
           "meaning": { "en": "white", "fr": "blanc" }
         },
-        { "full": "ฝน", "focus": "ฝน" },
+        {
+          "full": "ฝน",
+          "focus": "ฝน",
+          "meaning": { "en": "rain", "fr": "pluie" }
+        },
         {
           "full": "หมี",
           "focus": "หมี",
+          "meaning": { "en": "bear", "fr": "ours" },
           "note": {
             "en": "Uses leading ห; tone class determined by ห.",
             "fr": "Utilise un ห initial ; la classe tonale est déterminée par ห."
@@ -258,6 +469,7 @@
         {
           "full": "หา",
           "focus": "หา",
+          "meaning": { "en": "to look for", "fr": "chercher" },
           "note": {
             "en": "Leading ห; behaves as high-class for tone.",
             "fr": "ห initial ; se comporte comme une classe haute pour le ton."
@@ -266,20 +478,57 @@
         {
           "full": "หนา",
           "focus": "หนา",
+          "meaning": { "en": "thick", "fr": "épais" },
           "note": {
             "en": "Leading ห; tone class determined by ห.",
             "fr": "ห initial ; classe tonale déterminée par ห."
           }
         },
-        { "full": "ถาม", "focus": "ถาม" },
-        { "full": "เขา", "focus": "เขา" },
-        { "full": "ผม", "focus": "ผม" },
-        { "full": "สอง", "focus": "สอง" },
-        { "full": "สาม", "focus": "สาม" },
-        { "full": "สาย", "focus": "สาย" },
-        { "full": "ขาย", "focus": "ขาย" },
-        { "full": "สวย", "focus": "สวย" },
-        { "full": "ไหม", "focus": "ไหม" }
+        {
+          "full": "ถาม",
+          "focus": "ถาม",
+          "meaning": { "en": "to ask", "fr": "demander" }
+        },
+        {
+          "full": "เขา",
+          "focus": "เขา",
+          "meaning": { "en": "he; she", "fr": "il ; elle" }
+        },
+        {
+          "full": "ผม",
+          "focus": "ผม",
+          "meaning": { "en": "hair (of the head)", "fr": "cheveux" }
+        },
+        {
+          "full": "สอง",
+          "focus": "สอง",
+          "meaning": { "en": "two", "fr": "deux" }
+        },
+        {
+          "full": "สาม",
+          "focus": "สาม",
+          "meaning": { "en": "three", "fr": "trois" }
+        },
+        {
+          "full": "สาย",
+          "focus": "สาย",
+          "meaning": { "en": "line; cord", "fr": "ligne ; cordon" }
+        },
+        {
+          "full": "ขาย",
+          "focus": "ขาย",
+          "meaning": { "en": "to sell", "fr": "vendre" }
+        },
+        {
+          "full": "สวย",
+          "focus": "สวย",
+          "meaning": { "en": "beautiful; pretty", "fr": "beau ; joli" }
+        },
+        {
+          "full": "ไหม",
+          "focus": "ไหม",
+          "meaning": { "en": "silk", "fr": "soie" }
+        }
       ]
     },
 
@@ -307,31 +556,70 @@
         {
           "full": "สอบ",
           "focus": "สอบ",
+          "meaning": { "en": "to take an exam", "fr": "passer un examen" },
           "note": {
             "en": "High-class consonant; long dead syllable → low tone.",
             "fr": "Consonne de classe haute ; syllabe morte longue → ton bas."
           }
         },
-        { "full": "ผัก", "focus": "ผัก" },
-        { "full": "สัก", "focus": "สัก" },
-        { "full": "หก", "focus": "หก" },
-        { "full": "ขุด", "focus": "ขุด" },
-        { "full": "ผิด", "focus": "ผิด" },
-        { "full": "สด", "focus": "สด" },
-        { "full": "หัก", "focus": "หัก" },
-        { "full": "ขัด", "focus": "ขัด" },
+        {
+          "full": "ผัก",
+          "focus": "ผัก",
+          "meaning": { "en": "vegetable", "fr": "légume" }
+        },
+        {
+          "full": "สัก",
+          "focus": "สัก",
+          "meaning": { "en": "to tattoo", "fr": "tatouer" }
+        },
+        {
+          "full": "หก",
+          "focus": "หก",
+          "meaning": { "en": "six", "fr": "six" }
+        },
+        {
+          "full": "ขุด",
+          "focus": "ขุด",
+          "meaning": { "en": "to dig", "fr": "creuser" }
+        },
+        {
+          "full": "ผิด",
+          "focus": "ผิด",
+          "meaning": { "en": "wrong; incorrect", "fr": "faux ; incorrect" }
+        },
+        {
+          "full": "สด",
+          "focus": "สด",
+          "meaning": { "en": "fresh", "fr": "frais" }
+        },
+        {
+          "full": "หัก",
+          "focus": "หัก",
+          "meaning": { "en": "to break (snap)", "fr": "casser ; rompre" }
+        },
+        {
+          "full": "ขัด",
+          "focus": "ขัด",
+          "meaning": { "en": "to polish; to obstruct", "fr": "polir ; obstruer" }
+        },
         {
           "full": "เสร็จ",
           "focus": "เสร็จ",
+          "meaning": { "en": "finished; done", "fr": "terminé ; fini" },
           "note": {
             "en": "Complex vowel + final stop; still short dead syllable.",
             "fr": "Voyelle complexe + occlusive finale ; reste une syllabe morte courte."
           }
         },
-        { "full": "สุก", "focus": "สุก" },
+        {
+          "full": "สุก",
+          "focus": "สุก",
+          "meaning": { "en": "ripe; cooked", "fr": "mûr ; cuit" }
+        },
         {
           "full": "สะอาด",
           "focus": "สะ",
+          "meaning": { "en": "clean", "fr": "propre" },
           "note": {
             "en": "Unstressed prefix syllable; tone reduced in speech.",
             "fr": "Syllabe préfixe non accentuée ; ton réduit à l'oral."
