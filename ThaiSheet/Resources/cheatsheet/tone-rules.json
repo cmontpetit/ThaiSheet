@@ -6,7 +6,11 @@
       "end": "Dead/None",
       "tone": "High",
       "samples": [
-        { "full": "คะ", "focus": "คะ" },
+        {
+          "full": "คะ",
+          "focus": "คะ",
+          "meaning": { "en": "particle", "fr": "particule" }
+        },
         {
           "full": "นะ",
           "focus": "นะ",
@@ -87,7 +91,11 @@
       "end": "Dead",
       "tone": "Falling",
       "samples": [
-        { "full": "มาก", "focus": "มาก" },
+        {
+          "full": "มาก",
+          "focus": "มาก",
+          "meaning": { "en": "much; very", "fr": "beaucoup ; très" }
+        },
         {
           "full": "ลาก",
           "focus": "ลาก",
@@ -129,7 +137,11 @@
       "end": "Live",
       "tone": "Mid",
       "samples": [
-        { "full": "มา", "focus": "มา" },
+        {
+          "full": "มา",
+          "focus": "มา",
+          "meaning": { "en": "to come", "fr": "venir" }
+        },
         {
           "full": "นา",
           "focus": "นา",
@@ -157,7 +169,11 @@
       "end": "Live",
       "tone": "Mid",
       "samples": [
-        { "full": "กา", "focus": "กา" },
+        {
+          "full": "กา",
+          "focus": "กา",
+          "meaning": { "en": "crow", "fr": "corbeau" }
+        },
         {
           "full": "ตา",
           "focus": "ตา",
@@ -186,7 +202,11 @@
       "end": "Dead",
       "tone": "Low",
       "samples": [
-        { "full": "กัด", "focus": "กัด" },
+        {
+          "full": "กัด",
+          "focus": "กัด",
+          "meaning": { "en": "to bite", "fr": "mordre" }
+        },
         {
           "full": "ปิด",
           "focus": "ปิด",
@@ -215,7 +235,11 @@
       "end": "Live",
       "tone": "Rising",
       "samples": [
-        { "full": "ขา", "focus": "ขา" },
+        {
+          "full": "ขา",
+          "focus": "ขา",
+          "meaning": { "en": "leg", "fr": "jambe" }
+        },
         {
           "full": "ขาว",
           "focus": "ขาว",
@@ -265,7 +289,11 @@
       "end": "Dead",
       "tone": "Low",
       "samples": [
-        { "full": "ขับ", "focus": "ขับ" },
+        {
+          "full": "ขับ",
+          "focus": "ขับ",
+          "meaning": { "en": "to drive", "fr": "conduire" }
+        },
         {
           "full": "ขาด",
           "focus": "ขาด",
