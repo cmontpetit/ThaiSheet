@@ -14,6 +14,7 @@ struct ToneRuleFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneRuleCardState()
+    @State private var showingDetails = false
 
     // Rule-level override (applies to every sample card of the rule), matching Reference.
     private var overrideItemID: String { FlashcardType.toneRule.cardId(for: card.rule.id) }
@@ -58,6 +59,9 @@ struct ToneRuleFlashcardView: View {
             // Reset state when card changes
             cardState = ToneRuleCardState()
         }
+        .sheet(isPresented: $showingDetails) {
+            ToneRuleDetailSheet(rule: card.rule)
+        }
     }
 
     // MARK: - Sample Word Card View
@@ -70,6 +74,7 @@ struct ToneRuleFlashcardView: View {
             soundKey: card.sample.full,
             overrideItemID: overrideItemID,
             onViewInReference: { onViewInReference?(card.rule.id) },
+            onShowDetails: { showingDetails = true },
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {

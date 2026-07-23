@@ -61,6 +61,9 @@ struct FlashcardFace<Content: View>: View {
     var overrideItemID: String? = nil
     var displayHeight: CGFloat = 160
     var onViewInReference: (() -> Void)?
+    /// Long-press the revealed card to open its reference detail sheet — mirrors
+    /// the Reference tab gesture. Gated to `showResult` so it can't leak answers.
+    var onShowDetails: (() -> Void)? = nil
     let onPrevious: () -> Void
     let onNext: () -> Void
     @ViewBuilder let content: () -> Content
@@ -72,10 +75,7 @@ struct FlashcardFace<Content: View>: View {
     var body: some View {
         FlashcardResultCard(showResult: showResult, hasError: hasError) {
             VStack(spacing: 12) {
-                NavigableTapArea(onPrevious: onPrevious, onNext: onNext) {
-                    content()
-                }
-                .frame(height: displayHeight * displayScale)
+                displayArea
 
                 HStack(spacing: 20) {
                     Button {
@@ -105,11 +105,45 @@ struct FlashcardFace<Content: View>: View {
                         .disabled(!hasSound)
                     }
                 }
+
+                // Only after reveal, so the gesture can never leak the answer.
+                if showResult, onShowDetails != nil {
+                    Label("Touch and hold for details.", systemImage: "hand.tap")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
         }
         .cornerRadius(16)
+    }
+
+    /// The swipeable glyph area. After reveal it honors the full Reference
+    /// gesture contract — tap plays the sound (like the Play button), long press
+    /// opens details — plus the same accessibility action. Both are withheld
+    /// until reveal so the gestures can't leak the answer.
+    @ViewBuilder
+    private var displayArea: some View {
+        let area = NavigableTapArea(onPrevious: onPrevious, onNext: onNext) {
+            content()
+        }
+        .frame(height: displayHeight * displayScale)
+
+        if showResult {
+            let playable = area.onTapGesture {
+                audioPlayer.play(soundType, key: soundKey, itemID: overrideItemID)
+            }
+            if let onShowDetails {
+                playable
+                    .onLongPressGesture { onShowDetails() }
+                    .accessibilityAction(named: Text("Show details")) { onShowDetails() }
+            } else {
+                playable
+            }
+        } else {
+            area
+        }
     }
 }
 

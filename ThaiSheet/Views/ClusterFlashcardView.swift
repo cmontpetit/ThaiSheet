@@ -15,6 +15,7 @@ struct ClusterFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ClusterCardState()
+    @State private var showingDetails = false
 
     private var overrideItemID: String { FlashcardType.cluster.cardId(for: cluster.id) }
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
@@ -44,6 +45,9 @@ struct ClusterFlashcardView: View {
             cardState = ClusterCardState()
             generateSoundOptions()
         }
+        .sheet(isPresented: $showingDetails) {
+            ClusterDetailSheet(cluster: cluster)
+        }
     }
 
     // MARK: - Cluster Card
@@ -57,6 +61,7 @@ struct ClusterFlashcardView: View {
             overrideItemID: overrideItemID,
             displayHeight: 140,
             onViewInReference: { onViewInReference?(cluster.id) },
+            onShowDetails: { showingDetails = true },
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {

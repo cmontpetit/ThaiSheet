@@ -46,7 +46,9 @@ struct ReferenceItemSheet: View {
     let note: String?
     var primaryAudio: ReferencePrimaryAudio? = nil
     var wordAudios: [ReferenceWordAudio] = []
-    let onPractice: () -> Void
+    /// nil suppresses the Practice action — used when the sheet is presented from
+    /// a flashcard, where "Practice" would circularly re-enter the same quiz.
+    var onPractice: (() -> Void)? = nil
     /// When set (and audio is in recorded mode), shows a per-item Voice override row.
     var voiceOverride: (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget)? = nil
 
@@ -119,19 +121,21 @@ struct ReferenceItemSheet: View {
                         wordAudioButton(audio)
                     }
 
-                    Button {
-                        dismiss()
-                        onPractice()
-                    } label: {
-                        HStack {
-                            Image(systemName: "rectangle.stack")
-                            Text("Practice")
+                    if let onPractice {
+                        Button {
+                            dismiss()
+                            onPractice()
+                        } label: {
+                            HStack {
+                                Image(systemName: "rectangle.stack")
+                                Text("Practice")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                     }
 
                     // De-emphasized: the per-item voice override sits at the bottom.

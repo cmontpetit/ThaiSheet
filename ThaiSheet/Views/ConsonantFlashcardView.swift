@@ -15,6 +15,7 @@ struct ConsonantFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState: CardState
+    @State private var showingDetails = false
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 100
 
     private var overrideItemID: String { FlashcardType.consonant.cardId(for: consonant.character) }
@@ -75,6 +76,9 @@ struct ConsonantFlashcardView: View {
             cardState = CardState()
             generateOptions()
         }
+        .sheet(isPresented: $showingDetails) {
+            ConsonantDetailSheet(consonant: consonant)
+        }
     }
 
     // MARK: - Consonant Card
@@ -87,6 +91,7 @@ struct ConsonantFlashcardView: View {
             soundKey: consonant.character,
             overrideItemID: overrideItemID,
             onViewInReference: { onViewInReference?(consonant.character) },
+            onShowDetails: { showingDetails = true },
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {

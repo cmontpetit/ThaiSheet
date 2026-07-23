@@ -70,8 +70,6 @@ struct ConsonantRowView: View {
     var onPractice: (() -> Void)? = nil
 
     @Environment(\.audioPlayer) private var audioPlayer
-    @Environment(\.learningModel) var learningModel
-    @Environment(\.thaiData) private var thaiData
     @State private var showingSheet: Bool
 
     init(
@@ -92,14 +90,6 @@ struct ConsonantRowView: View {
     }
 
     private var concealID: String { FlashcardType.consonant.cardId(for: consonant.id) }
-
-    private var voiceOverride: (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget)? {
-        thaiData.voiceOverrideCatalogEntry(for: concealID).map { ($0.descriptor, $0.canonicalPreview) }
-    }
-
-    private var stage: SRSStage {
-        learningModel.getProgress(forId: FlashcardType.consonant.cardId(for: consonant.id)).srsStage
-    }
 
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
@@ -160,32 +150,7 @@ struct ConsonantRowView: View {
         .padding(.trailing, 4)
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
         .sheet(isPresented: $showingSheet) {
-            let wordAudios = consonant.sampleWord.map { sample in
-                [
-                    ReferenceWordAudio(
-                        role: .sampleWord,
-                        word: sample,
-                        hasSound: audioPlayer.hasSound(.sampleWord, key: sample.word),
-                        onPlay: { audioPlayer.play(.sampleWord, key: sample.word) }
-                    )
-                ]
-            } ?? []
-            ReferenceItemSheet(
-                title: consonant.character,
-                romanization: consonant.transcription,
-                stage: stage,
-                note: nil,
-                primaryAudio: ReferencePrimaryAudio(
-                    role: .name,
-                    hasSound: hasSound,
-                    onPlay: {
-                        audioPlayer.play(.consonant, key: consonant.character, itemID: concealID)
-                    }
-                ),
-                wordAudios: wordAudios,
-                onPractice: { onPractice?() },
-                voiceOverride: voiceOverride
-            )
+            ConsonantDetailSheet(consonant: consonant, onPractice: onPractice)
         }
     }
 }

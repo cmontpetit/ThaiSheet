@@ -89,13 +89,7 @@ struct ToneMarkRowView: View {
     var onPractice: ((String) -> Void)?
 
     @Environment(\.audioPlayer) private var audioPlayer
-    @Environment(\.learningModel) var learningModel
-    @Environment(\.thaiData) private var thaiData
     @State private var selectedDisplay: String? = nil
-
-    private func stage(for display: String) -> SRSStage {
-        learningModel.getProgress(forId: FlashcardType.toneMark.cardId(for: display)).srsStage
-    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -130,8 +124,6 @@ struct ToneMarkRowView: View {
             let hasSound = audioPlayer.hasSound(.toneMark, key: entry.soundKey)
             // Each class column is its own answer, so cells conceal individually
             let concealID = FlashcardType.toneMark.cardId(for: entry.soundKey)
-            let voiceOverride = thaiData.voiceOverrideCatalogEntry(for: concealID)
-                .map { ($0.descriptor, $0.canonicalPreview) }
             StyledToneText(tone: tone)
                 .font(.subheadline)
                 .concealedReading(id: concealID)
@@ -148,36 +140,10 @@ struct ToneMarkRowView: View {
                         set: { if !$0 { selectedDisplay = nil } }
                     )
                 ) {
-                    let sampleWord = toneMark.sampleWord(for: entry.soundKey)
-                    let wordAudios = sampleWord.map { sample in
-                        [
-                            ReferenceWordAudio(
-                                role: .sampleWord,
-                                word: sample,
-                                hasSound: audioPlayer.hasSound(.sampleWord, key: sample.word),
-                                onPlay: { audioPlayer.play(.sampleWord, key: sample.word) }
-                            )
-                        ]
-                    } ?? []
-                    ReferenceItemSheet(
-                        title: ThaiDisplay.placeholder(ToneMark.midConsonant + toneMark.mark),
-                        toneMarkContext: ToneMarkSheetContext(
-                            mark: toneMark.mark,
-                            consonantClass: entry.className,
-                            tone: tone
-                        ),
-                        stage: stage(for: entry.soundKey),
-                        note: nil,
-                        primaryAudio: ReferencePrimaryAudio(
-                            role: .tone,
-                            hasSound: hasSound,
-                            onPlay: {
-                                audioPlayer.play(.toneMark, key: entry.soundKey, itemID: concealID)
-                            }
-                        ),
-                        wordAudios: wordAudios,
-                        onPractice: { onPractice?(entry.soundKey) },
-                        voiceOverride: voiceOverride
+                    ToneMarkDetailSheet(
+                        toneMark: toneMark,
+                        soundKey: entry.soundKey,
+                        onPractice: onPractice.map { practice in { practice(entry.soundKey) } }
                     )
                 }
         } else {
