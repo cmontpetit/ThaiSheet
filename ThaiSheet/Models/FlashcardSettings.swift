@@ -187,6 +187,14 @@ class FlashcardSettings {
         didSet { persist(iCloudSyncEnabled, forKey: "fc_iCloudSyncEnabled") }
     }
 
+    /// One-time discoverability nudge: whether the user has ever opened the
+    /// reference ⓘ "how to use" popover. Deliberately absent from `syncedKeys`
+    /// so it stays local — the hint should appear once per device (a new iPad
+    /// still gets nudged even if the phone already dismissed it).
+    var hasSeenReferenceInfo = false {
+        didSet { persist(hasSeenReferenceInfo, forKey: "fc_hasSeenReferenceInfo") }
+    }
+
     // MARK: - Initialization
 
     init(defaults: KeyValueStore = UserDefaults.standard) {
@@ -275,6 +283,7 @@ class FlashcardSettings {
         voiceOverrides = Self.decodeVoiceOverrides(voiceOverridesData)
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
+        hasSeenReferenceInfo = defaults.object(forKey: "fc_hasSeenReferenceInfo") as? Bool ?? false
         migrateLegacyCurrentVoiceIfNeeded(
             recordedVoiceValue: recordedVoiceValue,
             voiceOverridesData: voiceOverridesData
