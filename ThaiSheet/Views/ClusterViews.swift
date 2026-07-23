@@ -215,7 +215,6 @@ struct ClusterDetailSheet: View {
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) var learningModel
     @Environment(\.thaiData) private var thaiData
-    @Environment(\.dismiss) var dismiss
 
     private var hasSound: Bool {
         audioPlayer.hasSound(.cluster, key: cluster.audioKey)
@@ -273,10 +272,7 @@ struct ClusterDetailSheet: View {
                 }
             ),
             wordAudios: wordAudios,
-            onPractice: {
-                dismiss()
-                onPractice?(cluster.id)
-            },
+            onPractice: onPractice.map { practice in { practice(cluster.id) } },
             voiceOverride: voiceOverride
         )
     }

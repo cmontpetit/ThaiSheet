@@ -49,7 +49,7 @@ struct CheatsheetBrowserView: View {
     @State private var selectedType: CheatsheetEntryType =
         ScreenshotScenario.current?.referenceType ?? .consonants
     @State private var showingSettings = false
-    @State private var showingToneLegend = false
+    @State private var showingInfo = false
     // Session-only by design: the app always opens with readings visible
     @State private var practiceMode = ScreenshotScenario.initialPracticeMode
 
@@ -451,17 +451,33 @@ struct CheatsheetBrowserView: View {
                                 ? String(localized: "Show readings", bundle: .appLanguage)
                                 : String(localized: "Hide readings", bundle: .appLanguage)
                         )
-                        if selectedType == .tones {
-                            Button {
-                                showingToneLegend = true
-                            } label: {
-                                Image(systemName: "info.circle")
-                            }
-                            .accessibilityLabel(String(localized: "Tone legend", bundle: .appLanguage))
-                            .popover(isPresented: $showingToneLegend) {
-                                ToneLegendView()
-                                    .presentationCompactAdaptation(.popover)
-                            }
+                        Button {
+                            settings.hasSeenReferenceInfo = true
+                            showingInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                                // One-time discoverability nudge: a small badge
+                                // draws the eye to the ⓘ, then never returns once
+                                // the popover has been opened.
+                                .overlay(alignment: .topTrailing) {
+                                    if !settings.hasSeenReferenceInfo {
+                                        // Sit the badge on the glyph's corner, not
+                                        // above it — the toolbar's glass capsule
+                                        // clips anything past the icon's frame.
+                                        Circle()
+                                            .fill(.red)
+                                            .frame(width: 6, height: 6)
+                                            .offset(x: 1, y: 1)
+                                    }
+                                }
+                        }
+                        .accessibilityLabel(String(localized: "How to use", bundle: .appLanguage))
+                        .popover(isPresented: $showingInfo) {
+                            ReferenceInfoView(
+                                isPracticeActive: practiceMode.isActive,
+                                showToneLegend: selectedType == .tones
+                            )
+                            .presentationCompactAdaptation(.popover)
                         }
                         Button {
                             showingSettings = true
@@ -522,6 +538,45 @@ private extension View {
                     }
                 }
             }
+    }
+}
+
+/// Content of the ⓘ "how to use" popover shown from the toolbar in every
+/// reference section. It explains the tap/long-press interaction (compact, so
+/// it costs no space in the dense tables) and, on the Tones section, folds in
+/// the tone-diacritic legend so there is a single info affordance per segment.
+/// Wording adapts to practice mode, where a tap reveals the concealed reading.
+private struct ReferenceInfoView: View {
+    let isPracticeActive: Bool
+    let showToneLegend: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label {
+                // Only the tap action is practice-aware (a tap reveals the
+                // concealed reading); the hold always opens details. Separate
+                // Text calls, not a String ternary, so each keeps its
+                // LocalizedStringKey and localizes via the environment locale.
+                if isPracticeActive {
+                    Text("Tap to reveal and hear.")
+                } else {
+                    Text("Tap to hear.")
+                }
+            } icon: {
+                Image(systemName: "speaker.wave.2")
+            }
+
+            Label("Touch and hold for details.", systemImage: "hand.tap")
+
+            if showToneLegend {
+                Divider()
+                ToneLegendView()
+            }
+        }
+        .font(.footnote)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding()
+        .frame(maxWidth: 300, alignment: .leading)
     }
 }
 

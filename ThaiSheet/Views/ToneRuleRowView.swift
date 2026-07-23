@@ -155,8 +155,6 @@ struct ToneRuleRowView: View {
     var onPractice: (() -> Void)? = nil
 
     @Environment(\.audioPlayer) private var audioPlayer
-    @Environment(\.learningModel) var learningModel
-    @Environment(\.thaiData) private var thaiData
     @State private var showingSheet = false
 
     private var hasSound: Bool {
@@ -165,64 +163,6 @@ struct ToneRuleRowView: View {
     }
 
     private var concealID: String { FlashcardType.toneRule.cardId(for: rule.id) }
-
-    private var voiceOverride: (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget)? {
-        thaiData.voiceOverrideCatalogEntry(for: concealID).map { ($0.descriptor, $0.canonicalPreview) }
-    }
-
-    private var ruleDisplay: String {
-        let initial = String(
-            localized: String.LocalizationValue(rule.initialConsonant),
-            bundle: .appLanguage
-        )
-        let duration = String(
-            localized: String.LocalizationValue(rule.vowelDuration),
-            bundle: .appLanguage
-        )
-        let end = String(
-            localized: String.LocalizationValue(rule.end),
-            bundle: .appLanguage
-        )
-        return "\(initial) + \(duration) + \(end) = \(ThaiColors.toneName(rule.tone))"
-    }
-
-    private func referenceWord(from sample: ToneSample) -> ReferenceSampleWord {
-        return ReferenceSampleWord(
-            word: sample.full,
-            romanization: sample.romanization,
-            meaning: sample.meaning
-        )
-    }
-
-    /// The first rule example is the audio demonstrated by the table row; the
-    /// next sample is supplementary vocabulary. Present both as word roles rather
-    /// than treating the primary example as an inherent sound of the rule.
-    private var referenceWordAudios: [ReferenceWordAudio] {
-        var audios: [ReferenceWordAudio] = []
-        if let primary = rule.primarySample {
-            audios.append(
-                ReferenceWordAudio(
-                    role: .primaryExample,
-                    word: referenceWord(from: primary),
-                    hasSound: audioPlayer.hasSound(.toneRule, key: primary.full),
-                    onPlay: {
-                        audioPlayer.play(.toneRule, key: primary.full, itemID: concealID)
-                    }
-                )
-            )
-        }
-        if let additional = rule.samples?.dropFirst().first {
-            audios.append(
-                ReferenceWordAudio(
-                    role: .additionalExample,
-                    word: referenceWord(from: additional),
-                    hasSound: audioPlayer.hasSound(.toneRule, key: additional.full),
-                    onPlay: { audioPlayer.play(.toneRule, key: additional.full) }
-                )
-            )
-        }
-        return audios
-    }
 
     /// The rule inputs alone (no resulting tone) — the concealed VoiceOver label.
     private var ruleInputsLabel: String {
@@ -238,16 +178,6 @@ struct ToneRuleRowView: View {
             return "\(ruleInputsLabel): \(tone). \(sample.full)"
         }
         return "\(ruleInputsLabel): \(tone)"
-    }
-
-    /// Lowest stage among all sample cards for this rule
-    private var lowestStage: SRSStage {
-        guard let samples = rule.samples else { return .new }
-        let stages = samples.map { sample in
-            let cardId = FlashcardType.toneRule.cardId(for: ToneRuleCard.key(rule: rule, sample: sample))
-            return learningModel.getProgress(forId: cardId).srsStage
-        }
-        return stages.min() ?? .new
     }
 
     var body: some View {
@@ -306,16 +236,7 @@ struct ToneRuleRowView: View {
         .padding(.trailing, 12)
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
         .sheet(isPresented: $showingSheet) {
-            ReferenceItemSheet(
-                title: ruleDisplay,
-                toneRule: rule,
-                usesCompactTitle: true,
-                stage: lowestStage,
-                note: rule.primarySample?.note?.localized,
-                wordAudios: referenceWordAudios,
-                onPractice: { onPractice?() },
-                voiceOverride: voiceOverride
-            )
+            ToneRuleDetailSheet(rule: rule, onPractice: onPractice)
         }
     }
 }

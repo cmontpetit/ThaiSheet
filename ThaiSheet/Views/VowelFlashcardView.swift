@@ -15,6 +15,7 @@ struct VowelFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = VowelCardState()
+    @State private var showingDetails = false
 
     // Row-level override keyed by the parent vowel (applies to all forms), matching Reference.
     private var overrideItemID: String { FlashcardType.vowel.cardId(for: card.vowel.id) }
@@ -46,6 +47,13 @@ struct VowelFlashcardView: View {
             cardState = VowelCardState()
             generateOptions()
         }
+        .sheet(isPresented: $showingDetails) {
+            VowelDetailSheet(
+                vowel: card.vowel,
+                formType: VowelFormVariant(duration: card.duration, form: card.form),
+                text: card.display
+            )
+        }
     }
 
     // MARK: - Vowel Card View
@@ -58,6 +66,7 @@ struct VowelFlashcardView: View {
             soundKey: card.pronunciationWord?.word ?? "",
             overrideItemID: overrideItemID,
             onViewInReference: { onViewInReference?(card.display) },
+            onShowDetails: { showingDetails = true },
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {

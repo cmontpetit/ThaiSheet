@@ -141,8 +141,6 @@ struct VowelRowView: View {
     var onPractice: ((String) -> Void)? = nil
 
     @Environment(\.audioPlayer) private var audioPlayer
-    @Environment(\.learningModel) var learningModel
-    @Environment(\.thaiData) private var thaiData
     @State private var selectedFormType: VowelFormVariant? = nil
     @State private var selectedText: String? = nil
     @ScaledMetric(relativeTo: .title2) private var singleDurationFormSize: CGFloat = 34
@@ -219,30 +217,6 @@ struct VowelRowView: View {
         vowel.pronunciation(for: formType.duration, form: formType.form)
     }
 
-    /// A dedicated pronunciation and a vocabulary sample are distinct roles.
-    /// When pronunciation falls back to the sample, present that word once as the
-    /// pronunciation example and play the same clip used by the reference table.
-    private func referenceWordAudios(for formType: VowelFormVariant) -> [ReferenceWordAudio] {
-        vowelReferenceWordSources(
-            for: vowel,
-            duration: formType.duration,
-            form: formType.form
-        ).map { source in
-            ReferenceWordAudio(
-                role: source.role,
-                word: source.word,
-                hasSound: audioPlayer.hasSound(source.soundType, key: source.word.word),
-                onPlay: {
-                    audioPlayer.play(
-                        source.soundType,
-                        key: source.word.word,
-                        itemID: source.usesItemVoiceOverride ? concealID : nil
-                    )
-                }
-            )
-        }
-    }
-
     var body: some View {
         HStack(spacing: 0) {
             // Highlight indicator
@@ -283,23 +257,11 @@ struct VowelRowView: View {
             )
         ) {
             if let text = selectedText, let formType = selectedFormType {
-                let pronunciation = pronunciation(for: formType)
-                // Descriptor is centralized; preview target is the exact opened form.
-                let voiceOverride = thaiData.voiceOverrideCatalogEntry(for: concealID).map {
-                    entry -> (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget) in
-                    let target = pronunciation
-                        .map { VoicePreviewTarget(soundType: .vowel, playbackKey: $0.word) }
-                        ?? entry.canonicalPreview
-                    return (entry.descriptor, target)
-                }
-                ReferenceItemSheet(
-                    title: ThaiDisplay.placeholder(text),
-                    romanization: vowel.sound,
-                    stage: learningModel.getProgress(forId: FlashcardType.vowel.cardId(for: text)).srsStage,
-                    note: vowel.note(for: formType.duration.rawValue, form: formType.form.rawValue),
-                    wordAudios: referenceWordAudios(for: formType),
-                    onPractice: { onPractice?(text) },
-                    voiceOverride: voiceOverride
+                VowelDetailSheet(
+                    vowel: vowel,
+                    formType: formType,
+                    text: text,
+                    onPractice: onPractice.map { practice in { practice(text) } }
                 )
             }
         }

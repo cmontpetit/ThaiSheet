@@ -88,6 +88,12 @@ struct PlayableItemModifier: ViewModifier {
             .accessibilityLabel(effectiveLabel)
             .accessibilityHint(hint)
             .accessibilityAddTraits(.isButton)
+            // An explicit, tap-free route to details for assistive-technology
+            // users: long press is a poor primary path for motor impairments,
+            // and this doesn't depend on discovering the ⓘ "how to use" popover.
+            .accessibilityAction(named: Text("Show details")) {
+                onDetails()
+            }
     }
 }
 

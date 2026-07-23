@@ -14,6 +14,7 @@ struct ToneMarkFlashcardView: View {
 
     @Environment(\.audioPlayer) private var audioPlayer
     @State private var cardState = ToneMarkCardState()
+    @State private var showingDetails = false
 
     // card.display is the soundKey (ค่า), matching the Reference tone-mark override id.
     private var overrideItemID: String { FlashcardType.toneMark.cardId(for: card.display) }
@@ -44,6 +45,9 @@ struct ToneMarkFlashcardView: View {
             // Reset state when card changes
             cardState = ToneMarkCardState()
         }
+        .sheet(isPresented: $showingDetails) {
+            ToneMarkDetailSheet(toneMark: card.toneMark, soundKey: card.display)
+        }
     }
 
     // MARK: - Tone Mark Card View
@@ -56,6 +60,7 @@ struct ToneMarkFlashcardView: View {
             soundKey: card.display,
             overrideItemID: overrideItemID,
             onViewInReference: { onViewInReference?(card.display) },
+            onShowDetails: { showingDetails = true },
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {
