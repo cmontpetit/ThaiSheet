@@ -163,6 +163,11 @@ struct ToneMarkDetailSheet: View {
 
 struct ToneRuleDetailSheet: View {
     let rule: ToneRule
+    /// When set (flashcard presentation), the sheet focuses this one sample — its
+    /// audio, note, and this sample card's SRS stage — instead of the rule's
+    /// aggregate view (first two examples, primary note, lowest stage across all
+    /// samples) that the Reference row shows.
+    var focusSample: ToneSample? = nil
     var onPractice: (() -> Void)? = nil
 
     @Environment(\.audioPlayer) private var audioPlayer
@@ -182,38 +187,49 @@ struct ToneRuleDetailSheet: View {
         ReferenceSampleWord(word: sample.full, romanization: sample.romanization, meaning: sample.meaning)
     }
 
-    private var referenceWordAudios: [ReferenceWordAudio] {
+    /// The rule-level voice override applies to the primary example; supplementary
+    /// examples play with the default voice (nil itemID).
+    private func wordAudio(
+        for sample: ToneSample,
+        role: ReferenceWordAudioRole,
+        usesOverride: Bool
+    ) -> ReferenceWordAudio {
+        ReferenceWordAudio(
+            role: role,
+            word: referenceWord(from: sample),
+            hasSound: audioPlayer.hasSound(.toneRule, key: sample.full),
+            onPlay: {
+                audioPlayer.play(.toneRule, key: sample.full, itemID: usesOverride ? concealID : nil)
+            }
+        )
+    }
+
+    /// Focused: just the current sample. Aggregate: the rule's first two examples.
+    private var wordAudios: [ReferenceWordAudio] {
+        if let focusSample {
+            return [wordAudio(for: focusSample, role: .primaryExample, usesOverride: true)]
+        }
         var audios: [ReferenceWordAudio] = []
         if let primary = rule.primarySample {
-            audios.append(
-                ReferenceWordAudio(
-                    role: .primaryExample,
-                    word: referenceWord(from: primary),
-                    hasSound: audioPlayer.hasSound(.toneRule, key: primary.full),
-                    onPlay: { audioPlayer.play(.toneRule, key: primary.full, itemID: concealID) }
-                )
-            )
+            audios.append(wordAudio(for: primary, role: .primaryExample, usesOverride: true))
         }
         if let additional = rule.samples?.dropFirst().first {
-            audios.append(
-                ReferenceWordAudio(
-                    role: .additionalExample,
-                    word: referenceWord(from: additional),
-                    hasSound: audioPlayer.hasSound(.toneRule, key: additional.full),
-                    onPlay: { audioPlayer.play(.toneRule, key: additional.full) }
-                )
-            )
+            audios.append(wordAudio(for: additional, role: .additionalExample, usesOverride: false))
         }
         return audios
     }
 
-    private var lowestStage: SRSStage {
-        guard let samples = rule.samples else { return .new }
-        let stages = samples.map { sample in
-            let cardId = FlashcardType.toneRule.cardId(for: ToneRuleCard.key(rule: rule, sample: sample))
+    /// Focused: this sample card's stage. Aggregate: lowest across all samples.
+    private var stage: SRSStage {
+        if let focusSample {
+            let cardId = FlashcardType.toneRule.cardId(for: ToneRuleCard.key(rule: rule, sample: focusSample))
             return learningModel.getProgress(forId: cardId).srsStage
         }
-        return stages.min() ?? .new
+        guard let samples = rule.samples else { return .new }
+        return samples.map { sample in
+            let cardId = FlashcardType.toneRule.cardId(for: ToneRuleCard.key(rule: rule, sample: sample))
+            return learningModel.getProgress(forId: cardId).srsStage
+        }.min() ?? .new
     }
 
     var body: some View {
@@ -223,9 +239,9 @@ struct ToneRuleDetailSheet: View {
             title: ruleDisplay,
             toneRule: rule,
             usesCompactTitle: true,
-            stage: lowestStage,
-            note: rule.primarySample?.note?.localized,
-            wordAudios: referenceWordAudios,
+            stage: stage,
+            note: (focusSample ?? rule.primarySample)?.note?.localized,
+            wordAudios: wordAudios,
             onPractice: onPractice,
             voiceOverride: voiceOverride
         )

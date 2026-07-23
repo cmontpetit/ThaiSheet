@@ -60,7 +60,7 @@ struct ToneRuleFlashcardView: View {
             cardState = ToneRuleCardState()
         }
         .sheet(isPresented: $showingDetails) {
-            ToneRuleDetailSheet(rule: card.rule)
+            ToneRuleDetailSheet(rule: card.rule, focusSample: card.sample)
         }
     }
 
