@@ -506,14 +506,19 @@ struct CheatsheetBrowserView: View {
             .environment(\.practiceMode, practiceMode)
             .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
             .toolbar {
+                // Reorder menu — only the flat-list sections (Consonants, Vowels) can
+                // be shuffled/sorted; Clusters (matrix) and Tones (tables) keep their
+                // structured layouts. Kept as its own ToolbarItem (not folded into the
+                // HStack below) so the shared glass capsule re-measures when it appears
+                // or disappears on a segment change — an intra-HStack conditional left
+                // the capsule sized for the other item count and clipped its ends.
+                if selectedType == .consonants || selectedType == .vowels {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        sortMenu
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
-                        // Reorder menu — only the flat-list sections (Consonants,
-                        // Vowels) can be shuffled/sorted; Clusters (matrix) and Tones
-                        // (tables) keep their structured layouts.
-                        if selectedType == .consonants || selectedType == .vowels {
-                            sortMenu
-                        }
                         Button {
                             practiceMode.toggleActive()
                         } label: {
