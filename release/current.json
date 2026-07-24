@@ -1,0 +1,10 @@
+{
+  "version": "1.1.1",
+  "build": 7,
+  "date": "2026-07-23",
+  "notes": [
+    "Added a reference how-to popover that explains tap-to-hear and touch-and-hold-for-details, with an accessible Show Details action.",
+    "Revealed flashcards now support tap-to-hear and touch-and-hold to open the matching reference details.",
+    "Tone-rule details now focus on the selected flashcard, and every tone-rule example includes an English and French meaning."
+  ]
+}

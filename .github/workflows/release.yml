@@ -1,0 +1,203 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_app_store:
+        description: Build, sign, and upload to App Store Connect
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify release
+    runs-on: macos-26
+    timeout-minutes: 35
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      build: ${{ steps.release.outputs.build }}
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read and validate release
+        id: release
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Releases must run from main, not $GITHUB_REF" >&2
+            exit 1
+          fi
+
+          python3 scripts/sync_release_metadata.py --check
+          version="$(python3 -c 'import json; print(json.load(open("release/current.json"))["version"])')"
+          build="$(python3 -c 'import json; print(json.load(open("release/current.json"))["build"])')"
+          tag="v${version}-build${build}"
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+          if git rev-parse --verify "refs/tags/$tag" >/dev/null 2>&1; then
+            tagged_commit="$(git rev-list -n 1 "$tag")"
+            if [[ "$tagged_commit" != "$GITHUB_SHA" ]]; then
+              echo "$tag already points to $tagged_commit" >&2
+              exit 1
+            fi
+          fi
+
+      - name: Verify sound inventory and website catalog
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+          python3 scripts/generate_sound_catalog.py --check
+
+      - name: Select an available iPhone simulator
+        id: simulator
+        run: |
+          device="$(xcrun simctl list devices available | grep -oE 'iPhone [0-9][^(]*' | head -1 | xargs)"
+          if [[ -z "$device" ]]; then
+            echo "No iPhone simulator is available" >&2
+            xcrun simctl list devices available >&2
+            exit 1
+          fi
+          echo "Using simulator: $device"
+          echo "device=$device" >> "$GITHUB_OUTPUT"
+
+      - name: Run tests
+        run: |
+          set -o pipefail
+          xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet \
+            -destination "platform=iOS Simulator,name=${{ steps.simulator.outputs.device }}" \
+            -enableCodeCoverage NO test | tail -100
+
+  app_store:
+    name: Archive and upload
+    if: ${{ inputs.upload_to_app_store }}
+    needs: verify
+    runs-on: macos-26
+    timeout-minutes: 50
+    environment: app-store-production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure App Store Connect authentication
+        id: auth
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          if [[ -z "$ASC_KEY_ID" || -z "$ASC_ISSUER_ID" || -z "$ASC_PRIVATE_KEY" ]]; then
+            echo "The App Store Connect repository secrets are not configured" >&2
+            exit 1
+          fi
+
+          key_path="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
+          umask 077
+          printf '%s' "$ASC_PRIVATE_KEY" > "$key_path"
+          echo "key_path=$key_path" >> "$GITHUB_OUTPUT"
+
+      - name: Create signed archive
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/ThaiSheet.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${{ steps.auth.outputs.key_path }}" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            archive | tee "$RUNNER_TEMP/archive.log" | tail -100
+
+      - name: Validate release binary
+        run: |
+          scripts/check_release_binary.sh \
+            "$RUNNER_TEMP/ThaiSheet.xcarchive/Products/Applications/ThaiSheet.app"
+
+      - name: Retain archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThaiSheet-${{ needs.verify.outputs.version }}-${{ needs.verify.outputs.build }}-xcarchive
+          path: ${{ runner.temp }}/ThaiSheet.xcarchive
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload to App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/ThaiSheet.xcarchive" \
+            -exportPath "$RUNNER_TEMP/AppStoreUpload" \
+            -exportOptionsPlist scripts/AppStoreExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${{ steps.auth.outputs.key_path }}" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            | tee "$RUNNER_TEMP/upload.log" | tail -100
+
+  publish:
+    name: Tag and publish GitHub release
+    if: >-
+      ${{
+        always()
+        && needs.verify.result == 'success'
+        && (needs.app_store.result == 'success' || needs.app_store.result == 'skipped')
+      }}
+    needs: [verify, app_store]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create annotated tag
+        env:
+          TAG: ${{ needs.verify.outputs.tag }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          BUILD: ${{ needs.verify.outputs.build }}
+        run: |
+          if git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
+            tagged_commit="$(git rev-list -n 1 "$TAG")"
+            if [[ "$tagged_commit" != "$GITHUB_SHA" ]]; then
+              echo "$TAG already points to $tagged_commit" >&2
+              exit 1
+            fi
+          else
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git tag -a "$TAG" -m "ThaiSheet $VERSION build $BUILD"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.verify.outputs.tag }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          python3 scripts/sync_release_metadata.py --github-notes > "$RUNNER_TEMP/release-notes.md"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "GitHub release $TAG already exists"
+          else
+            gh release create "$TAG" \
+              --title "ThaiSheet $VERSION" \
+              --notes-file "$RUNNER_TEMP/release-notes.md" \
+              --verify-tag
+          fi

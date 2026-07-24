@@ -2,6 +2,12 @@
 
 All notable changes to ThaiSheet will be documented in this file.
 
+## 1.1.1 - 2026-07-23
+
+- Added a reference how-to popover that explains tap-to-hear and touch-and-hold-for-details, with an accessible Show Details action.
+- Revealed flashcards now support tap-to-hear and touch-and-hold to open the matching reference details.
+- Tone-rule details now focus on the selected flashcard, and every tone-rule example includes an English and French meaning.
+
 ## 1.1 - 2026-07-21
 
 - Fixed uncommon-vowel filter changes not refreshing the cached flashcard selection.

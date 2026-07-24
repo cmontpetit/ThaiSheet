@@ -10,8 +10,8 @@ This file is a working draft for App Store Connect. Review it before submission,
 - Secondary category: Reference
 - Bundle ID: `net.montpetit.thaisheet`
 - SKU: `thaisheet`
-- Version: `1.1`
-- Build: `6`
+- Version: `1.1.1`
+- Build: `7`
 - Copyright: `2026 Claude Montpetit`
 - Pricing: Free
 - In-App Purchases: None
@@ -52,10 +52,9 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 
 ## What's New
 
-- Choose from three recorded Thai pronunciation voices, or use an installed Thai system voice.
-- Set a different pronunciation voice for individual reference items.
-- Practice reading by hiding transcriptions until you reveal them.
-- Improved audio fallback behavior and VoiceOver accessibility.
+- Added a reference how-to popover that explains tap-to-hear and touch-and-hold-for-details, with an accessible Show Details action.
+- Revealed flashcards now support tap-to-hear and touch-and-hold to open the matching reference details.
+- Tone-rule details now focus on the selected flashcard, and every tone-rule example includes an English and French meaning.
 
 ## French Store Metadata — DEFERRED
 
@@ -137,10 +136,10 @@ No user-generated content, web browsing, purchases, gambling, violence, medical 
 - [x] Regenerate bundled audio with official Google Cloud Text-to-Speech credentials (commit 46c0ffd, July 2026).
 - [x] Document rights/attribution for learning data and audio (Content Rights above).
 - [x] Run `scripts/check_release_binary.sh` on the unsigned 1.1 (5) Release product (passed July 20, 2026).
-- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.1 (6) archive before upload.
+- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.1.1 (7) archive before upload.
 - [ ] Complete the account-level EU Digital Services Act trader-status declaration in Business.
 - [ ] Optionally complete the App Accessibility questionnaire after VoiceOver and Dynamic Type device testing.
 - [x] Create the App Store Connect app record.
-- [ ] Upload and select build 6 for version 1.1.
-- [ ] Create an internal TestFlight group, add build 6, and perform the upgrade/device test pass.
-- [ ] Create the 1.1 App Store version, add the What's New text, and upload the new screenshots.
+- [ ] Upload and select build 7 for version 1.1.1.
+- [ ] Create an internal TestFlight group, add build 7, and perform the upgrade/device test pass.
+- [ ] Create the 1.1.1 App Store version, add the What's New text, and reuse or update the screenshots.

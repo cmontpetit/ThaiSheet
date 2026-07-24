@@ -2,7 +2,7 @@
 
 An open-source iOS quick reference to help you learn to read Thai, based on a comprehensive cheatsheet.
 
-**Latest release: 1.1.** App Store release details are tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
+**Latest release: 1.1.1.** App Store release details are tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
 
 ## Screenshots
 
@@ -49,6 +49,9 @@ xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet \
 # Verify an App Store release build has no coverage instrumentation
 scripts/check_release_binary.sh /path/to/ThaiSheet.app
 ```
+
+Release preparation and App Store upload are automated through GitHub Actions;
+see [RELEASING.md](RELEASING.md).
 
 ## Sound Generation
 
