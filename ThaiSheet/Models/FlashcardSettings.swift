@@ -195,6 +195,31 @@ class FlashcardSettings {
         didSet { persist(hasSeenReferenceInfo, forKey: "fc_hasSeenReferenceInfo") }
     }
 
+    /// Reference-tab list ordering (Consonants/Vowels). Deliberately absent from
+    /// `syncedKeys` — a device-local study aid, like `hasSeenReferenceInfo`.
+    var referenceSortMode: ReferenceSortMode = .original {
+        didSet { persist(referenceSortMode.rawValue, forKey: "fc_referenceSortMode") }
+    }
+
+    /// Seed backing `.shuffle` ordering, persisted (as a string to sidestep the
+    /// UInt64/NSNumber range issue) so a shuffle stays stable across launches. A fresh
+    /// seed is minted only via `reshuffleReference()`, never during `reload()` (which
+    /// suppresses persistence), so it always sticks.
+    var referenceShuffleSeed: UInt64 = FlashcardSettings.defaultShuffleSeed {
+        didSet { persist(String(referenceShuffleSeed), forKey: "fc_referenceShuffleSeed") }
+    }
+
+    /// Fallback seed used until the user first shuffles.
+    static let defaultShuffleSeed: UInt64 = 0x9E37_79B9_7F4A_7C15
+
+    /// Switch to shuffle order with a fresh random seed. Sets the seed *before* the
+    /// mode so no render draws `.shuffle` with the previous seed. Re-callable to
+    /// reshuffle even while already in shuffle mode.
+    func reshuffleReference() {
+        referenceShuffleSeed = UInt64.random(in: .min ... .max)
+        referenceSortMode = .shuffle
+    }
+
     // MARK: - Initialization
 
     init(defaults: KeyValueStore = UserDefaults.standard) {
@@ -284,6 +309,10 @@ class FlashcardSettings {
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
         hasSeenReferenceInfo = defaults.object(forKey: "fc_hasSeenReferenceInfo") as? Bool ?? false
+        referenceSortMode = defaults.string(forKey: "fc_referenceSortMode")
+            .flatMap(ReferenceSortMode.init(rawValue:)) ?? .original
+        referenceShuffleSeed = defaults.string(forKey: "fc_referenceShuffleSeed")
+            .flatMap(UInt64.init) ?? Self.defaultShuffleSeed
         migrateLegacyCurrentVoiceIfNeeded(
             recordedVoiceValue: recordedVoiceValue,
             voiceOverridesData: voiceOverridesData
