@@ -44,6 +44,7 @@ struct CheatsheetBrowserView: View {
     @Binding var selectedTab: AppTab
 
     @Environment(\.thaiData) private var thaiData
+    @Environment(\.learningModel) private var learningModel
 
     @State private var searchText = ""
     @State private var selectedType: CheatsheetEntryType =
@@ -133,6 +134,72 @@ struct CheatsheetBrowserView: View {
         return result.filter { vowel in
             vowel.allForms.contains { $0.contains(normalizedSearch) } ||
             vowel.sound.lowercased().contains(query)
+        }
+    }
+
+    /// SRS stage raw value for a card id (lower == less learned).
+    private func stageValue(forId id: String) -> Int {
+        learningModel.getProgress(forId: id).srsStage.rawValue
+    }
+
+    /// Consonants after filtering, reordered per the active sort mode.
+    private var orderedConsonants: [Consonant] {
+        ReferenceOrdering.ordered(
+            filteredConsonants,
+            from: consonants,
+            mode: settings.referenceSortMode,
+            seed: settings.referenceShuffleSeed
+        ) { consonant in
+            stageValue(forId: FlashcardType.consonant.cardId(for: consonant.id))
+        }
+    }
+
+    /// Vowels after filtering, reordered per the active sort mode. A vowel row's
+    /// least-learned rank is the minimum stage across its forms (weakest form wins).
+    private var orderedVowels: [Vowel] {
+        ReferenceOrdering.ordered(
+            filteredVowels,
+            from: vowels,
+            mode: settings.referenceSortMode,
+            seed: settings.referenceShuffleSeed
+        ) { vowel in
+            let ids = vowel.allForms.map { FlashcardType.vowel.cardId(for: $0) }
+            return ReferenceOrdering.minimumStage(for: ids) { stageValue(forId: $0) }
+        }
+    }
+
+    /// Reorder menu for the flat-list sections. Uses Buttons (not a Picker) so that
+    /// re-selecting Shuffle mints a fresh seed and reshuffles.
+    private var sortMenu: some View {
+        Menu {
+            sortMenuItem(.original, titleKey: "Default order") {
+                settings.referenceSortMode = .original
+            }
+            sortMenuItem(.leastLearned, titleKey: "Least learned") {
+                settings.referenceSortMode = .leastLearned
+            }
+            sortMenuItem(.shuffle, titleKey: "Shuffle") {
+                settings.reshuffleReference()
+            }
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+        }
+        .accessibilityLabel(String(localized: "Sort order", bundle: .appLanguage))
+    }
+
+    private func sortMenuItem(
+        _ mode: ReferenceSortMode,
+        titleKey: LocalizedStringKey,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Label {
+                Text(titleKey)
+            } icon: {
+                if settings.referenceSortMode == mode {
+                    Image(systemName: "checkmark")
+                }
+            }
         }
     }
 
@@ -282,7 +349,7 @@ struct CheatsheetBrowserView: View {
                         ConsonantHeaderView()
                         Divider()
                         ScrollViewReader { proxy in
-                            List(filteredConsonants) { consonant in
+                            List(orderedConsonants) { consonant in
                                 ConsonantRowView(
                                     consonant: consonant,
                                     isHighlighted: highlightedConsonant == consonant.character,
@@ -307,7 +374,7 @@ struct CheatsheetBrowserView: View {
                         VowelHeaderView(visibleDuration: selectedVowelDuration)
                         Divider()
                         ScrollViewReader { proxy in
-                            List(filteredVowels) { vowel in
+                            List(orderedVowels) { vowel in
                                 VowelRowView(
                                     vowel: vowel,
                                     highlightedForm: highlightedVowel,
@@ -441,6 +508,12 @@ struct CheatsheetBrowserView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
+                        // Reorder menu — only the flat-list sections (Consonants,
+                        // Vowels) can be shuffled/sorted; Clusters (matrix) and Tones
+                        // (tables) keep their structured layouts.
+                        if selectedType == .consonants || selectedType == .vowels {
+                            sortMenu
+                        }
                         Button {
                             practiceMode.toggleActive()
                         } label: {

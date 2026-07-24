@@ -638,4 +638,50 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertEqual(AudioPlayer.recordedPlaybackOrder(for: .neural2), [.neural2, .matilda])
         XCTAssertEqual(AudioPlayer.recordedPlaybackOrder(for: .device), [.matilda, .neural2])
     }
+
+    // MARK: - Reference sort mode / shuffle seed
+
+    func test_referenceSortMode_defaultsToOriginal() {
+        XCTAssertEqual(settings.referenceSortMode, .original)
+    }
+
+    func test_referenceSortMode_persistsAndReloadsInSecondInstance() {
+        settings.referenceSortMode = .leastLearned
+        XCTAssertEqual(defaults.string(forKey: "fc_referenceSortMode"), "leastLearned")
+
+        let reloaded = FlashcardSettings(defaults: defaults)
+        XCTAssertEqual(reloaded.referenceSortMode, .leastLearned)
+    }
+
+    func test_referenceSortMode_invalidStoredValue_fallsBackToOriginal() {
+        defaults.set("bogus", forKey: "fc_referenceSortMode")
+        let reloaded = FlashcardSettings(defaults: defaults)
+        XCTAssertEqual(reloaded.referenceSortMode, .original)
+    }
+
+    func test_referenceShuffleSeed_defaultsToFallback_whenAbsent() {
+        XCTAssertNil(defaults.string(forKey: "fc_referenceShuffleSeed"))
+        XCTAssertEqual(settings.referenceShuffleSeed, FlashcardSettings.defaultShuffleSeed)
+    }
+
+    func test_referenceShuffleSeed_persistsAndReloadsInSecondInstance() {
+        settings.referenceShuffleSeed = 123_456_789
+        XCTAssertEqual(defaults.string(forKey: "fc_referenceShuffleSeed"), "123456789")
+
+        let reloaded = FlashcardSettings(defaults: defaults)
+        XCTAssertEqual(reloaded.referenceShuffleSeed, 123_456_789)
+    }
+
+    func test_reshuffleReference_setsShuffleModeAndChangesSeed() {
+        let before = settings.referenceShuffleSeed
+        settings.reshuffleReference()
+        XCTAssertEqual(settings.referenceSortMode, .shuffle)
+        // A fresh random seed is minted (astronomically unlikely to equal the old one).
+        XCTAssertNotEqual(settings.referenceShuffleSeed, before)
+        // Seed persisted so the shuffle is stable across launches.
+        XCTAssertEqual(
+            defaults.string(forKey: "fc_referenceShuffleSeed"),
+            String(settings.referenceShuffleSeed)
+        )
+    }
 }
