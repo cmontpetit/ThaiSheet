@@ -102,9 +102,14 @@ class WanikaniStrategy: CardSelectionStrategy {
         let next = selectSRSCard()
         current = next
 
-        // Add to history
+        // Add to history. Selection can legitimately return the card already
+        // showing — it may be the last card still being learned — and recording
+        // that again would make "previous" step back through a run of identical
+        // entries, looking unresponsive. Coalesce consecutive repeats instead.
         if let next = next {
-            history.append(next)
+            if history.last?.id != next.id {
+                history.append(next)
+            }
             historyIndex = history.count - 1
         }
 
@@ -201,10 +206,24 @@ class WanikaniStrategy: CardSelectionStrategy {
             return sorted.first?.card
         }
 
-        // Fallback: all cards are mastered or only current card remains
-        // Pick a different card if possible, otherwise stay on current
+        // Fallback: every non-current card fell out of the buckets above, which
+        // means they are all mastered (or the current card is the only card).
+        // A mastered card is documented as never shown again, so never resurface
+        // one while any non-mastered card remains.
         let otherCards = cards.filter { $0.id != current?.id }
-        return otherCards.randomElement() ?? current
+        let nonMasteredOthers = otherCards.filter {
+            model.getProgress(for: $0).srsStage != .mastered
+        }
+        if let card = nonMasteredOthers.randomElement() {
+            return card
+        }
+
+        // No non-mastered alternative exists. Prefer staying on the current card
+        // (it may be the last card still being learned) over jumping to mastered
+        // content. Only when there is no current card at all — a fresh selection
+        // where the entire deck is mastered — do we surface a mastered card so the
+        // UI has something to show. This is the documented all-mastered behavior.
+        return current ?? otherCards.randomElement()
     }
 
     /// Jump to a specific card (for FlashcardManager.jumpTo)
