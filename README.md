@@ -2,7 +2,7 @@
 
 An open-source iOS quick reference to help you learn to read Thai, based on a comprehensive cheatsheet.
 
-**Latest release: 1.1.1.** App Store release details are tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
+**Latest release: 1.2.0.** App Store release details are tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
 
 ## Screenshots
 
