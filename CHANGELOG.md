@@ -2,6 +2,11 @@
 
 All notable changes to ThaiSheet will be documented in this file.
 
+## 1.2.0 - 2026-07-26
+
+- Added a sort menu to the Reference tab's Consonants and Vowels lists: keep the curated order, put the least-learned characters first, or shuffle to break position-based memorization.
+- The chosen order and shuffle stay put across tab switches and launches, and changing a search or filter no longer reshuffles the list.
+
 ## 1.1.1 - 2026-07-23
 
 - Added a reference how-to popover that explains tap-to-hear and touch-and-hold-for-details, with an accessible Show Details action.

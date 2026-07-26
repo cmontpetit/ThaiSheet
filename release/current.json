@@ -1,10 +1,9 @@
 {
-  "version": "1.1.1",
-  "build": 7,
-  "date": "2026-07-23",
+  "version": "1.2.0",
+  "build": 8,
+  "date": "2026-07-26",
   "notes": [
-    "Added a reference how-to popover that explains tap-to-hear and touch-and-hold-for-details, with an accessible Show Details action.",
-    "Revealed flashcards now support tap-to-hear and touch-and-hold to open the matching reference details.",
-    "Tone-rule details now focus on the selected flashcard, and every tone-rule example includes an English and French meaning."
+    "Added a sort menu to the Reference tab's Consonants and Vowels lists: keep the curated order, put the least-learned characters first, or shuffle to break position-based memorization.",
+    "The chosen order and shuffle stay put across tab switches and launches, and changing a search or filter no longer reshuffles the list."
   ]
 }
