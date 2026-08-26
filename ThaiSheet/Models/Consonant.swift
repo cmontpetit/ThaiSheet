@@ -86,7 +86,13 @@ struct ConsonantsData: Codable {
 }
 
 extension Consonant {
+    /// The rows, or the reason they could not be loaded. `ThaiDataStore` uses
+    /// this so a packaging failure can be shown instead of silently vanishing.
+    static func loadAll(provider: ResourceProviding) -> Result<[Consonant], DatasetLoadError> {
+        BundleLoader.load("consonants", as: ConsonantsData.self, keyPath: \.consonants, provider: provider)
+    }
+
     static func loadAll() -> [Consonant] {
-        BundleLoader.load("consonants", as: ConsonantsData.self, keyPath: \.consonants)
+        BundleLoader.items("consonants", as: ConsonantsData.self, keyPath: \.consonants)
     }
 }

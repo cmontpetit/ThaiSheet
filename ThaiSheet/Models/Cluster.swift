@@ -93,8 +93,14 @@ struct ClustersData: Codable {
 }
 
 extension Cluster {
+    /// The rows, or the reason they could not be loaded. `ThaiDataStore` uses
+    /// this so a packaging failure can be shown instead of silently vanishing.
+    static func loadAll(provider: ResourceProviding) -> Result<[Cluster], DatasetLoadError> {
+        BundleLoader.load("clusters", as: ClustersData.self, keyPath: \.clusters, provider: provider)
+    }
+
     static func loadAll() -> [Cluster] {
-        BundleLoader.load("clusters", as: ClustersData.self, keyPath: \.clusters)
+        BundleLoader.items("clusters", as: ClustersData.self, keyPath: \.clusters)
     }
 
     static func grouped(_ clusters: [Cluster]) -> [(type: ClusterType, clusters: [Cluster])] {

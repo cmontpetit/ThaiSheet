@@ -7,6 +7,16 @@ import SwiftUI
 
 /// All bundled cheatsheet data, loaded once and shared by the Reference
 /// browser and the flashcard system via the environment.
+/// One bundled catalog. Datasets fail independently, which is what lets the
+/// Reference tab keep working section by section.
+enum ThaiDataset: String, CaseIterable {
+    case consonants
+    case vowels
+    case toneMarks
+    case toneRules
+    case clusters
+}
+
 final class ThaiDataStore {
     let consonants: [Consonant]
     let vowels: [Vowel]
@@ -17,20 +27,63 @@ final class ThaiDataStore {
     let toneRuleCards: [ToneRuleCard]
     let clusters: [Cluster]
 
-    init() {
-        consonants = Consonant.loadAll()
-        vowels = Vowel.loadAll()
+    /// Why each failed dataset failed. Empty when everything loaded.
+    let failures: [ThaiDataset: DatasetLoadError]
+
+    init(provider: ResourceProviding = BundleResourceProvider()) {
+        var failures: [ThaiDataset: DatasetLoadError] = [:]
+
+        func rows<T>(_ dataset: ThaiDataset, _ result: Result<[T], DatasetLoadError>) -> [T] {
+            switch result {
+            case .success(let items):
+                return items
+            case .failure(let error):
+                failures[dataset] = error
+                return []
+            }
+        }
+
+        consonants = rows(.consonants, Consonant.loadAll(provider: provider))
+        vowels = rows(.vowels, Vowel.loadAll(provider: provider))
         vowelCards = VowelCard.allCards(from: vowels)
-        toneMarks = ToneMark.loadAll()
+        toneMarks = rows(.toneMarks, ToneMark.loadAll(provider: provider))
         toneMarkCards = ToneMarkCard.allCards(from: toneMarks)
-        toneRules = ToneRule.loadAll()
+        toneRules = rows(.toneRules, ToneRule.loadAll(provider: provider))
         toneRuleCards = ToneRuleCard.allCards(from: toneRules)
-        clusters = Cluster.loadAll()
+        clusters = rows(.clusters, Cluster.loadAll(provider: provider))
+
+        self.failures = failures
+    }
+
+    /// Outcome of bundle loading. Loading is synchronous in `init`, so by the
+    /// time a store exists the outcome is final: there is no runtime "still
+    /// loading" phase to represent, and an unavailable dataset is a terminal
+    /// packaging failure rather than a wait.
+    enum LoadState: Equatable {
+        case loaded
+        /// At least one dataset failed. Ordered by `ThaiDataset.allCases` so the
+        /// value is stable to compare and to log.
+        case failed(errors: [DatasetLoadError])
+    }
+
+    var loadState: LoadState {
+        let errors = ThaiDataset.allCases.compactMap { failures[$0] }
+        return errors.isEmpty ? .loaded : .failed(errors: errors)
+    }
+
+    /// Whether a single dataset is usable, so one failed catalog does not take
+    /// the rest of the Reference tab down with it.
+    func isAvailable(_ dataset: ThaiDataset) -> Bool {
+        failures[dataset] == nil
+    }
+
+    /// Whether every dataset a section needs is usable.
+    func isAvailable(_ datasets: [ThaiDataset]) -> Bool {
+        datasets.allSatisfy(isAvailable)
     }
 
     var isLoaded: Bool {
-        !consonants.isEmpty && !vowelCards.isEmpty &&
-        !toneMarkCards.isEmpty && !toneRuleCards.isEmpty && !clusters.isEmpty
+        loadState == .loaded
     }
 }
 

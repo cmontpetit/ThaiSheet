@@ -222,12 +222,14 @@ struct FlashcardsView: View {
         }
     }
 
-    /// Loading state view
-    private var loadingView: some View {
+    /// Shown when bundled learning data failed to load. Loading is synchronous,
+    /// so this is a terminal packaging/decoding failure rather than a wait —
+    /// a spinner here would never resolve.
+    private var dataUnavailableView: some View {
         ContentUnavailableView(
-            "Loading...",
-            systemImage: "rectangle.on.rectangle",
-            description: Text("Loading flashcards")
+            "Learning Data Unavailable",
+            systemImage: "exclamationmark.triangle",
+            description: Text("ThaiSheet couldn't load its learning data. Reinstalling the app usually fixes this.")
         )
     }
 
@@ -322,12 +324,19 @@ struct FlashcardsView: View {
     /// Main navigation content
     @ViewBuilder
     private var mainContent: some View {
-        if !manager.isLoaded {
-            loadingView
-        } else if let card = manager.currentCard {
-            cardView(for: card)
-        } else {
-            emptyStateView
+        switch manager.data.loadState {
+        case .failed:
+            // Flashcards draw on every catalog and the filters can reach all of
+            // them, so any failed dataset leaves the tab unable to present a
+            // complete deck. The empty-filter state below stays reserved for the
+            // case where data loaded fine and the user filtered everything out.
+            dataUnavailableView
+        case .loaded:
+            if let card = manager.currentCard {
+                cardView(for: card)
+            } else {
+                emptyStateView
+            }
         }
     }
 
