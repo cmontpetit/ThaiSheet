@@ -77,7 +77,13 @@ struct ToneMarksData: Codable {
 }
 
 extension ToneMark {
+    /// The rows, or the reason they could not be loaded. `ThaiDataStore` uses
+    /// this so a packaging failure can be shown instead of silently vanishing.
+    static func loadAll(provider: ResourceProviding) -> Result<[ToneMark], DatasetLoadError> {
+        BundleLoader.load("tone-marks", as: ToneMarksData.self, keyPath: \.toneMarks, provider: provider)
+    }
+
     static func loadAll() -> [ToneMark] {
-        BundleLoader.load("tone-marks", as: ToneMarksData.self, keyPath: \.toneMarks)
+        BundleLoader.items("tone-marks", as: ToneMarksData.self, keyPath: \.toneMarks)
     }
 }

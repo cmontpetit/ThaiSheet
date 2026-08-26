@@ -146,7 +146,13 @@ struct VowelsData: Codable {
 }
 
 extension Vowel {
+    /// The rows, or the reason they could not be loaded. `ThaiDataStore` uses
+    /// this so a packaging failure can be shown instead of silently vanishing.
+    static func loadAll(provider: ResourceProviding) -> Result<[Vowel], DatasetLoadError> {
+        BundleLoader.load("vowels", as: VowelsData.self, keyPath: \.vowels, provider: provider)
+    }
+
     static func loadAll() -> [Vowel] {
-        BundleLoader.load("vowels", as: VowelsData.self, keyPath: \.vowels)
+        BundleLoader.items("vowels", as: VowelsData.self, keyPath: \.vowels)
     }
 }

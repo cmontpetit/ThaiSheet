@@ -1,6 +1,46 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Learning Data Unavailable" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Données d'apprentissage indisponibles"
+          }
+        }
+      }
+    },
+    "Section Unavailable" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Section indisponible"
+          }
+        }
+      }
+    },
+    "ThaiSheet couldn't load its learning data. Reinstalling the app usually fixes this." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ThaiSheet n'a pas pu charger ses données d'apprentissage. Réinstaller l'application résout généralement le problème."
+          }
+        }
+      }
+    },
+    "ThaiSheet couldn't load the data for this section. Other sections still work, and reinstalling the app usually fixes this." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ThaiSheet n'a pas pu charger les données de cette section. Les autres sections fonctionnent toujours, et réinstaller l'application résout généralement le problème."
+          }
+        }
+      }
+    },
     "Sort order" : {
       "extractionState" : "manual",
       "localizations" : {

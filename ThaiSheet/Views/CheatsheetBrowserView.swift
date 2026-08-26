@@ -32,6 +32,17 @@ enum CheatsheetEntryType: String, CaseIterable {
         case .tones: return String(localized: "Tones", bundle: .appLanguage)
         }
     }
+
+    /// The bundled catalogs this section needs. A section whose data failed
+    /// shows an unavailable state; the others stay browsable.
+    var requiredDatasets: [ThaiDataset] {
+        switch self {
+        case .consonants: return [.consonants]
+        case .vowels: return [.vowels]
+        case .clusters: return [.clusters]
+        case .tones: return [.toneMarks, .toneRules]
+        }
+    }
 }
 
 struct CheatsheetBrowserView: View {
@@ -307,6 +318,16 @@ struct CheatsheetBrowserView: View {
         return String(localized: "\(type.shortLabel) (\(count))", bundle: .appLanguage)
     }
 
+    /// Shown in place of one section whose bundled catalog failed to load. The
+    /// picker stays above it, so the sections that did load remain browsable.
+    private var sectionUnavailableView: some View {
+        ContentUnavailableView(
+            "Section Unavailable",
+            systemImage: "exclamationmark.triangle",
+            description: Text("ThaiSheet couldn't load the data for this section. Other sections still work, and reinstalling the app usually fixes this.")
+        )
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -340,6 +361,9 @@ struct CheatsheetBrowserView: View {
                     vowelFilterChips
                 }
 
+                if !thaiData.isAvailable(selectedType.requiredDatasets) {
+                    sectionUnavailableView
+                } else {
                 switch selectedType {
                 case .consonants:
                     if filteredConsonants.isEmpty {
@@ -501,6 +525,7 @@ struct CheatsheetBrowserView: View {
                     }
                     .background(Color(.secondarySystemBackground))
                     }
+                }
                 }
             }
             .environment(\.practiceMode, practiceMode)

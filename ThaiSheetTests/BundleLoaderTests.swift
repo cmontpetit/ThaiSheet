@@ -381,7 +381,9 @@ final class BundleLoaderTests: XCTestCase {
     // MARK: - BundleLoader with invalid resource
 
     func test_bundleLoader_invalidResource_returnsEmptyArray() {
-        let result = BundleLoader.load("nonexistent-file", as: ConsonantsData.self, keyPath: \.consonants)
+        // The convenience accessor keeps its graceful-empty contract; the typed
+        // failures it hides are covered by BundledDataLoadStateTests (#28).
+        let result = BundleLoader.items("nonexistent-file", as: ConsonantsData.self, keyPath: \.consonants)
         XCTAssertTrue(result.isEmpty)
     }
 
