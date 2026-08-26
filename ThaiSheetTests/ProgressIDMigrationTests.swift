@@ -34,6 +34,15 @@ final class ProgressIDMigrationTests: XCTestCase {
             XCTAssertFalse(id.contains(card.display),
                            "Tone-mark card id \(id) still embeds its rendered syllable")
         }
+        for cluster in store.clusters {
+            let id = FlashcardItem.cluster(cluster).id
+            // Letters plus position, with the display dash notation dropped: a
+            // substring check would pass on "-ทร" by accident, via the prefix.
+            let letters = cluster.cluster.replacingOccurrences(of: "-", with: "")
+            let position = cluster.cluster.hasPrefix("-") ? "final" : "initial"
+            XCTAssertEqual(id, "cluster-\(letters):\(position)",
+                           "Cluster card id should be letters plus position, free of dash notation")
+        }
     }
 
     func test_durableIDs_areUniqueAcrossTheCatalog() {
@@ -72,6 +81,8 @@ final class ProgressIDMigrationTests: XCTestCase {
             "vowel-เกีย-",
             "toneMark-ค่า",
             "toneRule-Low-Short-Dead/None-คะ",
+            "cluster-กร-",
+            "cluster--ทร",
         ]
         for legacy in legacyKeys {
             guard let durable = LegacyProgressIDs.upToV1_2[legacy] else {
@@ -139,6 +150,105 @@ final class ProgressIDMigrationTests: XCTestCase {
         XCTAssertEqual(ToneRuleCard.key(rule: rule, sample: corrected),
                        ToneRuleCard.key(rule: rule, sample: sample),
                        "Correcting the sample word must not change its durable id")
+
+        // Same for a cluster whose written form is re-notated (the dash moving,
+        // or being dropped): identity lives in the data file, not the glyph.
+        let cluster = store.clusters[0]
+        let renotated = Cluster(
+            id: cluster.id,
+            cluster: "กร",
+            sound: "kr-",
+            type: cluster.type,
+            usage: cluster.usage,
+            note: cluster.note,
+            sample: cluster.sample
+        )
+        XCTAssertEqual(FlashcardItem.cluster(renotated).id, FlashcardItem.cluster(cluster).id,
+                       "Re-notating a cluster's written form must not change its durable id")
+    }
+
+    // MARK: - Voice-override ids (#29)
+
+    func test_voiceOverrideIDs_migrateForVowelsAndClusters() {
+        let store = makeRetainedStore()
+        let legacyVowel = "vowel-aa/ah-กั-|กะ|กา-|กา"
+        let legacyCluster = "cluster-กร-"
+
+        let migrated = FlashcardSettings.migrateVoiceOverrideIDs([
+            legacyVowel: .kore,
+            legacyCluster: .matilda,
+        ])
+
+        let vowelDurable = FlashcardType.vowel.cardId(for: store.vowels[0].id)
+        let clusterDurable = FlashcardType.cluster.cardId(for: store.clusters[0].id)
+        XCTAssertEqual(migrated[vowelDurable], .kore,
+                       "An existing vowel override must keep resolving after the id change")
+        XCTAssertEqual(migrated[clusterDurable], .matilda)
+        XCTAssertNil(migrated[legacyVowel])
+        XCTAssertEqual(migrated.count, 2)
+
+        // Every migrated id must name an item the catalog can still resolve.
+        for id in migrated.keys {
+            XCTAssertNotNil(store.voiceOverrideCatalogEntry(for: id),
+                            "Override id \(id) no longer resolves to an item")
+        }
+    }
+
+    func test_voiceOverrideIDMigration_isIdempotentAndKeepsUnknownIDs() {
+        let legacyVowel = "vowel-aa/ah-กั-|กะ|กา-|กา"
+        let unknown = "vowel-written-by-a-newer-build"
+        let untouched = "toneMark-ค่า"
+
+        let once = FlashcardSettings.migrateVoiceOverrideIDs([
+            legacyVowel: .kore,
+            unknown: .neural2,
+            untouched: .device,
+        ])
+        let twice = FlashcardSettings.migrateVoiceOverrideIDs(once)
+
+        XCTAssertEqual(once, twice)
+        XCTAssertEqual(once[unknown], .neural2, "Unrecognized override ids are preserved")
+        XCTAssertEqual(once[untouched], .device,
+                       "Tone-mark overrides key on the sound key, which did not change")
+        XCTAssertEqual(once.count, 3)
+    }
+
+    @MainActor
+    func test_settings_migrateVoiceOverridesOnLoad_andPersistThem() throws {
+        let legacyVowel = "vowel-aa/ah-กั-|กะ|กา-|กา"
+        let store = InMemoryStore()
+        store.set(FlashcardSettings.encodeVoiceOverrides([legacyVowel: .kore]),
+                  forKey: "fc_voiceOverrides")
+
+        let settings = FlashcardSettings(defaults: store)
+        BundledFixtures.retain(settings, store)
+
+        let durable = try XCTUnwrap(LegacyProgressIDs.voiceOverridesUpToV1_2[legacyVowel])
+        XCTAssertEqual(settings.voiceOverride(for: durable), .kore)
+        XCTAssertNil(settings.voiceOverride(for: legacyVowel))
+
+        // Normalized form is written back, so a later reload has nothing to do.
+        let persisted = FlashcardSettings.decodeVoiceOverrides(store.data(forKey: "fc_voiceOverrides"))
+        XCTAssertEqual(Set(persisted.keys), [durable])
+    }
+
+    @MainActor
+    func test_settings_reloadFromCloudBlob_migratesLegacyOverrideIDs() throws {
+        // An iCloud change replaces the stored blob with an un-migrated one and
+        // triggers reload(); the override must still resolve afterwards.
+        let legacyCluster = "cluster-กร-"
+        let store = InMemoryStore()
+        let settings = FlashcardSettings(defaults: store)
+        BundledFixtures.retain(settings, store)
+
+        store.set(FlashcardSettings.encodeVoiceOverrides([legacyCluster: .matilda]),
+                  forKey: "fc_voiceOverrides")
+        settings.reload()
+
+        let durable = try XCTUnwrap(LegacyProgressIDs.voiceOverridesUpToV1_2[legacyCluster])
+        XCTAssertEqual(settings.voiceOverride(for: durable), .matilda)
+        let persisted = FlashcardSettings.decodeVoiceOverrides(store.data(forKey: "fc_voiceOverrides"))
+        XCTAssertEqual(Set(persisted.keys), [durable])
     }
 
     // MARK: - Skipped-version upgrades

@@ -5,36 +5,67 @@
 
 import Foundation
 
-/// Frozen snapshots of the card IDs shipped versions persisted, mapped to the
-/// durable IDs in use now (issue #29).
+/// Frozen snapshots of the identifiers shipped versions persisted, mapped to
+/// the durable identifiers in use now (issue #29).
 ///
-/// **This table is data, not a derivation.** It was generated once from the
-/// v1.2 catalog and must never be regenerated from current content: its whole
-/// purpose is that a key a user's device wrote in 2026 stays recognizable after
-/// the sample word, written form, or transcription behind it is corrected.
-/// Editing content is therefore free; this file does not change with it.
+/// **These tables are data, not derivations.** They were generated once from
+/// the v1.2 catalog and must never be regenerated from current content: their
+/// whole purpose is that a key a user's device wrote in 2026 stays recognizable
+/// after the sample word, written form, or transcription behind it is
+/// corrected. Editing content is therefore free; this file does not change
+/// with it.
 ///
 /// **Coverage.** Every shipped release — v1.0-build4, v1.1-build5, v1.1-build6,
-/// v1.1.1-build7, v1.2.0-build8 — derived card IDs from byte-identical sources
-/// (`VowelCard.swift`, `ToneMarkCard.swift`, `ToneRuleCard.swift`,
-/// `FlashcardItem.swift`) over byte-identical `vowels.json` and
-/// `tone-marks.json`. `tone-rules.json` changed once, in v1.1.1, and that change
-/// only added `meaning` metadata — no `full` value moved, so no key changed. One
-/// table therefore covers every historical key, including a device upgrading
-/// straight from v1.0 and legacy keys arriving from an older iCloud client.
+/// v1.1.1-build7, v1.2.0-build8 — derived identifiers from byte-identical
+/// sources (`VowelCard.swift`, `ToneMarkCard.swift`, `ToneRuleCard.swift`,
+/// `Cluster.swift`, `Vowel.swift`, `FlashcardItem.swift`) over byte-identical
+/// `vowels.json`, `tone-marks.json`, and `clusters.json`. `tone-rules.json`
+/// changed once, in v1.1.1, and that change only added `meaning` metadata — no
+/// `full` value moved, so no key changed. One snapshot therefore covers every
+/// historical key, including a device upgrading straight from v1.0 and legacy
+/// keys arriving from an older iCloud client.
 ///
-/// Consonants and clusters are absent because their keys never changed: both
-/// were already the defining glyph.
+/// Consonants are absent because their keys never changed: already the glyph.
 ///
-/// **Adding to it.** When a future release changes an ID scheme again, freeze
-/// that release's map as a second table and merge it here — never rewrite this
-/// one.
+/// **Adding to them.** When a future release changes an identifier scheme
+/// again, freeze that release's map as a second table and merge it in — never
+/// rewrite these.
 enum LegacyProgressIDs {
 
-    /// Legacy → durable progress IDs for every release up to and including
-    /// v1.2.0-build8. 178 entries: 72 vowel cards, 8 tone-mark cards, 98
-    /// tone-rule cards.
+    /// Legacy → durable *progress* IDs for every release up to and including
+    /// v1.2.0-build8: 72 vowel cards, 8 tone-mark cards, 98 tone-rule cards,
+    /// 30 cluster cards.
     static let upToV1_2: [String: String] = [
+        "cluster--ทร": "cluster-ทร:final",
+        "cluster-กร-": "cluster-กร:initial",
+        "cluster-กล-": "cluster-กล:initial",
+        "cluster-กว-": "cluster-กว:initial",
+        "cluster-ขร-": "cluster-ขร:initial",
+        "cluster-ขล-": "cluster-ขล:initial",
+        "cluster-ขว-": "cluster-ขว:initial",
+        "cluster-คร-": "cluster-คร:initial",
+        "cluster-คล-": "cluster-คล:initial",
+        "cluster-คว-": "cluster-คว:initial",
+        "cluster-จร-": "cluster-จร:initial",
+        "cluster-ดร-": "cluster-ดร:initial",
+        "cluster-ตร-": "cluster-ตร:initial",
+        "cluster-ทร-": "cluster-ทร:initial",
+        "cluster-บร-": "cluster-บร:initial",
+        "cluster-บล-": "cluster-บล:initial",
+        "cluster-ปร-": "cluster-ปร:initial",
+        "cluster-ปล-": "cluster-ปล:initial",
+        "cluster-ผล-": "cluster-ผล:initial",
+        "cluster-พร-": "cluster-พร:initial",
+        "cluster-พล-": "cluster-พล:initial",
+        "cluster-สร-": "cluster-สร:initial",
+        "cluster-หง-": "cluster-หง:initial",
+        "cluster-หญ-": "cluster-หญ:initial",
+        "cluster-หน-": "cluster-หน:initial",
+        "cluster-หม-": "cluster-หม:initial",
+        "cluster-หย-": "cluster-หย:initial",
+        "cluster-หร-": "cluster-หร:initial",
+        "cluster-หล-": "cluster-หล:initial",
+        "cluster-หว-": "cluster-หว:initial",
         "toneMark-ก่า": "toneMark-่:Mid",
         "toneMark-ก้า": "toneMark-้:Mid",
         "toneMark-ก๊า": "toneMark-๊:Mid",
@@ -213,5 +244,75 @@ enum LegacyProgressIDs {
         "vowel-ใก": "vowel-ai-mai-muan:Short:Open",
         "vowel-ไก": "vowel-ai-mai-malai:Short:Open",
         "vowel-ไกย": "vowel-ai-mai-malai-ya:Short:Closed",
+    ]
+
+    /// Legacy → durable *voice-override* IDs (`fc_voiceOverrides`), which key on
+    /// a row's identity rather than a card's: 33 vowel rows and 30 clusters.
+    /// Tone-mark and tone-rule overrides are absent because they key on the
+    /// class-entry sound key and the rule id, neither of which changed.
+    static let voiceOverridesUpToV1_2: [String: String] = [
+        "cluster--ทร": "cluster-ทร:final",
+        "cluster-กร-": "cluster-กร:initial",
+        "cluster-กล-": "cluster-กล:initial",
+        "cluster-กว-": "cluster-กว:initial",
+        "cluster-ขร-": "cluster-ขร:initial",
+        "cluster-ขล-": "cluster-ขล:initial",
+        "cluster-ขว-": "cluster-ขว:initial",
+        "cluster-คร-": "cluster-คร:initial",
+        "cluster-คล-": "cluster-คล:initial",
+        "cluster-คว-": "cluster-คว:initial",
+        "cluster-จร-": "cluster-จร:initial",
+        "cluster-ดร-": "cluster-ดร:initial",
+        "cluster-ตร-": "cluster-ตร:initial",
+        "cluster-ทร-": "cluster-ทร:initial",
+        "cluster-บร-": "cluster-บร:initial",
+        "cluster-บล-": "cluster-บล:initial",
+        "cluster-ปร-": "cluster-ปร:initial",
+        "cluster-ปล-": "cluster-ปล:initial",
+        "cluster-ผล-": "cluster-ผล:initial",
+        "cluster-พร-": "cluster-พร:initial",
+        "cluster-พล-": "cluster-พล:initial",
+        "cluster-สร-": "cluster-สร:initial",
+        "cluster-หง-": "cluster-หง:initial",
+        "cluster-หญ-": "cluster-หญ:initial",
+        "cluster-หน-": "cluster-หน:initial",
+        "cluster-หม-": "cluster-หม:initial",
+        "cluster-หย-": "cluster-หย:initial",
+        "cluster-หร-": "cluster-หร:initial",
+        "cluster-หล-": "cluster-หล:initial",
+        "cluster-หว-": "cluster-หว:initial",
+        "vowel-aa/ah-กั-|กะ|กา-|กา": "vowel-a",
+        "vowel-aai-กาย": "vowel-aai",
+        "vowel-aaw-ก็อ-|เกาะ|กอ-|กอ": "vowel-aw",
+        "vowel-aawy-ก็อย|กอย": "vowel-awy",
+        "vowel-ae-แก็-|แกะ|แก-|แก": "vowel-ae",
+        "vowel-aeo-แก็ว|แกว": "vowel-aeo",
+        "vowel-ahm-กำ": "vowel-am",
+        "vowel-ai-กัย": "vowel-ai-ya",
+        "vowel-ai-ใก": "vowel-ai-mai-muan",
+        "vowel-ai-ไก": "vowel-ai-mai-malai",
+        "vowel-ai-ไกย": "vowel-ai-mai-malai-ya",
+        "vowel-ao-เกา|กาว": "vowel-ao",
+        "vowel-ayo-เก็ว|เกว": "vowel-eo",
+        "vowel-ee-กิ-|กิ|กี-|กี": "vowel-i",
+        "vowel-eeuy-เกย": "vowel-oey",
+        "vowel-eh/ey-เก็-|เกะ|เก-|เก": "vowel-e",
+        "vowel-erh/uuhr-เกิ-|เกอะ|เกิ-|เกอ": "vowel-oe",
+        "vowel-eu-กึ-|กึ|กื-|กือ": "vowel-ue",
+        "vowel-eua-เกือะ|เกือ-|เกือ": "vowel-uea",
+        "vowel-euuay-เกือย": "vowel-ueay",
+        "vowel-ia-เกียะ|เกีย-|เกีย": "vowel-ia",
+        "vowel-iaao-เกียว": "vowel-iao",
+        "vowel-iu-กิว": "vowel-iu",
+        "vowel-lue-ฦ|ฦๅ": "vowel-lue",
+        "vowel-oh-ก-|โกะ|โก-|โก": "vowel-o",
+        "vowel-oo-กุ-|กุ|กู-|กู": "vowel-u",
+        "vowel-oy/ohy-โกย": "vowel-oy",
+        "vowel-ri-ฤ-": "vowel-ri",
+        "vowel-rue-ฤ|ฤๅ": "vowel-rue",
+        "vowel-ua-กัวะ|กว-|กัว": "vowel-ua",
+        "vowel-uaaw-เกอว": "vowel-oew",
+        "vowel-uay-กวย|กวาย": "vowel-uay",
+        "vowel-uy-กุย": "vowel-uy",
     ]
 }
