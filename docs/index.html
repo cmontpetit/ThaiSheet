@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ThaiSheet — a quick reference to help you learn to read Thai</title>
-  <meta name="description" content="ThaiSheet 1.2.0 is an open-source iOS quick reference for learning to read Thai, with searchable tables, three recorded pronunciation voices, reading practice and complementary SRS flashcards.">
+  <meta name="description" content="ThaiSheet 1.2.1 is an open-source iOS quick reference for learning to read Thai, with searchable tables, three recorded pronunciation voices, reading practice and complementary SRS flashcards.">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
   <link rel="apple-touch-icon" href="icon-180.png">
@@ -12,7 +12,7 @@
 <body>
   <header>
     <img class="app-icon" src="icon-256.png" alt="ThaiSheet app icon" width="128" height="128">
-    <p class="release-badge">Version 1.2.0</p>
+    <p class="release-badge">Version 1.2.1</p>
     <h1>ThaiSheet</h1>
     <p class="tagline">An open-source iOS quick reference to help you learn to read Thai</p>
     <p class="tagline-fr">Un aide-mémoire open source pour apprendre à lire le thaï</p>
@@ -41,10 +41,12 @@
     </div>
 
     <section class="release-notes" aria-labelledby="release-notes-title">
-      <h2 id="release-notes-title">What&rsquo;s new in 1.2.0</h2>
+      <h2 id="release-notes-title">What&rsquo;s new in 1.2.1</h2>
       <ul>
-        <li>Added a sort menu to the Reference tab&#x27;s Consonants and Vowels lists: keep the curated order, put the least-learned characters first, or shuffle to break position-based memorization.</li>
-        <li>The chosen order and shuffle stay put across tab switches and launches, and changing a search or filter no longer reshuffles the list.</li>
+        <li>Reading practice now fully conceals a consonant&#x27;s class until the row is revealed.</li>
+        <li>Smart flashcard selection keeps mastered cards out of rotation while unmastered cards remain, and sequential tone cards now stay in a consistent order between launches.</li>
+        <li>Learning and reference data problems now show a clear unavailable message instead of remaining on the loading screen.</li>
+        <li>Learning progress and per-item voice choices are preserved more reliably when reference content is corrected or reordered.</li>
       </ul>
     </section>
 

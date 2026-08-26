@@ -10,8 +10,8 @@ This file is a working draft for App Store Connect. Review it before submission,
 - Secondary category: Reference
 - Bundle ID: `net.montpetit.thaisheet`
 - SKU: `thaisheet`
-- Version: `1.2.0`
-- Build: `8`
+- Version: `1.2.1`
+- Build: `9`
 - Copyright: `2026 Claude Montpetit`
 - Pricing: Free
 - In-App Purchases: None
@@ -52,8 +52,10 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 
 ## What's New
 
-- Added a sort menu to the Reference tab's Consonants and Vowels lists: keep the curated order, put the least-learned characters first, or shuffle to break position-based memorization.
-- The chosen order and shuffle stay put across tab switches and launches, and changing a search or filter no longer reshuffles the list.
+- Reading practice now fully conceals a consonant's class until the row is revealed.
+- Smart flashcard selection keeps mastered cards out of rotation while unmastered cards remain, and sequential tone cards now stay in a consistent order between launches.
+- Learning and reference data problems now show a clear unavailable message instead of remaining on the loading screen.
+- Learning progress and per-item voice choices are preserved more reliably when reference content is corrected or reordered.
 
 ## French Store Metadata — DEFERRED
 
@@ -135,10 +137,10 @@ No user-generated content, web browsing, purchases, gambling, violence, medical 
 - [x] Regenerate bundled audio with official Google Cloud Text-to-Speech credentials (commit 46c0ffd, July 2026).
 - [x] Document rights/attribution for learning data and audio (Content Rights above).
 - [x] Run `scripts/check_release_binary.sh` on the unsigned 1.1 (5) Release product (passed July 20, 2026).
-- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.2.0 (8) archive before upload.
+- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.2.1 (9) archive before upload.
 - [ ] Complete the account-level EU Digital Services Act trader-status declaration in Business.
 - [ ] Optionally complete the App Accessibility questionnaire after VoiceOver and Dynamic Type device testing.
 - [x] Create the App Store Connect app record.
-- [ ] Upload and select build 8 for version 1.2.0.
-- [ ] Create an internal TestFlight group, add build 8, and perform the upgrade/device test pass.
-- [ ] Create the 1.2.0 App Store version, add the What's New text, and reuse or update the screenshots.
+- [ ] Upload and select build 9 for version 1.2.1.
+- [ ] Create an internal TestFlight group, add build 9, and perform the upgrade/device test pass.
+- [ ] Create the 1.2.1 App Store version, add the What's New text, and reuse or update the screenshots.

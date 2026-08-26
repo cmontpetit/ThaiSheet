@@ -2,6 +2,13 @@
 
 All notable changes to ThaiSheet will be documented in this file.
 
+## 1.2.1 - 2026-08-26
+
+- Reading practice now fully conceals a consonant's class until the row is revealed.
+- Smart flashcard selection keeps mastered cards out of rotation while unmastered cards remain, and sequential tone cards now stay in a consistent order between launches.
+- Learning and reference data problems now show a clear unavailable message instead of remaining on the loading screen.
+- Learning progress and per-item voice choices are preserved more reliably when reference content is corrected or reordered.
+
 ## 1.2.0 - 2026-07-26
 
 - Added a sort menu to the Reference tab's Consonants and Vowels lists: keep the curated order, put the least-learned characters first, or shuffle to break position-based memorization.
