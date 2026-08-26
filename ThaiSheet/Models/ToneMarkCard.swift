@@ -43,6 +43,9 @@ struct ToneMarkCard: Identifiable {
                 ))
             }
         }
-        return cards.shuffled()
+        // Return the canonical source order (tone marks, then class entries).
+        // Sequential mode relies on a stable order across launches; randomization
+        // for smart selection lives in WanikaniStrategy, not here.
+        return cards
     }
 }

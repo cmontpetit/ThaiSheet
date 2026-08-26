@@ -30,6 +30,9 @@ struct ToneRuleCard: Identifiable {
                 ))
             }
         }
-        return cards.shuffled()
+        // Return the canonical source order (rules, then their samples).
+        // Sequential mode relies on a stable order across launches; randomization
+        // for smart selection lives in WanikaniStrategy, not here.
+        return cards
     }
 }

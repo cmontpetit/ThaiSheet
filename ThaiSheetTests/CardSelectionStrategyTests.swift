@@ -214,6 +214,50 @@ final class SequentialStrategyTests: XCTestCase {
         strategy.update(cards: testCards, learningModel: learningModel)
         XCTAssertEqual(strategy.currentCard?.id, testCards[2].id)
     }
+
+    // MARK: - Deterministic tone-card ordering (#27)
+
+    /// Stores and strategies built here stay alive for the process: a
+    /// short-lived bundle-backed store or @Observable strategy trips the
+    /// toolchain invalid-free described under Testing Gotchas in CLAUDE.md.
+    private static var retained: [AnyObject] = []
+
+    private func makeRetained<T: AnyObject>(_ make: () -> T) -> T {
+        let object = make()
+        SequentialStrategyTests.retained.append(object)
+        return object
+    }
+
+    /// Walks a freshly built data store with a freshly built strategy, the way a
+    /// relaunch would, and records the tone-card sequence it shows.
+    private func freshToneCardSequence() -> [String] {
+        let dataStore = makeRetained { ThaiDataStore() }
+        let navigator = makeRetained { SequentialStrategy() }
+        let cards = dataStore.toneMarkCards.map { FlashcardItem.toneMark($0) }
+            + dataStore.toneRuleCards.map { FlashcardItem.toneRule($0) }
+        // Sequential ordering ignores SRS state, so the fixture's model is fine
+        // — and it avoids another short-lived instance in this test.
+        navigator.update(cards: cards, learningModel: learningModel)
+
+        var shown: [String] = []
+        for _ in 0..<cards.count {
+            if let id = navigator.currentCard?.id {
+                shown.append(id)
+            }
+            navigator.nextCard()
+        }
+        return shown
+    }
+
+    func test_sequentialNavigation_toneCards_identicalAcrossFreshStoresAndStrategies() {
+        let firstLaunch = freshToneCardSequence()
+        let secondLaunch = freshToneCardSequence()
+
+        XCTAssertFalse(firstLaunch.isEmpty, "Need bundled tone cards for this test")
+        XCTAssertEqual(firstLaunch, secondLaunch,
+                       "Sequential mode must show tone cards in the same order on every launch")
+    }
+
 }
 
 @MainActor
@@ -730,5 +774,24 @@ final class WanikaniStrategyTests: XCTestCase {
         strategy.nextCard()
         XCTAssertEqual(strategy.currentCard?.id, onlyUnmastered.id,
                        "Past the end of history, selection stays on the only unmastered card")
+    }
+
+    // MARK: - Smart selection stays randomized (#27)
+
+    func test_reset_overManyRuns_doesNotAlwaysStartOnTheSameCard() {
+        // Tone-card factories are ordered now, so smart selection is the only
+        // remaining source of variety. With 10 new cards, seeing one single
+        // starting card across 40 resets has odds around 10^-39; a failure here
+        // means the randomization was removed, not bad luck.
+        var startingCards: Set<String> = []
+        for _ in 0..<40 {
+            strategy.reset()
+            if let id = strategy.currentCard?.id {
+                startingCards.insert(id)
+            }
+        }
+
+        XCTAssertGreaterThan(startingCards.count, 1,
+                             "Smart selection should still vary which card it opens on")
     }
 }

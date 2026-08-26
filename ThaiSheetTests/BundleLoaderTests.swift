@@ -181,6 +181,63 @@ final class BundleLoaderTests: XCTestCase {
         }
     }
 
+    // MARK: - Deterministic tone-card ordering (#27)
+
+    func test_toneMarkCards_orderIsDeterministicAcrossCalls() {
+        let first = ToneMarkCard.allCards(from: ToneMark.loadAll()).map(\.id)
+        let second = ToneMarkCard.allCards(from: ToneMark.loadAll()).map(\.id)
+        XCTAssertEqual(first, second,
+                       "Sequential mode needs a stable tone-mark order; allCards must not shuffle")
+    }
+
+    func test_toneRuleCards_orderIsDeterministicAcrossCalls() {
+        let first = ToneRuleCard.allCards(from: ToneRule.loadAll()).map(\.id)
+        let second = ToneRuleCard.allCards(from: ToneRule.loadAll()).map(\.id)
+        XCTAssertEqual(first, second,
+                       "Sequential mode needs a stable tone-rule order; allCards must not shuffle")
+    }
+
+    func test_toneMarkCards_followSourceOrder() {
+        let marks = ToneMark.loadAll()
+        let expected = marks.flatMap { mark in
+            mark.classEntries
+                .filter { $0.tone != nil && ToneMarkCard.ConsonantClassType(rawValue: $0.className) != nil }
+                .map(\.soundKey)
+        }
+        XCTAssertEqual(ToneMarkCard.allCards(from: marks).map(\.id), expected,
+                       "Cards must come out in JSON order: marks, then their class entries")
+    }
+
+    func test_toneRuleCards_followSourceOrder() {
+        let rules = ToneRule.loadAll()
+        let expected = rules.flatMap { rule in
+            (rule.samples ?? []).map { ToneRuleCard.key(rule: rule, sample: $0) }
+        }
+        XCTAssertEqual(ToneRuleCard.allCards(from: rules).map(\.id), expected,
+                       "Cards must come out in JSON order: rules, then their samples")
+    }
+
+    func test_thaiDataStore_toneCardOrderIsStableAcrossInstances() {
+        let firstStore = makeRetainedStore()
+        let secondStore = makeRetainedStore()
+        XCTAssertEqual(firstStore.toneMarkCards.map(\.id), secondStore.toneMarkCards.map(\.id),
+                       "Recreating ThaiDataStore must yield the same tone-mark sequence")
+        XCTAssertEqual(firstStore.toneRuleCards.map(\.id), secondStore.toneRuleCards.map(\.id),
+                       "Recreating ThaiDataStore must yield the same tone-rule sequence")
+    }
+
+    /// Stores built by these tests stay alive for the process. Ordering is what
+    /// is under test, not lifetime, and deallocating a short-lived bundle-backed
+    /// store trips the toolchain invalid-free described under Testing Gotchas in
+    /// CLAUDE.md.
+    private static var retainedStores: [ThaiDataStore] = []
+
+    private func makeRetainedStore() -> ThaiDataStore {
+        let store = ThaiDataStore()
+        BundleLoaderTests.retainedStores.append(store)
+        return store
+    }
+
     // MARK: - ToneRule Loading
 
     func test_toneRuleLoadAll_returnsNonEmptyArray() {
