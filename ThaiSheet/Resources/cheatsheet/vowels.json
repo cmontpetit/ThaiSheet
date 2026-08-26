@@ -1,6 +1,7 @@
 {
   "vowels": [
     {
+      "id": "a",
       "short": {
         "closed": "กั-",
         "open": "กะ"
@@ -48,6 +49,7 @@
       }
     },
     {
+      "id": "ae",
       "short": {
         "closed": "แก็-",
         "open": "แกะ"
@@ -95,6 +97,7 @@
       }
     },
     {
+      "id": "aw",
       "short": {
         "closed": "ก็อ-",
         "open": "เกาะ"
@@ -142,6 +145,7 @@
       }
     },
     {
+      "id": "e",
       "short": {
         "closed": "เก็-",
         "open": "เกะ"
@@ -189,6 +193,7 @@
       }
     },
     {
+      "id": "oe",
       "short": {
         "closed": "เกิ-",
         "open": "เกอะ"
@@ -246,6 +251,7 @@
       }
     },
     {
+      "id": "o",
       "short": {
         "closed": "ก-",
         "open": "โกะ"
@@ -301,6 +307,7 @@
       }
     },
     {
+      "id": "i",
       "short": {
         "closed": "กิ-",
         "open": "กิ"
@@ -348,6 +355,7 @@
       }
     },
     {
+      "id": "ue",
       "short": {
         "closed": "กึ-",
         "open": "กึ"
@@ -395,6 +403,7 @@
       }
     },
     {
+      "id": "u",
       "short": {
         "closed": "กุ-",
         "open": "กุ"
@@ -442,6 +451,7 @@
       }
     },
     {
+      "id": "ia",
       "short": {
         "closed": null,
         "open": "เกียะ"
@@ -491,6 +501,7 @@
       }
     },
     {
+      "id": "uea",
       "short": {
         "closed": null,
         "open": "เกือะ"
@@ -532,6 +543,7 @@
       }
     },
     {
+      "id": "ua",
       "short": {
         "closed": null,
         "open": "กัวะ"
@@ -581,6 +593,7 @@
       }
     },
     {
+      "id": "awy",
       "short": {
         "closed": "ก็อย",
         "open": null
@@ -614,6 +627,7 @@
       }
     },
     {
+      "id": "oey",
       "short": {
         "closed": null,
         "open": null
@@ -645,6 +659,7 @@
       }
     },
     {
+      "id": "oy",
       "short": {
         "closed": null,
         "open": null
@@ -676,6 +691,7 @@
       }
     },
     {
+      "id": "uy",
       "short": {
         "closed": "กุย",
         "open": null
@@ -707,6 +723,7 @@
       }
     },
     {
+      "id": "ueay",
       "short": {
         "closed": null,
         "open": null
@@ -738,6 +755,7 @@
       }
     },
     {
+      "id": "uay",
       "short": {
         "closed": "กวย",
         "open": null
@@ -779,6 +797,7 @@
       }
     },
     {
+      "id": "ao",
       "short": {
         "closed": "เกา",
         "open": null
@@ -820,6 +839,7 @@
       }
     },
     {
+      "id": "aeo",
       "short": {
         "closed": "แก็ว",
         "open": null
@@ -843,6 +863,7 @@
       }
     },
     {
+      "id": "oew",
       "short": {
         "closed": null,
         "open": null
@@ -865,6 +886,7 @@
       }
     },
     {
+      "id": "eo",
       "short": {
         "closed": "เก็ว",
         "open": null
@@ -896,6 +918,7 @@
       }
     },
     {
+      "id": "iu",
       "short": {
         "closed": "กิว",
         "open": null
@@ -927,6 +950,7 @@
       }
     },
     {
+      "id": "iao",
       "short": {
         "closed": null,
         "open": null
@@ -958,6 +982,7 @@
       }
     },
     {
+      "id": "am",
       "short": {
         "closed": "กำ",
         "open": null
@@ -989,6 +1014,7 @@
       }
     },
     {
+      "id": "ai-mai-malai",
       "short": {
         "closed": null,
         "open": "ไก"
@@ -1020,6 +1046,7 @@
       }
     },
     {
+      "id": "ai-mai-muan",
       "short": {
         "closed": null,
         "open": "ใก"
@@ -1051,6 +1078,7 @@
       }
     },
     {
+      "id": "ai-ya",
       "short": {
         "closed": "กัย",
         "open": null
@@ -1082,6 +1110,7 @@
       }
     },
     {
+      "id": "aai",
       "short": {
         "closed": null,
         "open": null
@@ -1113,6 +1142,7 @@
       }
     },
     {
+      "id": "ai-mai-malai-ya",
       "short": {
         "closed": "ไกย",
         "open": null
@@ -1144,6 +1174,7 @@
       }
     },
     {
+      "id": "rue",
       "short": {
         "closed": null,
         "open": "ฤ"
@@ -1180,6 +1211,7 @@
       }
     },
     {
+      "id": "ri",
       "short": {
         "closed": "ฤ-",
         "open": null
@@ -1208,6 +1240,7 @@
       }
     },
     {
+      "id": "lue",
       "short": {
         "closed": null,
         "open": "ฦ"

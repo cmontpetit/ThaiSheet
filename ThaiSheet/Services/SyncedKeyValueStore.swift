@@ -59,6 +59,9 @@ final class SyncedKeyValueStore: KeyValueStore {
     private let cloud: CloudKeyValueStore
     private let notificationCenter: NotificationCenter
     private let now: () -> Date
+    /// Legacy → durable card-ID map applied to every decoded progress blob,
+    /// local and cloud alike, before the two are compared (issue #29).
+    private let idMigrationMap: [String: String]
 
     /// Last time a cloud reconciliation completed.
     private(set) var lastSyncDate: Date?
@@ -71,12 +74,14 @@ final class SyncedKeyValueStore: KeyValueStore {
         local: UserDefaults = .standard,
         cloud: CloudKeyValueStore = UbiquitousCloudKeyValueStore(),
         notificationCenter: NotificationCenter = .default,
-        now: @escaping () -> Date = Date.init
+        now: @escaping () -> Date = Date.init,
+        idMigrationMap: [String: String] = ProgressIDMigration.bundled
     ) {
         self.local = local
         self.cloud = cloud
         self.notificationCenter = notificationCenter
         self.now = now
+        self.idMigrationMap = idMigrationMap
         lastSyncDate = local.object(forKey: Self.lastSyncDateKey) as? Date
 
         if local.object(forKey: "fc_iCloudSyncEnabled") as? Bool == true {
@@ -296,7 +301,10 @@ final class SyncedKeyValueStore: KeyValueStore {
         guard let progress = try? JSONDecoder().decode([String: CardProgress].self, from: data) else {
             return .corrupted(data)
         }
-        return .valid(progress)
+        // Both sides are normalized before reconciliation, so a blob from a
+        // device that has not migrated yet merges card-for-card with one that
+        // has, instead of producing two entries for the same card (issue #29).
+        return .valid(ProgressIDMigration.migrate(progress, using: idMigrationMap))
     }
 
     private func writeProgress(

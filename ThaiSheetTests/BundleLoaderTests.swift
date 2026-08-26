@@ -202,7 +202,7 @@ final class BundleLoaderTests: XCTestCase {
         let expected = marks.flatMap { mark in
             mark.classEntries
                 .filter { $0.tone != nil && ToneMarkCard.ConsonantClassType(rawValue: $0.className) != nil }
-                .map(\.soundKey)
+                .map { "\(mark.id):\($0.className)" }
         }
         XCTAssertEqual(ToneMarkCard.allCards(from: marks).map(\.id), expected,
                        "Cards must come out in JSON order: marks, then their class entries")

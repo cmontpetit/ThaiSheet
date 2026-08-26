@@ -379,6 +379,7 @@ struct VowelRowView: View {
                 .listRowInsets(EdgeInsets())
         }
         VowelRowView(vowel: Vowel(
+            id: "a",
             short: VowelForm(closed: "กั-", open: "กะ"),
             long: VowelForm(closed: "กา-", open: "กา"),
             sounds: VowelSounds(en: "aa/ah"),
@@ -395,6 +396,7 @@ struct VowelRowView: View {
         ))
         .listRowInsets(EdgeInsets())
         VowelRowView(vowel: Vowel(
+            id: "o",
             short: VowelForm(closed: "ก-", open: "โกะ"),
             long: VowelForm(closed: "โก-", open: "โก"),
             sounds: VowelSounds(en: "oh"),

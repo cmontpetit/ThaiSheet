@@ -63,6 +63,11 @@ enum VowelUsage: String, Codable {
 }
 
 struct Vowel: Codable, Identifiable {
+    /// Stable identifier from the data file. Opaque and never displayed: it
+    /// exists so persisted progress survives content corrections, and so row
+    /// order in vowels.json carries no meaning. Never rename one — the string
+    /// is part of a user's stored progress key.
+    let id: String
     let short: VowelForm
     let long: VowelForm
     let sounds: VowelSounds
@@ -77,11 +82,9 @@ struct Vowel: Codable, Identifiable {
     let usage: VowelUsage?
 
     enum CodingKeys: String, CodingKey {
-        case short, long, sounds, notes, pronunciations, samples, usage
+        case id, short, long, sounds, notes, pronunciations, samples, usage
         case rowNote = "note"
     }
-
-    var id: String { sounds.en + "-" + allForms.joined(separator: "|") }
 
     /// Returns true if this vowel is uncommon, rare, or archaic
     var isUncommon: Bool {

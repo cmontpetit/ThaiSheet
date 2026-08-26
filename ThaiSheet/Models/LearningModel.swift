@@ -39,8 +39,16 @@ class LearningModel {
 
     private let store: KeyValueStore
 
-    init(store: KeyValueStore = UserDefaults.standard) {
+    /// Legacy → durable card-ID map applied to progress on load (issue #29).
+    /// Injectable for tests; defaults to the frozen historical table.
+    @ObservationIgnored private let idMigrationMap: [String: String]
+
+    init(
+        store: KeyValueStore = UserDefaults.standard,
+        idMigrationMap: [String: String] = ProgressIDMigration.bundled
+    ) {
         self.store = store
+        self.idMigrationMap = idMigrationMap
         load()
     }
 
@@ -212,8 +220,16 @@ class LearningModel {
         }
         let decoder = JSONDecoder()
         do {
-            progressByCardId = try decoder.decode([String: CardProgress].self, from: data)
+            let stored = try decoder.decode([String: CardProgress].self, from: data)
             hasUndecodableStoredProgress = false
+            // Normalize historical IDs to durable ones and persist the result,
+            // so the stored (and synced) blob is migrated once rather than
+            // remapped on every launch (issue #29).
+            let needsMigration = ProgressIDMigration.needsMigration(stored, using: idMigrationMap)
+            progressByCardId = ProgressIDMigration.migrate(stored, using: idMigrationMap)
+            if needsMigration {
+                save()
+            }
         } catch {
             hasUndecodableStoredProgress = true
             Self.logger.error("Failed to decode stored learning progress; blob will be backed up before any overwrite: \(error, privacy: .public)")

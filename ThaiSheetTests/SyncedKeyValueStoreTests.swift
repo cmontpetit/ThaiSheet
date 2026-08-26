@@ -191,6 +191,45 @@ final class SyncedKeyValueStoreTests: XCTestCase {
         XCTAssertEqual(cloudMerged["local-only"]?.srsStage, .learning1)
     }
 
+    func test_activateCloud_normalizesLegacyKeysOnBothSidesBeforeMerging() throws {
+        // The upgrade case: this device still holds v1.2 keys while another
+        // device has already migrated. Both blobs are normalized before the
+        // merge, so one card stays one card (#29).
+        let legacy = "toneMark-ค่า"
+        let durable = try XCTUnwrap(LegacyProgressIDs.upToV1_2[legacy])
+        let oldDate = Date(timeIntervalSince1970: 1_000)
+        let newDate = Date(timeIntervalSince1970: 2_000)
+        local.set(try encoded([legacy: progress(id: legacy, stage: .learning1, reviewed: oldDate)]),
+                  forKey: LearningModel.storageKey)
+        cloud.seed(try encoded([durable: progress(id: durable, stage: .apprentice1, reviewed: newDate)]),
+                   forKey: LearningModel.storageKey)
+        let store = makeStore()
+
+        store.activateCloud()
+
+        let merged = try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey)))
+        XCTAssertEqual(Set(merged.keys), [durable],
+                       "The legacy and durable entries must collapse into one card, not two")
+        XCTAssertEqual(merged[durable]?.srsStage, .apprentice1,
+                       "The most recently reviewed side wins, as it does for any card")
+    }
+
+    func test_activateCloud_keepsUnknownKeysDuringNormalization() throws {
+        // A key this build does not recognize (a newer client's) must survive
+        // reconciliation rather than be dropped as unmigratable.
+        let unknown = "vowel-written-by-a-newer-build"
+        local.set(try encoded([unknown: progress(id: unknown, stage: .familiar1, reviewed: syncDate)]),
+                  forKey: LearningModel.storageKey)
+        cloud.seed(try encoded(["consonant-ก": progress(id: "consonant-ก", stage: .learning1, reviewed: syncDate)]),
+                   forKey: LearningModel.storageKey)
+        let store = makeStore()
+
+        store.activateCloud()
+
+        let merged = try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey)))
+        XCTAssertEqual(Set(merged.keys), [unknown, "consonant-ก"])
+    }
+
     func test_activateCloud_preservesCorruptLocalProgressBeforeUsingCloud() throws {
         let corruptLocal = Data("not-json-local".utf8)
         let validCloud = ["card": progress(id: "card", stage: .learning2, reviewed: syncDate)]

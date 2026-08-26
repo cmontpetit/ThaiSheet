@@ -7,6 +7,11 @@ import Foundation
 import SwiftUI
 
 struct ToneSample: Codable {
+    /// Stable identifier from the data file, unique within its rule. Opaque and
+    /// never displayed: correcting a sample word must not orphan the progress
+    /// stored against it. Never rename one, and give a new sample a new id
+    /// rather than reusing a retired one.
+    let id: String
     let full: String
     let focus: String
     let note: LocalizedText?
@@ -14,12 +19,14 @@ struct ToneSample: Codable {
     let meaning: LocalizedText?
 
     init(
+        id: String,
         full: String,
         focus: String,
         note: LocalizedText? = nil,
         romanization: String? = nil,
         meaning: LocalizedText? = nil
     ) {
+        self.id = id
         self.full = full
         self.focus = focus
         self.note = note

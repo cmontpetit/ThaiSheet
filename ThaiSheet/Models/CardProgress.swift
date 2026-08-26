@@ -113,4 +113,17 @@ struct CardProgress: Codable {
         }
         return Date().timeIntervalSince(nextReview)
     }
+
+    /// A copy carrying a new `cardId`, preserving every review field. Used by
+    /// ProgressIDMigration to re-key progress under a durable ID.
+    func renamed(to newCardId: String) -> CardProgress {
+        CardProgress(
+            cardId: newCardId,
+            correctCount: correctCount,
+            incorrectCount: incorrectCount,
+            lastReviewed: lastReviewed,
+            srsStage: srsStage,
+            nextReviewDate: nextReviewDate
+        )
+    }
 }

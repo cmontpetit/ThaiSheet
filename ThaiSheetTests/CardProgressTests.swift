@@ -364,12 +364,14 @@ final class CardProgressTests: XCTestCase {
             vowelDuration: "Short",
             end: "Dead/None",
             tone: "High",
-            samples: [ToneSample(full: "คะ", focus: "คะ", note: nil)]
+            samples: [ToneSample(id: "s1", full: "คะ", focus: "คะ", note: nil)]
         )
         let sample = rule.samples![0]
         let card = ToneRuleCard(rule: rule, sample: sample, correctTone: rule.tone)
         XCTAssertEqual(ToneRuleCard.key(rule: rule, sample: sample), card.id)
-        XCTAssertEqual(card.id, "Low-Short-Dead/None-คะ")
+        // Durable key: the rule's structural id plus the sample's stable id —
+        // no sample word, so correcting one keeps the card's progress (#29).
+        XCTAssertEqual(card.id, "Low-Short-Dead/None#s1")
     }
 
     func test_flashcardItemId_usesCardIdFormat() {
