@@ -214,6 +214,50 @@ final class SequentialStrategyTests: XCTestCase {
         strategy.update(cards: testCards, learningModel: learningModel)
         XCTAssertEqual(strategy.currentCard?.id, testCards[2].id)
     }
+
+    // MARK: - Deterministic tone-card ordering (#27)
+
+    /// Stores and strategies built here stay alive for the process: a
+    /// short-lived bundle-backed store or @Observable strategy trips the
+    /// toolchain invalid-free described under Testing Gotchas in CLAUDE.md.
+    private static var retained: [AnyObject] = []
+
+    private func makeRetained<T: AnyObject>(_ make: () -> T) -> T {
+        let object = make()
+        SequentialStrategyTests.retained.append(object)
+        return object
+    }
+
+    /// Walks a freshly built data store with a freshly built strategy, the way a
+    /// relaunch would, and records the tone-card sequence it shows.
+    private func freshToneCardSequence() -> [String] {
+        let dataStore = makeRetained { ThaiDataStore() }
+        let navigator = makeRetained { SequentialStrategy() }
+        let cards = dataStore.toneMarkCards.map { FlashcardItem.toneMark($0) }
+            + dataStore.toneRuleCards.map { FlashcardItem.toneRule($0) }
+        // Sequential ordering ignores SRS state, so the fixture's model is fine
+        // — and it avoids another short-lived instance in this test.
+        navigator.update(cards: cards, learningModel: learningModel)
+
+        var shown: [String] = []
+        for _ in 0..<cards.count {
+            if let id = navigator.currentCard?.id {
+                shown.append(id)
+            }
+            navigator.nextCard()
+        }
+        return shown
+    }
+
+    func test_sequentialNavigation_toneCards_identicalAcrossFreshStoresAndStrategies() {
+        let firstLaunch = freshToneCardSequence()
+        let secondLaunch = freshToneCardSequence()
+
+        XCTAssertFalse(firstLaunch.isEmpty, "Need bundled tone cards for this test")
+        XCTAssertEqual(firstLaunch, secondLaunch,
+                       "Sequential mode must show tone cards in the same order on every launch")
+    }
+
 }
 
 @MainActor
@@ -486,5 +530,268 @@ final class WanikaniStrategyTests: XCTestCase {
         // With only 1 card, it must return that card (fallback to current)
         XCTAssertNotNil(strategy.currentCard)
         XCTAssertEqual(strategy.currentCard?.id, firstCard?.id)
+    }
+
+    // MARK: - Mastered cards never resurface while learning remains (#26)
+
+    /// Advance a card all the way to `.mastered` (stage 8 = 8 correct answers).
+    private func master(_ card: FlashcardItem) {
+        for _ in 0..<8 {
+            learningModel.recordResult(for: card, correct: true, fullTesting: true)
+        }
+        XCTAssertEqual(learningModel.getProgress(for: card).srsStage, .mastered,
+                       "Card should be mastered after 8 correct full-testing answers")
+    }
+
+    func test_nextCard_neverReturnsMasteredCard_whenCurrentIsOnlyUnmastered() {
+        // Master every card except the first.
+        for i in 1..<testCards.count {
+            master(testCards[i])
+        }
+        let onlyUnmastered = testCards[0]
+        strategy.update(cards: testCards, learningModel: learningModel)
+
+        // Force the current card to be the sole unmastered card, reproducing the
+        // fallback path where every non-current card is mastered.
+        strategy.jumpTo(card: onlyUnmastered)
+        XCTAssertEqual(strategy.currentCard?.id, onlyUnmastered.id)
+
+        // Repeated navigation must never surface a mastered card; it should stay
+        // on the only card still being learned.
+        for _ in 0..<30 {
+            strategy.nextCard()
+            let currentId = strategy.currentCard?.id
+            XCTAssertEqual(currentId, onlyUnmastered.id,
+                           "Smart selection must stay on the only unmastered card, not resurface a mastered one")
+            XCTAssertNotEqual(learningModel.getProgress(for: strategy.currentCard!).srsStage, .mastered)
+        }
+    }
+
+    func test_nextCard_allMastered_showsACardAndDoesNotCycle() {
+        // Master the entire deck.
+        for card in testCards {
+            master(card)
+        }
+        strategy.update(cards: testCards, learningModel: learningModel)
+
+        // Documented all-mastered behavior: the UI still has a card to show.
+        XCTAssertNotNil(strategy.currentCard,
+                        "With an all-mastered deck, a card is still surfaced so the UI is not empty")
+
+        // Once a card is current, navigation stays put rather than randomly
+        // cycling through mastered content.
+        strategy.jumpTo(card: testCards[3])
+        strategy.nextCard()
+        XCTAssertEqual(strategy.currentCard?.id, testCards[3].id,
+                       "All-mastered navigation should stay on the current card")
+    }
+
+    func test_singleUnmasteredCard_nextCard_staysOnIt() {
+        let onlyCard = testCards[0]
+        strategy.update(cards: [onlyCard], learningModel: learningModel)
+
+        strategy.nextCard()
+        XCTAssertEqual(strategy.currentCard?.id, onlyCard.id,
+                       "A one-card deck has nowhere else to go")
+    }
+
+    func test_singleMasteredCard_isStillSurfaced() {
+        let onlyCard = testCards[0]
+        master(onlyCard)
+
+        // reset() re-selects with no current card — the one path that is allowed
+        // to return mastered content. (The shared strategy is reused rather than
+        // constructing one here: a short-lived @Observable instance trips the
+        // toolchain invalid-free described under Testing Gotchas in CLAUDE.md.)
+        strategy.update(cards: [onlyCard], learningModel: learningModel)
+        strategy.reset()
+
+        XCTAssertEqual(strategy.currentCard?.id, onlyCard.id,
+                       "A fully mastered deck still shows a card rather than an empty screen")
+    }
+
+    // MARK: - Selection priority: due > new > future (#26)
+
+    /// Builds a model whose stored progress is seeded directly, so a card can be
+    /// genuinely overdue without waiting out an SRS interval. The shared
+    /// `strategy` is then pointed at it — LearningModel carries the empty
+    /// `nonisolated deinit` guard, so a short-lived one is safe; a short-lived
+    /// strategy is not.
+    private func makeSeededModel(_ progress: [String: CardProgress]) throws -> LearningModel {
+        let seededStore = InMemoryKeyValueStore()
+        seededStore.set(try JSONEncoder().encode(progress), forKey: LearningModel.storageKey)
+        return LearningModel(store: seededStore)
+    }
+
+    private func reviewedProgress(
+        for card: FlashcardItem,
+        stage: SRSStage,
+        nextReviewIn interval: TimeInterval
+    ) -> CardProgress {
+        CardProgress(
+            cardId: card.id,
+            correctCount: stage.rawValue,
+            incorrectCount: 0,
+            lastReviewed: Date().addingTimeInterval(-interval - 60),
+            srsStage: stage,
+            nextReviewDate: Date().addingTimeInterval(interval)
+        )
+    }
+
+    func test_nextCard_prefersDueCard_overNewAndFuture() throws {
+        let anchor = testCards[0]
+        let dueCard = testCards[1]
+        let newCard = testCards[2]
+        let futureCard = testCards[3]
+
+        let model = try makeSeededModel([
+            dueCard.id: reviewedProgress(for: dueCard, stage: .apprentice1, nextReviewIn: -3600),
+            futureCard.id: reviewedProgress(for: futureCard, stage: .apprentice1, nextReviewIn: 3600),
+        ])
+        XCTAssertTrue(model.getProgress(for: dueCard).isDue)
+        XCTAssertFalse(model.getProgress(for: futureCard).isDue)
+        XCTAssertEqual(model.getProgress(for: newCard).srsStage, .new)
+
+        let deck = [anchor, dueCard, newCard, futureCard]
+        strategy.update(cards: deck, learningModel: model)
+        strategy.jumpTo(card: anchor)
+
+        strategy.nextCard()
+        XCTAssertEqual(strategy.currentCard?.id, dueCard.id,
+                       "Priority 1 is the due card, ahead of both new and future cards")
+    }
+
+    func test_nextCard_prefersNewCard_overFuture_whenNothingIsDue() throws {
+        let anchor = testCards[0]
+        let newCard = testCards[1]
+        let futureCard = testCards[2]
+
+        let model = try makeSeededModel([
+            futureCard.id: reviewedProgress(for: futureCard, stage: .apprentice1, nextReviewIn: 3600),
+        ])
+
+        let deck = [anchor, newCard, futureCard]
+        strategy.update(cards: deck, learningModel: model)
+        strategy.jumpTo(card: anchor)
+
+        strategy.nextCard()
+        XCTAssertEqual(strategy.currentCard?.id, newCard.id,
+                       "Priority 2 is the new card; future cards come last")
+    }
+
+    func test_nextCard_fallsBackToFutureCard_whenNothingIsDueOrNew() throws {
+        let anchor = testCards[0]
+        let soonCard = testCards[1]
+        let laterCard = testCards[2]
+
+        let model = try makeSeededModel([
+            soonCard.id: reviewedProgress(for: soonCard, stage: .apprentice1, nextReviewIn: 3600),
+            laterCard.id: reviewedProgress(for: laterCard, stage: .apprentice1, nextReviewIn: 7200),
+            anchor.id: reviewedProgress(for: anchor, stage: .apprentice1, nextReviewIn: 1800),
+        ])
+
+        let deck = [anchor, soonCard, laterCard]
+        strategy.update(cards: deck, learningModel: model)
+        strategy.jumpTo(card: anchor)
+
+        strategy.nextCard()
+        XCTAssertEqual(strategy.currentCard?.id, soonCard.id,
+                       "Priority 3 shows the soonest upcoming card")
+    }
+
+    // MARK: - History is a record of what was shown (#26)
+
+    func test_previousCard_returnsEarlierCard_evenAfterItBecameMastered() {
+        let first = testCards[0]
+        let second = testCards[1]
+        strategy.jumpTo(card: first)
+        strategy.jumpTo(card: second)
+
+        master(first)
+
+        strategy.previousCard()
+        XCTAssertEqual(strategy.currentCard?.id, first.id,
+                       "Back navigation replays what was actually shown; mastering a card does not rewrite history")
+    }
+
+    func test_nextCard_forwardThroughHistory_returnsLaterCard_evenAfterItBecameMastered() {
+        let first = testCards[0]
+        let second = testCards[1]
+        strategy.jumpTo(card: first)
+        strategy.jumpTo(card: second)
+        strategy.previousCard()
+        XCTAssertEqual(strategy.currentCard?.id, first.id)
+
+        master(second)
+
+        strategy.nextCard()
+        XCTAssertEqual(strategy.currentCard?.id, second.id,
+                       "Forward navigation replays the recorded entry rather than re-selecting")
+    }
+
+    func test_previousCard_afterStayingOnLastUnmasteredCard_returnsToEarlierCard() {
+        let earlier = testCards[0]
+        let onlyUnmastered = testCards[1]
+        for card in testCards where card.id != onlyUnmastered.id {
+            master(card)
+        }
+        strategy.update(cards: testCards, learningModel: learningModel)
+
+        strategy.jumpTo(card: earlier)
+        strategy.jumpTo(card: onlyUnmastered)
+
+        // Several "next" presses that all stay on the last unmastered card.
+        for _ in 0..<5 {
+            strategy.nextCard()
+            XCTAssertEqual(strategy.currentCard?.id, onlyUnmastered.id)
+        }
+
+        // Those repeats are coalesced into the single entry already there, so
+        // one step back reaches real earlier content instead of looking
+        // unresponsive five times over.
+        strategy.previousCard()
+        XCTAssertEqual(strategy.currentCard?.id, earlier.id,
+                       "Repeated stay-put steps must not each become their own history entry")
+    }
+
+    func test_nextCard_afterStayingPut_stillMovesForwardThroughHistory() {
+        let earlier = testCards[0]
+        let onlyUnmastered = testCards[1]
+        for card in testCards where card.id != onlyUnmastered.id {
+            master(card)
+        }
+        strategy.update(cards: testCards, learningModel: learningModel)
+
+        strategy.jumpTo(card: earlier)
+        strategy.jumpTo(card: onlyUnmastered)
+        strategy.nextCard()
+        strategy.previousCard()
+        XCTAssertEqual(strategy.currentCard?.id, earlier.id)
+
+        // Forward again returns to the coalesced entry, not to a duplicate.
+        strategy.nextCard()
+        XCTAssertEqual(strategy.currentCard?.id, onlyUnmastered.id)
+        strategy.nextCard()
+        XCTAssertEqual(strategy.currentCard?.id, onlyUnmastered.id,
+                       "Past the end of history, selection stays on the only unmastered card")
+    }
+
+    // MARK: - Smart selection stays randomized (#27)
+
+    func test_reset_overManyRuns_doesNotAlwaysStartOnTheSameCard() {
+        // Tone-card factories are ordered now, so smart selection is the only
+        // remaining source of variety. With 10 new cards, seeing one single
+        // starting card across 40 resets has odds around 10^-39; a failure here
+        // means the randomization was removed, not bad luck.
+        var startingCards: Set<String> = []
+        for _ in 0..<40 {
+            strategy.reset()
+            if let id = strategy.currentCard?.id {
+                startingCards.insert(id)
+            }
+        }
+
+        XCTAssertGreaterThan(startingCards.count, 1,
+                             "Smart selection should still vary which card it opens on")
     }
 }
