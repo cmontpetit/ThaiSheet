@@ -7,14 +7,31 @@ import SwiftUI
 
 struct ClassIndicatorView: View {
     let activeClass: ConsonantClass
+    /// Opts the indicator into practice mode. The class is an answer, so a
+    /// blurred smudge is not enough on its own: the filled cell's position
+    /// would still give it away. While concealed, all three cells render the
+    /// same neutral fill with no label.
+    var concealID: String? = nil
+
+    @Environment(\.practiceMode) private var practiceMode
+
+    private var isConcealed: Bool {
+        guard let concealID else { return false }
+        return practiceMode.isConcealed(concealID)
+    }
+
+    private func fill(for cls: ConsonantClass) -> Color {
+        if isConcealed { return Color.secondary.opacity(0.25) }
+        return cls == activeClass ? cls.color : Color.clear
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             ForEach(ConsonantClass.allCases.reversed(), id: \.self) { cls in
                 ZStack {
                     Rectangle()
-                        .fill(cls == activeClass ? cls.color : Color.clear)
-                    if cls == activeClass {
+                        .fill(fill(for: cls))
+                    if cls == activeClass, !isConcealed {
                         Text(cls.label)
                             .font(.caption2)
                             .fontWeight(.medium)
@@ -24,11 +41,13 @@ struct ClassIndicatorView: View {
                 .frame(width: 20, height: 16)
             }
         }
+        .blur(radius: isConcealed ? 2 : 0)
         .clipShape(RoundedRectangle(cornerRadius: 4))
         .overlay(
             RoundedRectangle(cornerRadius: 4)
                 .stroke(Color.secondary.opacity(0.3), lineWidth: 0.5)
         )
+        .animation(.easeInOut(duration: 0.15), value: isConcealed)
     }
 }
 
@@ -101,7 +120,7 @@ struct ConsonantRowView: View {
 
             // Row content: tap plays the sound, long press opens the sheet
             HStack(alignment: .center, spacing: 12) {
-                ClassIndicatorView(activeClass: consonant.consonantClass)
+                ClassIndicatorView(activeClass: consonant.consonantClass, concealID: concealID)
 
                 Text(consonant.character)
                     .font(.largeTitle)
@@ -136,9 +155,9 @@ struct ConsonantRowView: View {
                 .padding(.horizontal, 8)
             }
             .playableItem(
-                // Full label carries the concealed answers (transcription + both
-                // sounds) so a revealed VoiceOver user can check them.
-                label: "\(consonant.character), \(consonant.transcription), \(consonant.initialSound), \(consonant.finalSound)",
+                // Full label carries the concealed answers (class, transcription,
+                // both sounds) so a revealed VoiceOver user can check them.
+                label: "\(consonant.character), \(consonant.consonantClass.displayName), \(consonant.transcription), \(consonant.initialSound), \(consonant.finalSound)",
                 hasSound: hasSound,
                 conceal: PracticeConceal(id: concealID, concealedLabel: consonant.character),
                 onPlay: { audioPlayer.play(.consonant, key: consonant.character, itemID: concealID) },
