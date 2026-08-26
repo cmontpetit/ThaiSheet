@@ -319,6 +319,7 @@ final class VowelCardTests: XCTestCase {
 
     private func makeReferenceVowel(pronunciation: String?, sample: String) -> Vowel {
         Vowel(
+            id: "test-a",
             short: VowelForm(closed: "กั-", open: nil),
             long: VowelForm(closed: nil, open: nil),
             sounds: VowelSounds(en: "a"),

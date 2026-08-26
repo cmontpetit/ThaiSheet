@@ -252,7 +252,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Short",
             end: "Dead/None",
             tone: "High",
-            samples: [ToneSample(full: "คะ", focus: "คะ", note: nil)]
+            samples: [ToneSample(id: "s1", full: "คะ", focus: "คะ", note: nil)]
         ))
         .listRowInsets(EdgeInsets())
         ToneRuleRowView(rule: ToneRule(
@@ -260,7 +260,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Any",
             end: "Live",
             tone: "Mid",
-            samples: [ToneSample(full: "กา", focus: "กา", note: nil)]
+            samples: [ToneSample(id: "s1", full: "กา", focus: "กา", note: nil)]
         ))
         .listRowInsets(EdgeInsets())
         ToneRuleRowView(rule: ToneRule(
@@ -268,7 +268,7 @@ struct ToneRuleRowView: View {
             vowelDuration: "Any",
             end: "Live",
             tone: "Rising",
-            samples: [ToneSample(full: "ขา", focus: "ขา", note: LocalizedText(en: "Sample with a note", fr: nil))]
+            samples: [ToneSample(id: "s1", full: "ขา", focus: "ขา", note: LocalizedText(en: "Sample with a note", fr: nil))]
         ))
         .listRowInsets(EdgeInsets())
     }

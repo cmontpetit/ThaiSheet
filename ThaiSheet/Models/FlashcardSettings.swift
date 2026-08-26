@@ -247,6 +247,38 @@ class FlashcardSettings {
         defaults.removeObject(forKey: "fc_audioSource")
     }
 
+    /// Re-key voice overrides whose item ids changed with the durable-identifier
+    /// work (issue #29): vowel rows and clusters. Runs on every load — including
+    /// a reload triggered by an iCloud change — so a blob from an un-migrated
+    /// device resolves here too, and writes the normalized form back so storage
+    /// converges. Unknown ids are kept untouched.
+    static func migrateVoiceOverrideIDs(
+        _ overrides: [String: RecordedVoice],
+        using map: [String: String] = LegacyProgressIDs.voiceOverridesUpToV1_2
+    ) -> [String: RecordedVoice] {
+        guard overrides.keys.contains(where: { map[$0] != nil }) else { return overrides }
+        var result: [String: RecordedVoice] = [:]
+        result.reserveCapacity(overrides.count)
+        for (id, voice) in overrides {
+            let durable = map[id] ?? id
+            // A legacy entry and an already-durable one can only collide when
+            // both name the same item; either value is that item's override, so
+            // keep the one already stored under the durable id.
+            if result[durable] == nil || map[id] == nil {
+                result[durable] = voice
+            }
+        }
+        return result
+    }
+
+    private func migrateLegacyVoiceOverrideIDsIfNeeded(stored: [String: RecordedVoice]) {
+        let map = LegacyProgressIDs.voiceOverridesUpToV1_2
+        guard stored.keys.contains(where: { map[$0] != nil }) else { return }
+        // Persist directly: reload() suppresses property-driven persistence, and
+        // this normalization should stick rather than be redone every launch.
+        defaults.set(Self.encodeVoiceOverrides(voiceOverrides), forKey: "fc_voiceOverrides")
+    }
+
     /// Rename the old Neural2 identifier in both persisted voice locations. Decoding
     /// already accepts it, so this only canonicalizes storage for future reads/syncs.
     private func migrateLegacyCurrentVoiceIfNeeded(
@@ -305,7 +337,8 @@ class FlashcardSettings {
         let recordedVoiceValue = defaults.string(forKey: "fc_recordedVoice")
         let voiceOverridesData = defaults.data(forKey: "fc_voiceOverrides")
         recordedVoice = recordedVoiceValue.flatMap(RecordedVoice.persistedValue) ?? .matilda
-        voiceOverrides = Self.decodeVoiceOverrides(voiceOverridesData)
+        let storedOverrides = Self.decodeVoiceOverrides(voiceOverridesData)
+        voiceOverrides = Self.migrateVoiceOverrideIDs(storedOverrides)
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
         hasSeenReferenceInfo = defaults.object(forKey: "fc_hasSeenReferenceInfo") as? Bool ?? false
@@ -317,6 +350,7 @@ class FlashcardSettings {
             recordedVoiceValue: recordedVoiceValue,
             voiceOverridesData: voiceOverridesData
         )
+        migrateLegacyVoiceOverrideIDsIfNeeded(stored: storedOverrides)
         // The retired source toggle wins if both legacy formats arrive together.
         migrateLegacyAudioSourceIfNeeded()
     }

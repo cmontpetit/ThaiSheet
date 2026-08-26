@@ -13,7 +13,9 @@ struct ToneMarkCard: Identifiable {
     let display: String
     let correctTone: String
 
-    var id: String { display }
+    /// Durable progress key: the mark plus the consonant class it is shown on.
+    /// Both are structural; `display` is the rendered syllable and may change.
+    var id: String { "\(toneMark.id):\(consonantClass.rawValue)" }
 
     enum ConsonantClassType: String, CaseIterable {
         case low = "Low"

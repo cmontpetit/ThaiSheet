@@ -1,6 +1,7 @@
 {
   "clusters": [
     {
+      "id": "กร:initial",
       "cluster": "กร-",
       "sound": "gr-",
       "type": "smooth",
@@ -14,6 +15,7 @@
       }
     },
     {
+      "id": "กล:initial",
       "cluster": "กล-",
       "sound": "gl-",
       "type": "smooth",
@@ -27,6 +29,7 @@
       }
     },
     {
+      "id": "กว:initial",
       "cluster": "กว-",
       "sound": "gw-",
       "type": "smooth",
@@ -40,6 +43,7 @@
       }
     },
     {
+      "id": "ขร:initial",
       "cluster": "ขร-",
       "sound": "khr-",
       "type": "smooth",
@@ -54,6 +58,7 @@
       }
     },
     {
+      "id": "ขล:initial",
       "cluster": "ขล-",
       "sound": "khl-",
       "type": "smooth",
@@ -68,6 +73,7 @@
       }
     },
     {
+      "id": "ขว:initial",
       "cluster": "ขว-",
       "sound": "khw-",
       "type": "smooth",
@@ -81,6 +87,7 @@
       }
     },
     {
+      "id": "คร:initial",
       "cluster": "คร-",
       "sound": "khr-",
       "type": "smooth",
@@ -94,6 +101,7 @@
       }
     },
     {
+      "id": "คล:initial",
       "cluster": "คล-",
       "sound": "khl-",
       "type": "smooth",
@@ -107,6 +115,7 @@
       }
     },
     {
+      "id": "คว:initial",
       "cluster": "คว-",
       "sound": "khw-",
       "type": "smooth",
@@ -120,6 +129,7 @@
       }
     },
     {
+      "id": "ตร:initial",
       "cluster": "ตร-",
       "sound": "dtr-",
       "type": "smooth",
@@ -137,6 +147,7 @@
       }
     },
     {
+      "id": "ปร:initial",
       "cluster": "ปร-",
       "sound": "bpr-",
       "type": "smooth",
@@ -150,6 +161,7 @@
       }
     },
     {
+      "id": "ปล:initial",
       "cluster": "ปล-",
       "sound": "bpl-",
       "type": "smooth",
@@ -163,6 +175,7 @@
       }
     },
     {
+      "id": "ผล:initial",
       "cluster": "ผล-",
       "sound": "pl-",
       "type": "smooth",
@@ -181,6 +194,7 @@
       }
     },
     {
+      "id": "พร:initial",
       "cluster": "พร-",
       "sound": "phr-",
       "type": "smooth",
@@ -194,6 +208,7 @@
       }
     },
     {
+      "id": "พล:initial",
       "cluster": "พล-",
       "sound": "phl-",
       "type": "smooth",
@@ -207,6 +222,7 @@
       }
     },
     {
+      "id": "บร:initial",
       "cluster": "บร-",
       "sound": "br-",
       "type": "smooth",
@@ -225,6 +241,7 @@
       }
     },
     {
+      "id": "บล:initial",
       "cluster": "บล-",
       "sound": "bl-",
       "type": "smooth",
@@ -239,6 +256,7 @@
       }
     },
     {
+      "id": "ดร:initial",
       "cluster": "ดร-",
       "sound": "dr-",
       "type": "smooth",
@@ -257,6 +275,7 @@
       }
     },
     {
+      "id": "ทร:initial",
       "cluster": "ทร-",
       "sound": "s-",
       "type": "irregular",
@@ -274,6 +293,7 @@
       }
     },
     {
+      "id": "สร:initial",
       "cluster": "สร-",
       "sound": "s-",
       "type": "irregular",
@@ -291,6 +311,7 @@
       }
     },
     {
+      "id": "จร:initial",
       "cluster": "จร-",
       "sound": "j-",
       "type": "irregular",
@@ -308,6 +329,7 @@
       }
     },
     {
+      "id": "ทร:final",
       "cluster": "-ทร",
       "sound": "-t",
       "type": "irregular",
@@ -325,6 +347,7 @@
       }
     },
     {
+      "id": "หง:initial",
       "cluster": "หง-",
       "sound": "ng-",
       "type": "silent",
@@ -342,6 +365,7 @@
       }
     },
     {
+      "id": "หน:initial",
       "cluster": "หน-",
       "sound": "n-",
       "type": "silent",
@@ -359,6 +383,7 @@
       }
     },
     {
+      "id": "หม:initial",
       "cluster": "หม-",
       "sound": "m-",
       "type": "silent",
@@ -376,6 +401,7 @@
       }
     },
     {
+      "id": "หย:initial",
       "cluster": "หย-",
       "sound": "y-",
       "type": "silent",
@@ -393,6 +419,7 @@
       }
     },
     {
+      "id": "หญ:initial",
       "cluster": "หญ-",
       "sound": "y-",
       "type": "silent",
@@ -410,6 +437,7 @@
       }
     },
     {
+      "id": "หร:initial",
       "cluster": "หร-",
       "sound": "r-",
       "type": "silent",
@@ -427,6 +455,7 @@
       }
     },
     {
+      "id": "หล:initial",
       "cluster": "หล-",
       "sound": "l-",
       "type": "silent",
@@ -444,6 +473,7 @@
       }
     },
     {
+      "id": "หว:initial",
       "cluster": "หว-",
       "sound": "w-",
       "type": "silent",

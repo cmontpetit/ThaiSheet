@@ -11,11 +11,13 @@ struct ToneRuleCard: Identifiable {
     let sample: ToneSample
     let correctTone: String
 
+    /// Durable progress key: the rule's structural id plus the sample's stable
+    /// id. Independent of the sample word, so correcting one keeps its progress.
     var id: String { Self.key(rule: rule, sample: sample) }
 
     /// Card key for a rule/sample pair, without constructing a full card
     static func key(rule: ToneRule, sample: ToneSample) -> String {
-        "\(rule.id)-\(sample.full)"
+        "\(rule.id)#\(sample.id)"
     }
 
     static func allCards(from rules: [ToneRule]) -> [ToneRuleCard] {

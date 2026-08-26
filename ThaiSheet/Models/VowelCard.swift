@@ -13,7 +13,10 @@ struct VowelCard: Identifiable {
     let display: String
     let acceptsBothDurations: Bool  // True if this form appears in both short and long
 
-    var id: String { display }
+    /// Durable progress key: the vowel row's stable id plus the structural
+    /// variant this card represents. Independent of `display`, so correcting a
+    /// written form does not orphan a user's progress.
+    var id: String { "\(vowel.id):\(duration.rawValue):\(form.rawValue)" }
 
     var pronunciationWord: ReferenceSampleWord? {
         vowel.pronunciation(for: duration, form: form)

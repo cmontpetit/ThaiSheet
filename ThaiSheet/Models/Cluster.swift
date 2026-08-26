@@ -43,14 +43,18 @@ enum ClusterUsage: String, Codable {
 }
 
 struct Cluster: Codable, Identifiable {
+    /// Stable identifier from the data file: the cluster's letters plus its
+    /// position, deliberately free of the display dash notation. Opaque, never
+    /// displayed, and part of users' stored progress and voice-override keys —
+    /// never rename one.
+    let id: String
+    /// The written form as shown, including the positional dash ("กร-", "-ทร").
     let cluster: String
     let sound: String?
     let type: ClusterType
     let usage: ClusterUsage?
     let note: LocalizedText?
     let sample: ReferenceSampleWord?
-
-    var id: String { cluster }
 
     /// The first consonant of the cluster (e.g., "ก" from "กร-")
     var firstConsonant: String {
