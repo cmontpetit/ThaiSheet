@@ -52,10 +52,8 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 
 ## What's New
 
-- Reading practice now fully conceals a consonant's class until the row is revealed.
-- Smart flashcard selection keeps mastered cards out of rotation while unmastered cards remain, and sequential tone cards now stay in a consistent order between launches.
-- Learning and reference data problems now show a clear unavailable message instead of remaining on the loading screen.
-- Learning progress and per-item voice choices are preserved more reliably when reference content is corrected or reordered.
+- This update improves reading practice and flashcard ordering, while making learning progress more reliable.
+- It also includes clearer error messages and other stability improvements.
 
 ## French Store Metadata — DEFERRED
 
