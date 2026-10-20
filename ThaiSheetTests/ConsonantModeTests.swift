@@ -89,6 +89,29 @@ final class ConsonantModeTests: XCTestCase {
             .allSatisfy { $0.id.hasPrefix("consonantSound-") })
     }
 
+    // MARK: - Reference detail sheet
+
+    func test_detailSheet_showsActiveModeStage() throws {
+        let consonant = try XCTUnwrap(manager.data.consonants.first { $0.character == "ก" })
+        let named = FlashcardItem.consonant(consonant, includesName: true)
+        let sound = FlashcardItem.consonant(consonant, includesName: false)
+        manager.learningModel.recordResult(for: named, correct: true, fullTesting: true)
+        manager.learningModel.recordResult(for: sound, correct: true, fullTesting: true)
+        manager.learningModel.recordResult(for: sound, correct: true, fullTesting: true)
+
+        func shownStage() -> SRSStage {
+            manager.learningModel.getProgress(
+                forId: ConsonantDetailSheet.progressID(for: consonant, settings: settings)
+            ).srsStage
+        }
+
+        XCTAssertEqual(shownStage(), .learning1, "Names on: the sheet shows name-mode progress")
+        settings.consonantNames = false
+        XCTAssertEqual(shownStage(), .learning2, "Names off: the sheet shows name-free progress")
+        XCTAssertEqual(ConsonantDetailSheet.progressID(for: consonant, settings: nil), "consonant-ก",
+                       "Without settings in the environment, the sheet falls back to name mode")
+    }
+
     // MARK: - Grading
 
     func test_hasError_ignoresMissingName() throws {

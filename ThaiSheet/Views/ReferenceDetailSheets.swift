@@ -19,12 +19,19 @@ struct ConsonantDetailSheet: View {
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.learningModel) private var learningModel
     @Environment(\.thaiData) private var thaiData
+    @Environment(\.flashcardSettings) private var settings
 
     private var concealID: String { FlashcardType.consonant.cardId(for: consonant.id) }
 
+    /// The stage shown follows the active consonant mode, while concealment,
+    /// playback and voice overrides stay on the row's `consonant-` ID.
+    static func progressID(for consonant: Consonant, settings: FlashcardSettings?) -> String {
+        FlashcardType.consonantCardId(for: consonant.id, includesName: settings?.consonantNames ?? true)
+    }
+
     var body: some View {
         let hasSound = audioPlayer.hasSound(.consonant, key: consonant.character)
-        let stage = learningModel.getProgress(forId: concealID).srsStage
+        let stage = learningModel.getProgress(forId: Self.progressID(for: consonant, settings: settings)).srsStage
         let voiceOverride = thaiData.voiceOverrideCatalogEntry(for: concealID)
             .map { ($0.descriptor, $0.canonicalPreview) }
         let wordAudios = consonant.sampleWord.map { sample in
