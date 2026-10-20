@@ -56,7 +56,7 @@ class FlashcardManager {
         // Add filtered consonants
         for consonant in data.consonants {
             if settings.isConsonantEnabled(consonant) {
-                cards.append(.consonant(consonant))
+                cards.append(.consonant(consonant, includesName: settings.consonantNames))
             }
         }
 
@@ -96,7 +96,7 @@ class FlashcardManager {
         var cards: [FlashcardItem] = []
 
         for consonant in data.consonants {
-            cards.append(.consonant(consonant))
+            cards.append(.consonant(consonant, includesName: settings.consonantNames))
         }
 
         for card in data.vowelCards {
@@ -185,7 +185,7 @@ class FlashcardManager {
     /// Jump to a consonant by character
     func jumpToConsonant(_ character: String) {
         guard let consonant = data.consonants.first(where: { $0.character == character }) else { return }
-        jumpOrOverride(to: .consonant(consonant))
+        jumpOrOverride(to: .consonant(consonant, includesName: settings.consonantNames))
     }
 
     /// Jump to a vowel by display string
@@ -210,6 +210,16 @@ class FlashcardManager {
     func jumpToCluster(_ clusterId: String) {
         guard let cluster = data.clusters.first(where: { $0.id == clusterId }) else { return }
         jumpOrOverride(to: .cluster(cluster))
+    }
+
+    /// Switch consonant cards to the current `consonantNames` mode. A consonant
+    /// opened from Reference is rebuilt in the new mode so it keeps showing but
+    /// records progress under the new mode's ID; then the session restarts.
+    func applyConsonantMode() {
+        if case .consonant(let consonant, _) = overrideCard {
+            overrideCard = .consonant(consonant, includesName: settings.consonantNames)
+        }
+        resetToStart()
     }
 
     /// Reset to first card and update strategies (call when settings change)

@@ -7,6 +7,7 @@ import SwiftUI
 
 struct ConsonantFlashcardView: View {
     let consonant: Consonant
+    let includesName: Bool  // false: the card ends after the final sound
     let allConsonants: [Consonant]  // For generating quiz options
     var onViewInReference: ((String) -> Void)?
     var onComplete: ((Bool) -> Void)?
@@ -27,6 +28,7 @@ struct ConsonantFlashcardView: View {
 
     init(
         consonant: Consonant,
+        includesName: Bool,
         allConsonants: [Consonant],
         onViewInReference: ((String) -> Void)? = nil,
         onComplete: ((Bool) -> Void)? = nil,
@@ -34,6 +36,7 @@ struct ConsonantFlashcardView: View {
         onPrevious: @escaping () -> Void
     ) {
         self.consonant = consonant
+        self.includesName = includesName
         self.allConsonants = allConsonants
         self.onViewInReference = onViewInReference
         self.onComplete = onComplete
@@ -46,7 +49,7 @@ struct ConsonantFlashcardView: View {
                 selectedClass: consonant.consonantClass,
                 selectedInitial: consonant.initialSound,
                 selectedFinal: consonant.finalSound,
-                selectedTranscription: consonant.transcription
+                selectedTranscription: includesName ? consonant.transcription : nil
             ))
         } else {
             _cardState = State(initialValue: CardState())
@@ -73,6 +76,11 @@ struct ConsonantFlashcardView: View {
         }
         .onChange(of: consonant.id) { _, _ in
             // Reset state when card changes
+            cardState = CardState()
+            generateOptions()
+        }
+        .onChange(of: includesName) { _, _ in
+            // Same glyph, different card (its own progress): start over
             cardState = CardState()
             generateOptions()
         }
@@ -129,12 +137,14 @@ struct ConsonantFlashcardView: View {
                     correctValue: consonant.finalSound,
                     showResult: cardState.step == .completed
                 )
-                FlashcardSummaryRow(
-                    label: "Name",
-                    selectedValue: cardState.selectedTranscription,
-                    correctValue: consonant.transcription,
-                    showResult: cardState.step == .completed
-                )
+                if includesName {
+                    FlashcardSummaryRow(
+                        label: "Name",
+                        selectedValue: cardState.selectedTranscription,
+                        correctValue: consonant.transcription,
+                        showResult: cardState.step == .completed
+                    )
+                }
             }
         }
     }
@@ -206,7 +216,11 @@ struct ConsonantFlashcardView: View {
                 ForEach(finalSoundOptions, id: \.self) { sound in
                     FlashcardGridButton(label: sound) {
                         cardState.selectedFinal = sound
-                        cardState.step = .selectTranscription
+                        if includesName {
+                            cardState.step = .selectTranscription
+                        } else {
+                            completeCard()
+                        }
                     }
                 }
             }
@@ -378,6 +392,7 @@ extension CardState {
         if let first = consonants.first {
             ConsonantFlashcardView(
                 consonant: first,
+                includesName: true,
                 allConsonants: consonants,
                 onViewInReference: { _ in },
                 onNext: {},

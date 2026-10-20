@@ -180,7 +180,7 @@ struct SRSStatsView: View {
         let totalCards = displayedCards.count
         let familiarPercent = totalCards > 0 ? Int(Double(familiarCount) / Double(totalCards) * 100) : 0
         let masteredPercent = totalCards > 0 ? Int(Double(masteredCount) / Double(totalCards) * 100) : 0
-        let successRate = learningModel.overallSuccessRate
+        let successRate = learningModel.successRate(in: displayedCards)
 
         return VStack(spacing: 12) {
             HStack {
@@ -197,7 +197,7 @@ struct SRSStatsView: View {
                     value: successRate.map { "\(Int($0 * 100))%" } ?? "—",
                     color: .green
                 )
-                StatBox(title: "Cards Reviewed", value: "\(learningModel.reviewedCardCount)", color: .indigo)
+                StatBox(title: "Cards Reviewed", value: "\(learningModel.reviewedCardCount(in: displayedCards))", color: .indigo)
             }
         }
     }

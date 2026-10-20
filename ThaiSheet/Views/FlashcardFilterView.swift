@@ -31,13 +31,20 @@ struct FlashcardFilterView: View {
                 }
 
                 // Consonants
-                Section("Consonants") {
+                Section {
                     Toggle("Consonants", isOn: $settings.consonantsEnabled)
                     if settings.consonantsEnabled {
                         childToggle(title: "High", isOn: $settings.highConsonants)
                         childToggle(title: "Mid", isOn: $settings.midConsonants)
                         childToggle(title: "Low", isOn: $settings.lowConsonants)
                         childToggle(title: "Uncommon, rare & ancient", isOn: $settings.uncommonConsonants)
+                        childToggle(title: "Quiz consonant names", isOn: $settings.consonantNames)
+                    }
+                } header: {
+                    Text("Consonants")
+                } footer: {
+                    if settings.consonantsEnabled {
+                        Text("With names off, cards ask only the class and sounds. Each choice keeps its own progress.")
                     }
                 }
 

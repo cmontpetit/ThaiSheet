@@ -384,6 +384,7 @@ final class CardProgressTests: XCTestCase {
             sounds: ConsonantSoundsContainer(en: ConsonantSounds(initial: "g-", final: "-k")),
             sample: nil
         )
-        XCTAssertEqual(FlashcardItem.consonant(consonant).id, "consonant-ก")
+        XCTAssertEqual(FlashcardItem.consonant(consonant, includesName: true).id, "consonant-ก")
+        XCTAssertEqual(FlashcardItem.consonant(consonant, includesName: false).id, "consonantSound-ก")
     }
 }

@@ -23,11 +23,21 @@ extension FlashcardType {
     func cardId(for key: String) -> String {
         "\(idPrefix)-\(key)"
     }
+
+    /// Prefix of progress IDs for consonant cards that skip the name question.
+    /// Stored in user data (UserDefaults/iCloud) — never rename.
+    static let consonantSoundIDPrefix = "consonantSound"
+
+    /// Persisted progress ID for a consonant card. Cards that quiz the name keep
+    /// the original `consonant-` IDs; name-free cards have their own progress.
+    static func consonantCardId(for key: String, includesName: Bool) -> String {
+        includesName ? FlashcardType.consonant.cardId(for: key) : "\(consonantSoundIDPrefix)-\(key)"
+    }
 }
 
 /// A unified wrapper for all flashcard types
 enum FlashcardItem: Identifiable {
-    case consonant(Consonant)
+    case consonant(Consonant, includesName: Bool)
     case vowel(VowelCard)
     case toneMark(ToneMarkCard)
     case toneRule(ToneRuleCard)
@@ -35,7 +45,8 @@ enum FlashcardItem: Identifiable {
 
     var id: String {
         switch self {
-        case .consonant(let c): return FlashcardType.consonant.cardId(for: c.id)
+        case .consonant(let c, let includesName):
+            return FlashcardType.consonantCardId(for: c.id, includesName: includesName)
         case .vowel(let v): return FlashcardType.vowel.cardId(for: v.id)
         case .toneMark(let t): return FlashcardType.toneMark.cardId(for: t.id)
         case .toneRule(let t): return FlashcardType.toneRule.cardId(for: t.id)

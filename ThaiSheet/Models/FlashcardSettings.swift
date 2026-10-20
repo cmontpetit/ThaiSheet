@@ -15,6 +15,7 @@ class FlashcardSettings {
     static let syncedKeys: [String] = [
         "fc_consonantsEnabled", "fc_vowelsEnabled", "fc_tonesEnabled", "fc_clusters",
         "fc_highConsonants", "fc_midConsonants", "fc_lowConsonants", "fc_uncommonConsonants",
+        "fc_consonantNames",
         "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
@@ -58,6 +59,13 @@ class FlashcardSettings {
 
     var uncommonConsonants = true {
         didSet { persist(uncommonConsonants, forKey: "fc_uncommonConsonants") }
+    }
+
+    /// Whether consonant cards quiz the letter's name. A card mode, not a filter:
+    /// each mode keeps its own progress (`FlashcardItem.consonant(_:includesName:)`),
+    /// so select/deselect-all never touch it.
+    var consonantNames = true {
+        didSet { persist(consonantNames, forKey: "fc_consonantNames") }
     }
 
     // MARK: - Vowel Filters
@@ -319,6 +327,7 @@ class FlashcardSettings {
         midConsonants = defaults.object(forKey: "fc_midConsonants") as? Bool ?? true
         lowConsonants = defaults.object(forKey: "fc_lowConsonants") as? Bool ?? true
         uncommonConsonants = defaults.object(forKey: "fc_uncommonConsonants") as? Bool ?? true
+        consonantNames = defaults.object(forKey: "fc_consonantNames") as? Bool ?? true
 
         longVowels = defaults.object(forKey: "fc_longVowels") as? Bool ?? true
         shortVowels = defaults.object(forKey: "fc_shortVowels") as? Bool ?? true

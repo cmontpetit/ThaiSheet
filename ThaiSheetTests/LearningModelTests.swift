@@ -23,7 +23,7 @@ final class LearningModelTests: XCTestCase {
         // Load real data from bundle for FlashcardItem instances
         let consonants = Consonant.loadAll()
         XCTAssertFalse(consonants.isEmpty, "Need bundle data for tests")
-        testCards = consonants.prefix(5).map { FlashcardItem.consonant($0) }
+        testCards = consonants.prefix(5).map { FlashcardItem.consonant($0, includesName: true) }
     }
 
     override func tearDown() {
@@ -46,6 +46,33 @@ final class LearningModelTests: XCTestCase {
     func test_shortLivedSecondInstance_deinitializesSafely() {
         let secondaryModel = LearningModel(store: testDefaults)
         XCTAssertEqual(secondaryModel.totalReviews, 0)
+    }
+
+    // MARK: - Consonant modes
+
+    func test_consonantModes_keepSeparateProgress() {
+        guard case .consonant(let consonant, _) = card1 else { return XCTFail("Expected a consonant card") }
+        let soundCard = FlashcardItem.consonant(consonant, includesName: false)
+
+        model.recordResult(for: card1, correct: true, fullTesting: true)
+
+        XCTAssertEqual(model.srsStage(for: card1), .learning1)
+        XCTAssertEqual(model.srsStage(for: soundCard), .new, "The name-free card has its own progress")
+    }
+
+    func test_scopedStats_ignoreCardsOutsideTheList() {
+        guard case .consonant(let consonant, _) = card1 else { return XCTFail("Expected a consonant card") }
+        let soundCard = FlashcardItem.consonant(consonant, includesName: false)
+
+        model.recordResult(for: card1, correct: true, fullTesting: true)
+        model.recordResult(for: card2, correct: false, fullTesting: true)
+        model.recordResult(for: soundCard, correct: false, fullTesting: true)
+
+        XCTAssertEqual(model.reviewedCardCount(in: [card1, card2, card3]), 2)
+        XCTAssertEqual(model.successRate(in: [card1, card2, card3]) ?? -1, 0.5, accuracy: 0.0001)
+        XCTAssertEqual(model.reviewedCardCount(in: [soundCard]), 1)
+        XCTAssertEqual(model.successRate(in: [soundCard]) ?? -1, 0, accuracy: 0.0001)
+        XCTAssertNil(model.successRate(in: [card3]), "No reviews means no rate")
     }
 
     // MARK: - recordResult correct with full testing

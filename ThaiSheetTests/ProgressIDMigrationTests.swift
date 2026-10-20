@@ -293,6 +293,15 @@ final class ProgressIDMigrationTests: XCTestCase {
         XCTAssertNotNil(migrated["consonant-ก"], "Consonant keys never changed and pass through")
     }
 
+    func test_migration_keepsConsonantSoundKeysUnchanged() {
+        let stored = progress(for: ["consonantSound-ก", "consonant-ก"])
+
+        let migrated = ProgressIDMigration.migrate(stored)
+
+        XCTAssertEqual(Set(migrated.keys), ["consonantSound-ก", "consonant-ก"],
+                       "Name-free consonant progress is never re-keyed or merged into name-mode progress")
+    }
+
     func test_migration_collision_keepsMostRecentlyReviewed() {
         let legacy = "toneMark-ค่า"
         let durable = LegacyProgressIDs.upToV1_2[legacy]!
@@ -451,7 +460,8 @@ private enum BundledFixtures {
 private extension ThaiDataStore {
     /// Every card the catalog produces, for uniqueness checks.
     var allCardsForTesting: [FlashcardItem] {
-        consonants.map(FlashcardItem.consonant)
+        consonants.map { FlashcardItem.consonant($0, includesName: true) }
+            + consonants.map { FlashcardItem.consonant($0, includesName: false) }
             + vowelCards.map(FlashcardItem.vowel)
             + toneMarkCards.map(FlashcardItem.toneMark)
             + toneRuleCards.map(FlashcardItem.toneRule)

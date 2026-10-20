@@ -146,6 +146,22 @@ class LearningModel {
         return Double(correct) / Double(total)
     }
 
+    /// Number of the given cards reviewed at least once. Scoped to a card list so
+    /// records for cards outside it (filtered out, or the other consonant mode)
+    /// don't count.
+    func reviewedCardCount(in cards: [FlashcardItem]) -> Int {
+        cards.filter { getProgress(for: $0).totalReviews > 0 }.count
+    }
+
+    /// Success rate across all reviews of the given cards
+    func successRate(in cards: [FlashcardItem]) -> Double? {
+        let progress = cards.map { getProgress(for: $0) }
+        let total = progress.reduce(0) { $0 + $1.totalReviews }
+        guard total > 0 else { return nil }
+        let correct = progress.reduce(0) { $0 + $1.correctCount }
+        return Double(correct) / Double(total)
+    }
+
     /// Count of cards at each SRS stage (for statistics display)
     func cardCountByStage(in cards: [FlashcardItem]) -> [SRSStage: Int] {
         var counts: [SRSStage: Int] = [:]
