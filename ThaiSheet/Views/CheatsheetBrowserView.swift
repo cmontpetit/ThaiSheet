@@ -161,7 +161,8 @@ struct CheatsheetBrowserView: View {
             mode: settings.referenceSortMode,
             seed: settings.referenceShuffleSeed
         ) { consonant in
-            stageValue(forId: FlashcardType.consonant.cardId(for: consonant.id))
+            stageValue(forId: FlashcardType.consonantCardId(
+                for: consonant.id, includesName: settings.consonantNames))
         }
     }
 

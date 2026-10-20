@@ -164,9 +164,10 @@ struct FlashcardsView: View {
     @ViewBuilder
     private func flashcardContent(for card: FlashcardItem) -> some View {
         switch card {
-        case .consonant(let consonant):
+        case .consonant(let consonant, let includesName):
             ConsonantFlashcardView(
                 consonant: consonant,
+                includesName: includesName,
                 allConsonants: manager.data.consonants,
                 onViewInReference: { viewInReference($0, type: .consonant) },
                 onComplete: { recordAnswer(for: card, type: .consonant, correct: $0) },
@@ -427,6 +428,7 @@ struct ConsonantVowelSettingsModifier: ViewModifier {
             .onChange(of: manager.settings.midConsonants) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.lowConsonants) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.uncommonConsonants) { _, _ in manager.resetToStart() }
+            .onChange(of: manager.settings.consonantNames) { _, _ in manager.applyConsonantMode() }
             .onChange(of: manager.settings.longVowels) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.shortVowels) { _, _ in manager.resetToStart() }
             .onChange(of: manager.settings.uncommonVowels) { _, _ in manager.resetToStart() }

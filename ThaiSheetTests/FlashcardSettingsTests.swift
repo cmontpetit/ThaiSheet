@@ -599,6 +599,35 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertEqual(settings.voiceOverride(for: "cluster-กร"), .matilda)
     }
 
+    // MARK: - Consonant Names Mode
+
+    func test_consonantNames_defaultsToTrue() {
+        XCTAssertTrue(settings.consonantNames)
+    }
+
+    func test_consonantNames_persistsAndIsSynced() {
+        settings.consonantNames = false
+        XCTAssertEqual(defaults.object(forKey: "fc_consonantNames") as? Bool, false)
+        XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_consonantNames"))
+    }
+
+    func test_reload_picksUpExternalConsonantNamesChange() {
+        defaults.set(false, forKey: "fc_consonantNames")
+        settings.reload()
+        XCTAssertFalse(settings.consonantNames)
+    }
+
+    func test_consonantNames_isNotAFilter() {
+        settings.consonantNames = false
+        settings.selectAll()
+        XCTAssertFalse(settings.consonantNames, "Select All must not switch the card mode")
+        XCTAssertTrue(settings.isAllSelected)
+
+        settings.consonantNames = true
+        settings.deselectAll()
+        XCTAssertTrue(settings.consonantNames, "Deselect All must not switch the card mode")
+    }
+
     func test_syncedKeys_containsVoiceOverrides() {
         XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_voiceOverrides"))
     }

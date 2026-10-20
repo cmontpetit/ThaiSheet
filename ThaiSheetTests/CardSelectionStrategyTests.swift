@@ -55,7 +55,7 @@ final class SequentialStrategyTests: XCTestCase {
 
         let consonants = Consonant.loadAll()
         XCTAssertFalse(consonants.isEmpty, "Need bundle data for tests")
-        testCards = consonants.prefix(5).map { FlashcardItem.consonant($0) }
+        testCards = consonants.prefix(5).map { FlashcardItem.consonant($0, includesName: true) }
 
         strategy.update(cards: testCards, learningModel: learningModel)
     }
@@ -276,7 +276,7 @@ final class WanikaniStrategyTests: XCTestCase {
 
         let consonants = Consonant.loadAll()
         XCTAssertFalse(consonants.isEmpty, "Need bundle data for tests")
-        testCards = consonants.prefix(10).map { FlashcardItem.consonant($0) }
+        testCards = consonants.prefix(10).map { FlashcardItem.consonant($0, includesName: true) }
 
         strategy.update(cards: testCards, learningModel: learningModel)
     }
