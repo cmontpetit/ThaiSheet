@@ -33,6 +33,10 @@
           "final": "-k"
         }
       },
+      "note": {
+        "en": "Obsolete letter. คน was once spelled ฅน, but modern Thai writes it with ค.",
+        "fr": "Lettre obsolète. คน s’écrivait autrefois ฅน, mais le thaï moderne l’écrit avec ค."
+      },
       "sample": {
         "word": "คน",
         "romanization": "khon",
@@ -725,6 +729,10 @@
           "initial": "kh-",
           "final": "-k"
         }
+      },
+      "note": {
+        "en": "Obsolete letter. Modern Thai writes ขวด with ข.",
+        "fr": "Lettre obsolète. Le thaï moderne écrit ขวด avec ข."
       },
       "sample": {
         "word": "ขวด",
