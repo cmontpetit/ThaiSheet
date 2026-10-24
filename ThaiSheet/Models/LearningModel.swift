@@ -61,14 +61,15 @@ class LearningModel {
 
     // MARK: - Public API
 
-    /// Maximum stage allowed for partial testing (capped at Familiar 2)
-    private static let partialTestingMaxStage: SRSStage = .familiar2
+    /// Maximum stage partial testing can advance a card to (Apprentice 2, a 2-day interval)
+    static let partialTestingMaxStage: SRSStage = .apprentice2
 
     /// Record a result for a card using Wanikani-style SRS
     /// - Parameters:
     ///   - card: The flashcard item
     ///   - correct: Whether the answer was correct
-    ///   - fullTesting: If false, advancement is capped at Familiar 2 (can't reach Confident/Mastered)
+    ///   - fullTesting: If false, advancement is capped at Apprentice 2; a correct
+    ///     answer never lowers a stage already earned under full testing
     func recordResult(for card: FlashcardItem, correct: Bool, fullTesting: Bool = true) {
         var progress = progressByCardId[card.id] ?? CardProgress(cardId: card.id)
 
@@ -78,7 +79,7 @@ class LearningModel {
 
             // Cap advancement for partial testing
             if !fullTesting && newStage > LearningModel.partialTestingMaxStage {
-                newStage = LearningModel.partialTestingMaxStage
+                newStage = max(progress.srsStage, LearningModel.partialTestingMaxStage)
             }
 
             progress.srsStage = newStage

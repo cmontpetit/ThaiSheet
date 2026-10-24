@@ -272,7 +272,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - Stage 0 (New) = never reviewed
 
 **Capped advancement:**
-- When filters make questions trivial (e.g., only one consonant class enabled), advancement is capped at Familiar 2 (stage 6)
+- When filters give away part of an answer (any consonant or tone-rule class disabled, or only one vowel duration enabled), advancement is capped at Apprentice 2 (stage 4, 2-day interval). A correct answer under a cap never lowers a stage earned under full testing
 - This prevents "gaming" the system by using narrow filters
 - Full testing (multiple options per question) required to reach Confident/Mastered
 

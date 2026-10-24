@@ -310,11 +310,11 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.isPartialTesting(for: .consonant))
     }
 
-    func test_isPartialTesting_consonant_falseWhenMultipleClassesEnabled() {
+    func test_isPartialTesting_consonant_trueWhenTwoClassesEnabled() {
         settings.highConsonants = true
         settings.midConsonants = true
         settings.lowConsonants = false
-        XCTAssertFalse(settings.isPartialTesting(for: .consonant))
+        XCTAssertTrue(settings.isPartialTesting(for: .consonant))
     }
 
     func test_isPartialTesting_consonant_falseWhenAllClassesEnabled() {
@@ -349,10 +349,17 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.isPartialTesting(for: .toneRule))
     }
 
-    func test_isPartialTesting_toneRule_falseWhenMultipleClassesEnabled() {
+    func test_isPartialTesting_toneRule_trueWhenTwoClassesEnabled() {
         settings.highToneRules = true
         settings.midToneRules = true
         settings.lowToneRules = false
+        XCTAssertTrue(settings.isPartialTesting(for: .toneRule))
+    }
+
+    func test_isPartialTesting_toneRule_falseWhenAllClassesEnabled() {
+        settings.highToneRules = true
+        settings.midToneRules = true
+        settings.lowToneRules = true
         XCTAssertFalse(settings.isPartialTesting(for: .toneRule))
     }
 
