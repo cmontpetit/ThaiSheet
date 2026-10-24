@@ -458,7 +458,7 @@ struct StageIndicatorView: View {
     let isCapped: Bool
 
     /// The stage at which partial testing caps advancement
-    private static let cappedStage: SRSStage = .familiar2
+    private static let cappedStage = LearningModel.partialTestingMaxStage
 
     var body: some View {
         VStack(spacing: 2) {
@@ -532,7 +532,7 @@ struct StageIndicatorView: View {
 
         // Stage indicators - capped
         Text("Partial Testing (Capped)").font(.caption).foregroundColor(.secondary)
-        ForEach([SRSStage.learning1, .familiar1, .familiar2], id: \.rawValue) { stage in
+        ForEach([SRSStage.learning1, .apprentice1, .apprentice2], id: \.rawValue) { stage in
             StageIndicatorView(stage: stage, isCapped: true)
         }
     }

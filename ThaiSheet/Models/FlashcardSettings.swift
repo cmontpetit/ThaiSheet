@@ -517,8 +517,8 @@ class FlashcardSettings {
     func isPartialTesting(for cardType: FlashcardType) -> Bool {
         switch cardType {
         case .consonant:
-            // Class question is trivial if only one consonant class is enabled
-            return enabledConsonantClassCount == 1
+            // Class question is partly given away when any consonant class is disabled
+            return enabledConsonantClassCount < 3
 
         case .vowel:
             // Duration question is trivial if only one duration is enabled
@@ -528,7 +528,7 @@ class FlashcardSettings {
             return false
 
         case .toneRule:
-            return enabledToneRuleClassCount == 1
+            return enabledToneRuleClassCount < 3
 
         case .cluster:
             return false
