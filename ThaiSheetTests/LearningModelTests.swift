@@ -147,37 +147,49 @@ final class LearningModelTests: XCTestCase {
 
     // MARK: - recordResult with partial testing (fullTesting: false)
 
-    func test_recordResult_correctPartialTesting_capsAtFamiliar2() {
-        // Advance to familiar2 with partial testing
-        for _ in 0..<6 {
+    func test_recordResult_correctPartialTesting_capsAtApprentice2() {
+        // Advance to apprentice2 with partial testing
+        for _ in 0..<4 {
             model.recordResult(for: card1, correct: true, fullTesting: false)
         }
-        XCTAssertEqual(model.srsStage(for: card1), .familiar2)
+        XCTAssertEqual(model.srsStage(for: card1), .apprentice2)
 
-        // Another correct should NOT advance beyond familiar2
+        // Another correct should NOT advance beyond apprentice2
         model.recordResult(for: card1, correct: true, fullTesting: false)
-        XCTAssertEqual(model.srsStage(for: card1), .familiar2,
-                       "Partial testing should cap at familiar2")
+        XCTAssertEqual(model.srsStage(for: card1), .apprentice2,
+                       "Partial testing should cap at apprentice2")
     }
 
-    func test_recordResult_partialTesting_doesNotReachConfident() {
+    func test_recordResult_partialTesting_doesNotReachFamiliar() {
         // Try 20 correct answers with partial testing
         for _ in 0..<20 {
             model.recordResult(for: card1, correct: true, fullTesting: false)
         }
-        XCTAssertEqual(model.srsStage(for: card1), .familiar2)
-        XCTAssertTrue(model.srsStage(for: card1) < .confident)
+        XCTAssertEqual(model.srsStage(for: card1), .apprentice2)
+        XCTAssertTrue(model.srsStage(for: card1) < .familiar1)
     }
 
     func test_recordResult_partialTesting_thenFullTesting_canAdvancePastCap() {
-        // First get to familiar2 with partial testing
+        // First get to apprentice2 with partial testing
         for _ in 0..<10 {
             model.recordResult(for: card1, correct: true, fullTesting: false)
         }
-        XCTAssertEqual(model.srsStage(for: card1), .familiar2)
+        XCTAssertEqual(model.srsStage(for: card1), .apprentice2)
 
-        // Then full testing should allow advancement to confident
+        // Then full testing should allow advancement to familiar1
         model.recordResult(for: card1, correct: true, fullTesting: true)
+        XCTAssertEqual(model.srsStage(for: card1), .familiar1)
+    }
+
+    func test_recordResult_correctPartialTesting_neverLowersStageEarnedAboveCap() {
+        // Earn confident under full testing
+        for _ in 0..<7 {
+            model.recordResult(for: card1, correct: true, fullTesting: true)
+        }
+        XCTAssertEqual(model.srsStage(for: card1), .confident)
+
+        // A correct answer under partial testing holds the stage instead of capping it down
+        model.recordResult(for: card1, correct: true, fullTesting: false)
         XCTAssertEqual(model.srsStage(for: card1), .confident)
     }
 
