@@ -142,6 +142,23 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertFalse(settings.isConsonantEnabled(uncommonConsonant))
     }
 
+    func test_isConsonantEnabled_uncommonConsonant_respectsClassFilter() {
+        let consonants = Consonant.loadAll()
+        guard let uncommonLow = consonants.first(where: {
+            $0.consonantClass == .low && $0.usage != .common
+        }) else {
+            XCTFail("No uncommon low consonant found in data")
+            return
+        }
+
+        settings.uncommonConsonants = true
+        settings.lowConsonants = false
+        XCTAssertFalse(settings.isConsonantEnabled(uncommonLow))
+
+        settings.lowConsonants = true
+        XCTAssertTrue(settings.isConsonantEnabled(uncommonLow))
+    }
+
     func test_isConsonantEnabled_disabledWhenConsonantsParentOff() {
         let consonants = Consonant.loadAll()
         let anyConsonant = consonants[0]

@@ -38,6 +38,7 @@ struct FlashcardFilterView: View {
                         childToggle(title: "Mid", isOn: $settings.midConsonants)
                         childToggle(title: "Low", isOn: $settings.lowConsonants)
                         childToggle(title: "Uncommon, rare & ancient", isOn: $settings.uncommonConsonants)
+                            .disabled(!settings.highConsonants && !settings.midConsonants && !settings.lowConsonants)
                         childToggle(title: "Quiz consonant names", isOn: $settings.consonantNames)
                     }
                 } header: {
@@ -55,6 +56,7 @@ struct FlashcardFilterView: View {
                         childToggle(title: "Long", isOn: $settings.longVowels)
                         childToggle(title: "Short", isOn: $settings.shortVowels)
                         childToggle(title: "Uncommon, rare & archaic", isOn: $settings.uncommonVowels)
+                            .disabled(!settings.longVowels && !settings.shortVowels)
                     }
                 }
 

@@ -378,24 +378,17 @@ class FlashcardSettings {
     func isConsonantEnabled(_ consonant: Consonant) -> Bool {
         guard consonantsEnabled else { return false }
 
-        // Class-based filters apply to COMMON consonants
-        if consonant.usage == .common {
-            switch consonant.consonantClass {
-            case .high:
-                if highConsonants { return true }
-            case .mid:
-                if midConsonants { return true }
-            case .low:
-                if lowConsonants { return true }
-            }
+        // Check usage filter first - uncommon/rare/ancient consonants need the toggle enabled
+        if consonant.usage != .common && !uncommonConsonants {
+            return false
         }
 
-        // Uncommon/rare/ancient filter applies regardless of class
-        if consonant.usage != .common && uncommonConsonants {
-            return true
+        // Then check class filter
+        switch consonant.consonantClass {
+        case .high: return highConsonants
+        case .mid: return midConsonants
+        case .low: return lowConsonants
         }
-
-        return false
     }
 
     func isVowelCardEnabled(duration: VowelCard.VowelDuration, isUncommon: Bool) -> Bool {
