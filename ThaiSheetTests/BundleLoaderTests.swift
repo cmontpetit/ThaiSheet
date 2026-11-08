@@ -77,6 +77,15 @@ final class BundleLoaderTests: XCTestCase {
 
     // MARK: - Vowel Loading
 
+    func test_consonantLoadAll_obsoleteLettersCarryTranslatedNotes() {
+        let consonants = Consonant.loadAll()
+        for character in ["ฅ", "ฃ"] {
+            let note = consonants.first { $0.character == character }?.note
+            XCTAssertNotNil(note, "\(character) should explain its modern-spelling sample word")
+            XCTAssertNotNil(note?.fr, "\(character) note should have a French translation")
+        }
+    }
+
     func test_vowelLoadAll_returnsNonEmptyArray() {
         let vowels = Vowel.loadAll()
         XCTAssertFalse(vowels.isEmpty)

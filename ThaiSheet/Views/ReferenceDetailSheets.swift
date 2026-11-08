@@ -48,7 +48,7 @@ struct ConsonantDetailSheet: View {
             title: consonant.character,
             romanization: consonant.transcription,
             stage: stage,
-            note: nil,
+            note: consonant.note?.localized,
             primaryAudio: ReferencePrimaryAudio(
                 role: .name,
                 hasSound: hasSound,

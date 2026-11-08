@@ -70,6 +70,9 @@ struct Consonant: Codable, Identifiable {
     let usage: ConsonantUsage
     let sounds: ConsonantSoundsContainer
     let sample: ReferenceSampleWord?
+    /// Shown in the detail sheet (e.g. why an obsolete letter's sample word
+    /// is spelled with its modern replacement).
+    var note: LocalizedText? = nil
 
     var id: String { character }
 

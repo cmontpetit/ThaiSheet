@@ -33,6 +33,10 @@
           "final": "-k"
         }
       },
+      "note": {
+        "en": "Obsolete letter. Modern Thai writes คน with ค.",
+        "fr": "Lettre obsolète. Le thaï moderne écrit คน avec ค."
+      },
       "sample": {
         "word": "คน",
         "romanization": "khon",
@@ -725,6 +729,10 @@
           "initial": "kh-",
           "final": "-k"
         }
+      },
+      "note": {
+        "en": "Obsolete letter. Modern Thai writes ขวด with ข.",
+        "fr": "Lettre obsolète. Le thaï moderne écrit ขวด avec ข."
       },
       "sample": {
         "word": "ขวด",
