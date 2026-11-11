@@ -90,7 +90,7 @@ Candidate sets can be written safely below `scratchpad/` with `--output-dir` and
 compared with the bundled set using `scripts/generate_sound_review.py`.
 
 To review the real-word vowel pronunciation mapping, build the dedicated
-73-variant page. It uses the existing
+72-variant page. It uses the existing
 per-form sample words as initial candidates and compares their candidate voice
 recordings with the bundled vowel-word recordings:
 

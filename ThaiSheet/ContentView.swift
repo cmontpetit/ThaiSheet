@@ -143,7 +143,7 @@ struct FlashcardsView: View {
     @ViewBuilder
     private func stageIndicator(for card: FlashcardItem) -> some View {
         let stage = manager.learningModel.srsStage(for: card)
-        let isCapped = manager.settings.isPartialTesting(for: card.type)
+        let isCapped = manager.settings.isPartialTesting(forCard: card)
         StageIndicatorView(stage: stage, isCapped: isCapped)
     }
 
@@ -155,7 +155,7 @@ struct FlashcardsView: View {
 
     /// Record a quiz answer and give haptic feedback
     private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
-        let fullTesting = !manager.settings.isPartialTesting(for: type)
+        let fullTesting = !manager.settings.isPartialTesting(forCard: card)
         manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
         UINotificationFeedbackGenerator().notificationOccurred(correct ? .success : .error)
     }

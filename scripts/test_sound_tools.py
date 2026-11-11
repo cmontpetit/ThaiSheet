@@ -36,12 +36,12 @@ class SoundInventoryTests(unittest.TestCase):
         cls.by_id = {item.id: item for item in cls.items}
 
     def test_inventory_matches_bundled_files(self):
-        self.assertEqual(len(self.items), 388)
+        self.assertEqual(len(self.items), 387)
         expected = expected_bundled_filenames(self.items)
         existing = {path.name for path in SOUNDS_DIR.glob("*.mp3")}
         self.assertEqual(expected, existing)
         self.assertEqual(BUNDLED_VOICE_KEYS, ("neural2", "kore", "matilda"))
-        self.assertEqual(sum(name.endswith("_neural2.mp3") for name in expected), 388)
+        self.assertEqual(sum(name.endswith("_neural2.mp3") for name in expected), 387)
 
     def test_synthesis_rules_are_preserved(self):
         self.assertEqual(self.by_id["consonant:ก"].synthesis_text, "กอ ไก่")
@@ -129,10 +129,10 @@ class SoundGeneratorTests(unittest.TestCase):
 class SoundCatalogTests(unittest.TestCase):
     def test_catalog_contains_hashes_and_metadata(self):
         catalog = build_catalog(SOUNDS_DIR, METADATA_PATH)
-        self.assertEqual(len(catalog["items"]), 388)
+        self.assertEqual(len(catalog["items"]), 387)
         self.assertEqual(catalog["schemaVersion"], 2)
         self.assertEqual(catalog["defaultVoice"], "matilda")
-        self.assertEqual(catalog["fileCount"], 1164)
+        self.assertEqual(catalog["fileCount"], 1161)
         self.assertEqual(
             {voice["key"] for voice in catalog["voices"]},
             set(BUNDLED_VOICE_KEYS),
@@ -167,7 +167,7 @@ class VowelPronunciationReviewTests(unittest.TestCase):
         cls.candidates = load_candidates()
 
     def test_includes_every_displayed_vowel_variant(self):
-        self.assertEqual(len(self.candidates), 73)
+        self.assertEqual(len(self.candidates), 72)
 
     def test_duplicate_spelling_keeps_distinct_pronunciation_words(self):
         closed_er = [

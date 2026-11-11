@@ -60,7 +60,7 @@ struct VowelFlashcardView: View {
 
     private var vowelCardView: some View {
         FlashcardFace(
-            showResult: cardState.step == .completed,
+            showResult: currentStep == .completed,
             hasError: cardState.hasError(for: card),
             soundType: .vowel,
             soundKey: card.pronunciationWord?.word ?? "",
@@ -81,33 +81,37 @@ struct VowelFlashcardView: View {
     private var summarySection: some View {
         VStack(alignment: .leading, spacing: 8) {
             FlashcardSummaryHeader(
-                showReveal: cardState.step != .completed,
+                showReveal: currentStep != .completed,
                 onReveal: { completeCardEarly() }
             )
 
             FlashcardSummaryGrid {
-                FlashcardSummaryRow(
-                    label: "Duration",
-                    selectedValue: cardState.selectedDuration?.label,
-                    correctValue: card.duration.label,
-                    showResult: cardState.step == .completed,
-                    alternativeCorrectValue: card.alternativeDuration?.label
-                )
-                FlashcardSummaryRow(
-                    label: "Form",
-                    selectedValue: cardState.selectedForm?.label,
-                    correctValue: card.form.label,
-                    showResult: cardState.step == .completed
-                )
+                if card.asksDuration {
+                    FlashcardSummaryRow(
+                        label: "Duration",
+                        selectedValue: cardState.selectedDuration?.label,
+                        correctValue: card.duration.label,
+                        showResult: currentStep == .completed,
+                        alternativeCorrectValue: card.alternativeDuration?.label
+                    )
+                }
+                if card.asksForm {
+                    FlashcardSummaryRow(
+                        label: "Form",
+                        selectedValue: cardState.selectedForm?.label,
+                        correctValue: card.form.label,
+                        showResult: currentStep == .completed
+                    )
+                }
                 FlashcardSummaryRow(
                     label: "Sound",
                     selectedValue: cardState.selectedSound,
                     correctValue: card.vowel.sound,
-                    showResult: cardState.step == .completed
+                    showResult: currentStep == .completed
                 )
 
                 // Show note if available and card is completed
-                if cardState.step == .completed,
+                if currentStep == .completed,
                    let note = card.vowel.note(for: card.duration.rawValue, form: card.form.rawValue) {
                     Divider()
                     Text(note)
@@ -121,9 +125,14 @@ struct VowelFlashcardView: View {
 
     // MARK: - Selection Area
 
+    /// The step on screen. A fresh card starts at the first question it asks.
+    private var currentStep: VowelCardState.Step {
+        cardState.step ?? card.firstStep
+    }
+
     @ViewBuilder
     private var selectionArea: some View {
-        switch cardState.step {
+        switch currentStep {
         case .selectDuration:
             durationSelectionView
         case .selectForm:
@@ -143,7 +152,7 @@ struct VowelFlashcardView: View {
                 ForEach(VowelCard.VowelDuration.allCases, id: \.self) { duration in
                     FlashcardSelectionButton(label: duration.label) {
                         cardState.selectedDuration = duration
-                        cardState.step = .selectForm
+                        cardState.step = card.asksForm ? .selectForm : .selectSound
                     }
                 }
             }
@@ -153,10 +162,10 @@ struct VowelFlashcardView: View {
     // MARK: - Form Selection
 
     private var formSelectionView: some View {
-        FlashcardStepSection(title: "Select the form", onBack: {
+        FlashcardStepSection(title: "Select the form", onBack: card.asksDuration ? {
             cardState.selectedDuration = nil
             cardState.step = .selectDuration
-        }) {
+        } : nil) {
             HStack(spacing: 12) {
                 ForEach(VowelCard.VowelFormType.allCases, id: \.self) { form in
                     FlashcardSelectionButton(label: form.label) {
@@ -171,10 +180,7 @@ struct VowelFlashcardView: View {
     // MARK: - Sound Selection
 
     private var soundSelectionView: some View {
-        FlashcardStepSection(title: "Select the sound", onBack: {
-            cardState.selectedForm = nil
-            cardState.step = .selectForm
-        }) {
+        FlashcardStepSection(title: "Select the sound", onBack: soundStepBack) {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(soundOptions, id: \.self) { sound in
@@ -185,6 +191,23 @@ struct VowelFlashcardView: View {
                 }
             }
         }
+    }
+
+    /// Back from the sound step returns to the previous question the card asks.
+    private var soundStepBack: (() -> Void)? {
+        if card.asksForm {
+            return {
+                cardState.selectedForm = nil
+                cardState.step = .selectForm
+            }
+        }
+        if card.asksDuration {
+            return {
+                cardState.selectedDuration = nil
+                cardState.step = .selectDuration
+            }
+        }
+        return nil
     }
 
     // MARK: - Card Completion
@@ -248,10 +271,19 @@ struct VowelCardState {
         case completed
     }
 
-    var step: Step = .selectDuration
+    /// Nil until the first answer: the view then shows the card's first step.
+    var step: Step? = nil
     var selectedDuration: VowelCard.VowelDuration? = nil
     var selectedForm: VowelCard.VowelFormType? = nil
     var selectedSound: String? = nil
+}
+
+extension VowelCard {
+    /// The first question this card asks.
+    var firstStep: VowelCardState.Step {
+        if asksDuration { return .selectDuration }
+        return asksForm ? .selectForm : .selectSound
+    }
 }
 
 extension VowelCardState {

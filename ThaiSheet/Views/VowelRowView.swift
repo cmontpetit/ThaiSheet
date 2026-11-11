@@ -132,6 +132,28 @@ struct VowelHeaderView: View {
     }
 }
 
+/// Section header for the vowel-plus-ending combinations (ไ◌, เ◌า, ◌ำ, ◌าย, …)
+struct VowelCombinationHeaderView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Vowel + ending")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+            Text("These spellings include their ending: no final consonant follows. They count as live syllables for tone.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .textCase(nil)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // Opaque: the header pins while scrolling and rows pass beneath it
+        .background(Color(.systemBackground))
+        .listRowInsets(EdgeInsets())
+    }
+}
+
 struct VowelRowView: View {
     let vowel: Vowel
     var highlightedForm: String? = nil
@@ -268,17 +290,24 @@ struct VowelRowView: View {
     }
 
     private var shortCells: some View {
-        HStack(spacing: 0) {
-            vowelCell(vowel.short.closed, formType: .shortClosed)
-            vowelCell(vowel.short.open, formType: .shortOpen)
-        }
-        .frame(maxWidth: .infinity)
+        cells([(vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen)])
     }
 
     private var longCells: some View {
-        HStack(spacing: 0) {
-            vowelCell(vowel.long.closed, formType: .longClosed)
-            vowelCell(vowel.long.open, formType: .longOpen)
+        cells([(vowel.long.closed, .longClosed), (vowel.long.open, .longOpen)])
+    }
+
+    /// One duration's cells. Basic vowels keep the Closed/Open columns; a
+    /// combination row has no such columns, so it shows only its real forms.
+    private func cells(_ slots: [(text: String?, formType: VowelFormVariant)]) -> some View {
+        let shown = vowel.isCombination ? slots.filter { $0.text != nil } : slots
+        return HStack(spacing: 0) {
+            if shown.isEmpty {
+                vowelCell(nil, formType: slots[0].formType)
+            }
+            ForEach(shown.indices, id: \.self) { index in
+                vowelCell(shown[index].text, formType: shown[index].formType)
+            }
         }
         .frame(maxWidth: .infinity)
     }

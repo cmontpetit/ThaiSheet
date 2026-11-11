@@ -316,3 +316,16 @@ enum LegacyProgressIDs {
         "vowel-uy-กุย": "vowel-uy",
     ]
 }
+
+extension LegacyProgressIDs {
+    /// Durable progress IDs whose card was removed from the catalog. Stored
+    /// progress under them is kept (migration is lossless) but no card may
+    /// ever use one again: a new card on a retired ID would inherit a
+    /// different item's history.
+    ///
+    /// - `vowel-uay:Long:Closed`: กวาย, removed in the release after v1.2.1.
+    ///   It was never a vowel form (ควาย is the cluster คว- plus ◌าย).
+    static let retiredProgressIDs: Set<String> = [
+        "vowel-uay:Long:Closed",
+    ]
+}
