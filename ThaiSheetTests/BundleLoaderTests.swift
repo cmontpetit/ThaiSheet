@@ -433,9 +433,21 @@ final class BundleLoaderTests: XCTestCase {
     }
 
     func test_chadaaTranscription_marksHighToneOnFirstSyllable() {
-        // ช + short + dead → high tone: chá, matching the khǎaw rá khang precedent
+        // ช + short + dead → high tone: chá, matching the khǎaw rá-khang precedent
         let chada = Consonant.loadAll().first { $0.character == "ฎ" }
         XCTAssertEqual(chada?.transcription, "daaw chá-daa")
+    }
+
+    func test_consonantTranscription_isLetterNamePlusTheSampleWordReading() {
+        // One space separates the letter name from the word; syllables inside
+        // the word are hyphenated. The word part must equal the sample's own
+        // romanization, so the two cannot drift apart.
+        for consonant in Consonant.loadAll() {
+            let parts = consonant.transcription.split(separator: " ").map(String.init)
+            XCTAssertEqual(parts.count, 2, "\(consonant.character): \(consonant.transcription)")
+            XCTAssertEqual(parts.last, consonant.sample?.romanization,
+                           "\(consonant.character) transcription and sample romanization differ")
+        }
     }
 
     func test_saraAm_isShortClosedOnly() {

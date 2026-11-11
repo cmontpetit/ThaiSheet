@@ -49,7 +49,7 @@
     {
       "character": "ฆ",
       "name": "ฆอ ระฆัง",
-      "transcription": "khaaw rá khang",
+      "transcription": "khaaw rá-khang",
       "class": "low",
       "usage": "uncommon",
       "sounds": {
@@ -60,7 +60,7 @@
       },
       "sample": {
         "word": "ระฆัง",
-        "romanization": "rá khang",
+        "romanization": "rá-khang",
         "meaning": {
           "en": "bell",
           "fr": "cloche"
@@ -133,7 +133,7 @@
     {
       "character": "ฌ",
       "name": "ฌอ เฌอ",
-      "transcription": "chaaw chuuhr",
+      "transcription": "chaaw cheer",
       "class": "low",
       "usage": "rare",
       "sounds": {
@@ -144,7 +144,7 @@
       },
       "sample": {
         "word": "เฌอ",
-        "romanization": "chuuhr",
+        "romanization": "cheer",
         "meaning": {
           "en": "tree",
           "fr": "arbre"
@@ -175,7 +175,7 @@
     {
       "character": "ฑ",
       "name": "ฑอ มณโฑ",
-      "transcription": "thaaw mohn-thoh",
+      "transcription": "thaaw mon-thoh",
       "class": "low",
       "usage": "rare",
       "sounds": {
@@ -190,7 +190,7 @@
       },
       "sample": {
         "word": "มณโฑ",
-        "romanization": "mohn-thoh",
+        "romanization": "mon-thoh",
         "meaning": {
           "en": "Montho",
           "fr": "Montho"
@@ -200,7 +200,7 @@
     {
       "character": "ฒ",
       "name": "ฒอ ผู้เฒ่า",
-      "transcription": "thaaw phûu thâo",
+      "transcription": "thaaw phûu-thâo",
       "class": "low",
       "usage": "rare",
       "sounds": {
@@ -211,7 +211,7 @@
       },
       "sample": {
         "word": "ผู้เฒ่า",
-        "romanization": "phûu thâo",
+        "romanization": "phûu-thâo",
         "meaning": {
           "en": "elder",
           "fr": "personne âgée"
@@ -221,7 +221,7 @@
     {
       "character": "ณ",
       "name": "ณอ เณร",
-      "transcription": "naaw neehn",
+      "transcription": "naaw neen",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -232,7 +232,7 @@
       },
       "sample": {
         "word": "เณร",
-        "romanization": "neehn",
+        "romanization": "neen",
         "meaning": {
           "en": "novice monk",
           "fr": "novice moine"
@@ -242,7 +242,7 @@
     {
       "character": "ท",
       "name": "ทอ ทหาร",
-      "transcription": "thaaw tha-hǎan",
+      "transcription": "thaaw thá-hǎan",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -253,7 +253,7 @@
       },
       "sample": {
         "word": "ทหาร",
-        "romanization": "tha-hǎan",
+        "romanization": "thá-hǎan",
         "meaning": {
           "en": "soldier",
           "fr": "soldat"
@@ -263,7 +263,7 @@
     {
       "character": "ธ",
       "name": "ธอ ธง",
-      "transcription": "thaaw thohng",
+      "transcription": "thaaw thong",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -274,7 +274,7 @@
       },
       "sample": {
         "word": "ธง",
-        "romanization": "thohng",
+        "romanization": "thong",
         "meaning": {
           "en": "flag",
           "fr": "drapeau"
@@ -347,7 +347,7 @@
     {
       "character": "ภ",
       "name": "ภอ สำเภา",
-      "transcription": "phaaw sǎm phao",
+      "transcription": "phaaw sǎm-phao",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -358,7 +358,7 @@
       },
       "sample": {
         "word": "สำเภา",
-        "romanization": "sǎm phao",
+        "romanization": "sǎm-phao",
         "meaning": {
           "en": "junk boat",
           "fr": "jonque"
@@ -452,7 +452,7 @@
     {
       "character": "ว",
       "name": "วอ แหวน",
-      "transcription": "waaw wǎen",
+      "transcription": "waaw wǎaen",
       "class": "low",
       "usage": "common",
       "sounds": {
@@ -463,7 +463,7 @@
       },
       "sample": {
         "word": "แหวน",
-        "romanization": "wǎen",
+        "romanization": "wǎaen",
         "meaning": {
           "en": "ring",
           "fr": "bague"
@@ -568,7 +568,7 @@
       },
       "sample": {
         "word": "ชฎา",
-        "romanization": "cha-daa",
+        "romanization": "chá-daa",
         "meaning": {
           "en": "headdress",
           "fr": "coiffe"
@@ -578,7 +578,7 @@
     {
       "character": "ฏ",
       "name": "ฏอ ปฏัก",
-      "transcription": "dtaaw bpà dtàk",
+      "transcription": "dtaaw bpà-dtàk",
       "class": "mid",
       "usage": "uncommon",
       "sounds": {
@@ -589,7 +589,7 @@
       },
       "sample": {
         "word": "ปฏัก",
-        "romanization": "bpà dtàk",
+        "romanization": "bpà-dtàk",
         "meaning": {
           "en": "goad",
           "fr": "aiguillon"
@@ -641,7 +641,7 @@
     {
       "character": "บ",
       "name": "บอ ใบไม้",
-      "transcription": "baaw bai mái",
+      "transcription": "baaw bai-mái",
       "class": "mid",
       "usage": "common",
       "sounds": {
@@ -652,7 +652,7 @@
       },
       "sample": {
         "word": "ใบไม้",
-        "romanization": "bai mái",
+        "romanization": "bai-mái",
         "meaning": {
           "en": "leaf",
           "fr": "feuille"
@@ -725,7 +725,7 @@
     {
       "character": "ฃ",
       "name": "ฃอ ขวด",
-      "transcription": "khǎaw khùaat",
+      "transcription": "khǎaw khùat",
       "class": "high",
       "usage": "ancient",
       "sounds": {
@@ -740,7 +740,7 @@
       },
       "sample": {
         "word": "ขวด",
-        "romanization": "khùaat",
+        "romanization": "khùat",
         "meaning": {
           "en": "bottle",
           "fr": "bouteille"
@@ -855,7 +855,7 @@
     {
       "character": "ศ",
       "name": "ศอ ศาลา",
-      "transcription": "sǎaw sǎa laa",
+      "transcription": "sǎaw sǎa-laa",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -866,7 +866,7 @@
       },
       "sample": {
         "word": "ศาลา",
-        "romanization": "sǎa laa",
+        "romanization": "sǎa-laa",
         "meaning": {
           "en": "pavilion",
           "fr": "pavillon"
@@ -876,7 +876,7 @@
     {
       "character": "ษ",
       "name": "ษอ ฤๅษี",
-      "transcription": "sǎaw reuu sěe",
+      "transcription": "sǎaw reuu-sǐi",
       "class": "high",
       "usage": "common",
       "sounds": {
@@ -887,7 +887,7 @@
       },
       "sample": {
         "word": "ฤๅษี",
-        "romanization": "reuu sěe",
+        "romanization": "reuu-sǐi",
         "meaning": {
           "en": "hermit",
           "fr": "ermite"
