@@ -246,6 +246,10 @@
       "sound": "bl-",
       "type": "smooth",
       "usage": "rare",
+      "note": {
+        "en": "Found in loanwords. บล็อก is pronounced with a high tone, an exception to the tone rules: a mid-class short dead syllable is normally low.",
+        "fr": "Présent dans les mots d'emprunt. บล็อก se prononce avec un ton haut, une exception aux règles de ton : une syllabe morte courte de classe moyenne est normalement basse."
+      },
       "sample": {
         "word": "บล็อก",
         "romanization": "blók",
@@ -280,8 +284,8 @@
       "sound": "s-",
       "type": "irregular",
       "note": {
-        "en": "Historical spelling; usually pronounced 's-' (ทราบ, ทราย). In some Indic loanwords it is 't(h)-' (นิทรา).",
-        "fr": "Graphie historique ; se prononce généralement « s- » (ทราบ, ทราย). Dans certains emprunts indiens : « t(h)- » (นิทรา)."
+        "en": "Historical spelling; usually pronounced 's-' (ทราบ, ทราย). In some Indic loanwords both letters are pronounced, 'thr-' (นิทรา, จันทรา).",
+        "fr": "Graphie historique ; se prononce généralement « s- » (ทราบ, ทราย). Dans certains emprunts indiens, les deux lettres se prononcent, « thr- » (นิทรา, จันทรา)."
       },
       "sample": {
         "word": "ทราย",
@@ -298,8 +302,8 @@
       "sound": "s-",
       "type": "irregular",
       "note": {
-        "en": "Initial ร is silent; cluster pronounced as 's-' (สร้าง).",
-        "fr": "Le ร initial est muet ; le groupe se prononce « s- » (สร้าง)."
+        "en": "The ร is silent; the cluster is pronounced 's-' (สร้าง).",
+        "fr": "Le ร est muet ; le groupe se prononce « s- » (สร้าง)."
       },
       "sample": {
         "word": "สร้าง",

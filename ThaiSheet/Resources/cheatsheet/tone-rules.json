@@ -569,7 +569,7 @@
           "id": "s8",
           "full": "เขา",
           "focus": "เขา",
-          "meaning": { "en": "he; she", "fr": "il ; elle" }
+          "meaning": { "en": "mountain; hill", "fr": "montagne ; colline" }
         },
         {
           "id": "s9",
@@ -703,8 +703,8 @@
           "focus": "เสร็จ",
           "meaning": { "en": "finished; done", "fr": "terminé ; fini" },
           "note": {
-            "en": "Complex vowel + final stop; still short dead syllable.",
-            "fr": "Voyelle complexe + occlusive finale ; reste une syllabe morte courte."
+            "en": "สร- with a silent ร and a short vowel; a short dead syllable.",
+            "fr": "สร- avec ร muet et voyelle courte ; une syllabe morte courte."
           }
         },
         {

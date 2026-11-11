@@ -184,6 +184,10 @@
           "final": "-t"
         }
       },
+      "note": {
+        "en": "Usually 'th-' (มณโฑ). Reads 'd-' in a few words (มณฑป, บัณฑิต).",
+        "fr": "Généralement « th- » (มณโฑ). Se lit « d- » dans quelques mots (มณฑป, บัณฑิต)."
+      },
       "sample": {
         "word": "มณโฑ",
         "romanization": "mohn-thoh",
