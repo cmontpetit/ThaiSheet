@@ -52,6 +52,7 @@ final class SequentialStrategyTests: XCTestCase {
         testStore = InMemoryKeyValueStore()
         strategy = SequentialStrategy()
         learningModel = LearningModel(store: testStore)
+        learningModel.advanceClockOnEachReview()
 
         let consonants = Consonant.loadAll()
         XCTAssertFalse(consonants.isEmpty, "Need bundle data for tests")
@@ -273,6 +274,7 @@ final class WanikaniStrategyTests: XCTestCase {
         testStore = InMemoryKeyValueStore()
         strategy = WanikaniStrategy()
         learningModel = LearningModel(store: testStore)
+        learningModel.advanceClockOnEachReview()
 
         let consonants = Consonant.loadAll()
         XCTAssertFalse(consonants.isEmpty, "Need bundle data for tests")

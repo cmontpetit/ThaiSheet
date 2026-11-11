@@ -39,6 +39,10 @@ class LearningModel {
 
     private let store: KeyValueStore
 
+    /// The current time, used to decide whether a review is early and to
+    /// schedule the next one. Injectable so tests can move time forward.
+    @ObservationIgnored var clock: () -> Date = { Date() }
+
     /// Legacy → durable card-ID map applied to progress on load (issue #29).
     /// Injectable for tests; defaults to the frozen historical table.
     @ObservationIgnored private let idMigrationMap: [String: String]
@@ -69,10 +73,18 @@ class LearningModel {
     ///   - card: The flashcard item
     ///   - correct: Whether the answer was correct
     ///   - fullTesting: If false, advancement is capped at Familiar 2 (can't reach Confident/Mastered)
+    ///
+    /// A correct answer on a card reviewed before it is due changes nothing:
+    /// the interval has not elapsed, so it is extra practice, not evidence of
+    /// retention. A wrong answer always demotes.
     func recordResult(for card: FlashcardItem, correct: Bool, fullTesting: Bool = true) {
         var progress = progressByCardId[card.id] ?? CardProgress(cardId: card.id)
+        let now = clock()
 
         if correct {
+            let isEarlyReview = progress.srsStage != .new && !progress.isDue(at: now)
+            guard !isEarlyReview else { return }
+
             progress.correctCount += 1
             var newStage = progress.srsStage.advance()
 
@@ -87,13 +99,13 @@ class LearningModel {
             progress.srsStage = progress.srsStage.demote()
         }
 
-        progress.lastReviewed = Date()
+        progress.lastReviewed = now
 
         // Calculate next review date based on new stage
         if progress.srsStage == .mastered {
             progress.nextReviewDate = nil  // Never review again
         } else {
-            progress.nextReviewDate = Date().addingTimeInterval(progress.srsStage.intervalSeconds)
+            progress.nextReviewDate = now.addingTimeInterval(progress.srsStage.intervalSeconds)
         }
 
         progressByCardId[card.id] = progress

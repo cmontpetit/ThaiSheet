@@ -26,6 +26,7 @@ final class ConsonantModeTests: XCTestCase {
             learningModel: LearningModel(store: defaults),
             data: data
         )
+        manager.learningModel.advanceClockOnEachReview()
         self.manager = manager
         Retained.objects.append(contentsOf: [data, manager] as [AnyObject])
     }
