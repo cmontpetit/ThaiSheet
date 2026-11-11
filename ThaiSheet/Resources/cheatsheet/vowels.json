@@ -824,8 +824,8 @@
           "word": "เขา",
           "romanization": "khǎo",
           "meaning": {
-            "en": "he/she",
-            "fr": "il/elle"
+            "en": "mountain",
+            "fr": "montagne"
           }
         },
         "long_open": {
@@ -932,10 +932,10 @@
       },
       "notes": {
         "en": {
-          "short_closed": "Often appears in loanwords; patterns may feel less regular."
+          "short_closed": "ว acts as the final glide: หิว, นิ้ว, ผิว."
         },
         "fr": {
-          "short_closed": "Apparaît souvent dans les mots d'emprunt ; les schémas peuvent sembler moins réguliers."
+          "short_closed": "ว sert de semi-voyelle finale : หิว, นิ้ว, ผิว."
         }
       },
       "samples": {
@@ -1225,8 +1225,8 @@
       },
       "usage": "rare",
       "note": {
-        "en": "Sanskrit-derived ฤ in closed syllables",
-        "fr": "ฤ d'origine sanskrite en syllabe fermée"
+        "en": "ฤ reads 'ri' after ก ต ท ป ศ ส (อังกฤษ, ทฤษฎี) and in ฤทธิ์.",
+        "fr": "ฤ se lit « ri » après ก ต ท ป ศ ส (อังกฤษ, ทฤษฎี) et dans ฤทธิ์."
       },
       "samples": {
         "short_closed": {
