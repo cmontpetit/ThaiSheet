@@ -19,6 +19,7 @@ final class LearningModelTests: XCTestCase {
         suiteName = "LearningModelTests_\(UUID().uuidString)"
         testDefaults = UserDefaults(suiteName: suiteName)!
         model = LearningModel(store: testDefaults)
+        model.advanceClockOnEachReview()
 
         // Load real data from bundle for FlashcardItem instances
         let consonants = Consonant.loadAll()
@@ -111,6 +112,50 @@ final class LearningModelTests: XCTestCase {
         // Another correct answer keeps it mastered
         model.recordResult(for: card1, correct: true, fullTesting: true)
         XCTAssertEqual(model.srsStage(for: card1), .mastered)
+    }
+
+    // MARK: - Early reviews
+
+    func test_recordResult_correctBeforeDue_changesNothing() {
+        var now = Date()
+        model.clock = { now }
+        model.recordResult(for: card1, correct: true) // new -> learning1, due in 4 hours
+        let scheduled = model.getProgress(for: card1)
+
+        now = now.addingTimeInterval(3_600)
+        model.recordResult(for: card1, correct: true)
+
+        let after = model.getProgress(for: card1)
+        XCTAssertEqual(after.srsStage, .learning1, "An early correct answer is practice, not retention evidence")
+        XCTAssertEqual(after.nextReviewDate, scheduled.nextReviewDate)
+        XCTAssertEqual(after.correctCount, 1)
+    }
+
+    func test_recordResult_correctOnceDue_advances() {
+        var now = Date()
+        model.clock = { now }
+        model.recordResult(for: card1, correct: true)
+
+        now = now.addingTimeInterval(SRSStage.learning1.intervalSeconds)
+        model.recordResult(for: card1, correct: true)
+
+        XCTAssertEqual(model.srsStage(for: card1), .learning2)
+    }
+
+    func test_recordResult_incorrectBeforeDue_stillDemotes() {
+        var now = Date()
+        model.clock = { now }
+        for _ in 0..<3 {
+            model.recordResult(for: card1, correct: true)
+            now = now.addingTimeInterval(60 * 86_400)
+        }
+        XCTAssertEqual(model.srsStage(for: card1), .apprentice1)
+        model.recordResult(for: card1, correct: true) // -> apprentice2, due in 2 days
+
+        now = now.addingTimeInterval(60)
+        model.recordResult(for: card1, correct: false)
+
+        XCTAssertEqual(model.srsStage(for: card1), .learning2)
     }
 
     // MARK: - recordResult incorrect

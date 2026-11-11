@@ -95,14 +95,17 @@ struct CardProgress: Codable {
     }
 
     /// Whether this card is due for review (or overdue)
-    var isDue: Bool {
+    var isDue: Bool { isDue(at: Date()) }
+
+    /// Whether this card is due (or overdue) at the given moment
+    func isDue(at date: Date) -> Bool {
         // Mastered cards are never due
         guard srsStage != .mastered else { return false }
 
         // New cards are always due
         guard let nextReview = nextReviewDate else { return true }
 
-        return Date() >= nextReview
+        return date >= nextReview
     }
 
     /// How overdue the card is (negative = not yet due)
