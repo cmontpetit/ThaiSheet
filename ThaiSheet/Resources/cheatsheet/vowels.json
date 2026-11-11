@@ -594,6 +594,7 @@
     },
     {
       "id": "awy",
+      "combination": true,
       "short": {
         "closed": "ก็อย",
         "open": null
@@ -628,6 +629,7 @@
     },
     {
       "id": "oey",
+      "combination": true,
       "short": {
         "closed": null,
         "open": null
@@ -660,6 +662,7 @@
     },
     {
       "id": "oy",
+      "combination": true,
       "short": {
         "closed": null,
         "open": null
@@ -692,6 +695,7 @@
     },
     {
       "id": "uy",
+      "combination": true,
       "short": {
         "closed": "กุย",
         "open": null
@@ -724,6 +728,8 @@
     },
     {
       "id": "ueay",
+      "combination": true,
+      "lengthContrast": false,
       "short": {
         "closed": null,
         "open": null
@@ -757,47 +763,43 @@
     {
       "id": "uay",
       "short": {
-        "closed": "กวย",
+        "closed": null,
         "open": null
       },
       "long": {
-        "closed": "กวาย",
+        "closed": "กวย",
         "open": null
       },
       "sounds": {
         "en": "uay"
       },
+      "combination": true,
+      "lengthContrast": false,
+      "progressKeys": {
+        "long_closed": "uay:Short:Closed"
+      },
       "notes": {
         "en": {
-          "short_closed": "ย acts as the final glide: ด้วย, สวย, กล้วย.",
-          "long_closed": "Long form: ควาย, สบาย follows ◌าย pattern."
+          "long_closed": "ย acts as the final glide: ด้วย, สวย, กล้วย. Not to be confused with ควาย, which is the cluster คว- followed by ◌าย."
         },
         "fr": {
-          "short_closed": "ย sert de semi-voyelle finale : ด้วย, สวย, กล้วย.",
-          "long_closed": "Forme longue : ควาย, สบาย suivent le modèle ◌าย."
+          "long_closed": "ย sert de semi-voyelle finale : ด้วย, สวย, กล้วย. À ne pas confondre avec ควาย, qui est le groupe คว- suivi de ◌าย."
         }
       },
       "samples": {
-        "short_closed": {
+        "long_closed": {
           "word": "สวย",
           "romanization": "sǔay",
           "meaning": {
             "en": "beautiful",
             "fr": "beau"
           }
-        },
-        "long_closed": {
-          "word": "ควาย",
-          "romanization": "khwaai",
-          "meaning": {
-            "en": "water buffalo",
-            "fr": "buffle"
-          }
         }
       }
     },
     {
       "id": "ao",
+      "combination": true,
       "short": {
         "closed": "เกา",
         "open": null
@@ -840,6 +842,7 @@
     },
     {
       "id": "aeo",
+      "combination": true,
       "short": {
         "closed": "แก็ว",
         "open": null
@@ -864,6 +867,7 @@
     },
     {
       "id": "oew",
+      "combination": true,
       "short": {
         "closed": null,
         "open": null
@@ -887,6 +891,7 @@
     },
     {
       "id": "eo",
+      "combination": true,
       "short": {
         "closed": "เก็ว",
         "open": null
@@ -919,6 +924,7 @@
     },
     {
       "id": "iu",
+      "combination": true,
       "short": {
         "closed": "กิว",
         "open": null
@@ -951,6 +957,8 @@
     },
     {
       "id": "iao",
+      "combination": true,
+      "lengthContrast": false,
       "short": {
         "closed": null,
         "open": null
@@ -983,6 +991,7 @@
     },
     {
       "id": "am",
+      "combination": true,
       "short": {
         "closed": "กำ",
         "open": null
@@ -1015,6 +1024,7 @@
     },
     {
       "id": "ai-mai-malai",
+      "combination": true,
       "short": {
         "closed": null,
         "open": "ไก"
@@ -1047,6 +1057,7 @@
     },
     {
       "id": "ai-mai-muan",
+      "combination": true,
       "short": {
         "closed": null,
         "open": "ใก"
@@ -1079,6 +1090,7 @@
     },
     {
       "id": "ai-ya",
+      "combination": true,
       "short": {
         "closed": "กัย",
         "open": null
@@ -1111,6 +1123,7 @@
     },
     {
       "id": "aai",
+      "combination": true,
       "short": {
         "closed": null,
         "open": null
@@ -1143,6 +1156,7 @@
     },
     {
       "id": "ai-mai-malai-ya",
+      "combination": true,
       "short": {
         "closed": "ไกย",
         "open": null

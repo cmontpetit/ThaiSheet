@@ -75,6 +75,7 @@ scripts/check_release_binary.sh /path/to/ThaiSheet.app
 - Consonant cards have two modes (`FlashcardSettings.consonantNames`, Filters → "Quiz consonant names"), each with its own progress: with the name question `consonant-<glyph>` (the original keys), without it `consonantSound-<glyph>`. Build these IDs with `FlashcardType.consonantCardId(for:includesName:)`. The `consonantSound` prefix is persisted: **never rename it**. Voice overrides and practice concealment key on the row, so they always use `consonant-<glyph>`.
 - **Vowel rows (`vowels.json`), tone-rule samples (`tone-rules.json`), and clusters (`clusters.json`) carry an explicit `id`.** Cluster ids are letters plus position (`กร:initial`, `ทร:final`) — free of the display dash notation. These are opaque, never displayed, and part of users' stored progress keys: **never rename one, never reuse a retired one**, and give a new row or sample a new id. Because identity lives in the data, reordering rows and inserting new ones is free — no positional indices are involved.
 - Correcting content (a transcription, note, sample word, or written form) does NOT orphan progress.
+- A vowel form that moves to another short/long or open/closed slot keeps its key through the row's `progressKeys` (slot → key, e.g. `"long_closed": "uay:Short:Closed"`). A removed card's key goes in `LegacyProgressIDs.retiredProgressIDs` and is never used again; `ProgressIDMigrationTests` fails if a current card reuses one.
 - `ThaiSheet/Services/LegacyProgressIDs.swift` is a **frozen** snapshot of the keys shipped releases wrote (v1.0-build4 through v1.2.0-build8 all wrote the same keys — same derivation sources, same data). Never regenerate it from current content; that would defeat its purpose. When a future release changes an ID scheme, freeze that release's map as a second table and merge it in.
 - Per-item **voice overrides** (`fc_voiceOverrides`) key on a row's identity, not a card's, so they have their own frozen table (`LegacyProgressIDs.voiceOverridesUpToV1_2`, vowels + clusters). `FlashcardSettings.migrateVoiceOverrideIDs` runs on every load and reload — including one triggered by an iCloud change — and writes the normalized form back.
 - `ProgressIDMigration.migrate(_:using:)` applies the frozen map on every decode — locally in `LearningModel.load` (which then persists the normalized keys) and for cloud blobs in `SyncedKeyValueStore` reconciliation, so both sides are normalized before merging. It is idempotent, lossless (unknown keys are kept, never dropped), and collision-safe (most recently reviewed wins). It constructs no catalog to run.
@@ -109,12 +110,15 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - ช้าง transcription: PNG "chang" → "chaang" (long vowel)
 - The PNG's 7-row tone rule table is CORRECT — do not add rules (a bogus "High+Long+Dead→Falling" was once introduced and removed; high-class dead syllables are always Low tone)
 - Cluster romanization follows the consonant scheme (g-/dt-/bp-): กร- = gr-, ตร- = dtr-, ปร- = bpr-; aspirated onsets keep the h (ขร-/คร- = khr-, พร- = phr-, พล- = phl-). Exception: ผล- stays "pl-" pending word-specific verification (ผลิ is a cluster; ผลิต/ผลึก are not) — see https://github.com/cmontpetit/ThaiSheet/issues/7 before "fixing" it
+- `uay` row: กวย (สวย) is the only form, stored as Long. The PNG's "long" partner กวาย was removed: ควาย is the cluster คว- plus ◌าย, not a vowel form. Do not re-add it
 - กำ (sara am) is Short/Closed ONLY — ◌ำ is a short vowel + final /m/; น้ำ-style lengthening is a lexical exception (noted in the data), not a Long form. Do not re-add the Long/Open duplicate
 
 ### Vowel notation
 - **Closed** = syllable ends with consonant → form includes `-` to show where final consonant goes
 - **Open** = syllable ends with vowel sound → no dash needed
 - Example: short closed `กั-` (needs final consonant), short open `กะ` (vowel terminates)
+- Open/Closed describes the WRITTEN form of a basic vowel. Rows flagged `"combination": true` (ไ◌, ใ◌, เ◌า, ◌ำ, and the ย/ว glide endings) are vowel-plus-ending spellings that take no further final: the Reference lists them in their own "Vowel + ending" section and their cards skip the form question. Their open/closed slots are storage only (they are part of progress keys), never shown
+- Rows flagged `"lengthContrast": false` (เ◌ียว, เ◌ือย, ◌วย) also skip the duration question, follow either duration filter, and are exempt from the single-duration SRS cap (`FlashcardSettings.isPartialTesting(forCard:)`)
 
 ### Thai character rendering on iOS
 - The dotted circle `◌` (U+25CC) causes double-circle rendering on iOS when combined with vowel marks that go above/below (e.g., `◌ิ` shows two circles) — in every font tested (system, Thonburi, SukhumvitSet)
@@ -157,7 +161,7 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - The complete bundled set uses `--normalize-lufs -18`, including a -1.5 dB true-peak limit. Update `scripts/recorded_audio_metadata.json` whenever a candidate replaces the bundled set.
 - Non-dry generation validates raw responses before post-processing. Clips shorter than 0.35 seconds or quieter than -24 dBFS peak are rejected and synthesized again up to four times. This catches generative TTS failures such as a near-silent `กึ`; it does not verify pronunciation or tone.
 - Exact duplicate synthesis inputs reuse the first processed response within a generation run, producing byte-identical MP3s without additional TTS requests.
-- The canonical list of 388 expected sounds and synthesis inputs lives in `scripts/sound_inventory.py`. Generation, tests, and the website catalog must use that inventory rather than independently deriving filenames.
+- The canonical list of 387 expected sounds and synthesis inputs lives in `scripts/sound_inventory.py`. Generation, tests, and the website catalog must use that inventory rather than independently deriving filenames.
 - Custom `--output-dir` paths are restricted to `scratchpad/`, allowing candidate voices to be generated without risking bundled production audio.
 - Use repeatable `--sound-id` arguments for targeted regeneration (for example `--sound-id 'vowel:กึ-:short_closed'`). Stable IDs come from the canonical inventory.
 - Reference sample words are deduplicated by Thai word and generated as `cheat_sheet_sample_word_{word}_neural2.mp3` in the production directory; `--sample-words` generates only that set and `--all` includes it. Voice-neutral candidate directories keep the canonical unsuffixed inventory names.
@@ -224,7 +228,7 @@ python3 scripts/generate_sound_review.py \
   --candidate-voice th-TH-Chirp3-HD-Kore
 ```
 
-To audit the vowel pronunciation-word mapping, generate the 73-variant curation
+To audit the vowel pronunciation-word mapping, generate the 72-variant curation
 page with `python3 scripts/generate_vowel_pronunciation_review.py`. It compares
 the bundled word audio with the candidate recording, preserves duplicate
 spellings as separate short/long variants, and leaves forms with no real-word

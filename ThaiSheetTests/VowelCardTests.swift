@@ -39,6 +39,39 @@ final class VowelCardTests: XCTestCase {
                                   "Should not exceed 4 * vowel count")
     }
 
+    // MARK: - Applicable questions
+
+    func test_combinationCards_skipTheFormQuestion() {
+        let combinations = allCards.filter { $0.vowel.isCombination }
+        XCTAssertEqual(Set(combinations.map(\.vowel.id)).count, 18)
+        XCTAssertTrue(combinations.allSatisfy { !$0.asksForm })
+        XCTAssertTrue(allCards.filter { !$0.vowel.isCombination }.allSatisfy(\.asksForm))
+    }
+
+    func test_durationQuestion_skippedOnlyWhereLengthDoesNotContrast() {
+        let skipped = Set(allCards.filter { !$0.asksDuration }.map(\.display))
+        XCTAssertEqual(skipped, ["เกียว", "เกือย", "กวย"])
+    }
+
+    func test_firstStep_followsTheQuestionsACardAsks() throws {
+        let basic = try XCTUnwrap(allCards.first { $0.display == "กา" })
+        XCTAssertEqual(basic.firstStep, .selectDuration)
+        let combination = try XCTUnwrap(allCards.first { $0.display == "เกา" })
+        XCTAssertEqual(combination.firstStep, .selectDuration)
+        XCTAssertFalse(combination.asksForm)
+        let soundOnly = try XCTUnwrap(allCards.first { $0.display == "กวย" })
+        XCTAssertEqual(soundOnly.firstStep, .selectSound)
+    }
+
+    // MARK: - uay correction
+
+    func test_uay_isALongFormThatKeepsItsShippedProgressKey() throws {
+        let card = try XCTUnwrap(allCards.first { $0.display == "กวย" })
+        XCTAssertEqual(card.duration, .long)
+        XCTAssertEqual(card.id, "uay:Short:Closed", "กวย must keep the key users' progress is stored under")
+        XCTAssertNil(allCards.first { $0.display == "กวาย" }, "กวาย is คว- plus ◌าย, not a vowel form")
+    }
+
     // MARK: - No duplicates
 
     func test_allCards_noDuplicateDisplayValues() {

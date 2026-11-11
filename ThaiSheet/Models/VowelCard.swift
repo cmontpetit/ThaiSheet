@@ -14,9 +14,17 @@ struct VowelCard: Identifiable {
     let acceptsBothDurations: Bool  // True if this form appears in both short and long
 
     /// Durable progress key: the vowel row's stable id plus the structural
-    /// variant this card represents. Independent of `display`, so correcting a
-    /// written form does not orphan a user's progress.
-    var id: String { "\(vowel.id):\(duration.rawValue):\(form.rawValue)" }
+    /// variant this card represents (or the row's explicit key for that slot).
+    /// Independent of `display`, so correcting a written form does not orphan
+    /// a user's progress.
+    var id: String { vowel.progressKey(for: duration, form: form) }
+
+    /// Whether the card asks Short/Long. Skipped where length does not contrast.
+    var asksDuration: Bool { vowel.hasLengthContrast }
+
+    /// Whether the card asks Open/Closed. Skipped for vowel-plus-ending
+    /// combinations, which take no further final consonant.
+    var asksForm: Bool { !vowel.isCombination }
 
     var pronunciationWord: ReferenceSampleWord? {
         vowel.pronunciation(for: duration, form: form)

@@ -348,6 +348,27 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.isPartialTesting(for: .vowel))
     }
 
+    func test_isPartialTesting_vowelCard_notCappedWithoutADurationQuestion() throws {
+        settings.longVowels = true
+        settings.shortVowels = false
+        let cards = VowelCard.allCards(from: Vowel.loadAll())
+        let asksDuration = try XCTUnwrap(cards.first { $0.display == "กา" })
+        let soundOnly = try XCTUnwrap(cards.first { $0.display == "กวย" })
+        XCTAssertTrue(settings.isPartialTesting(forCard: .vowel(asksDuration)))
+        XCTAssertFalse(settings.isPartialTesting(forCard: .vowel(soundOnly)),
+                       "The duration filter trivializes nothing on a card that does not ask duration")
+    }
+
+    func test_isVowelCardEnabled_withoutLengthContrast_followsEitherDuration() {
+        settings.vowelsEnabled = true
+        settings.longVowels = false
+        settings.shortVowels = true
+        XCTAssertFalse(settings.isVowelCardEnabled(duration: .long, isUncommon: false))
+        XCTAssertTrue(settings.isVowelCardEnabled(duration: .long, isUncommon: false, hasLengthContrast: false))
+        settings.shortVowels = false
+        XCTAssertFalse(settings.isVowelCardEnabled(duration: .long, isUncommon: false, hasLengthContrast: false))
+    }
+
     func test_isPartialTesting_vowel_falseWhenMultipleDurationsEnabled() {
         settings.longVowels = true
         settings.shortVowels = true

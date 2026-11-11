@@ -21,6 +21,12 @@ final class ProgressIDMigrationTests: XCTestCase {
             let id = FlashcardItem.vowel(card).id
             XCTAssertFalse(id.contains(card.display),
                            "Vowel card id \(id) still embeds its written form")
+            // A form moved to another slot keeps its shipped key via `progressKeys`
+            let slot = "\(card.duration.rawValue.lowercased())_\(card.form.rawValue.lowercased())"
+            if let explicit = card.vowel.progressKeys?[slot] {
+                XCTAssertEqual(id, FlashcardType.vowel.cardId(for: explicit))
+                continue
+            }
             XCTAssertTrue(id.hasSuffix(":\(card.duration.rawValue):\(card.form.rawValue)"),
                           "Vowel card id should be row id plus duration and form: \(id)")
         }
@@ -130,10 +136,16 @@ final class ProgressIDMigrationTests: XCTestCase {
 
         // Every frozen entry must still land on a card that exists, and no entry
         // may reference display text that a content edit could move.
+        // (or on an ID retired on purpose, whose card was removed).
         for (legacy, durable) in LegacyProgressIDs.upToV1_2 {
-            XCTAssertTrue(durableIDs.contains(durable),
+            XCTAssertTrue(durableIDs.contains(durable)
+                              || LegacyProgressIDs.retiredProgressIDs.contains(durable),
                           "Frozen mapping \(legacy) -> \(durable) points at no current card")
         }
+
+        // A retired ID must never come back on another card.
+        XCTAssertTrue(durableIDs.isDisjoint(with: LegacyProgressIDs.retiredProgressIDs),
+                      "A current card reuses a retired progress ID")
 
         // Simulate a content correction: a card whose sample word changed keeps
         // the same durable id, so the frozen mapping still resolves.

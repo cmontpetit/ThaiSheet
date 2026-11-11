@@ -391,12 +391,21 @@ class FlashcardSettings {
         }
     }
 
-    func isVowelCardEnabled(duration: VowelCard.VowelDuration, isUncommon: Bool) -> Bool {
+    func isVowelCardEnabled(
+        duration: VowelCard.VowelDuration,
+        isUncommon: Bool,
+        hasLengthContrast: Bool = true
+    ) -> Bool {
         guard vowelsEnabled else { return false }
 
         // Check usage filter first - uncommon vowels need the toggle enabled
         if isUncommon && !uncommonVowels {
             return false
+        }
+
+        // A card without a duration question follows either duration filter
+        if !hasLengthContrast {
+            return longVowels || shortVowels
         }
 
         // Then check duration filter
@@ -524,6 +533,16 @@ class FlashcardSettings {
         case .cluster:
             return false
         }
+    }
+
+    /// Per-card cap: a filter only makes a card partial when it trivializes a
+    /// question that card asks. Vowel cards without a duration question are
+    /// unaffected by the duration filter.
+    func isPartialTesting(forCard card: FlashcardItem) -> Bool {
+        if case .vowel(let vowelCard) = card, !vowelCard.asksDuration {
+            return false
+        }
+        return isPartialTesting(for: card.type)
     }
 
     /// Count of enabled consonant classes (high/mid/low, excluding uncommon)

@@ -80,10 +80,32 @@ struct Vowel: Codable, Identifiable {
     let pronunciations: VowelSamples?
     let samples: VowelSamples?
     let usage: VowelUsage?
+    /// True for a vowel-plus-ending combination (ไ◌, เ◌า, ◌ำ, ◌าย, ◌วย, …): a
+    /// complete rime that takes no further final consonant, so Open/Closed
+    /// does not apply. Its forms still sit in the short/long slots.
+    var combination: Bool? = nil
+    /// False when vowel length does not contrast for this row (เ◌ียว, เ◌ือย,
+    /// ◌วย), so cards do not ask for the duration.
+    var lengthContrast: Bool? = nil
+    /// Explicit durable progress keys per slot ("long_closed", …), used when a
+    /// form moves to another slot but must keep the key users' progress is
+    /// stored under. Opaque and persisted: never rename or reuse a value.
+    var progressKeys: [String: String]? = nil
 
     enum CodingKeys: String, CodingKey {
         case id, short, long, sounds, notes, pronunciations, samples, usage
+        case combination, lengthContrast, progressKeys
         case rowNote = "note"
+    }
+
+    var isCombination: Bool { combination ?? false }
+    var hasLengthContrast: Bool { lengthContrast ?? true }
+
+    /// The durable progress key for one slot: the explicit override when the
+    /// data carries one, else the structural `id:duration:form`.
+    func progressKey(for duration: VowelCard.VowelDuration, form: VowelCard.VowelFormType) -> String {
+        let slot = "\(duration.rawValue.lowercased())_\(form.rawValue.lowercased())"
+        return progressKeys?[slot] ?? "\(id):\(duration.rawValue):\(form.rawValue)"
     }
 
     /// Returns true if this vowel is uncommon, rare, or archaic

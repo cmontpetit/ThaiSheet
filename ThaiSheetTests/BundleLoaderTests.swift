@@ -530,7 +530,7 @@ final class BundleLoaderTests: XCTestCase {
             }
         }
 
-        XCTAssertEqual(mappedCount, 68)
+        XCTAssertEqual(mappedCount, 67)
         XCTAssertEqual(missingForms, expectedMissing)
     }
 

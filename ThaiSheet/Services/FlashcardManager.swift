@@ -124,7 +124,11 @@ class FlashcardManager {
     }
 
     private func isVowelCardEnabled(_ card: VowelCard) -> Bool {
-        settings.isVowelCardEnabled(duration: card.duration, isUncommon: card.vowel.isUncommon)
+        settings.isVowelCardEnabled(
+            duration: card.duration,
+            isUncommon: card.vowel.isUncommon,
+            hasLengthContrast: card.asksDuration
+        )
     }
 
     private func isToneRuleCardEnabled(_ card: ToneRuleCard) -> Bool {
