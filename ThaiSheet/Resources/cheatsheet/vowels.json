@@ -88,7 +88,7 @@
         },
         "long_open": {
           "word": "แก",
-          "romanization": "gae",
+          "romanization": "gaae",
           "meaning": {
             "en": "you (informal)",
             "fr": "tu (familier)"
@@ -234,7 +234,7 @@
         },
         "long_closed": {
           "word": "เดิน",
-          "romanization": "dern",
+          "romanization": "deern",
           "meaning": {
             "en": "to walk",
             "fr": "marcher"
@@ -242,7 +242,7 @@
         },
         "long_open": {
           "word": "เจอ",
-          "romanization": "jer",
+          "romanization": "jeer",
           "meaning": {
             "en": "to meet",
             "fr": "rencontrer"
@@ -290,7 +290,7 @@
         },
         "long_closed": {
           "word": "โลก",
-          "romanization": "lôok",
+          "romanization": "lôhk",
           "meaning": {
             "en": "world",
             "fr": "monde"
@@ -346,7 +346,7 @@
         },
         "long_open": {
           "word": "ดี",
-          "romanization": "dee",
+          "romanization": "dii",
           "meaning": {
             "en": "good",
             "fr": "bon"
@@ -386,7 +386,7 @@
         },
         "long_closed": {
           "word": "คืน",
-          "romanization": "khuuen",
+          "romanization": "kheuun",
           "meaning": {
             "en": "night",
             "fr": "nuit"
@@ -394,7 +394,7 @@
         },
         "long_open": {
           "word": "คือ",
-          "romanization": "khuue",
+          "romanization": "kheuu",
           "meaning": {
             "en": "is",
             "fr": "est"
@@ -652,7 +652,7 @@
       "samples": {
         "long_closed": {
           "word": "เลย",
-          "romanization": "leeuy",
+          "romanization": "leery",
           "meaning": {
             "en": "beyond",
             "fr": "au-delà"
@@ -685,7 +685,7 @@
       "samples": {
         "long_closed": {
           "word": "โดย",
-          "romanization": "dooy",
+          "romanization": "dohy",
           "meaning": {
             "en": "by",
             "fr": "par"
@@ -857,7 +857,7 @@
       "samples": {
         "long_open": {
           "word": "แวว",
-          "romanization": "waew",
+          "romanization": "waaeo",
           "meaning": {
             "en": "glimmer",
             "fr": "lueur"
@@ -947,7 +947,7 @@
       "samples": {
         "short_closed": {
           "word": "หิว",
-          "romanization": "hǐw",
+          "romanization": "hǐu",
           "meaning": {
             "en": "hungry",
             "fr": "affamé"
@@ -1216,7 +1216,7 @@
         },
         "long_open": {
           "word": "ฤๅษี",
-          "romanization": "reuu-sěe",
+          "romanization": "reuu-sǐi",
           "meaning": {
             "en": "hermit",
             "fr": "ermite"
