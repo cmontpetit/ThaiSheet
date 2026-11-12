@@ -45,6 +45,10 @@ struct ClusterFlashcardView: View {
             cardState = ClusterCardState()
             generateSoundOptions()
         }
+        // Two options can collide when the scheme changes mid-card (RTGS merges sounds)
+        .onChange(of: RomanizationState.shared.scheme) { _, _ in
+            generateSoundOptions()
+        }
         .sheet(isPresented: $showingDetails) {
             ClusterDetailSheet(cluster: cluster)
         }
@@ -89,8 +93,8 @@ struct ClusterFlashcardView: View {
                 )
                 FlashcardSummaryRow(
                     label: "Sound",
-                    selectedValue: cardState.selectedSound,
-                    correctValue: cluster.soundLabel,
+                    selectedValue: cardState.selectedSound?.romanized,
+                    correctValue: cluster.soundLabel.romanized,
                     showResult: cardState.step == .completed
                 )
 
@@ -138,7 +142,7 @@ struct ClusterFlashcardView: View {
         FlashcardStepSection(title: "Select the sound") {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
                 ForEach(soundOptions, id: \.self) { sound in
-                    FlashcardSelectionButton(label: sound) {
+                    FlashcardSelectionButton(label: sound.romanized) {
                         cardState.selectedSound = sound
                         completeCard()
                     }
@@ -185,7 +189,7 @@ struct ClusterFlashcardView: View {
     // MARK: - Option Generation
 
     private func generateSoundOptions() {
-        soundOptions = QuizOptions.pick(
+        soundOptions = QuizOptions.pickDistinct(
             correct: cluster.soundLabel,
             from: allClusters.compactMap { $0.sound },
             wrongCount: 5

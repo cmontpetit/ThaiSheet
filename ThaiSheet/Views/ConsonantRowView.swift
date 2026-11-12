@@ -125,7 +125,7 @@ struct ConsonantRowView: View {
                 Text(consonant.character)
                     .font(.largeTitle)
 
-                Text(consonant.transcription)
+                Text(consonant.transcription.romanized)
                     .font(.subheadline)
                     .foregroundStyle(.primary)
                     .concealedReading(id: concealID)
@@ -134,10 +134,10 @@ struct ConsonantRowView: View {
 
                 VStack(alignment: .trailing, spacing: 2) {
                     HStack(spacing: 8) {
-                        Text(consonant.initialSound)
+                        Text(consonant.initialSound.romanized)
                             .font(.subheadline)
                             .monospacedDigit()
-                        Text(consonant.finalSound)
+                        Text(consonant.finalSound.romanized)
                             .font(.subheadline)
                             .monospacedDigit()
                     }
@@ -157,7 +157,7 @@ struct ConsonantRowView: View {
             .playableItem(
                 // Full label carries the concealed answers (class, transcription,
                 // both sounds) so a revealed VoiceOver user can check them.
-                label: "\(consonant.character), \(consonant.consonantClass.displayName), \(consonant.transcription), \(consonant.initialSound), \(consonant.finalSound)",
+                label: "\(consonant.character), \(consonant.consonantClass.displayName), \(consonant.transcription.romanized), \(consonant.initialSound.romanized), \(consonant.finalSound.romanized)",
                 hasSound: hasSound,
                 conceal: PracticeConceal(id: concealID, concealedLabel: consonant.character),
                 onPlay: { audioPlayer.play(.consonant, key: consonant.character, itemID: concealID) },

@@ -108,8 +108,8 @@ struct CheatsheetBrowserView: View {
                     return true
                 }
                 // Match initial or final sound (case insensitive)
-                if consonant.initialSound.lowercased().contains(query) ||
-                   consonant.finalSound.lowercased().contains(query) {
+                if consonant.initialSound.matchesRomanized(query) ||
+                   consonant.finalSound.matchesRomanized(query) {
                     return true
                 }
                 return false
@@ -158,7 +158,7 @@ struct CheatsheetBrowserView: View {
         let query = searchText.lowercased()
         return result.filter { vowel in
             vowel.allForms.contains { $0.contains(normalizedSearch) } ||
-            vowel.sound.lowercased().contains(query)
+            vowel.sound.matchesRomanized(query)
         }
     }
 
@@ -308,7 +308,7 @@ struct CheatsheetBrowserView: View {
             let query = searchText.lowercased()
             result = result.filter { cluster in
                 cluster.cluster.contains(searchText) ||
-                (cluster.sound?.lowercased().contains(query) ?? false) ||
+                (cluster.sound?.matchesRomanized(query) ?? false) ||
                 cluster.type.displayName.lowercased().contains(query)
             }
         }

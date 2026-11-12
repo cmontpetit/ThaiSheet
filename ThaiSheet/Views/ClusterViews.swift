@@ -98,7 +98,7 @@ struct ClusterMatrixCell: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                 if let sound = cluster.sound {
-                    Text(sound)
+                    Text(sound.romanized)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .concealedReading(id: concealID)
@@ -172,7 +172,7 @@ struct ClusterCompactCell: View {
             Text(cluster.cluster)
                 .font(.title3)
             if let sound = cluster.sound {
-                Text(sound)
+                Text(sound.romanized)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .concealedReading(id: concealID)
@@ -202,7 +202,7 @@ struct ClusterCompactCell: View {
 /// Spoken label for a cluster cell, e.g. "กร-, gr-"
 func clusterAccessibilityLabel(_ cluster: Cluster) -> String {
     if let sound = cluster.sound {
-        return "\(cluster.cluster), \(sound)"
+        return "\(cluster.cluster), \(sound.romanized)"
     }
     return cluster.cluster
 }

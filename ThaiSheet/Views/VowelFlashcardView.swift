@@ -47,6 +47,10 @@ struct VowelFlashcardView: View {
             cardState = VowelCardState()
             generateOptions()
         }
+        // Two options can collide when the scheme changes mid-card (RTGS merges sounds)
+        .onChange(of: RomanizationState.shared.scheme) { _, _ in
+            generateOptions()
+        }
         .sheet(isPresented: $showingDetails) {
             VowelDetailSheet(
                 vowel: card.vowel,
@@ -105,8 +109,8 @@ struct VowelFlashcardView: View {
                 }
                 FlashcardSummaryRow(
                     label: "Sound",
-                    selectedValue: cardState.selectedSound,
-                    correctValue: card.vowel.sound,
+                    selectedValue: cardState.selectedSound?.romanized,
+                    correctValue: card.vowel.sound.romanized,
                     showResult: currentStep == .completed
                 )
 
@@ -184,7 +188,7 @@ struct VowelFlashcardView: View {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(soundOptions, id: \.self) { sound in
-                    FlashcardGridButton(label: sound) {
+                    FlashcardGridButton(label: sound.romanized) {
                         cardState.selectedSound = sound
                         completeCard()
                     }
@@ -253,7 +257,7 @@ struct VowelFlashcardView: View {
     // MARK: - Option Generation
 
     private func generateOptions() {
-        soundOptions = QuizOptions.pick(
+        soundOptions = QuizOptions.pickDistinct(
             correct: card.vowel.sound,
             from: allVowels.map { $0.sound },
             wrongCount: 7
