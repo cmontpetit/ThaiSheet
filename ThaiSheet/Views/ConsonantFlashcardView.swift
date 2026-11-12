@@ -79,6 +79,10 @@ struct ConsonantFlashcardView: View {
             cardState = CardState()
             generateOptions()
         }
+        // Two options can collide when the scheme changes mid-card (RTGS merges sounds)
+        .onChange(of: RomanizationState.shared.scheme) { _, _ in
+            generateOptions()
+        }
         .onChange(of: includesName) { _, _ in
             // Same glyph, different card (its own progress): start over
             cardState = CardState()
@@ -127,21 +131,21 @@ struct ConsonantFlashcardView: View {
                 )
                 FlashcardSummaryRow(
                     label: "Initial",
-                    selectedValue: cardState.selectedInitial,
-                    correctValue: consonant.initialSound,
+                    selectedValue: cardState.selectedInitial?.romanized,
+                    correctValue: consonant.initialSound.romanized,
                     showResult: cardState.step == .completed
                 )
                 FlashcardSummaryRow(
                     label: "Final",
-                    selectedValue: cardState.selectedFinal,
-                    correctValue: consonant.finalSound,
+                    selectedValue: cardState.selectedFinal?.romanized,
+                    correctValue: consonant.finalSound.romanized,
                     showResult: cardState.step == .completed
                 )
                 if includesName {
                     FlashcardSummaryRow(
                         label: "Name",
-                        selectedValue: cardState.selectedTranscription,
-                        correctValue: consonant.transcription,
+                        selectedValue: cardState.selectedTranscription?.romanized,
+                        correctValue: consonant.transcription.romanized,
                         showResult: cardState.step == .completed
                     )
                 }
@@ -195,7 +199,7 @@ struct ConsonantFlashcardView: View {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(initialSoundOptions, id: \.self) { sound in
-                    FlashcardGridButton(label: sound) {
+                    FlashcardGridButton(label: sound.romanized) {
                         cardState.selectedInitial = sound
                         cardState.step = .selectFinal
                     }
@@ -214,7 +218,7 @@ struct ConsonantFlashcardView: View {
             // 1 row of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(finalSoundOptions, id: \.self) { sound in
-                    FlashcardGridButton(label: sound) {
+                    FlashcardGridButton(label: sound.romanized) {
                         cardState.selectedFinal = sound
                         if includesName {
                             cardState.step = .selectTranscription
@@ -237,7 +241,7 @@ struct ConsonantFlashcardView: View {
             // 2 rows of 2 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 2), spacing: 10) {
                 ForEach(transcriptionOptions, id: \.self) { transcription in
-                    FlashcardGridButton(label: transcription) {
+                    FlashcardGridButton(label: transcription.romanized) {
                         cardState.selectedTranscription = transcription
                         completeCard()
                     }
@@ -282,12 +286,12 @@ struct ConsonantFlashcardView: View {
     // MARK: - Option Generation
 
     private func generateOptions() {
-        initialSoundOptions = QuizOptions.pick(
+        initialSoundOptions = QuizOptions.pickDistinct(
             correct: consonant.initialSound,
             from: allConsonants.map { $0.initialSound },
             wrongCount: 7
         )
-        finalSoundOptions = QuizOptions.pick(
+        finalSoundOptions = QuizOptions.pickDistinct(
             correct: consonant.finalSound,
             from: allConsonants.map { $0.finalSound },
             wrongCount: 3
@@ -323,23 +327,30 @@ struct ConsonantFlashcardView: View {
             .shuffled()
 
         var wrongOptions: [String] = []
+        // No two options may look the same in the selected romanization
+        var shown: Set<String> = [consonant.transcription.romanized]
+        func add(_ transcription: String) {
+            if shown.insert(transcription.romanized).inserted {
+                wrongOptions.append(transcription)
+            }
+        }
 
         // Add at least one confuser with the same prefix if available
         if let confuser = samePrefix.first {
-            wrongOptions.append(confuser.transcription)
+            add(confuser.transcription)
         }
 
         // Fill remaining slots (need 3 wrong answers total)
         let remaining = differentPrefix.map { $0.transcription }
         for transcription in remaining {
             if wrongOptions.count >= 3 { break }
-            wrongOptions.append(transcription)
+            add(transcription)
         }
 
         // If we still need more and have more same-prefix options, add them
         for consonant in samePrefix.dropFirst() {
             if wrongOptions.count >= 3 { break }
-            wrongOptions.append(consonant.transcription)
+            add(consonant.transcription)
         }
 
         // Add the correct answer

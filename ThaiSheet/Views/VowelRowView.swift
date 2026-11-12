@@ -327,7 +327,7 @@ struct VowelRowView: View {
     // Romanization: tap plays the preferred form's sound, long press opens the sheet
     @ViewBuilder
     private var soundLabel: some View {
-        let text = Text(vowel.sound)
+        let text = Text(vowel.sound.romanized)
             .font(.caption)
             .foregroundColor(hasSound ? .accentColor : .primary)
             .concealedReading(id: concealID)
@@ -337,7 +337,7 @@ struct VowelRowView: View {
             // concealedLabel is the Thai form (the question), never vowel.sound
             // (the answer), so soundless rows don't leak via VoiceOver either.
             text.playableItem(
-                label: "\(vowel.sound), \(form.text)",
+                label: "\(vowel.sound.romanized), \(form.text)",
                 hasSound: hasSound,
                 conceal: PracticeConceal(id: concealID, concealedLabel: form.text),
                 onPlay: {

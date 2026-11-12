@@ -126,12 +126,12 @@ extension ThaiDataStore {
         switch type {
         case .consonant:
             guard let c = consonants.first(where: { $0.id == key }) else { return nil }
-            return entry("Consonants", "\(c.character) · \(c.transcription)",
+            return entry("Consonants", "\(c.character) · \(c.transcription.romanized)",
                          VoicePreviewTarget(soundType: .consonant, playbackKey: c.character))
         case .vowel:
             guard let v = vowels.first(where: { $0.id == key }),
                   let word = Self.representativeVowelWord(v) else { return nil }
-            return entry("Vowels", v.sound,
+            return entry("Vowels", v.sound.romanized,
                          VoicePreviewTarget(soundType: .vowel, playbackKey: word))
         case .cluster:
             guard let cl = clusters.first(where: { $0.id == key }) else { return nil }

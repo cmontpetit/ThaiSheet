@@ -20,6 +20,7 @@ class FlashcardSettings {
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
         "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage",
+        "fc_romanization",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -118,6 +119,15 @@ class FlashcardSettings {
 
     var useIntelligentSelection = false {
         didSet { persist(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
+    }
+
+    /// How romanized readings are displayed. The data always stores the learner
+    /// transcription; `RomanizationState` is what views render with.
+    var romanization: RomanizationScheme = .learner {
+        didSet {
+            persist(romanization.rawValue, forKey: "fc_romanization")
+            RomanizationState.shared.scheme = romanization
+        }
     }
 
     /// Selected pronunciation voice (bundled recorded set or the live device voice).
@@ -349,6 +359,8 @@ class FlashcardSettings {
         let storedOverrides = Self.decodeVoiceOverrides(voiceOverridesData)
         voiceOverrides = Self.migrateVoiceOverrideIDs(storedOverrides)
         appLanguage = defaults.string(forKey: "fc_appLanguage") ?? "system"
+        romanization = defaults.string(forKey: "fc_romanization")
+            .flatMap(RomanizationScheme.init(rawValue:)) ?? .learner
         iCloudSyncEnabled = defaults.object(forKey: "fc_iCloudSyncEnabled") as? Bool ?? false
         hasSeenReferenceInfo = defaults.object(forKey: "fc_hasSeenReferenceInfo") as? Bool ?? false
         referenceSortMode = defaults.string(forKey: "fc_referenceSortMode")

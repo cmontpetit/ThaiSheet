@@ -90,7 +90,7 @@ struct ReferenceItemSheet: View {
                     .multilineTextAlignment(.center)
 
                     if let romanization, !romanization.isEmpty {
-                        Text(romanization)
+                        Text(romanization.romanized)
                             .font(.title3)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -231,7 +231,7 @@ struct ReferenceItemSheet: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                 if let romanization = word.romanization {
-                    Text(romanization)
+                    Text(romanization.romanized)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
