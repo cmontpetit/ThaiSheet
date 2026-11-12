@@ -410,15 +410,26 @@ struct CheatsheetBrowserView: View {
                         ContentUnavailableView.search(text: searchText)
                     } else {
                     VStack(spacing: 0) {
-                        VowelHeaderView(visibleDuration: selectedVowelDuration)
-                        Divider()
                         ScrollViewReader { proxy in
                             List {
                                 // Basic vowels first, then the vowel-plus-ending
-                                // combinations, which have no Open/Closed forms
+                                // combinations. Each section pins its own column
+                                // headings: Closed/Open apply to basic vowels only
+                                let basicVowels = orderedVowels.filter { !$0.isCombination }
                                 let combinations = orderedVowels.filter(\.isCombination)
-                                ForEach(orderedVowels.filter { !$0.isCombination }) { vowel in
-                                    vowelRow(vowel)
+                                if !basicVowels.isEmpty {
+                                    Section {
+                                        ForEach(basicVowels) { vowel in
+                                            vowelRow(vowel)
+                                        }
+                                    } header: {
+                                        VStack(spacing: 0) {
+                                            VowelHeaderView(visibleDuration: selectedVowelDuration)
+                                            Divider()
+                                        }
+                                        .textCase(nil)
+                                        .listRowInsets(EdgeInsets())
+                                    }
                                 }
                                 if !combinations.isEmpty {
                                     Section {
@@ -426,11 +437,13 @@ struct CheatsheetBrowserView: View {
                                             vowelRow(vowel)
                                         }
                                     } header: {
-                                        VowelCombinationHeaderView()
+                                        VowelCombinationHeaderView(visibleDuration: selectedVowelDuration)
                                     }
                                 }
                             }
                             .listStyle(.plain)
+                            .listSectionSpacing(0)
+                            .contentMargins(.top, 0, for: .scrollContent)
                             .scrollsToHighlight(highlightedVowel, proxy: proxy) { form in
                                 vowels.first { $0.allForms.contains(form) }?.id
                             }
