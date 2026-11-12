@@ -226,6 +226,18 @@ final class LearningModelTests: XCTestCase {
         XCTAssertEqual(model.srsStage(for: card1), .confident)
     }
 
+    func test_recordResult_correctPartialTesting_neverLowersStageEarnedAboveCap() {
+        // Earn confident under full testing
+        for _ in 0..<7 {
+            model.recordResult(for: card1, correct: true, fullTesting: true)
+        }
+        XCTAssertEqual(model.srsStage(for: card1), .confident)
+
+        // A correct answer under partial testing holds the stage instead of capping it down
+        model.recordResult(for: card1, correct: true, fullTesting: false)
+        XCTAssertEqual(model.srsStage(for: card1), .confident)
+    }
+
     // MARK: - getProgress
 
     func test_getProgress_unknownCard_returnsDefaultProgress() {

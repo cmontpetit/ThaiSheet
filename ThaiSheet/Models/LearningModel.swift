@@ -72,7 +72,8 @@ class LearningModel {
     /// - Parameters:
     ///   - card: The flashcard item
     ///   - correct: Whether the answer was correct
-    ///   - fullTesting: If false, advancement is capped at Familiar 2 (can't reach Confident/Mastered)
+    ///   - fullTesting: If false, advancement is capped at Familiar 2; a correct
+    ///     answer never lowers a stage already earned under full testing
     ///
     /// A correct answer on a card reviewed before it is due changes nothing:
     /// the interval has not elapsed, so it is extra practice, not evidence of
@@ -90,7 +91,7 @@ class LearningModel {
 
             // Cap advancement for partial testing
             if !fullTesting && newStage > LearningModel.partialTestingMaxStage {
-                newStage = LearningModel.partialTestingMaxStage
+                newStage = max(progress.srsStage, LearningModel.partialTestingMaxStage)
             }
 
             progress.srsStage = newStage

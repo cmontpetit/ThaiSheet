@@ -278,7 +278,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - A correct answer before the card is due changes nothing (no stage, count, or schedule change): the selector serves not-yet-due cards as extra practice when nothing else is left, and that is not retention evidence. A wrong answer always demotes. `LearningModel.clock` is injectable; tests that walk a card through stages call `advanceClockOnEachReview()`
 
 **Capped advancement:**
-- When filters make questions trivial (e.g., only one consonant class enabled), advancement is capped at Familiar 2 (stage 6)
+- When filters make questions trivial (e.g., only one consonant class enabled), advancement is capped at Familiar 2 (stage 6). A correct answer under a cap never lowers a stage earned under full testing
 - This prevents "gaming" the system by using narrow filters
 - Full testing (multiple options per question) required to reach Confident/Mastered
 
