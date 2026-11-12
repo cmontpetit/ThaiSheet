@@ -123,13 +123,22 @@ struct FlashcardFace<Content: View>: View {
     /// gesture contract — tap plays the sound (like the Play button), long press
     /// opens details — plus the same accessibility action. Both are withheld
     /// until reveal so the gestures can't leak the answer.
-    @ViewBuilder
     private var displayArea: some View {
-        let area = NavigableTapArea(onPrevious: onPrevious, onNext: onNext) {
-            content()
+        NavigableTapArea(onPrevious: onPrevious, onNext: onNext) {
+            // Tap and long press sit inside the swipe area, not around it: as
+            // the parent of the swipe drag, the long press waited for the drag
+            // to fail, which only happens on lift, so details opened on release
+            revealedGestures(
+                content()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle())
+            )
         }
         .frame(height: displayHeight * displayScale)
+    }
 
+    @ViewBuilder
+    private func revealedGestures(_ area: some View) -> some View {
         if showResult {
             let playable = area.onTapGesture {
                 audioPlayer.play(soundType, key: soundKey, itemID: overrideItemID)
