@@ -35,7 +35,11 @@ enum RomanizationScheme: String, CaseIterable, Identifiable {
 /// The scheme views render with. Observable so any view body that reads
 /// `String.romanized` re-renders when the setting changes. Kept in sync by
 /// `FlashcardSettings.romanization`.
-@MainActor
+///
+/// No explicit `@MainActor`: like the rest of the app it relies on the
+/// project's default actor isolation, which toolchains before Swift 6.2
+/// ignore. An explicit annotation breaks the build there, because
+/// `FlashcardSettings` is then nonisolated.
 @Observable
 final class RomanizationState {
     static let shared = RomanizationState()
@@ -44,7 +48,6 @@ final class RomanizationState {
 
 extension String {
     /// This stored learner transcription, shown in the selected scheme
-    @MainActor
     var romanized: String {
         Romanization.render(self, as: RomanizationState.shared.scheme)
     }
@@ -52,7 +55,6 @@ extension String {
 
 extension String {
     /// Search match against this stored transcription as written and as shown
-    @MainActor
     func matchesRomanized(_ lowercasedQuery: String) -> Bool {
         lowercased().contains(lowercasedQuery) || romanized.lowercased().contains(lowercasedQuery)
     }
@@ -62,7 +64,6 @@ extension QuizOptions {
     /// Like `pick`, but no two options look the same in the selected scheme.
     /// RTGS writes จ and ช both as "ch": without this a card could show two
     /// identical buttons with only one graded correct.
-    @MainActor
     static func pickDistinct(correct: String, from all: some Sequence<String>, wrongCount: Int) -> [String] {
         var shown: Set<String> = [correct.romanized]
         var options: [String] = []
@@ -101,7 +102,7 @@ enum Romanization {
     /// ("thá-hǎan"), consonant names ("khǎaw khài"), sound fragments ("kh-",
     /// "-k"), and vowel labels ("a/aa"). Text that is not a transcription
     /// ("[silent]", "n/a") or does not parse is returned unchanged.
-    nonisolated static func render(_ text: String, as scheme: RomanizationScheme) -> String {
+    static func render(_ text: String, as scheme: RomanizationScheme) -> String {
         guard scheme != .learner, let units = parse(text) else { return text }
 
         var rendered: [String] = []
@@ -122,7 +123,7 @@ enum Romanization {
 
     /// Whether `text` is a well-formed learner transcription. The data tests
     /// run this over every stored string, which keeps the convention uniform.
-    nonisolated static func isWellFormed(_ text: String) -> Bool {
+    static func isWellFormed(_ text: String) -> Bool {
         isPassthrough(text) || parse(text) != nil
     }
 
@@ -134,12 +135,12 @@ enum Romanization {
         case syllables([ThaiSyllable])
     }
 
-    private nonisolated static func isPassthrough(_ text: String) -> Bool {
+    private static func isPassthrough(_ text: String) -> Bool {
         text.isEmpty || text.contains("[") || text == "n/a"
     }
 
     /// "/"-separated alternatives, each a list of space-separated words
-    private nonisolated static func parse(_ text: String) -> [[Word]]? {
+    private static func parse(_ text: String) -> [[Word]]? {
         guard !isPassthrough(text) else { return nil }
         var alternatives: [[Word]] = []
         for alternative in text.split(separator: "/", omittingEmptySubsequences: false) {
@@ -153,7 +154,7 @@ enum Romanization {
         return alternatives
     }
 
-    private nonisolated static func parseWord(_ word: String) -> Word? {
+    private static func parseWord(_ word: String) -> Word? {
         if word.hasSuffix("-") {
             let onset = String(word.dropLast())
             return splitOnset(onset) != nil && !onset.isEmpty ? .onset(onset) : nil
@@ -170,24 +171,24 @@ enum Romanization {
         return syllables.isEmpty ? nil : .syllables(syllables)
     }
 
-    private nonisolated static let toneMarks: [Unicode.Scalar: ThaiSyllable.Tone] = [
+    private static let toneMarks: [Unicode.Scalar: ThaiSyllable.Tone] = [
         "\u{0300}": .low, "\u{0301}": .high, "\u{0302}": .falling, "\u{030C}": .rising,
     ]
-    private nonisolated static let vowelLetters: Set<Character> = ["a", "e", "i", "o", "u"]
+    private static let vowelLetters: Set<Character> = ["a", "e", "i", "o", "u"]
     /// Onset consonants. "p" appears only in the ผล- row (see issue #7).
-    private nonisolated static let onsetBases = [
+    private static let onsetBases = [
         "kh", "ng", "ch", "dt", "th", "bp", "ph",
         "g", "j", "s", "y", "d", "n", "b", "f", "m", "r", "l", "w", "h", "p",
     ]
     /// Vowel nuclei, longest first so the parse is greedy
-    private nonisolated static let nuclei = [
+    private static let nuclei = [
         "aae", "aaw", "euu", "eua", "uuh",
         "aa", "ae", "aw", "ee", "eu", "ia", "ii", "oh", "ua", "uh", "uu",
         "a", "e", "i", "o", "u",
     ]
-    private nonisolated static let finals: Set<String> = ["k", "t", "p", "m", "n", "ng"]
+    private static let finals: Set<String> = ["k", "t", "p", "m", "n", "ng"]
 
-    nonisolated static func parseSyllable(_ text: String) -> ThaiSyllable? {
+    static func parseSyllable(_ text: String) -> ThaiSyllable? {
         var syllable = ThaiSyllable()
 
         // Lift the tone diacritic off the vowel
@@ -232,7 +233,7 @@ enum Romanization {
     }
 
     /// Splits an onset into its consonant and an optional cluster partner (r, l, w)
-    private nonisolated static func splitOnset(_ onset: String) -> (base: String, second: String)? {
+    private static func splitOnset(_ onset: String) -> (base: String, second: String)? {
         if onset.isEmpty { return ("", "") }
         guard let base = onsetBases.first(where: { onset.hasPrefix($0) }) else { return nil }
         let second = String(onset.dropFirst(base.count))
@@ -241,39 +242,39 @@ enum Romanization {
 
     // MARK: - Scheme tables
 
-    private nonisolated static let ipaOnsets: [String: String] = [
+    private static let ipaOnsets: [String: String] = [
         "g": "k", "kh": "kʰ", "ng": "ŋ", "j": "tɕ", "ch": "tɕʰ", "s": "s", "y": "j",
         "d": "d", "dt": "t", "th": "tʰ", "n": "n", "b": "b", "bp": "p", "ph": "pʰ",
         "f": "f", "m": "m", "r": "r", "l": "l", "w": "w", "h": "h", "p": "pʰ",
     ]
-    private nonisolated static let rtgsOnsets: [String: String] = [
+    private static let rtgsOnsets: [String: String] = [
         "g": "k", "kh": "kh", "ng": "ng", "j": "ch", "ch": "ch", "s": "s", "y": "y",
         "d": "d", "dt": "t", "th": "th", "n": "n", "b": "b", "bp": "p", "ph": "ph",
         "f": "f", "m": "m", "r": "r", "l": "l", "w": "w", "h": "h", "p": "ph",
     ]
-    private nonisolated static let ipaVowels: [String: String] = [
+    private static let ipaVowels: [String: String] = [
         "a": "a", "aa": "aː", "i": "i", "ii": "iː", "u": "u", "uu": "uː",
         "e": "e", "ee": "eː", "ae": "ɛ", "aae": "ɛː", "o": "o", "oh": "oː",
         "aw": "ɔ", "aaw": "ɔː", "eu": "ɯ", "euu": "ɯː", "uh": "ɤ", "uuh": "ɤː",
         "ia": "ia", "eua": "ɯa", "ua": "ua",
     ]
-    private nonisolated static let rtgsVowels: [String: String] = [
+    private static let rtgsVowels: [String: String] = [
         "a": "a", "aa": "a", "i": "i", "ii": "i", "u": "u", "uu": "u",
         "e": "e", "ee": "e", "ae": "ae", "aae": "ae", "o": "o", "oh": "o",
         "aw": "o", "aaw": "o", "eu": "ue", "euu": "ue", "uh": "oe", "uuh": "oe",
         "ia": "ia", "eua": "uea", "ua": "ua",
     ]
-    private nonisolated static let ipaToneMarks: [ThaiSyllable.Tone: String] = [
+    private static let ipaToneMarks: [ThaiSyllable.Tone: String] = [
         .low: "\u{0300}", .high: "\u{0301}", .falling: "\u{0302}", .rising: "\u{030C}",
     ]
 
-    private nonisolated static func renderOnset(_ onset: String, _ scheme: RomanizationScheme) -> String {
+    private static func renderOnset(_ onset: String, _ scheme: RomanizationScheme) -> String {
         guard let (base, second) = splitOnset(onset), !base.isEmpty else { return "" }
         let table = scheme == .ipa ? ipaOnsets : rtgsOnsets
         return (table[base] ?? base) + second
     }
 
-    private nonisolated static func renderFinal(_ final: String, _ scheme: RomanizationScheme) -> String {
+    private static func renderFinal(_ final: String, _ scheme: RomanizationScheme) -> String {
         switch (final, scheme) {
         case ("ng", .ipa): return "ŋ"
         case ("y", .ipa): return "j"
@@ -284,7 +285,7 @@ enum Romanization {
         }
     }
 
-    private nonisolated static func renderSyllable(_ syllable: ThaiSyllable, _ scheme: RomanizationScheme) -> String {
+    private static func renderSyllable(_ syllable: ThaiSyllable, _ scheme: RomanizationScheme) -> String {
         var vowel = (scheme == .ipa ? ipaVowels : rtgsVowels)[syllable.vowel] ?? syllable.vowel
         if scheme == .ipa, let mark = ipaToneMarks[syllable.tone], let first = vowel.first {
             vowel = "\(first)\(mark)\(vowel.dropFirst())"
@@ -295,7 +296,7 @@ enum Romanization {
 
     /// IPA separates syllables with a period. RTGS writes a word solid, with a
     /// hyphen only where the break would otherwise be misread.
-    private nonisolated static func join(_ syllables: [ThaiSyllable], _ scheme: RomanizationScheme) -> String {
+    private static func join(_ syllables: [ThaiSyllable], _ scheme: RomanizationScheme) -> String {
         guard scheme == .rtgs else {
             return syllables.map { renderSyllable($0, scheme) }.joined(separator: ".")
         }

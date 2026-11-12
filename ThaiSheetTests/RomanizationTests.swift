@@ -6,7 +6,6 @@
 import XCTest
 @testable import ThaiSheet
 
-@MainActor
 final class RomanizationTests: XCTestCase {
 
     override func tearDown() {
