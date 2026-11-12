@@ -453,7 +453,7 @@ final class BundleLoaderTests: XCTestCase {
     func test_saraAm_isShortClosedOnly() {
         // ◌ำ is a short vowel + final /m/; น้ำ-style lengthening is lexical,
         // not a Long form of the pattern
-        let ahm = Vowel.loadAll().first { $0.sound == "ahm" }
+        let ahm = Vowel.loadAll().first { $0.id == "am" }
         XCTAssertEqual(ahm?.short.closed, "กำ")
         XCTAssertNil(ahm?.long.closed)
         XCTAssertNil(ahm?.long.open)
@@ -462,7 +462,7 @@ final class BundleLoaderTests: XCTestCase {
     func test_aawyRow_examplesMatchVowelLength() {
         // บ่อย is short (the tone mark occupies ็'s position); it must not
         // be cited as a long -อย example
-        let notes = Vowel.loadAll().first { $0.sound == "aawy" }?.notes?.en
+        let notes = Vowel.loadAll().first { $0.id == "awy" }?.notes?.en
         XCTAssertTrue(notes?.short_closed?.contains("บ่อย") ?? false,
                       "บ่อย belongs with the short ก็อย examples")
         XCTAssertFalse(notes?.long_closed?.contains("บ่อย") ?? true,
@@ -473,7 +473,7 @@ final class BundleLoaderTests: XCTestCase {
         // The ฤ/ฤ-/ฦ rows carry row-level notes that were previously
         // silently dropped (model had no scalar note property)
         let rows = Vowel.loadAll().filter { $0.rowNote != nil }
-        XCTAssertEqual(rows.count, 3, "ฤ (rue), ฤ- (ri), and ฦ (lue) rows carry row notes")
+        XCTAssertEqual(rows.count, 3, "The ฤ, ฤ- (ri), and ฦ rows carry row notes")
         for row in rows {
             XCTAssertFalse(row.rowNote?.en.isEmpty ?? true)
             XCTAssertFalse(row.rowNote?.fr?.isEmpty ?? true,
@@ -482,18 +482,18 @@ final class BundleLoaderTests: XCTestCase {
     }
 
     func test_rueRowNote_documentsAllThreeReadings() {
-        let note = Vowel.loadAll().first { $0.sound == "rue" }?.rowNote
-        for reading in ["rue", "ri", "roe"] {
+        let note = Vowel.loadAll().first { $0.id == "rue" }?.rowNote
+        for reading in ["reu", "ri", "ruuh"] {
             XCTAssertTrue(note?.en.contains(reading) ?? false,
                           "ฤ note should document the \(reading) reading")
         }
-        let lueNote = Vowel.loadAll().first { $0.sound == "lue" }?.rowNote
+        let lueNote = Vowel.loadAll().first { $0.id == "lue" }?.rowNote
         XCTAssertTrue(lueNote?.en.contains("obsolete") ?? false,
                       "ฦ note should state the letters are obsolete")
     }
 
     func test_noteForForm_fallsBackToRowNote() {
-        let rue = Vowel.loadAll().first { $0.sound == "rue" }
+        let rue = Vowel.loadAll().first { $0.id == "rue" }
         XCTAssertNotNil(rue?.note(for: "Short", form: "Open"),
                         "Rows without keyed notes should surface their row note")
     }
@@ -508,7 +508,7 @@ final class BundleLoaderTests: XCTestCase {
     }
 
     func test_vowelPronunciations_keepDuplicateSpellingsDistinct() {
-        let vowel = Vowel.loadAll().first { $0.sound == "erh/uuhr" }
+        let vowel = Vowel.loadAll().first { $0.id == "oe" }
         XCTAssertEqual(vowel?.pronunciation(for: .short, form: .closed)?.word, "เงิน")
         XCTAssertEqual(vowel?.pronunciation(for: .long, form: .closed)?.word, "เดิน")
     }
