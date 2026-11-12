@@ -454,6 +454,20 @@ final class ProgressIDMigrationTests: XCTestCase {
     /// Bundle-backed and @Observable instances are retained for the process: a
     /// short-lived one trips the toolchain invalid-free described under Testing
     /// Gotchas in CLAUDE.md.
+    // MARK: - Reference lookups
+
+    /// The Reference detail sheet and the progress sort looked vowels up by
+    /// written form ("vowel-กา"), a key nothing is stored under any more.
+    func test_vowelProgressLookups_useDurableCardIDs() throws {
+        let store = makeRetainedStore()
+        let vowel = try XCTUnwrap(store.vowels.first { $0.id == "a" })
+        XCTAssertEqual(Set(store.vowelProgressIDs(for: vowel)),
+                       ["vowel-a:Short:Closed", "vowel-a:Short:Open", "vowel-a:Long:Closed", "vowel-a:Long:Open"])
+        XCTAssertEqual(store.vowelProgressID(forForm: "กา"), "vowel-a:Long:Open")
+        XCTAssertEqual(store.vowelProgressID(forForm: "กวย"), "vowel-uay:Short:Closed")
+        XCTAssertNil(store.vowelProgressID(forForm: "กวาย"))
+    }
+
     private func makeRetainedStore() -> ThaiDataStore {
         let store = ThaiDataStore()
         BundledFixtures.retain(store)
