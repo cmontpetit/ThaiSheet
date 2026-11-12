@@ -109,9 +109,10 @@ struct VowelFlashcardView: View {
                 }
                 FlashcardSummaryRow(
                     label: "Sound",
-                    selectedValue: cardState.selectedSound?.romanized,
-                    correctValue: card.vowel.sound.romanized,
-                    showResult: currentStep == .completed
+                    selectedValue: cardState.selectedSound,
+                    correctValue: card.vowel.sound,
+                    showResult: currentStep == .completed,
+                    display: \.romanized
                 )
 
                 // Show note if available and card is completed

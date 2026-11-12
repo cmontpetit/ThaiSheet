@@ -3,6 +3,7 @@
 //  ThaiSheetTests
 //
 
+import SwiftUI
 import XCTest
 @testable import ThaiSheet
 
@@ -146,6 +147,24 @@ final class RomanizationTests: XCTestCase {
             XCTAssertEqual(shown.count, Set(shown).count, "Two options render the same: \(shown)")
             XCTAssertFalse(options.contains("ch-"), "ch- looks identical to the correct j- in RTGS")
         }
+    }
+
+    func test_summaryRow_gradesTheStoredAnswer_notHowItLooks() {
+        // j- and ch- both read "ch-" in RTGS. A wrong ch- must stay wrong
+        // when the scheme changes after the card was answered.
+        RomanizationState.shared.scheme = .rtgs
+        let wrong = FlashcardSummaryRow(
+            label: "Initial", selectedValue: "ch-", correctValue: "j-",
+            showResult: true, display: \.romanized
+        )
+        XCTAssertEqual(wrong.display("ch-"), wrong.display("j-"))
+        XCTAssertFalse(wrong.isCorrect)
+
+        let right = FlashcardSummaryRow(
+            label: "Initial", selectedValue: "j-", correctValue: "j-",
+            showResult: true, display: \.romanized
+        )
+        XCTAssertTrue(right.isCorrect)
     }
 
     func test_search_matchesStoredAndShownSpellings() {
