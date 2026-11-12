@@ -291,8 +291,12 @@ struct FlashcardSummaryRow: View {
     let correctValue: String
     let showResult: Bool
     var alternativeCorrectValue: String? = nil
+    /// How a value is shown. Values are compared as given, so pass the stored
+    /// answers and romanize here: two different answers can look the same in
+    /// RTGS (j- and ch-), and a wrong one must not turn green.
+    var display: (String) -> String = { $0 }
 
-    private var isCorrect: Bool {
+    var isCorrect: Bool {
         selectedValue == correctValue ||
         (alternativeCorrectValue != nil && selectedValue == alternativeCorrectValue)
     }
@@ -320,25 +324,25 @@ struct FlashcardSummaryRow: View {
             if showResult {
                 if wasSelected {
                     if isCorrect {
-                        Text(selectedValue ?? correctValue)
+                        Text(display(selectedValue ?? correctValue))
                             .font(.subheadline.weight(.medium))
                             .foregroundColor(.green)
                     } else {
-                        Text(correctValue)
+                        Text(display(correctValue))
                             .font(.subheadline.weight(.medium))
                             .foregroundColor(.primary)
-                        Text(selectedValue ?? "")
+                        Text(display(selectedValue ?? ""))
                             .font(.subheadline.weight(.medium))
                             .foregroundColor(.red.opacity(0.5))
                             .strikethrough(color: .red.opacity(0.5))
                     }
                 } else {
-                    Text(correctValue)
+                    Text(display(correctValue))
                         .font(.subheadline.weight(.medium))
                         .foregroundColor(.primary)
                 }
             } else if let selected = selectedValue {
-                Text(selected)
+                Text(display(selected))
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(.primary)
             } else {

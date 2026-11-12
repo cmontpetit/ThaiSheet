@@ -93,9 +93,10 @@ struct ClusterFlashcardView: View {
                 )
                 FlashcardSummaryRow(
                     label: "Sound",
-                    selectedValue: cardState.selectedSound?.romanized,
-                    correctValue: cluster.soundLabel.romanized,
-                    showResult: cardState.step == .completed
+                    selectedValue: cardState.selectedSound,
+                    correctValue: cluster.soundLabel,
+                    showResult: cardState.step == .completed,
+                    display: \.romanized
                 )
 
                 // Show note when completed

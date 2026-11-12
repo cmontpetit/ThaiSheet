@@ -131,22 +131,25 @@ struct ConsonantFlashcardView: View {
                 )
                 FlashcardSummaryRow(
                     label: "Initial",
-                    selectedValue: cardState.selectedInitial?.romanized,
-                    correctValue: consonant.initialSound.romanized,
-                    showResult: cardState.step == .completed
+                    selectedValue: cardState.selectedInitial,
+                    correctValue: consonant.initialSound,
+                    showResult: cardState.step == .completed,
+                    display: \.romanized
                 )
                 FlashcardSummaryRow(
                     label: "Final",
-                    selectedValue: cardState.selectedFinal?.romanized,
-                    correctValue: consonant.finalSound.romanized,
-                    showResult: cardState.step == .completed
+                    selectedValue: cardState.selectedFinal,
+                    correctValue: consonant.finalSound,
+                    showResult: cardState.step == .completed,
+                    display: \.romanized
                 )
                 if includesName {
                     FlashcardSummaryRow(
                         label: "Name",
-                        selectedValue: cardState.selectedTranscription?.romanized,
-                        correctValue: consonant.transcription.romanized,
-                        showResult: cardState.step == .completed
+                        selectedValue: cardState.selectedTranscription,
+                        correctValue: consonant.transcription,
+                        showResult: cardState.step == .completed,
+                        display: \.romanized
                     )
                 }
             }
