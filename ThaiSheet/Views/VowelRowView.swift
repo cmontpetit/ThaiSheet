@@ -74,6 +74,8 @@ func vowelReferenceWordSources(
 struct VowelHeaderView: View {
     /// When set, only that duration's columns are shown (full width)
     var visibleDuration: VowelCard.VowelDuration? = nil
+    /// False above vowel-plus-ending combinations, which have no Closed/Open forms
+    var showsForms: Bool = true
 
     var body: some View {
         HStack(spacing: 0) {
@@ -98,7 +100,8 @@ struct VowelHeaderView: View {
                 durationHeader("LONG", fullWidth: false)
             }
         }
-        .foregroundStyle(.secondary)
+        // Explicit color: inside a List section header, .secondary renders fainter
+        .foregroundStyle(Color(.secondaryLabel))
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(Color(.systemBackground))
@@ -117,37 +120,46 @@ struct VowelHeaderView: View {
             Text(title)
                 .font(.caption)
                 .fontWeight(.semibold)
-            HStack(spacing: 0) {
-                Text("Closed")
-                    .font(.caption2)
-                    .frame(maxWidth: .infinity, alignment: fullWidth ? .leading : .center)
-                    .padding(.leading, fullWidth ? 24 : 0)
-                Text("Open")
-                    .font(.caption2)
-                    .frame(maxWidth: .infinity, alignment: fullWidth ? .leading : .center)
-                    .padding(.leading, fullWidth ? 24 : 0)
+            if showsForms {
+                HStack(spacing: 0) {
+                    Text("Closed")
+                        .font(.caption2)
+                        .frame(maxWidth: .infinity, alignment: fullWidth ? .leading : .center)
+                        .padding(.leading, fullWidth ? 24 : 0)
+                    Text("Open")
+                        .font(.caption2)
+                        .frame(maxWidth: .infinity, alignment: fullWidth ? .leading : .center)
+                        .padding(.leading, fullWidth ? 24 : 0)
+                }
             }
         }
         .frame(maxWidth: .infinity)
     }
 }
 
-/// Section header for the vowel-plus-ending combinations (ไ◌, เ◌า, ◌ำ, ◌าย, …)
+/// Section header for the vowel-plus-ending combinations (ไ◌, เ◌า, ◌ำ, ◌าย, …):
+/// the explanation, then duration-only column headings (no Closed/Open)
 struct VowelCombinationHeaderView: View {
+    var visibleDuration: VowelCard.VowelDuration? = nil
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("Vowel + ending")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.primary)
-            Text("These spellings include their ending: no final consonant follows. They count as live syllables for tone.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Vowel + ending")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color(.label))
+                Text("These spellings include their ending: no final consonant follows. They count as live syllables for tone.")
+                    .font(.caption)
+                    .foregroundStyle(Color(.secondaryLabel))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            VowelHeaderView(visibleDuration: visibleDuration, showsForms: false)
+            Divider()
         }
         .textCase(nil)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
         // Opaque: the header pins while scrolling and rows pass beneath it
         .background(Color(.systemBackground))
         .listRowInsets(EdgeInsets())
