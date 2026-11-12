@@ -97,7 +97,8 @@ struct VowelDetailSheet: View {
 
     var body: some View {
         let pronunciation = vowel.pronunciation(for: formType.duration, form: formType.form)
-        let stage = learningModel.getProgress(forId: FlashcardType.vowel.cardId(for: text)).srsStage
+        let stage = thaiData.vowelProgressID(forForm: text)
+            .map { learningModel.getProgress(forId: $0).srsStage } ?? .new
         let voiceOverride = thaiData.voiceOverrideCatalogEntry(for: concealID).map {
             entry -> (descriptor: VoiceOverrideDescriptor, preview: VoicePreviewTarget) in
             let target = pronunciation

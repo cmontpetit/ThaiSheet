@@ -189,7 +189,7 @@ struct CheatsheetBrowserView: View {
             mode: settings.referenceSortMode,
             seed: settings.referenceShuffleSeed
         ) { vowel in
-            let ids = vowel.allForms.map { FlashcardType.vowel.cardId(for: $0) }
+            let ids = thaiData.vowelProgressIDs(for: vowel)
             return ReferenceOrdering.minimumStage(for: ids) { stageValue(forId: $0) }
         }
     }

@@ -149,6 +149,17 @@ extension ThaiDataStore {
         }
     }
 
+    /// Progress IDs of a vowel row's cards. Progress is stored under each
+    /// card's durable ID, never under the written form.
+    func vowelProgressIDs(for vowel: Vowel) -> [String] {
+        vowelCards.filter { $0.vowel.id == vowel.id }.map { FlashcardItem.vowel($0).id }
+    }
+
+    /// Progress ID of the card for one written form (e.g. "กา-"), if it has one
+    func vowelProgressID(forForm form: String) -> String? {
+        vowelCards.first { $0.display == form }.map { FlashcardItem.vowel($0).id }
+    }
+
     /// Deterministic preview word for a vowel row (mirrors the row's form priority).
     private static func representativeVowelWord(_ v: Vowel) -> String? {
         let order: [(String, String)] = [("Long", "Closed"), ("Short", "Closed"), ("Long", "Open"), ("Short", "Open")]
