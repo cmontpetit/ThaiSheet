@@ -88,6 +88,39 @@ final class RomanizationTests: XCTestCase {
         XCTAssertEqual(Romanization.render("khǎaw khài", as: .learner), "khǎaw khài")
     }
 
+    func test_paiboon_respellsStopsAndVowels_keepsToneLengthAndHyphens() {
+        XCTAssertEqual(Romanization.render("khǎaw khài", as: .paiboon), "kɔ̌ɔ kài")
+        XCTAssertEqual(Romanization.render("thá-hǎan", as: .paiboon), "tá-hǎan")
+        XCTAssertEqual(Romanization.render("bpà-dtàk", as: .paiboon), "bpà-dtàk")
+        XCTAssertEqual(Romanization.render("gaaeng", as: .paiboon), "gɛɛng")
+        XCTAssertEqual(Romanization.render("phêung", as: .paiboon), "pʉ̂ng")
+        XCTAssertEqual(Romanization.render("meuang", as: .paiboon), "mʉang")
+        XCTAssertEqual(Romanization.render("nguhn", as: .paiboon), "ngən")
+        XCTAssertEqual(Romanization.render("dtoh", as: .paiboon), "dtoo")
+        XCTAssertEqual(Romanization.render("jaan", as: .paiboon), "jaan")
+    }
+
+    func test_paiboon_glideEndings() {
+        XCTAssertEqual(Romanization.render("leeuy", as: .paiboon), "ləəi")
+        XCTAssertEqual(Romanization.render("sǔay", as: .paiboon), "sǔai")
+        XCTAssertEqual(Romanization.render("khaawy", as: .paiboon), "kɔɔi")
+        XCTAssertEqual(Romanization.render("dohy", as: .paiboon), "dooi")
+        XCTAssertEqual(Romanization.render("khǐao", as: .paiboon), "kǐao")
+        XCTAssertEqual(Romanization.render("leeo", as: .paiboon), "leeo")
+        XCTAssertEqual(Romanization.render("hǐo", as: .paiboon), "hǐu", "◌ิว is the one ว glide written u")
+    }
+
+    func test_paiboon_fragmentsAndLabels() {
+        XCTAssertEqual(Romanization.render("kh-", as: .paiboon), "k-")
+        XCTAssertEqual(Romanization.render("g-", as: .paiboon), "g-")
+        XCTAssertEqual(Romanization.render("-y", as: .paiboon), "-i")
+        XCTAssertEqual(Romanization.render("o/oh", as: .paiboon), "o/oo")
+        XCTAssertEqual(Romanization.render("eu/euu", as: .paiboon), "ʉ/ʉʉ")
+        XCTAssertEqual(Romanization.render("io", as: .paiboon), "iu")
+        XCTAssertEqual(Romanization.render("phl-", as: .paiboon), Romanization.render("pl-", as: .paiboon),
+                       "พล- and ผล- look alike in Paiboon, so quiz options rely on pickDistinct")
+    }
+
     func test_ipa_keepsToneAndLength() {
         XCTAssertEqual(Romanization.render("khǎaw khài", as: .ipa), "kʰɔ̌ː kʰàj")
         XCTAssertEqual(Romanization.render("thá-hǎan", as: .ipa), "tʰá.hǎːn")
