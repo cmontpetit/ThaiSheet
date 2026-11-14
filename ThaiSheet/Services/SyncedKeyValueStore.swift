@@ -53,7 +53,9 @@ private final class UbiquitousCloudKeyValueStore: CloudKeyValueStore {
 /// user opts in on this device.
 final class SyncedKeyValueStore: KeyValueStore {
     private static let lastSyncDateKey = "sync_lastSyncDate"
-    private static let cloudSyncedKeys = Set(FlashcardSettings.syncedKeys + [LearningModel.storageKey])
+    private static let cloudSyncedKeys = Set(
+        FlashcardSettings.syncedKeys + [LearningModel.storageKey, LearningModel.resetDateKey]
+    )
 
     private let local: UserDefaults
     private let cloud: CloudKeyValueStore
@@ -212,9 +214,10 @@ final class SyncedKeyValueStore: KeyValueStore {
               reason == NSUbiquitousKeyValueStoreInitialSyncChange
         else { return }
 
+        var progressChanged = false
         for key in changedKeys {
-            if key == LearningModel.storageKey {
-                reconcileLearningProgress()
+            if key == LearningModel.storageKey || key == LearningModel.resetDateKey {
+                progressChanged = true
             } else if FlashcardSettings.syncedKeys.contains(key) {
                 if let cloudValue = cloud.object(forKey: key) {
                     local.set(cloudValue, forKey: key)
@@ -222,6 +225,9 @@ final class SyncedKeyValueStore: KeyValueStore {
                     local.removeObject(forKey: key)
                 }
             }
+        }
+        if progressChanged {
+            reconcileLearningProgress()
         }
 
         finishCloudChange()
@@ -235,34 +241,62 @@ final class SyncedKeyValueStore: KeyValueStore {
 
     private enum DecodedProgress {
         case missing
-        case valid([String: CardProgress])
+        /// `stored` is the blob as it decodes. `current` is what it means now:
+        /// legacy IDs migrated, cards from before the latest reset dropped.
+        case valid(stored: [String: CardProgress], current: [String: CardProgress])
         case corrupted(Data)
     }
 
+    /// The latest "Reset All Progress" either side knows of, copied to
+    /// whichever side is behind.
+    private func reconcileResetDate() -> Date? {
+        let localDate = local.object(forKey: LearningModel.resetDateKey) as? Date
+        let cloudDate = cloud.object(forKey: LearningModel.resetDateKey) as? Date
+        guard let latest = [localDate, cloudDate].compactMap({ $0 }).max() else { return nil }
+        if localDate != latest {
+            local.set(latest, forKey: LearningModel.resetDateKey)
+        }
+        if cloudDate != latest {
+            cloud.set(latest, forKey: LearningModel.resetDateKey)
+        }
+        return latest
+    }
+
     private func reconcileLearningProgress() {
-        let localProgress = decodeLearningProgress(local.data(forKey: LearningModel.storageKey))
-        let cloudProgress = decodeLearningProgress(cloud.object(forKey: LearningModel.storageKey) as? Data)
+        let resetDate = reconcileResetDate()
+        let localProgress = decodeLearningProgress(
+            local.data(forKey: LearningModel.storageKey), resetDate: resetDate)
+        let cloudProgress = decodeLearningProgress(
+            cloud.object(forKey: LearningModel.storageKey) as? Data, resetDate: resetDate)
 
         switch (localProgress, cloudProgress) {
         case (.missing, .missing):
             return
 
-        case let (.valid(localValue), .missing):
-            writeProgress(localValue, toLocal: false, toCloud: true)
+        case let (.valid(stored, current), .missing):
+            writeProgress(current, toLocal: current != stored, toCloud: true)
 
-        case let (.missing, .valid(cloudValue)):
-            writeProgress(cloudValue, toLocal: true, toCloud: false)
+        case let (.missing, .valid(_, current)):
+            writeProgress(current, toLocal: true, toCloud: false)
 
-        case let (.valid(localValue), .valid(cloudValue)):
-            writeProgress(Self.mergeProgress(local: localValue, cloud: cloudValue))
+        case let (.valid(localStored, localCurrent), .valid(_, cloudCurrent)):
+            let merged = Self.mergeProgress(local: localCurrent, cloud: cloudCurrent)
+            // Write a side only when the merge changes what it holds. An
+            // unconditional cloud write is seen by every other device as a
+            // change (the encoded bytes differ on each launch even for equal
+            // progress), and each of them would answer with a write of its own.
+            // A cloud blob that differs only by legacy IDs or by cards from
+            // before the reset is left alone for the same reason: a device on
+            // an older build keeps putting those back.
+            writeProgress(merged, toLocal: merged != localStored, toCloud: merged != cloudCurrent)
 
-        case let (.corrupted(localData), .valid(cloudValue)):
+        case let (.corrupted(localData), .valid(_, cloudCurrent)):
             preserveCorrupted(localData, forKey: LearningModel.corruptedBackupKey)
-            writeProgress(cloudValue)
+            writeProgress(cloudCurrent)
 
-        case let (.valid(localValue), .corrupted(cloudData)):
+        case let (.valid(_, localCurrent), .corrupted(cloudData)):
             preserveCorrupted(cloudData, forKey: LearningModel.corruptedCloudBackupKey)
-            writeProgress(localValue)
+            writeProgress(localCurrent)
 
         case let (.corrupted(localData), .corrupted(cloudData)):
             preserveCorrupted(localData, forKey: LearningModel.corruptedBackupKey)
@@ -296,7 +330,18 @@ final class SyncedKeyValueStore: KeyValueStore {
         return merged
     }
 
-    private func decodeLearningProgress(_ data: Data?) -> DecodedProgress {
+    /// Progress recorded after `resetDate`. Review times come from each
+    /// device's own clock, so a review made on a device whose clock runs
+    /// behind the resetting device's can be dropped with the rest.
+    static func progress(
+        _ progress: [String: CardProgress],
+        after resetDate: Date?
+    ) -> [String: CardProgress] {
+        guard let resetDate else { return progress }
+        return progress.filter { ($0.value.lastReviewed ?? .distantPast) > resetDate }
+    }
+
+    private func decodeLearningProgress(_ data: Data?, resetDate: Date?) -> DecodedProgress {
         guard let data else { return .missing }
         guard let progress = try? JSONDecoder().decode([String: CardProgress].self, from: data) else {
             return .corrupted(data)
@@ -304,7 +349,8 @@ final class SyncedKeyValueStore: KeyValueStore {
         // Both sides are normalized before reconciliation, so a blob from a
         // device that has not migrated yet merges card-for-card with one that
         // has, instead of producing two entries for the same card (issue #29).
-        return .valid(ProgressIDMigration.migrate(progress, using: idMigrationMap))
+        let migrated = ProgressIDMigration.migrate(progress, using: idMigrationMap)
+        return .valid(stored: progress, current: Self.progress(migrated, after: resetDate))
     }
 
     private func writeProgress(

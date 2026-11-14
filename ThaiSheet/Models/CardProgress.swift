@@ -64,7 +64,7 @@ enum SRSStage: Int, Codable, CaseIterable, Comparable {
 }
 
 /// Tracks learning progress for a single flashcard using Wanikani-style SRS
-struct CardProgress: Codable {
+struct CardProgress: Codable, Equatable {
     /// Unique identifier matching FlashcardItem.id
     let cardId: String
 
