@@ -292,6 +292,124 @@ final class SyncedKeyValueStoreTests: XCTestCase {
         XCTAssertEqual(merged["cloud-wins"]?.srsStage, .apprentice2)
     }
 
+    // MARK: - Reset All Progress across devices
+
+    func test_reset_isNotUndoneByAnotherDevicesProgress() throws {
+        // This device reset at 2_000. Another device then merged its own
+        // pre-reset cards back into the cloud blob.
+        let resetDate = Date(timeIntervalSince1970: 2_000)
+        local.set(resetDate, forKey: LearningModel.resetDateKey)
+        local.set(try encoded([:]), forKey: LearningModel.storageKey)
+        cloud.seed(resetDate, forKey: LearningModel.resetDateKey)
+        cloud.seed(try encoded(["card": progress(id: "card", stage: .familiar1,
+                                                 reviewed: Date(timeIntervalSince1970: 1_000))]),
+                   forKey: LearningModel.storageKey)
+        let store = makeStore()
+        store.activateCloud()
+        cloud.resetRecordedWrites()
+
+        store.handleExternalChange(
+            reason: NSUbiquitousKeyValueStoreServerChange,
+            changedKeys: [LearningModel.storageKey]
+        )
+
+        let kept = try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey)))
+        XCTAssertTrue(kept.isEmpty, "A card last reviewed before the reset must not come back")
+        XCTAssertFalse(cloud.writtenKeys.contains(LearningModel.storageKey),
+                       "Rewriting the cloud would only make the other device put the card back again")
+    }
+
+    func test_reset_fromAnotherDevice_dropsLocalProgressAndKeepsLaterReviews() throws {
+        let resetDate = Date(timeIntervalSince1970: 2_000)
+        local.set(try encoded([
+            "before": progress(id: "before", stage: .familiar1, reviewed: Date(timeIntervalSince1970: 1_000)),
+            "after": progress(id: "after", stage: .learning1, reviewed: Date(timeIntervalSince1970: 2_500)),
+        ]), forKey: LearningModel.storageKey)
+        let store = makeStore()
+        store.activateCloud()
+        cloud.seed(resetDate, forKey: LearningModel.resetDateKey)
+        cloud.seed(try encoded([:]), forKey: LearningModel.storageKey)
+
+        store.handleExternalChange(
+            reason: NSUbiquitousKeyValueStoreServerChange,
+            changedKeys: [LearningModel.resetDateKey]
+        )
+
+        XCTAssertEqual(local.object(forKey: LearningModel.resetDateKey) as? Date, resetDate)
+        let kept = try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey)))
+        XCTAssertEqual(Set(kept.keys), ["after"])
+        let cloudKept = try decoded(XCTUnwrap(cloud.object(forKey: LearningModel.storageKey) as? Data))
+        XCTAssertEqual(Set(cloudKept.keys), ["after"], "A review made after the reset still syncs")
+    }
+
+    func test_resetAllProgress_publishesTheResetDate() throws {
+        let store = makeStore()
+        store.activateCloud()
+        let model = LearningModel(store: store)
+        let resetDate = Date(timeIntervalSince1970: 5_000)
+        model.clock = { resetDate }
+
+        model.resetAllProgress()
+
+        XCTAssertEqual(local.object(forKey: LearningModel.resetDateKey) as? Date, resetDate)
+        XCTAssertEqual(cloud.object(forKey: LearningModel.resetDateKey) as? Date, resetDate)
+    }
+
+    func test_activateCloud_takesTheLatestResetDateFromEitherSide() {
+        let earlier = Date(timeIntervalSince1970: 1_000)
+        let later = Date(timeIntervalSince1970: 2_000)
+        local.set(later, forKey: LearningModel.resetDateKey)
+        cloud.seed(earlier, forKey: LearningModel.resetDateKey)
+        let store = makeStore()
+
+        store.activateCloud()
+
+        XCTAssertEqual(local.object(forKey: LearningModel.resetDateKey) as? Date, later)
+        XCTAssertEqual(cloud.object(forKey: LearningModel.resetDateKey) as? Date, later)
+    }
+
+    // MARK: - Unchanged progress is not rewritten
+
+    func test_externalChange_withTheSameProgress_writesNothingToTheCloud() throws {
+        let cards = [
+            "a": progress(id: "a", stage: .learning1, reviewed: Date(timeIntervalSince1970: 1_000)),
+            "b": progress(id: "b", stage: .familiar1, reviewed: Date(timeIntervalSince1970: 2_000)),
+        ]
+        local.set(try encoded(cards), forKey: LearningModel.storageKey)
+        cloud.seed(try encoded(cards), forKey: LearningModel.storageKey)
+        let store = makeStore()
+        store.activateCloud()
+        cloud.resetRecordedWrites()
+
+        store.handleExternalChange(
+            reason: NSUbiquitousKeyValueStoreServerChange,
+            changedKeys: [LearningModel.storageKey]
+        )
+
+        XCTAssertTrue(cloud.writtenKeys.isEmpty,
+                      "A write here reaches the other device as a change, which answers with its own")
+    }
+
+    func test_externalChange_withNewerCloudCard_updatesLocalOnly() throws {
+        let older = progress(id: "card", stage: .learning1, reviewed: Date(timeIntervalSince1970: 1_000))
+        let newer = progress(id: "card", stage: .learning2, reviewed: Date(timeIntervalSince1970: 2_000))
+        local.set(try encoded(["card": older]), forKey: LearningModel.storageKey)
+        cloud.seed(try encoded(["card": older]), forKey: LearningModel.storageKey)
+        let store = makeStore()
+        store.activateCloud()
+        cloud.seed(try encoded(["card": newer]), forKey: LearningModel.storageKey)
+        cloud.resetRecordedWrites()
+
+        store.handleExternalChange(
+            reason: NSUbiquitousKeyValueStoreServerChange,
+            changedKeys: [LearningModel.storageKey]
+        )
+
+        let merged = try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey)))
+        XCTAssertEqual(merged["card"]?.srsStage, .learning2)
+        XCTAssertTrue(cloud.writtenKeys.isEmpty, "The cloud already holds the merged result")
+    }
+
     // MARK: - Helpers
 
     private func makeStore() -> SyncedKeyValueStore {

@@ -28,6 +28,10 @@ class LearningModel {
     static let corruptedBackupKey = "learningProgress.corrupted-backup"
     /// Where an undecodable cloud blob is preserved during reconciliation
     static let corruptedCloudBackupKey = "learningProgress.corrupted-cloud-backup"
+    /// When "Reset All Progress" last ran. Synced, so another device drops the
+    /// progress it still holds from before the reset instead of merging it
+    /// back. Persisted and synced: never rename.
+    static let resetDateKey = "learningProgress.resetDate"
     private static let logger = Logger(subsystem: "net.montpetit.thaisheet", category: "LearningModel")
 
     /// Set when the stored blob exists but can't be decoded; save() preserves
@@ -208,9 +212,12 @@ class LearningModel {
 
     // MARK: - Reset
 
-    /// Clear all learning progress
+    /// Clear all learning progress, on this device and on every synced one
     func resetAllProgress() {
         progressByCardId.removeAll()
+        // An empty blob alone cannot delete anything elsewhere: the per-card
+        // merge would restore every card from the next device that syncs.
+        store.set(clock(), forKey: LearningModel.resetDateKey)
         save()
     }
 
