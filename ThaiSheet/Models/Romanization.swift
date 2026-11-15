@@ -16,6 +16,10 @@ import Observation
 enum RomanizationScheme: String, CaseIterable, Identifiable {
     /// ThaiSheet's learner transcription (g/dt/bp, doubled long vowels, tone diacritics)
     case learner
+    /// The original Paiboon Publishing system (g/k, dt/t, bp/p, ɛ ɔ ʉ ə, tone
+    /// diacritics). Not Paiboon+: that one spells long ia/ʉa/ua apart from
+    /// short, a length the stored transcription does not carry.
+    case paiboon
     /// International Phonetic Alphabet, with tone diacritics
     case ipa
     /// Royal Thai General System: the official scheme. No tones, no vowel length.
@@ -26,6 +30,7 @@ enum RomanizationScheme: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .learner: return String(localized: "ThaiSheet (learner)", bundle: .appLanguage)
+        case .paiboon: return String(localized: "Paiboon (textbooks)", bundle: .appLanguage)
         case .ipa: return String(localized: "IPA (phonetic alphabet)", bundle: .appLanguage)
         case .rtgs: return String(localized: "RTGS (official Thai)", bundle: .appLanguage)
         }
@@ -264,41 +269,78 @@ enum Romanization {
         "aw": "o", "aaw": "o", "eu": "ue", "euu": "ue", "uh": "oe", "uuh": "oe",
         "ia": "ia", "eua": "uea", "ua": "ua",
     ]
-    private static let ipaToneMarks: [ThaiSyllable.Tone: String] = [
+    /// Paiboon keeps the learner scheme's unaspirated g/dt/bp and writes the
+    /// aspirated stops bare. ผล- ("p", issue #7) and พล- ("ph") both come out "p".
+    private static let paiboonOnsets: [String: String] = [
+        "g": "g", "kh": "k", "ng": "ng", "j": "j", "ch": "ch", "s": "s", "y": "y",
+        "d": "d", "dt": "dt", "th": "t", "n": "n", "b": "b", "bp": "bp", "ph": "p",
+        "f": "f", "m": "m", "r": "r", "l": "l", "w": "w", "h": "h", "p": "p",
+    ]
+    private static let paiboonVowels: [String: String] = [
+        "a": "a", "aa": "aa", "i": "i", "ii": "ii", "u": "u", "uu": "uu",
+        "e": "e", "ee": "ee", "ae": "ɛ", "aae": "ɛɛ", "o": "o", "oh": "oo",
+        "aw": "ɔ", "aaw": "ɔɔ", "eu": "ʉ", "euu": "ʉʉ", "uh": "ə", "uuh": "əə",
+        "ia": "ia", "eua": "ʉa", "ua": "ua",
+    ]
+    /// Tone diacritics, shared by the schemes that mark tone (IPA, Paiboon)
+    private static let toneDiacritics: [ThaiSyllable.Tone: String] = [
         .low: "\u{0300}", .high: "\u{0301}", .falling: "\u{0302}", .rising: "\u{030C}",
     ]
 
+    private static func onsets(_ scheme: RomanizationScheme) -> [String: String] {
+        switch scheme {
+        case .learner: return [:]
+        case .paiboon: return paiboonOnsets
+        case .ipa: return ipaOnsets
+        case .rtgs: return rtgsOnsets
+        }
+    }
+
+    private static func vowels(_ scheme: RomanizationScheme) -> [String: String] {
+        switch scheme {
+        case .learner: return [:]
+        case .paiboon: return paiboonVowels
+        case .ipa: return ipaVowels
+        case .rtgs: return rtgsVowels
+        }
+    }
+
     private static func renderOnset(_ onset: String, _ scheme: RomanizationScheme) -> String {
         guard let (base, second) = splitOnset(onset), !base.isEmpty else { return "" }
-        let table = scheme == .ipa ? ipaOnsets : rtgsOnsets
-        return (table[base] ?? base) + second
+        return (onsets(scheme)[base] ?? base) + second
     }
 
     private static func renderFinal(_ final: String, _ scheme: RomanizationScheme) -> String {
         switch (final, scheme) {
         case ("ng", .ipa): return "ŋ"
         case ("y", .ipa): return "j"
-        case ("y", .rtgs): return "i"
+        case ("y", .rtgs), ("y", .paiboon): return "i"
         case ("o", .ipa), ("w", .ipa): return "w"
-        case ("o", .rtgs), ("w", .rtgs): return "o"
+        case ("o", .rtgs), ("w", .rtgs), ("o", .paiboon), ("w", .paiboon): return "o"
         default: return final
         }
     }
 
     private static func renderSyllable(_ syllable: ThaiSyllable, _ scheme: RomanizationScheme) -> String {
-        var vowel = (scheme == .ipa ? ipaVowels : rtgsVowels)[syllable.vowel] ?? syllable.vowel
-        if scheme == .ipa, let mark = ipaToneMarks[syllable.tone], let first = vowel.first {
+        var vowel = vowels(scheme)[syllable.vowel] ?? syllable.vowel
+        if scheme != .rtgs, let mark = toneDiacritics[syllable.tone], let first = vowel.first {
             vowel = "\(first)\(mark)\(vowel.dropFirst())"
         }
-        let ending = syllable.glide.map { renderFinal(String($0), scheme) } ?? renderFinal(syllable.coda, scheme)
+        var ending = syllable.glide.map { renderFinal(String($0), scheme) } ?? renderFinal(syllable.coda, scheme)
+        // Paiboon writes ◌ิว as "iu"; after every other vowel the ว glide is "o"
+        if scheme == .paiboon, syllable.vowel == "i", syllable.glide == "o" {
+            ending = "u"
+        }
         return (renderOnset(syllable.onset, scheme) + vowel + ending).precomposedStringWithCanonicalMapping
     }
 
-    /// IPA separates syllables with a period. RTGS writes a word solid, with a
-    /// hyphen only where the break would otherwise be misread.
+    /// IPA separates syllables with a period and Paiboon with a hyphen. RTGS
+    /// writes a word solid, with a hyphen only where the break would otherwise
+    /// be misread.
     private static func join(_ syllables: [ThaiSyllable], _ scheme: RomanizationScheme) -> String {
         guard scheme == .rtgs else {
-            return syllables.map { renderSyllable($0, scheme) }.joined(separator: ".")
+            return syllables.map { renderSyllable($0, scheme) }
+                .joined(separator: scheme == .paiboon ? "-" : ".")
         }
         var result = ""
         for (index, syllable) in syllables.enumerated() {

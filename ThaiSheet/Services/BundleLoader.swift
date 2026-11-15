@@ -10,7 +10,7 @@ import os
 /// point it happens rather than inferred later from an empty array, so the
 /// difference between "not in the bundle", "could not be read", "did not
 /// decode", and "decoded to nothing" survives to the UI and the logs.
-enum DatasetLoadFailure: Equatable {
+enum DatasetLoadFailure: Sendable {
     /// No such resource in the app bundle (a packaging bug).
     case resourceMissing
     /// The resource exists but its bytes could not be read.
@@ -21,6 +21,14 @@ enum DatasetLoadFailure: Equatable {
     /// a packaging bug rather than a legitimately empty dataset.
     case decodedEmpty
 }
+
+// The conformance itself must be nonisolated, including its synthesized witness.
+// Keep the older spelling for the project's Xcode 16 minimum.
+#if compiler(>=6.2)
+extension DatasetLoadFailure: nonisolated Equatable {}
+#else
+extension DatasetLoadFailure: Equatable {}
+#endif
 
 /// A dataset that failed to load, named by its bundled resource.
 ///

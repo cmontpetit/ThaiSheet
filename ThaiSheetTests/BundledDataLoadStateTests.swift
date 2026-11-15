@@ -48,6 +48,22 @@ private struct ConsonantsShape: Decodable {
 
 final class BundledDataLoadStateTests: XCTestCase {
 
+    nonisolated func test_loadErrorsCanBeComparedOutsideMainActor() {
+        XCTAssertEqual(
+            DatasetLoadError(resource: "consonants", failure: .decodeFailed(diagnostic: "invalid JSON")),
+            DatasetLoadError(resource: "consonants", failure: .decodeFailed(diagnostic: "invalid JSON"))
+        )
+        XCTAssertNotEqual(DatasetLoadFailure.resourceMissing, .decodedEmpty)
+        XCTAssertTrue(Self.equalSendableValues(
+            DatasetLoadFailure.readFailed(diagnostic: "unreadable"),
+            .readFailed(diagnostic: "unreadable")
+        ))
+    }
+
+    private nonisolated static func equalSendableValues<T: Equatable & Sendable>(_ lhs: T, _ rhs: T) -> Bool {
+        lhs == rhs
+    }
+
     // MARK: - Loader distinguishes failure kinds
 
     func test_load_missingResource_reportsResourceMissing() {

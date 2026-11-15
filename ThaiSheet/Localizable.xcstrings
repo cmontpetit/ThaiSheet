@@ -117,6 +117,17 @@
         }
       }
     },
+    "Paiboon (textbooks)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paiboon (manuels)"
+          }
+        }
+      }
+    },
     "IPA (phonetic alphabet)" : {
       "extractionState" : "manual",
       "localizations" : {
