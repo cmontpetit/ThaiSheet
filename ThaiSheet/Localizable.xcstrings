@@ -2795,6 +2795,16 @@
           }
         }
       }
+    },
+    "Some words split these letters into two syllables (พลัง is พะ-ลัง). If yours does, enter only the syllable you want to check." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Certains mots séparent ces lettres en deux syllabes (พลัง se lit พะ-ลัง). Si c'est le cas du vôtre, saisissez seulement la syllabe à vérifier."
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

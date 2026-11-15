@@ -205,6 +205,7 @@ final class ToneFinderTests: XCTestCase {
         XCTAssertEqual(notes("กลม"), [
             .cluster(letters: "กล", classLetter: "ก"),
             .consonantClass(letter: "ก", .mid),
+            .clusterMaySplit,
             .unwrittenVowel,
             .finalConsonant(letters: "ม", sound: "-m", .live),
         ])
@@ -214,8 +215,21 @@ final class ToneFinderTests: XCTestCase {
         XCTAssertEqual(notes("ทราย"), [
             .irregularCluster(letters: "ทร", classLetter: "ท"),
             .consonantClass(letter: "ท", .low),
+            .clusterMaySplit,
             .vowelWithEnding(form: "กาย"),
         ])
+    }
+
+    /// พลัง is two syllables (พะ-ลัง) but reads as one: the warning is the
+    /// only defence, so it must appear for every listed cluster
+    func test_notes_clusterReading_warnsItMayBeTwoSyllables() {
+        XCTAssertTrue(notes("พลัง").contains(.clusterMaySplit))
+        XCTAssertTrue(notes("สระ").contains(.clusterMaySplit))
+        // A real cluster gets it too: the spelling cannot tell them apart
+        XCTAssertTrue(notes("ปลา").contains(.clusterMaySplit))
+        // Silent ห and single consonants do not
+        XCTAssertFalse(notes("หนา").contains(.clusterMaySplit))
+        XCTAssertFalse(notes("มาก").contains(.clusterMaySplit))
     }
 
     /// A marked syllable states the mark, not the vowel length or the ending

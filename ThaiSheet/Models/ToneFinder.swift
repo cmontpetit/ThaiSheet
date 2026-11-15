@@ -52,6 +52,9 @@ struct ToneFinder {
         case cluster(letters: String, classLetter: String)
         /// Read as one sound (ทร, สร, จร); the first letter sets the class
         case irregularCluster(letters: String, classLetter: String)
+        /// The cluster's letters may belong to two syllables instead
+        /// (พลัง is พะ-ลัง). The spelling cannot tell, so the learner checks.
+        case clusterMaySplit
         case toneMark(String)
         case unwrittenVowel
         /// A vowel-plus-ending row (◌าย, ไ◌): live, takes no final
@@ -196,9 +199,11 @@ struct ToneFinder {
         case .smooth?:
             notes.append(.cluster(letters: reading.initial, classLetter: classLetter))
             notes.append(.consonantClass(letter: classLetter, reading.consonantClass))
+            notes.append(.clusterMaySplit)
         case .irregular?:
             notes.append(.irregularCluster(letters: reading.initial, classLetter: classLetter))
             notes.append(.consonantClass(letter: classLetter, reading.consonantClass))
+            notes.append(.clusterMaySplit)
         case nil:
             notes.append(.consonantClass(letter: reading.initial, reading.consonantClass))
         }

@@ -279,6 +279,9 @@ struct ToneFinderView: View {
             Text("\(letters) is a cluster: both letters are pronounced, and \(classLetter) sets the class.")
         case .irregularCluster(let letters, let classLetter):
             Text("\(letters) is read as one sound, and \(classLetter) sets the class.")
+        case .clusterMaySplit:
+            Text("Some words split these letters into two syllables (พลัง is พะ-ลัง). If yours does, enter only the syllable you want to check.")
+                .foregroundStyle(.orange)
         case .toneMark(let mark):
             Text("\(markDisplay(mark)) is a tone mark: with the consonant class, it sets the tone.")
         case .unwrittenVowel:
