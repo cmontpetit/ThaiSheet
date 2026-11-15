@@ -172,11 +172,7 @@ struct VowelRowView: View {
     var searchQuery: String? = nil
     /// When set, only that duration's cells are shown (full width)
     var visibleDuration: VowelCard.VowelDuration? = nil
-    var onPractice: ((String) -> Void)? = nil
-
     @Environment(\.audioPlayer) private var audioPlayer
-    @State private var selectedFormType: VowelFormVariant? = nil
-    @State private var selectedText: String? = nil
     @ScaledMetric(relativeTo: .title2) private var singleDurationFormSize: CGFloat = 34
 
     private func formMatchesSearch(_ form: String?) -> Bool {
@@ -242,11 +238,6 @@ struct VowelRowView: View {
     // One reveal per row: tapping any of its form cells reveals the shared reading
     private var concealID: String { FlashcardType.vowel.cardId(for: vowel.id) }
 
-    private func showSheet(for text: String, formType: VowelFormVariant) {
-        selectedFormType = formType
-        selectedText = text
-    }
-
     private func pronunciation(for formType: VowelFormVariant) -> ReferenceSampleWord? {
         vowel.pronunciation(for: formType.duration, form: formType.form)
     }
@@ -284,21 +275,6 @@ struct VowelRowView: View {
         .padding(.trailing, 12)
         .padding(.vertical, 6)
         .background(backgroundForRow)
-        .sheet(
-            isPresented: Binding(
-                get: { selectedText != nil },
-                set: { if !$0 { selectedFormType = nil; selectedText = nil } }
-            )
-        ) {
-            if let text = selectedText, let formType = selectedFormType {
-                VowelDetailSheet(
-                    vowel: vowel,
-                    formType: formType,
-                    text: text,
-                    onPractice: onPractice.map { practice in { practice(text) } }
-                )
-            }
-        }
     }
 
     private var shortCells: some View {
@@ -340,11 +316,11 @@ struct VowelRowView: View {
                 label: "\(vowel.sound.romanized), \(form.text)",
                 hasSound: hasSound,
                 conceal: PracticeConceal(id: concealID, concealedLabel: form.text),
+                item: .vowel(id: vowel.id, variant: form.formType, text: form.text),
                 onPlay: {
                     guard let sound = soundForm else { return }
                     audioPlayer.play(.vowel, key: sound.pronunciation.word, itemID: concealID)
-                },
-                onDetails: { showSheet(for: form.text, formType: form.formType) }
+                }
             )
         } else {
             text
@@ -397,11 +373,11 @@ struct VowelRowView: View {
                     // Form cells share the row's single reading, so reveal (don't
                     // toggle) — a sibling tap must not hide the answer.
                     conceal: PracticeConceal(id: concealID, concealedLabel: text, revealOnly: true),
+                    item: .vowel(id: vowel.id, variant: formType, text: text),
                     onPlay: {
                         guard let pronunciation else { return }
                         audioPlayer.play(.vowel, key: pronunciation.word, itemID: concealID)
-                    },
-                    onDetails: { showSheet(for: text, formType: formType) }
+                    }
                 )
         } else {
             Text("-")

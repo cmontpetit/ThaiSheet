@@ -1,6 +1,116 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Reading hidden" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture masquée"
+          }
+        }
+      }
+    },
+    "Reveal the selected item to see its details." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Révélez l’élément sélectionné pour voir ses détails."
+          }
+        }
+      }
+    },
+    "Select an item" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionnez un élément"
+          }
+        }
+      }
+    },
+    "Tap a table item to see its details here." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchez un élément du tableau pour voir ses détails ici."
+          }
+        }
+      }
+    },
+    "Plays the sound, reveals the answer, and shows details." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue le son, révèle la réponse et affiche les détails."
+          }
+        }
+      }
+    },
+    "Reveals the answer and shows details." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Révèle la réponse et affiche les détails."
+          }
+        }
+      }
+    },
+    "Plays the sound and hides the answer." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue le son et masque la réponse."
+          }
+        }
+      }
+    },
+    "Hides the answer." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masque la réponse."
+          }
+        }
+      }
+    },
+    "Plays the sound and shows details." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue le son et affiche les détails."
+          }
+        }
+      }
+    },
+    "Tap to reveal, hear, and show details." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchez pour révéler, écouter et afficher les détails."
+          }
+        }
+      }
+    },
+    "Tap to hear and show details." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchez pour écouter et afficher les détails."
+          }
+        }
+      }
+    },
     "Learning Data Unavailable" : {
       "localizations" : {
         "fr" : {

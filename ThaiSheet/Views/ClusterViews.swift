@@ -10,7 +10,6 @@ import SwiftUI
 struct ClusterMatrixView: View {
     let clusters: [Cluster]
     var highlightedClusterId: String?
-    var onPractice: ((String) -> Void)?
 
     // Column headers (blend consonants)
     private let blendColumns = ["ร", "ล", "ว"]
@@ -64,8 +63,7 @@ struct ClusterMatrixView: View {
                             let cellCluster = cluster(for: consonant, blend: blend)
                             ClusterMatrixCell(
                                 cluster: cellCluster,
-                                isHighlighted: cellCluster?.id == highlightedClusterId,
-                                onPractice: onPractice
+                                isHighlighted: cellCluster?.id == highlightedClusterId
                             )
                             .frame(maxWidth: .infinity)
                             .id(cellCluster?.id)
@@ -85,9 +83,7 @@ struct ClusterMatrixView: View {
 struct ClusterMatrixCell: View {
     let cluster: Cluster?
     var isHighlighted: Bool = false
-    var onPractice: ((String) -> Void)?
     @Environment(\.audioPlayer) private var audioPlayer
-    @State private var showingSheet = false
 
     var body: some View {
         if let cluster = cluster {
@@ -112,12 +108,9 @@ struct ClusterMatrixCell: View {
                 label: clusterAccessibilityLabel(cluster),
                 hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
                 conceal: PracticeConceal(id: concealID, concealedLabel: cluster.cluster),
-                onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID) },
-                onDetails: { showingSheet = true }
+                item: .cluster(cluster.id),
+                onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID) }
             )
-            .sheet(isPresented: $showingSheet) {
-                ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
-            }
         } else {
             Text("—")
                 .font(.caption)
@@ -132,7 +125,6 @@ struct ClusterGridSection: View {
     let type: ClusterType
     let clusters: [Cluster]
     var highlightedClusterId: String?
-    var onPractice: ((String) -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -142,8 +134,7 @@ struct ClusterGridSection: View {
                 ForEach(clusters.filter { $0.type == type }) { cluster in
                     ClusterCompactCell(
                         cluster: cluster,
-                        isHighlighted: cluster.id == highlightedClusterId,
-                        onPractice: onPractice
+                        isHighlighted: cluster.id == highlightedClusterId
                     )
                     .id(cluster.id)
                 }
@@ -160,9 +151,7 @@ struct ClusterGridSection: View {
 struct ClusterCompactCell: View {
     let cluster: Cluster
     var isHighlighted: Bool = false
-    var onPractice: ((String) -> Void)?
     @Environment(\.audioPlayer) private var audioPlayer
-    @State private var showingSheet = false
 
     private var concealID: String { FlashcardType.cluster.cardId(for: cluster.id) }
 
@@ -190,12 +179,9 @@ struct ClusterCompactCell: View {
             label: clusterAccessibilityLabel(cluster),
             hasSound: audioPlayer.hasSound(.cluster, key: cluster.audioKey),
             conceal: PracticeConceal(id: concealID, concealedLabel: cluster.cluster),
-            onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID) },
-            onDetails: { showingSheet = true }
+            item: .cluster(cluster.id),
+            onPlay: { audioPlayer.play(.cluster, key: cluster.audioKey, itemID: concealID) }
         )
-        .sheet(isPresented: $showingSheet) {
-            ClusterDetailSheet(cluster: cluster, onPractice: onPractice)
-        }
     }
 }
 

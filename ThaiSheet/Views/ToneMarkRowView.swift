@@ -86,10 +86,7 @@ struct ToneMarkHeaderView: View {
 struct ToneMarkRowView: View {
     let toneMark: ToneMark
     var isHighlighted: Bool = false
-    var onPractice: ((String) -> Void)?
-
     @Environment(\.audioPlayer) private var audioPlayer
-    @State private var selectedDisplay: String? = nil
 
     var body: some View {
         HStack(spacing: 0) {
@@ -131,21 +128,9 @@ struct ToneMarkRowView: View {
                     label: "\(entry.display), \(ThaiColors.toneName(tone))",
                     hasSound: hasSound,
                     conceal: PracticeConceal(id: concealID, concealedLabel: entry.display),
-                    onPlay: { audioPlayer.play(.toneMark, key: entry.soundKey, itemID: concealID) },
-                    onDetails: { selectedDisplay = entry.display }
+                    item: .toneMark(id: toneMark.id, soundKey: entry.soundKey),
+                    onPlay: { audioPlayer.play(.toneMark, key: entry.soundKey, itemID: concealID) }
                 )
-                .sheet(
-                    isPresented: Binding(
-                        get: { selectedDisplay == entry.display },
-                        set: { if !$0 { selectedDisplay = nil } }
-                    )
-                ) {
-                    ToneMarkDetailSheet(
-                        toneMark: toneMark,
-                        soundKey: entry.soundKey,
-                        onPractice: onPractice.map { practice in { practice(entry.soundKey) } }
-                    )
-                }
         } else {
             Text("—")
                 .font(.subheadline)

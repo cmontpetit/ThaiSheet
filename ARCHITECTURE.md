@@ -50,7 +50,10 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 
 **Reference views** — row views for the browse/search tab:
 - `ConsonantRowView`, `VowelRowView`, `ToneMarkRowView`, `ToneRuleRowView`, `ClusterViews` (matrix + grid cells)
-- All playable items share one interaction, via `PlayableItemModifier`: tap plays the sound (details sheet when there is none), long press opens the details sheet. The modifier also carries the VoiceOver semantics (label, hint, button trait) — use it instead of raw gestures.
+- All playable items share one interaction, via `PlayableItemModifier`: tap plays the sound and selects the inline detail on expanded containers; compact containers open a sheet when there is no sound. Long press and the VoiceOver Show details action always request details. The modifier also carries practice concealment and selected-item semantics — use it instead of raw gestures.
+- `ReferenceSelection` owns the exact selected cell and sheet/pane handoff outside the rows. Vowel forms share a reading ID; tone-mark class columns have separate reading IDs. Search, filters, and section changes clear a selection that is no longer visible.
+- `ReferenceBrowserLayout` adds an inline pane when the container can fit a 500-point table and 320-point detail (both scale with Dynamic Type), with at least 440 points of height. The browser stays in the same view-tree location through resizing. `ReferenceDetailPane` removes all answer content and actions whenever `practiceMode.isConcealed(selectedItem.concealID)` is true, including after a second tap or practice activation.
+- Narrowing a concealed pane retains its selection without automatically opening an answer sheet. Compact long-press details remain an explicit route to the answer, as before.
 
 **Shared components:**
 - `FlashcardLayout` — a single `AnyLayout` view tree, stacked in narrow/short containers and arranged in two columns when there is room. Minimum column width scales with Dynamic Type; layout changes preserve quiz view identity and ease between arrangements over 0.25 seconds (immediate with Reduce Motion).
@@ -58,7 +61,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - `FlashcardComponents.swift` — `FlashcardResultCard`, `FlashcardSummaryRow`, `FlashcardNextButton`, `NavigableTapArea`, etc.
 - `PlayableItemModifier` — tap-to-play/long-press-details gesture + accessibility for reference items
 - `FilterChipView` — reusable filter chip
-- `ReferenceItemSheet` — detail sheet for reference items
+- `ReferenceItemSheet` — shared detail content for compact sheets and the inline Reference pane; sheet detents and dismissal apply only to sheet placement
 
 **Screens:**
 - `CheatsheetBrowserView` — reference tab with search and section navigation

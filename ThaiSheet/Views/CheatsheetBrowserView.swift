@@ -60,6 +60,7 @@ struct CheatsheetBrowserView: View {
     @State private var searchText = ""
     @State private var selectedType: CheatsheetEntryType =
         ScreenshotScenario.current?.referenceType ?? .consonants
+    @State private var referenceSelection = ScreenshotScenario.initialReferenceSelection
     @State private var showingSettings = false
     @State private var showingInfo = false
     // Session-only by design: the app always opens with readings visible
@@ -77,6 +78,22 @@ struct CheatsheetBrowserView: View {
     @State private var selectedVowelDuration: VowelCard.VowelDuration? = nil
     @State private var showRareVowels = false
 
+    init(
+        settings: FlashcardSettings,
+        syncedStore: SyncedKeyValueStore? = nil,
+        highlighted: Binding<[FlashcardType: String]>,
+        flashcardStarting: Binding<[FlashcardType: String]>,
+        selectedTab: Binding<AppTab>,
+        referenceSelection: ReferenceSelection = ScreenshotScenario.initialReferenceSelection
+    ) {
+        self.settings = settings
+        self.syncedStore = syncedStore
+        _highlighted = highlighted
+        _flashcardStarting = flashcardStarting
+        _selectedTab = selectedTab
+        _referenceSelection = State(initialValue: referenceSelection)
+    }
+
     // Convenience accessors for highlighted values
     private var highlightedConsonant: String? { highlighted[.consonant] }
     private var highlightedVowel: String? { highlighted[.vowel] }
@@ -86,6 +103,7 @@ struct CheatsheetBrowserView: View {
 
     /// Start practicing a card: set the starting value and switch to flashcards
     private func startPractice(_ key: String, type: FlashcardType) {
+        referenceSelection.dismissSheet()
         flashcardStarting[type] = key
         highlighted[type] = nil
         selectedTab = .flashcards
@@ -130,10 +148,7 @@ struct CheatsheetBrowserView: View {
             vowel: vowel,
             highlightedForm: highlightedVowel,
             searchQuery: normalizedVowelSearch,
-            visibleDuration: selectedVowelDuration,
-            onPractice: { form in
-                startPractice(form, type: .vowel)
-            }
+            visibleDuration: selectedVowelDuration
         )
         .listRowInsets(EdgeInsets())
         .id(vowel.id)
@@ -343,288 +358,300 @@ struct CheatsheetBrowserView: View {
         )
     }
 
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                Picker("Type", selection: $selectedType) {
-                    ForEach(CheatsheetEntryType.allCases, id: \.self) { type in
-                        Text(tabLabel(for: type)).tag(type)
-                    }
+    private var tables: some View {
+        VStack(spacing: 0) {
+            Picker("Type", selection: $selectedType) {
+                ForEach(CheatsheetEntryType.allCases, id: \.self) { type in
+                    Text(tabLabel(for: type)).tag(type)
                 }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .contentColumn()
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .contentColumn()
 
-                // Filter chips
-                if selectedType == .consonants {
-                    FilterChipRow(
-                        items: ConsonantClass.allCases,
-                        label: { $0.label },
-                        color: { $0.color },
-                        selection: $selectedConsonantClass
-                    )
-                }
-                if selectedType == .clusters {
-                    FilterChipRow(
-                        items: ClusterType.allCases,
-                        label: { $0.chipLabel },
-                        selection: $selectedClusterType
-                    )
-                }
-                if selectedType == .vowels {
-                    vowelFilterChips
-                }
+            // Filter chips
+            if selectedType == .consonants {
+                FilterChipRow(
+                    items: ConsonantClass.allCases,
+                    label: { $0.label },
+                    color: { $0.color },
+                    selection: $selectedConsonantClass
+                )
+            }
+            if selectedType == .clusters {
+                FilterChipRow(
+                    items: ClusterType.allCases,
+                    label: { $0.chipLabel },
+                    selection: $selectedClusterType
+                )
+            }
+            if selectedType == .vowels {
+                vowelFilterChips
+            }
 
-                if !thaiData.isAvailable(selectedType.requiredDatasets) {
-                    sectionUnavailableView
+            if !thaiData.isAvailable(selectedType.requiredDatasets) {
+                sectionUnavailableView
+            } else {
+            switch selectedType {
+            case .consonants:
+                if filteredConsonants.isEmpty {
+                    ContentUnavailableView.search(text: searchText)
                 } else {
-                switch selectedType {
-                case .consonants:
-                    if filteredConsonants.isEmpty {
-                        ContentUnavailableView.search(text: searchText)
-                    } else {
-                    VStack(spacing: 0) {
-                        ConsonantHeaderView()
-                        Divider()
-                        ScrollViewReader { proxy in
-                            List(orderedConsonants) { consonant in
-                                ConsonantRowView(
-                                    consonant: consonant,
-                                    isHighlighted: highlightedConsonant == consonant.character,
-                                    onPractice: {
-                                        startPractice(consonant.character, type: .consonant)
-                                    }
-                                )
-                                .listRowInsets(EdgeInsets())
-                                .id(consonant.character)
-                            }
-                            .listStyle(.plain)
-                            .scrollsToHighlight(highlightedConsonant, proxy: proxy) { $0 }
-                        }
-                    }
-                    .contentColumn()
-                    }
-                case .vowels:
-                    if filteredVowels.isEmpty {
-                        ContentUnavailableView.search(text: searchText)
-                    } else {
-                    VStack(spacing: 0) {
-                        ScrollViewReader { proxy in
-                            List {
-                                // Basic vowels first, then the vowel-plus-ending
-                                // combinations. Each section pins its own column
-                                // headings: Closed/Open apply to basic vowels only
-                                let basicVowels = orderedVowels.filter { !$0.isCombination }
-                                let combinations = orderedVowels.filter(\.isCombination)
-                                if !basicVowels.isEmpty {
-                                    Section {
-                                        ForEach(basicVowels) { vowel in
-                                            vowelRow(vowel)
-                                        }
-                                    } header: {
-                                        VStack(spacing: 0) {
-                                            VowelHeaderView(visibleDuration: selectedVowelDuration)
-                                            Divider()
-                                        }
-                                        .textCase(nil)
-                                        .listRowInsets(EdgeInsets())
-                                    }
-                                }
-                                if !combinations.isEmpty {
-                                    Section {
-                                        ForEach(combinations) { vowel in
-                                            vowelRow(vowel)
-                                        }
-                                    } header: {
-                                        VowelCombinationHeaderView(visibleDuration: selectedVowelDuration)
-                                    }
-                                }
-                            }
-                            .listStyle(.plain)
-                            .listSectionSpacing(0)
-                            .contentMargins(.top, 0, for: .scrollContent)
-                            .scrollsToHighlight(highlightedVowel, proxy: proxy) { form in
-                                vowels.first { $0.allForms.contains(form) }?.id
-                            }
-                        }
-                    }
-                    .contentColumn()
-                    }
-                case .tones:
-                    if filteredToneMarks.isEmpty && filteredToneRules.isEmpty {
-                        ContentUnavailableView.search(text: searchText)
-                    } else {
+                VStack(spacing: 0) {
+                    ConsonantHeaderView()
+                    Divider()
                     ScrollViewReader { proxy in
-                        ScrollView {
-                            VStack(spacing: 16) {
-                                // Tone Marks table
-                                if !filteredToneMarks.isEmpty {
+                        List(orderedConsonants) { consonant in
+                            ConsonantRowView(
+                                consonant: consonant,
+                                isHighlighted: highlightedConsonant == consonant.character
+                            )
+                            .listRowInsets(EdgeInsets())
+                            .id(consonant.character)
+                        }
+                        .listStyle(.plain)
+                        .scrollsToHighlight(highlightedConsonant, proxy: proxy) { $0 }
+                    }
+                }
+                .contentColumn()
+                }
+            case .vowels:
+                if filteredVowels.isEmpty {
+                    ContentUnavailableView.search(text: searchText)
+                } else {
+                VStack(spacing: 0) {
+                    ScrollViewReader { proxy in
+                        List {
+                            // Basic vowels first, then the vowel-plus-ending
+                            // combinations. Each section pins its own column
+                            // headings: Closed/Open apply to basic vowels only
+                            let basicVowels = orderedVowels.filter { !$0.isCombination }
+                            let combinations = orderedVowels.filter(\.isCombination)
+                            if !basicVowels.isEmpty {
+                                Section {
+                                    ForEach(basicVowels) { vowel in
+                                        vowelRow(vowel)
+                                    }
+                                } header: {
                                     VStack(spacing: 0) {
-                                        ToneMarkHeaderView()
+                                        VowelHeaderView(visibleDuration: selectedVowelDuration)
                                         Divider()
-                                        ForEach(filteredToneMarks) { mark in
-                                            // Match on soundKey (ค่า): that's what flashcards pass
-                                            let isMarkHighlighted = mark.classEntries
-                                                .contains { $0.soundKey == highlightedToneMark }
-                                            ToneMarkRowView(
-                                                toneMark: mark,
-                                                isHighlighted: isMarkHighlighted
-                                            ) { display in
-                                                startPractice(display, type: .toneMark)
-                                            }
-                                            .id("tonemark-\(mark.id)")
+                                    }
+                                    .textCase(nil)
+                                    .listRowInsets(EdgeInsets())
+                                }
+                            }
+                            if !combinations.isEmpty {
+                                Section {
+                                    ForEach(combinations) { vowel in
+                                        vowelRow(vowel)
+                                    }
+                                } header: {
+                                    VowelCombinationHeaderView(visibleDuration: selectedVowelDuration)
+                                }
+                            }
+                        }
+                        .listStyle(.plain)
+                        .listSectionSpacing(0)
+                        .contentMargins(.top, 0, for: .scrollContent)
+                        .scrollsToHighlight(highlightedVowel, proxy: proxy) { form in
+                            vowels.first { $0.allForms.contains(form) }?.id
+                        }
+                    }
+                }
+                .contentColumn()
+                }
+            case .tones:
+                if filteredToneMarks.isEmpty && filteredToneRules.isEmpty {
+                    ContentUnavailableView.search(text: searchText)
+                } else {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Tone Marks table
+                            if !filteredToneMarks.isEmpty {
+                                VStack(spacing: 0) {
+                                    ToneMarkHeaderView()
+                                    Divider()
+                                    ForEach(filteredToneMarks) { mark in
+                                        // Match on soundKey (ค่า): that's what flashcards pass
+                                        let isMarkHighlighted = mark.classEntries
+                                            .contains { $0.soundKey == highlightedToneMark }
+                                        ToneMarkRowView(
+                                            toneMark: mark,
+                                            isHighlighted: isMarkHighlighted
+                                        )
+                                        .id("tonemark-\(mark.id)")
+                                        Divider()
+                                    }
+                                }
+                                .background(Color(.systemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+
+                            // Tone Rules table (unmarked syllables only —
+                            // marked syllables follow the tone-mark table above)
+                            if !filteredToneRules.isEmpty {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("Unmarked syllable tone rules")
+                                        .font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.secondary)
+                                        .padding(.leading, 4)
+                                        .accessibilityAddTraits(.isHeader)
+                                    VStack(spacing: 0) {
+                                        ToneRuleHeaderView()
+                                        Divider()
+                                        ForEach(filteredToneRules) { rule in
+                                            ToneRuleRowView(
+                                                rule: rule,
+                                                isHighlighted: highlightedToneRule == rule.id
+                                            )
+                                            .id("tonerule-\(rule.id)")
                                             Divider()
                                         }
                                     }
                                     .background(Color(.systemBackground))
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
-
-                                // Tone Rules table (unmarked syllables only —
-                                // marked syllables follow the tone-mark table above)
-                                if !filteredToneRules.isEmpty {
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        Text("Unmarked syllable tone rules")
-                                            .font(.footnote.weight(.semibold))
-                                            .foregroundStyle(.secondary)
-                                            .padding(.leading, 4)
-                                            .accessibilityAddTraits(.isHeader)
-                                        VStack(spacing: 0) {
-                                            ToneRuleHeaderView()
-                                            Divider()
-                                            ForEach(filteredToneRules) { rule in
-                                                ToneRuleRowView(
-                                                    rule: rule,
-                                                    isHighlighted: highlightedToneRule == rule.id
-                                                ) {
-                                                    startPractice(rule.id, type: .toneRule)
-                                                }
-                                                .id("tonerule-\(rule.id)")
-                                                Divider()
-                                            }
-                                        }
-                                        .background(Color(.systemBackground))
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    }
-                                }
                             }
-                            .padding(.horizontal)
-                            .contentColumn()
                         }
-                        .scrollsToHighlight(highlightedToneMark, proxy: proxy) { display in
-                            toneMarks
-                                .first { mark in mark.classEntries.contains { $0.soundKey == display } }
-                                .map { "tonemark-\($0.id)" }
-                        }
-                        .scrollsToHighlight(highlightedToneRule, proxy: proxy) { "tonerule-\($0)" }
+                        .padding(.horizontal)
+                        .contentColumn()
                     }
-                    .background(Color(.secondarySystemBackground))
+                    .scrollsToHighlight(highlightedToneMark, proxy: proxy) { display in
+                        toneMarks
+                            .first { mark in mark.classEntries.contains { $0.soundKey == display } }
+                            .map { "tonemark-\($0.id)" }
                     }
-                case .clusters:
-                    if filteredClusters.isEmpty {
-                        ContentUnavailableView.search(text: searchText)
-                    } else {
-                    ScrollViewReader { proxy in
-                        ScrollView {
-                            VStack(spacing: 16) {
-                                // Matrix view for smooth clusters
-                                if filteredClusters.contains(where: { $0.type == .smooth }) {
-                                    ClusterMatrixView(
+                    .scrollsToHighlight(highlightedToneRule, proxy: proxy) { "tonerule-\($0)" }
+                }
+                .background(Color(.secondarySystemBackground))
+                }
+            case .clusters:
+                if filteredClusters.isEmpty {
+                    ContentUnavailableView.search(text: searchText)
+                } else {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Matrix view for smooth clusters
+                            if filteredClusters.contains(where: { $0.type == .smooth }) {
+                                ClusterMatrixView(
+                                    clusters: filteredClusters,
+                                    highlightedClusterId: highlightedCluster
+                                )
+                            }
+                            // Compact grids for silent and irregular clusters
+                            ForEach([ClusterType.silent, .irregular], id: \.self) { type in
+                                if filteredClusters.contains(where: { $0.type == type }) {
+                                    ClusterGridSection(
+                                        type: type,
                                         clusters: filteredClusters,
                                         highlightedClusterId: highlightedCluster
-                                    ) { clusterId in
-                                        startPractice(clusterId, type: .cluster)
-                                    }
-                                }
-                                // Compact grids for silent and irregular clusters
-                                ForEach([ClusterType.silent, .irregular], id: \.self) { type in
-                                    if filteredClusters.contains(where: { $0.type == type }) {
-                                        ClusterGridSection(
-                                            type: type,
-                                            clusters: filteredClusters,
-                                            highlightedClusterId: highlightedCluster
-                                        ) { clusterId in
-                                            startPractice(clusterId, type: .cluster)
-                                        }
-                                    }
+                                    )
                                 }
                             }
-                            .padding(.horizontal)
-                            .contentColumn()
                         }
-                        .scrollsToHighlight(highlightedCluster, proxy: proxy) { $0 }
+                        .padding(.horizontal)
+                        .contentColumn()
                     }
-                    .background(Color(.secondarySystemBackground))
-                    }
+                    .scrollsToHighlight(highlightedCluster, proxy: proxy) { $0 }
                 }
+                .background(Color(.secondarySystemBackground))
+                }
+            }
+            }
+        }
+    }
+
+    var body: some View {
+        // Read outside the Binding getter so observation invalidates the
+        // presenter when only the container presentation changes.
+        let showsDetailSheet = canPresentDetailSheet && referenceSelection.isSheetPresented
+        NavigationStack {
+            ReferenceBrowserLayout(selection: referenceSelection) {
+                tables
+            } detail: {
+                ReferenceDetailPane(selection: referenceSelection) { item in
+                    ReferenceSelectedDetail(item: item, onPractice: startPractice)
                 }
             }
             .environment(\.practiceMode, practiceMode)
+            .environment(\.referenceSelection, referenceSelection)
             .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
             .toolbar {
                 // Reorder menu — only the flat-list sections (Consonants, Vowels) can
                 // be shuffled/sorted; Clusters (matrix) and Tones (tables) keep their
-                // structured layouts. Kept as its own ToolbarItem (not folded into the
-                // HStack below) so the shared glass capsule re-measures when it appears
-                // or disappears on a segment change — an intra-HStack conditional left
-                // the capsule sized for the other item count and clipped its ends.
+                // structured layouts. Separate toolbar items also let the system
+                // arrange these controls in the Duo's vertical toolbar.
                 if selectedType == .consonants || selectedType == .vowels {
                     ToolbarItem(placement: .topBarTrailing) {
                         sortMenu
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 16) {
-                        Button {
-                            practiceMode.toggleActive()
-                        } label: {
-                            Image(systemName: practiceMode.isActive ? "eye.slash" : "eye")
-                        }
-                        .accessibilityLabel(
-                            practiceMode.isActive
-                                ? String(localized: "Show readings", bundle: .appLanguage)
-                                : String(localized: "Hide readings", bundle: .appLanguage)
-                        )
-                        Button {
-                            settings.hasSeenReferenceInfo = true
-                            showingInfo = true
-                        } label: {
-                            Image(systemName: "info.circle")
-                                // One-time discoverability nudge: a small badge
-                                // draws the eye to the ⓘ, then never returns once
-                                // the popover has been opened.
-                                .overlay(alignment: .topTrailing) {
-                                    if !settings.hasSeenReferenceInfo {
-                                        // Sit the badge on the glyph's corner, not
-                                        // above it — the toolbar's glass capsule
-                                        // clips anything past the icon's frame.
-                                        Circle()
-                                            .fill(.red)
-                                            .frame(width: 6, height: 6)
-                                            .offset(x: 1, y: 1)
-                                    }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        practiceMode.toggleActive()
+                    } label: {
+                        Image(systemName: practiceMode.isActive ? "eye.slash" : "eye")
+                    }
+                    .accessibilityLabel(
+                        practiceMode.isActive
+                            ? String(localized: "Show readings", bundle: .appLanguage)
+                            : String(localized: "Hide readings", bundle: .appLanguage)
+                    )
+                    Button {
+                        settings.hasSeenReferenceInfo = true
+                        showingInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            // One-time discoverability nudge: a small badge
+                            // draws the eye to the ⓘ, then never returns once
+                            // the popover has been opened.
+                            .overlay(alignment: .topTrailing) {
+                                if !settings.hasSeenReferenceInfo {
+                                    // Sit the badge on the glyph's corner, not
+                                    // above it — the toolbar's glass capsule
+                                    // clips anything past the icon's frame.
+                                    Circle()
+                                        .fill(.red)
+                                        .frame(width: 6, height: 6)
+                                        .offset(x: 1, y: 1)
                                 }
-                        }
-                        .accessibilityLabel(String(localized: "How to use", bundle: .appLanguage))
-                        .popover(isPresented: $showingInfo) {
-                            ReferenceInfoView(
-                                isPracticeActive: practiceMode.isActive,
-                                showToneLegend: selectedType == .tones
-                            )
-                            .presentationCompactAdaptation(.popover)
-                        }
-                        Button {
-                            showingSettings = true
-                        } label: {
-                            Image(systemName: "gearshape")
-                        }
+                            }
+                    }
+                    .accessibilityLabel(String(localized: "How to use", bundle: .appLanguage))
+                    .popover(isPresented: $showingInfo) {
+                        ReferenceInfoView(
+                            isPracticeActive: practiceMode.isActive,
+                            showToneLegend: selectedType == .tones,
+                            showsInlineDetails: referenceSelection.isExpanded
+                        )
+                        .presentationCompactAdaptation(.popover)
+                    }
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
                     }
                 }
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(settings: settings, syncedStore: syncedStore)
             }
+            .sheet(isPresented: Binding(
+                get: { showsDetailSheet },
+                set: { if !$0 && canPresentDetailSheet { referenceSelection.dismissSheet() } }
+            )) {
+                if let item = referenceSelection.item {
+                    ReferenceSelectedDetail(item: item, onPractice: startPractice)
+                        .environment(\.referenceDetailPlacement, .sheet)
+                }
+            }
+        }
+        .onChange(of: isSelectionVisible) { _, visible in
+            if !visible { referenceSelection.clear() }
         }
         .onChange(of: highlighted) { _, newValue in
             // Switch to the section of whichever item was just highlighted
@@ -643,6 +670,30 @@ struct CheatsheetBrowserView: View {
                 selectedType = .clusters
                 selectedClusterType = nil
             }
+        }
+    }
+
+    /// Defer automatic handoff while another Reference presentation or tab is active.
+    private var canPresentDetailSheet: Bool {
+        selectedTab == .reference && !showingSettings && !showingInfo
+    }
+
+    /// Filtering or changing sections must not leave unrelated details visible.
+    private var isSelectionVisible: Bool {
+        guard let item = referenceSelection.item else { return true }
+        guard thaiData.isAvailable(selectedType.requiredDatasets) else { return false }
+        switch item {
+        case .consonant(let id):
+            return selectedType == .consonants && filteredConsonants.contains { $0.id == id }
+        case .vowel(let id, let variant, _):
+            return selectedType == .vowels && filteredVowels.contains { $0.id == id }
+                && (selectedVowelDuration == nil || selectedVowelDuration == variant.duration)
+        case .toneMark(let id, _):
+            return selectedType == .tones && filteredToneMarks.contains { $0.id == id }
+        case .toneRule(let id):
+            return selectedType == .tones && filteredToneRules.contains { $0.id == id }
+        case .cluster(let id):
+            return selectedType == .clusters && filteredClusters.contains { $0.id == id }
         }
     }
 }
@@ -684,6 +735,7 @@ private extension View {
 private struct ReferenceInfoView: View {
     let isPracticeActive: Bool
     let showToneLegend: Bool
+    let showsInlineDetails: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -692,7 +744,13 @@ private struct ReferenceInfoView: View {
                 // concealed reading); the hold always opens details. Separate
                 // Text calls, not a String ternary, so each keeps its
                 // LocalizedStringKey and localizes via the environment locale.
-                if isPracticeActive {
+                if showsInlineDetails {
+                    if isPracticeActive {
+                        Text("Tap to reveal, hear, and show details.")
+                    } else {
+                        Text("Tap to hear and show details.")
+                    }
+                } else if isPracticeActive {
                     Text("Tap to reveal and hear.")
                 } else {
                     Text("Tap to hear.")

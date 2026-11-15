@@ -35,7 +35,7 @@ struct ReferenceWordAudio {
     let onPlay: () -> Void
 }
 
-/// A reusable sheet for reference items showing stage, notes, and action buttons
+/// Shared detail content for a sheet or an inline Reference pane.
 struct ReferenceItemSheet: View {
     let title: String
     var romanization: String? = nil
@@ -54,6 +54,7 @@ struct ReferenceItemSheet: View {
 
     @Environment(\.dismiss) var dismiss
     @Environment(\.flashcardSettings) private var settings
+    @Environment(\.referenceDetailPlacement) private var placement
     @State private var showingVoicePicker = false
     @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
     @ScaledMetric(relativeTo: .largeTitle) private var titleFrameHeight: CGFloat = 86
@@ -123,7 +124,7 @@ struct ReferenceItemSheet: View {
 
                     if let onPractice {
                         Button {
-                            dismiss()
+                            if placement == .sheet { dismiss() }
                             onPractice()
                         } label: {
                             HStack {
@@ -169,8 +170,7 @@ struct ReferenceItemSheet: View {
             .padding(.top, 18)
         }
         .scrollIndicators(.hidden)
-        .presentationDetents([preferredDetent, .large])
-        .presentationDragIndicator(.visible)
+        .modifier(ReferenceSheetPresentation(placement: placement, preferredDetent: preferredDetent))
     }
 
     /// Overrides need a settings store (absent only in previews).
@@ -253,6 +253,22 @@ struct ReferenceItemSheet: View {
         .padding()
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+/// Sheet configuration must not propagate up from the embedded pane.
+private struct ReferenceSheetPresentation: ViewModifier {
+    let placement: ReferenceDetailPlacement
+    let preferredDetent: PresentationDetent
+
+    func body(content: Content) -> some View {
+        if placement == .sheet {
+            content
+                .presentationDetents([preferredDetent, .large])
+                .presentationDragIndicator(.visible)
+        } else {
+            content
+        }
     }
 }
 
