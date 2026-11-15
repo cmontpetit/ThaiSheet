@@ -268,26 +268,24 @@ struct FlashcardsView: View {
 
     /// Main toolbar buttons
     private var mainToolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            HStack(spacing: 16) {
-                Button {
-                    showingStats = true
-                } label: {
-                    Image(systemName: "chart.bar")
-                }
-                Button {
-                    showingFilter = true
-                } label: {
-                    Image(systemName: manager.settings.isAllSelected
-                        ? "line.3.horizontal.decrease.circle"
-                        : "line.3.horizontal.decrease.circle.fill")
-                }
-                .id(filterRefreshID)
-                Button {
-                    showingSettings = true
-                } label: {
-                    Image(systemName: "gearshape")
-                }
+        ToolbarItemGroup(placement: .topBarTrailing) {
+            Button {
+                showingStats = true
+            } label: {
+                Image(systemName: "chart.bar")
+            }
+            Button {
+                showingFilter = true
+            } label: {
+                Image(systemName: manager.settings.isAllSelected
+                    ? "line.3.horizontal.decrease.circle"
+                    : "line.3.horizontal.decrease.circle.fill")
+            }
+            .id(filterRefreshID)
+            Button {
+                showingSettings = true
+            } label: {
+                Image(systemName: "gearshape")
             }
         }
     }
@@ -307,7 +305,7 @@ struct FlashcardsView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
-        .contentColumn()
+        .contentColumn(maxWidth: 1100)
     }
 
     /// Main card view when a card is available

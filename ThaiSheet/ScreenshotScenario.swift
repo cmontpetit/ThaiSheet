@@ -13,6 +13,7 @@ enum ScreenshotScenario: String {
     case vowelsBlurred = "vowels-blurred"
     case consonantDetails = "consonant-details"
     case tones
+    case flashcard
     case flashcardCompleted = "flashcard-completed"
     case progress
 
@@ -32,7 +33,7 @@ enum ScreenshotScenario: String {
 
     var initialTab: AppTab {
         switch self {
-        case .flashcardCompleted, .progress:
+        case .flashcard, .flashcardCompleted, .progress:
             return .flashcards
         default:
             return .reference
