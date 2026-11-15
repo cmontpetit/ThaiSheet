@@ -6,6 +6,7 @@ struct FlashcardLayout<Face: View, Summary: View, Question: View>: View {
     @ViewBuilder let summary: () -> Summary
     @ViewBuilder let question: () -> Question
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ScaledMetric(relativeTo: .body) private var minimumColumnWidth: CGFloat = 360
 
     var body: some View {
@@ -29,6 +30,8 @@ struct FlashcardLayout<Face: View, Summary: View, Question: View>: View {
                 }
                 .padding()
                 .contentColumn(maxWidth: expanded ? 1100 : 700)
+                // Animate only the rearrangement, leaving quiz interactions alone.
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: expanded)
             }
             .accessibilityIdentifier(expanded ? "flashcard.expanded" : "flashcard.stacked")
         }

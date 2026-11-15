@@ -53,7 +53,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - All playable items share one interaction, via `PlayableItemModifier`: tap plays the sound (details sheet when there is none), long press opens the details sheet. The modifier also carries the VoiceOver semantics (label, hint, button trait) — use it instead of raw gestures.
 
 **Shared components:**
-- `FlashcardLayout` — a single `AnyLayout` view tree, stacked in narrow/short containers and arranged in two columns when there is room. Minimum column width scales with Dynamic Type; layout changes preserve quiz view identity.
+- `FlashcardLayout` — a single `AnyLayout` view tree, stacked in narrow/short containers and arranged in two columns when there is room. Minimum column width scales with Dynamic Type; layout changes preserve quiz view identity and ease between arrangements over 0.25 seconds (immediate with Reduce Motion).
 - `QuizOptionCache` — keeps randomized choices for the active card ID and romanization scheme. Reappearing tabs reuse the same choices; changing the quiz context regenerates them.
 - `FlashcardComponents.swift` — `FlashcardResultCard`, `FlashcardSummaryRow`, `FlashcardNextButton`, `NavigableTapArea`, etc.
 - `PlayableItemModifier` — tap-to-play/long-press-details gesture + accessibility for reference items
