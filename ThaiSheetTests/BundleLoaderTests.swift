@@ -6,6 +6,7 @@
 import XCTest
 @testable import ThaiSheet
 
+@MainActor
 final class BundleLoaderTests: XCTestCase {
 
     // MARK: - Consonant Loading

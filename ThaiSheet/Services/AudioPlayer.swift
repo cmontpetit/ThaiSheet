@@ -81,7 +81,8 @@ enum RecordedVoice: String, CaseIterable, Identifiable, Codable {
 }
 
 /// Protocol for audio playback, enabling test mocking
-protocol AudioPlaying {
+@MainActor
+protocol AudioPlaying: Sendable {
     /// `itemID` selects a per-item voice override; `previewVoice` forces a specific
     /// recorded voice (for auditioning in the override picker).
     func play(_ type: SoundType, key: String, itemID: String?, previewVoice: RecordedVoice?)
@@ -109,6 +110,7 @@ private struct AudioPlayerKey: EnvironmentKey {
 }
 
 private struct NoOpAudioPlayer: AudioPlaying {
+    nonisolated init() {}
     func play(_ type: SoundType, key: String, itemID: String?, previewVoice: RecordedVoice?) {}
     func speak(_ text: String) {}
     func hasSound(_ type: SoundType, key: String) -> Bool { false }
@@ -124,6 +126,9 @@ extension EnvironmentValues {
 
 // MARK: - AudioPlayer Implementation
 
+// Keep playback isolation explicit: older toolchains ignore the project
+// default, but session coordination and live speech still require MainActor.
+@MainActor
 class AudioPlayer: NSObject, AudioPlaying {
     private let recordedPlayback = RecordedAudioPlayback()
     private let speechSynthesizer = AVSpeechSynthesizer()
@@ -284,17 +289,22 @@ class AudioPlayer: NSObject, AudioPlaying {
 // MARK: - AVSpeechSynthesizerDelegate
 
 extension AudioPlayer: AVSpeechSynthesizerDelegate {
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         finishSpeech(utterance)
     }
 
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
         finishSpeech(utterance)
     }
 
-    private func finishSpeech(_ utterance: AVSpeechUtterance) {
-        guard activeUtterance === utterance else { return }
-        activeUtterance = nil
-        audioSession.deactivateWhenIdle()
+    private nonisolated func finishSpeech(_ utterance: AVSpeechUtterance) {
+        // Transfer only the identity, not an AVFoundation object, to MainActor.
+        let utteranceID = ObjectIdentifier(utterance)
+        Task { @MainActor [weak self] in
+            guard let self, let activeUtterance = self.activeUtterance,
+                  ObjectIdentifier(activeUtterance) == utteranceID else { return }
+            self.activeUtterance = nil
+            self.audioSession.deactivateWhenIdle()
+        }
     }
 }
