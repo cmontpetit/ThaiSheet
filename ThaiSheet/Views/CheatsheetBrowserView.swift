@@ -664,7 +664,10 @@ struct CheatsheetBrowserView: View {
             }
             .sheet(isPresented: $showingToneFinder) {
                 ToneFinderView { type, key in
-                    highlighted[type] = key
+                    // Replace, not add: a highlight left by "view in
+                    // Reference" from a flashcard would otherwise win in the
+                    // observer below and switch to its own section.
+                    highlighted = [type: key]
                 }
             }
         }
