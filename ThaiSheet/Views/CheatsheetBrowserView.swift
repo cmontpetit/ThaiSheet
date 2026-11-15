@@ -62,6 +62,10 @@ struct CheatsheetBrowserView: View {
         ScreenshotScenario.current?.referenceType ?? .consonants
     @State private var showingSettings = false
     @State private var showingInfo = false
+    @State private var showingToneFinder = false
+    /// Bumped on every "Show in the table" from the tone finder, so asking
+    /// for the row that is already highlighted still scrolls to it
+    @State private var toneFinderScrollRequest = 0
     // Session-only by design: the app always opens with readings visible
     @State private var practiceMode = ScreenshotScenario.initialPracticeMode
 
@@ -343,6 +347,37 @@ struct CheatsheetBrowserView: View {
         )
     }
 
+    /// Opens the "Why this tone?" sheet from the top of the Tones section
+    private var toneFinderButton: some View {
+        Button {
+            showingToneFinder = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "questionmark.circle")
+                    .font(.title3)
+                    .foregroundStyle(Color.accentColor)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Why this tone?")
+                        .font(.body.weight(.semibold))
+                    Text("Find the tone of a syllable, step by step.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -458,6 +493,11 @@ struct CheatsheetBrowserView: View {
                     ScrollViewReader { proxy in
                         ScrollView {
                             VStack(spacing: 16) {
+                                // Not a search result, so it steps aside while searching
+                                if searchText.isEmpty {
+                                    toneFinderButton
+                                }
+
                                 // Tone Marks table
                                 if !filteredToneMarks.isEmpty {
                                     VStack(spacing: 0) {
@@ -512,12 +552,20 @@ struct CheatsheetBrowserView: View {
                             .padding(.horizontal)
                             .contentColumn()
                         }
-                        .scrollsToHighlight(highlightedToneMark, proxy: proxy) { display in
+                        .scrollsToHighlight(
+                            highlightedToneMark,
+                            proxy: proxy,
+                            repeatRequest: toneFinderScrollRequest
+                        ) { display in
                             toneMarks
                                 .first { mark in mark.classEntries.contains { $0.soundKey == display } }
                                 .map { "tonemark-\($0.id)" }
                         }
-                        .scrollsToHighlight(highlightedToneRule, proxy: proxy) { "tonerule-\($0)" }
+                        .scrollsToHighlight(
+                            highlightedToneRule,
+                            proxy: proxy,
+                            repeatRequest: toneFinderScrollRequest
+                        ) { "tonerule-\($0)" }
                     }
                     .background(Color(.secondarySystemBackground))
                     }
@@ -625,6 +673,15 @@ struct CheatsheetBrowserView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView(settings: settings, syncedStore: syncedStore)
             }
+            .sheet(isPresented: $showingToneFinder) {
+                ToneFinderView { type, key in
+                    // Replace, not add: a highlight left by "view in
+                    // Reference" from a flashcard would otherwise win in the
+                    // observer below and switch to its own section.
+                    highlighted = [type: key]
+                    toneFinderScrollRequest += 1
+                }
+            }
         }
         .onChange(of: highlighted) { _, newValue in
             // Switch to the section of whichever item was just highlighted
@@ -652,9 +709,12 @@ struct CheatsheetBrowserView: View {
 private extension View {
     /// Scrolls to the resolved id when `highlighted` is set: once on appear
     /// (after a short delay so the list has laid out) and on every change.
+    /// A change of `repeatRequest` scrolls again without a new highlight,
+    /// for a caller that can ask for the same row twice.
     func scrollsToHighlight<ID: Hashable>(
         _ highlighted: String?,
         proxy: ScrollViewProxy,
+        repeatRequest: Int = 0,
         id resolve: @escaping (String) -> ID?
     ) -> some View {
         self
@@ -668,6 +728,13 @@ private extension View {
             }
             .onChange(of: highlighted) { _, newValue in
                 if let value = newValue, let id = resolve(value) {
+                    withAnimation {
+                        proxy.scrollTo(id, anchor: .center)
+                    }
+                }
+            }
+            .onChange(of: repeatRequest) { _, _ in
+                if let value = highlighted, let id = resolve(value) {
                     withAnimation {
                         proxy.scrollTo(id, anchor: .center)
                     }
