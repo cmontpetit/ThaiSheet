@@ -63,6 +63,9 @@ struct CheatsheetBrowserView: View {
     @State private var showingSettings = false
     @State private var showingInfo = false
     @State private var showingToneFinder = false
+    /// Bumped on every "Show in the table" from the tone finder, so asking
+    /// for the row that is already highlighted still scrolls to it
+    @State private var toneFinderScrollRequest = 0
     // Session-only by design: the app always opens with readings visible
     @State private var practiceMode = ScreenshotScenario.initialPracticeMode
 
@@ -549,12 +552,20 @@ struct CheatsheetBrowserView: View {
                             .padding(.horizontal)
                             .contentColumn()
                         }
-                        .scrollsToHighlight(highlightedToneMark, proxy: proxy) { display in
+                        .scrollsToHighlight(
+                            highlightedToneMark,
+                            proxy: proxy,
+                            repeatRequest: toneFinderScrollRequest
+                        ) { display in
                             toneMarks
                                 .first { mark in mark.classEntries.contains { $0.soundKey == display } }
                                 .map { "tonemark-\($0.id)" }
                         }
-                        .scrollsToHighlight(highlightedToneRule, proxy: proxy) { "tonerule-\($0)" }
+                        .scrollsToHighlight(
+                            highlightedToneRule,
+                            proxy: proxy,
+                            repeatRequest: toneFinderScrollRequest
+                        ) { "tonerule-\($0)" }
                     }
                     .background(Color(.secondarySystemBackground))
                     }
@@ -668,6 +679,7 @@ struct CheatsheetBrowserView: View {
                     // Reference" from a flashcard would otherwise win in the
                     // observer below and switch to its own section.
                     highlighted = [type: key]
+                    toneFinderScrollRequest += 1
                 }
             }
         }
@@ -697,9 +709,12 @@ struct CheatsheetBrowserView: View {
 private extension View {
     /// Scrolls to the resolved id when `highlighted` is set: once on appear
     /// (after a short delay so the list has laid out) and on every change.
+    /// A change of `repeatRequest` scrolls again without a new highlight,
+    /// for a caller that can ask for the same row twice.
     func scrollsToHighlight<ID: Hashable>(
         _ highlighted: String?,
         proxy: ScrollViewProxy,
+        repeatRequest: Int = 0,
         id resolve: @escaping (String) -> ID?
     ) -> some View {
         self
@@ -713,6 +728,13 @@ private extension View {
             }
             .onChange(of: highlighted) { _, newValue in
                 if let value = newValue, let id = resolve(value) {
+                    withAnimation {
+                        proxy.scrollTo(id, anchor: .center)
+                    }
+                }
+            }
+            .onChange(of: repeatRequest) { _, _ in
+                if let value = highlighted, let id = resolve(value) {
                     withAnimation {
                         proxy.scrollTo(id, anchor: .center)
                     }
