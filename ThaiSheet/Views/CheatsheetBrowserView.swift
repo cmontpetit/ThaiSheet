@@ -62,6 +62,7 @@ struct CheatsheetBrowserView: View {
         ScreenshotScenario.current?.referenceType ?? .consonants
     @State private var showingSettings = false
     @State private var showingInfo = false
+    @State private var showingToneFinder = false
     // Session-only by design: the app always opens with readings visible
     @State private var practiceMode = ScreenshotScenario.initialPracticeMode
 
@@ -343,6 +344,37 @@ struct CheatsheetBrowserView: View {
         )
     }
 
+    /// Opens the "Why this tone?" sheet from the top of the Tones section
+    private var toneFinderButton: some View {
+        Button {
+            showingToneFinder = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "questionmark.circle")
+                    .font(.title3)
+                    .foregroundStyle(Color.accentColor)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Why this tone?")
+                        .font(.body.weight(.semibold))
+                    Text("Find the tone of a syllable, step by step.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -458,6 +490,11 @@ struct CheatsheetBrowserView: View {
                     ScrollViewReader { proxy in
                         ScrollView {
                             VStack(spacing: 16) {
+                                // Not a search result, so it steps aside while searching
+                                if searchText.isEmpty {
+                                    toneFinderButton
+                                }
+
                                 // Tone Marks table
                                 if !filteredToneMarks.isEmpty {
                                     VStack(spacing: 0) {
@@ -624,6 +661,11 @@ struct CheatsheetBrowserView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(settings: settings, syncedStore: syncedStore)
+            }
+            .sheet(isPresented: $showingToneFinder) {
+                ToneFinderView { type, key in
+                    highlighted[type] = key
+                }
             }
         }
         .onChange(of: highlighted) { _, newValue in

@@ -27,6 +27,8 @@ struct SyllableParser {
         /// The class that governs the tone: the class of the first letter
         let consonantClass: ConsonantClass
         let vowel: Vowel
+        /// The vowel's written form as the data stores it ("กา-", "เกา")
+        let form: String
         /// The written length. With a tone mark, ◌็ is not written (เล่น),
         /// so a short vowel can read as long here: a marked syllable's tone
         /// does not depend on length.
@@ -91,6 +93,7 @@ struct SyllableParser {
     /// A written vowel form split around its consonant placeholder
     private struct Template {
         let vowel: Vowel
+        let form: String
         let duration: VowelCard.VowelDuration
         /// Letters written before the initial (เ, แ, โ, ไ, ใ)
         let prefix: [Unicode.Scalar]
@@ -145,6 +148,7 @@ struct SyllableParser {
                 if takesFinal { rime.removeLast() }
                 templates.append(Template(
                     vowel: vowel,
+                    form: form,
                     duration: duration,
                     prefix: Array(scalars[..<slot]),
                     rime: rime,
@@ -182,9 +186,11 @@ struct SyllableParser {
 
         let found = readings(of: scalars, markIndex: markIndex, mark: mark)
         guard !found.isEmpty else { return .notCovered(.noKnownPattern) }
-        // A dedicated vowel-plus-ending row describes the spelling better
-        // than a basic vowel plus a ย/ว final
-        return .readings(found.filter { $0.vowel.isCombination } + found.filter { !$0.vowel.isCombination })
+        // Ties keep the data order
+        let ordered = found.enumerated().sorted {
+            ($0.element.rank, $0.offset) < ($1.element.rank, $1.offset)
+        }
+        return .readings(ordered.map(\.element.reading))
     }
 
     /// The tone of one written syllable. Refuses when the readings of the
@@ -205,8 +211,12 @@ struct SyllableParser {
     /// - Parameters:
     ///   - scalars: the syllable without its tone mark
     ///   - markIndex: where the tone mark sat, counted in the original text
-    private func readings(of scalars: [Unicode.Scalar], markIndex: Int?, mark: String?) -> [Reading] {
-        var result: [Reading] = []
+    private func readings(
+        of scalars: [Unicode.Scalar],
+        markIndex: Int?,
+        mark: String?
+    ) -> [(reading: Reading, rank: Int)] {
+        var result: [(reading: Reading, rank: Int)] = []
         for template in templates {
             let initialStart = template.prefix.count
             guard scalars.count > initialStart, Array(scalars[..<initialStart]) == template.prefix else {
@@ -240,14 +250,22 @@ struct SyllableParser {
                     guard markIndex == rimeStart + (overVowelMark ? 1 : 0) else { continue }
                 }
 
-                result.append(Reading(
-                    initial: Self.string(initial),
-                    consonantClass: first.consonantClass,
-                    vowel: template.vowel,
-                    vowelDuration: template.duration,
-                    final: rest.isEmpty ? nil : Self.string(rest),
-                    ending: ending,
-                    toneMark: mark
+                // Most likely reading first: a dedicated vowel-plus-ending
+                // row (◌าย) before a basic vowel plus a ย/ว final, and a
+                // written vowel (สวน = ส + ◌ว◌ + น) before an unwritten one.
+                let rank = template.vowel.isCombination ? 0 : (template.rime.isEmpty ? 2 : 1)
+                result.append((
+                    Reading(
+                        initial: Self.string(initial),
+                        consonantClass: first.consonantClass,
+                        vowel: template.vowel,
+                        form: template.form,
+                        vowelDuration: template.duration,
+                        final: rest.isEmpty ? nil : Self.string(rest),
+                        ending: ending,
+                        toneMark: mark
+                    ),
+                    rank
                 ))
             }
         }
