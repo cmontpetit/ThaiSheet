@@ -125,8 +125,11 @@ extension EnvironmentValues {
 // MARK: - AudioPlayer Implementation
 
 class AudioPlayer: NSObject, AudioPlaying {
-    private var player: AVAudioPlayer?
+    private let recordedPlayback = RecordedAudioPlayback()
     private let speechSynthesizer = AVSpeechSynthesizer()
+    private let audioSession = AudioSessionController()
+    private var activeUtterance: AVSpeechUtterance?
+    private var playbackRequestID = UUID()
     var recordedVoice: RecordedVoice
     /// Per-item voice overrides, keyed by `FlashcardType.cardId(for:)`. Loaded at init
     /// (onChange does not fire for the already-persisted value at launch).
@@ -140,20 +143,6 @@ class AudioPlayer: NSObject, AudioPlaying {
         self.voiceOverrides = voiceOverrides
         super.init()
         speechSynthesizer.delegate = self
-        // Skip audio session configuration during unit tests to avoid CoreAudio crashes
-        if NSClassFromString("XCTestCase") == nil {
-            configureAudioSession()
-        }
-    }
-
-    private func configureAudioSession() {
-        do {
-            // Mix with background audio (music) rather than interrupting it.
-            // The session is activated on-demand when playing and deactivated after.
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .duckOthers)
-        } catch {
-            print("Failed to configure audio session: \(error)")
-        }
     }
 
     func play(_ type: SoundType, key: String, itemID: String? = nil, previewVoice: RecordedVoice? = nil) {
@@ -165,11 +154,9 @@ class AudioPlayer: NSObject, AudioPlaying {
                 speak(text)
                 return
             }
-            speechSynthesizer.stopSpeaking(at: .immediate)
             playRecorded(type, key: key, voice: .matilda)
             return
         }
-        speechSynthesizer.stopSpeaking(at: .immediate)
         playRecorded(type, key: key, voice: voice)
     }
 
@@ -180,19 +167,17 @@ class AudioPlayer: NSObject, AudioPlaying {
 
     func speak(_ text: String) {
         guard let voice = AVSpeechSynthesisVoice(language: "th-TH") else { return }
-        player?.stop()
-        speechSynthesizer.stopSpeaking(at: .immediate)
-
-        do {
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            print("Error activating audio session for speech: \(error)")
-        }
+        stopCurrentPlayback()
 
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voice
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
-        speechSynthesizer.speak(utterance)
+        audioSession.play(afterStopping: { [recordedPlayback] in
+            await recordedPlayback.stop()
+        }) { [self] in
+            activeUtterance = utterance
+            speechSynthesizer.speak(utterance)
+        }
     }
 
     func hasSound(_ type: SoundType, key: String) -> Bool {
@@ -277,23 +262,22 @@ class AudioPlayer: NSObject, AudioPlaying {
     }
 
     private func playURL(_ url: URL) {
-        do {
-            try AVAudioSession.sharedInstance().setActive(true)
-            player = try AVAudioPlayer(contentsOf: url)
-            player?.delegate = self
-            player?.play()
-        } catch {
-            print("Error playing sound: \(error)")
+        stopCurrentPlayback()
+        let requestID = playbackRequestID
+        audioSession.play(afterStopping: { [recordedPlayback] in
+            await recordedPlayback.stop()
+        }) { [self] in
+            try await recordedPlayback.play(url) { [weak self] in
+                guard let self, self.playbackRequestID == requestID else { return }
+                self.audioSession.deactivateWhenIdle()
+            }
         }
     }
-}
 
-// MARK: - AVAudioPlayerDelegate
-
-extension AudioPlayer: AVAudioPlayerDelegate {
-    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        // Deactivate session so background music can resume
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    private func stopCurrentPlayback() {
+        playbackRequestID = UUID()
+        activeUtterance = nil
+        speechSynthesizer.stopSpeaking(at: .immediate)
     }
 }
 
@@ -301,10 +285,16 @@ extension AudioPlayer: AVAudioPlayerDelegate {
 
 extension AudioPlayer: AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        finishSpeech(utterance)
     }
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        finishSpeech(utterance)
+    }
+
+    private func finishSpeech(_ utterance: AVSpeechUtterance) {
+        guard activeUtterance === utterance else { return }
+        activeUtterance = nil
+        audioSession.deactivateWhenIdle()
     }
 }
