@@ -84,6 +84,10 @@ struct SyllableParser {
 
     private static let placeholder: Unicode.Scalar = "ก"
     private static let finalSlot: Unicode.Scalar = "-"
+    /// A consonant followed by ร with no written vowel is the long ◌อ vowel
+    /// (พร = phaawn), and รร is its own vowel (สรร = sǎn). No vowel form in
+    /// the data lists these spellings.
+    private static let unwrittenVowelSpoiler: Unicode.Scalar = "ร"
     /// ◌์ silences the letter it sits on
     private static let thanthakhat: Unicode.Scalar = "\u{0E4C}"
     /// Vowel marks that can be silenced together with their consonant (ธิ์, ธุ์)
@@ -233,6 +237,12 @@ struct SyllableParser {
                 guard Array(scalars[rimeStart..<rimeEnd]) == template.rime else { continue }
 
                 let rest = Array(scalars[rimeEnd...])
+                // Read as the unwritten short vowel, พร would state the wrong
+                // vowel and length. Not a reading: the spelling is refused
+                // unless a written vowel form fits it (ควร = ค + ◌ว◌ + ร).
+                // Only the form with no written vowel at all: เณร is เ◌ + ร.
+                let isUnwrittenVowel = template.prefix.isEmpty && template.rime.isEmpty
+                if isUnwrittenVowel, rest == [Self.unwrittenVowelSpoiler] { continue }
                 let ending: ToneDerivation.Ending
                 if template.takesFinal {
                     guard let closed = self.ending(ofFinal: rest) else { continue }
@@ -253,7 +263,7 @@ struct SyllableParser {
                 // Most likely reading first: a dedicated vowel-plus-ending
                 // row (◌าย) before a basic vowel plus a ย/ว final, and a
                 // written vowel (สวน = ส + ◌ว◌ + น) before an unwritten one.
-                let rank = template.vowel.isCombination ? 0 : (template.rime.isEmpty ? 2 : 1)
+                let rank = template.vowel.isCombination ? 0 : (isUnwrittenVowel ? 2 : 1)
                 result.append((
                     Reading(
                         initial: Self.string(initial),

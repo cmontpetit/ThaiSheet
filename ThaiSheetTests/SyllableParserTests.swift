@@ -196,6 +196,22 @@ final class SyllableParserTests: XCTestCase {
         XCTAssertEqual(verdict("ควบ"), .refused("readingsDisagree"))
     }
 
+    /// พร is ph + long ◌อ + n and สรร is s + an. The vowel forms in the data
+    /// do not list these spellings, and reading them with the unwritten
+    /// short vowel would state the wrong vowel and length.
+    func test_unwrittenVowelBeforeFinalRo_isRefused() {
+        for word in ["พร", "ศร", "กร", "จร", "สรร"] {
+            XCTAssertEqual(verdict(word), .refused("noKnownPattern"), word)
+        }
+        // A final ร after a written vowel is unaffected, before or after the initial
+        XCTAssertEqual(reading("การ"), "ก|mid|a|Long|ร|Live|")
+        XCTAssertEqual(reading("เณร"), "ณ|low|e|Long|ร|Live|")
+        // ควร keeps its one written-vowel reading, ค + ◌ว◌ + ร
+        guard case .readings(let readings) = parser.parse("ควร") else { return XCTFail("ควร should parse") }
+        XCTAssertEqual(readings.map(\.vowel.id), ["ua"])
+        XCTAssertEqual(verdict("ควร"), .tone("Mid"))
+    }
+
     func test_midOnlyMarkOnAnotherClass_isRefused() {
         XCTAssertEqual(verdict("ค๊า"), .refused("markNotUsedWithClass"))
     }
