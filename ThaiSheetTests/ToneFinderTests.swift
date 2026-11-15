@@ -177,6 +177,104 @@ final class ToneFinderTests: XCTestCase {
         XCTAssertEqual(resolve(finder).derivation?.tone, "Mid")
     }
 
+    // MARK: - Reading notes
+
+    private typealias Note = ToneFinder.ReadingNote
+
+    private func notes(_ text: String) -> [Note] {
+        resolve(finder(text: text)).readingNotes
+    }
+
+    func test_notes_singleConsonantClosedSyllable() {
+        XCTAssertEqual(notes("มาก"), [
+            .consonantClass(letter: "ม", .low),
+            .vowelLength(form: "กา-", .long),
+            .finalConsonant(letters: "ก", sound: "-k", .dead),
+        ])
+    }
+
+    func test_notes_leadingHo_isExplainedAsSilent() {
+        XCTAssertEqual(notes("หนา"), [
+            .silentHo(following: "น"),
+            .vowelLength(form: "กา", .long),
+            .noFinal(.long),
+        ])
+    }
+
+    func test_notes_smoothCluster_andUnwrittenVowel() {
+        XCTAssertEqual(notes("กลม"), [
+            .cluster(letters: "กล", classLetter: "ก"),
+            .consonantClass(letter: "ก", .mid),
+            .unwrittenVowel,
+            .finalConsonant(letters: "ม", sound: "-m", .live),
+        ])
+    }
+
+    func test_notes_irregularCluster_andVowelWithEnding() {
+        XCTAssertEqual(notes("ทราย"), [
+            .irregularCluster(letters: "ทร", classLetter: "ท"),
+            .consonantClass(letter: "ท", .low),
+            .vowelWithEnding(form: "กาย"),
+        ])
+    }
+
+    /// A marked syllable states the mark, not the vowel length or the ending
+    func test_notes_markedSyllable() {
+        XCTAssertEqual(notes("ข้าว"), [
+            .consonantClass(letter: "ข", .high),
+            .toneMark("้"),
+            .vowelWithEnding(form: "กาว"),
+        ])
+        XCTAssertEqual(notes("เล่น"), [
+            .consonantClass(letter: "ล", .low),
+            .toneMark("่"),
+        ])
+    }
+
+    func test_notes_shortOpenSyllable_isDead() {
+        XCTAssertEqual(notes("คะ"), [
+            .consonantClass(letter: "ค", .low),
+            .vowelLength(form: "กะ", .short),
+            .noFinal(.short),
+        ])
+    }
+
+    func test_notes_lengthTheSpellingDoesNotShow_isNotGuessed() {
+        XCTAssertEqual(notes("เลิก"), [
+            .consonantClass(letter: "ล", .low),
+            .vowelLengthNotShown(form: "เกิ-"),
+            .finalConsonant(letters: "ก", sound: "-k", .dead),
+        ])
+    }
+
+    func test_notes_silencedLetter() {
+        XCTAssertEqual(notes("สัตว์"), [
+            .consonantClass(letter: "ส", .high),
+            .vowelLength(form: "กั-", .short),
+            .finalConsonant(letters: "ต", sound: "-t", .dead),
+            .silenced(letters: "ว"),
+        ])
+        XCTAssertEqual(notes("สิทธิ์").last, .silenced(letters: "ธิ"))
+    }
+
+    /// ควบ reads as ค + ◌ว◌ + บ, and also as คว + unwritten vowel + บ
+    func test_notes_spellingWithAnotherReading_saysSoFirst() {
+        XCTAssertEqual(notes("ควบ").first, .otherReading)
+        XCTAssertFalse(notes("กาย").contains(.otherReading))
+    }
+
+    func test_notes_areEmptyWhenTheTextIsNotRead() {
+        XCTAssertEqual(notes(""), [])
+        XCTAssertEqual(notes("ขนม"), [])
+    }
+
+    /// Notes describe the text: a hand-set class does not rewrite them
+    func test_notes_ignoreHandSetFacts() {
+        var finder = finder(text: "นา")
+        finder.chosenClass = .high
+        XCTAssertEqual(resolve(finder).readingNotes.first, .consonantClass(letter: "น", .low))
+    }
+
     func test_midOnlyMarkOnAnotherClass_givesANoticeAndNoTone() {
         var finder = ToneFinder()
         finder.chosenClass = .low

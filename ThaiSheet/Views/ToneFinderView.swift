@@ -33,6 +33,7 @@ struct ToneFinderView: View {
         NavigationStack {
             Form {
                 inputSection(resolution)
+                readAsSection(resolution)
                 // Above the facts so the tone stays in view while they change
                 resultSection(resolution)
                 factsSection(resolution)
@@ -181,6 +182,126 @@ struct ToneFinderView: View {
 
     private func durationBinding(_ resolution: ToneFinder.Resolution) -> Binding<VowelCard.VowelDuration?> {
         Binding(get: { resolution.duration }, set: { finder.chosenDuration = $0 })
+    }
+
+    // MARK: - Read as
+
+    /// How the text was read, before the result, so a wrong reading can be
+    /// caught before the tone is trusted
+    @ViewBuilder
+    private func readAsSection(_ resolution: ToneFinder.Resolution) -> some View {
+        if let reading = resolution.reading {
+            Section {
+                readingParts(reading)
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(resolution.readingNotes.enumerated()), id: \.offset) { _, note in
+                        noteText(note)
+                    }
+                }
+                .font(.subheadline)
+                .padding(.vertical, 4)
+            } header: {
+                Text("Read as")
+            }
+        }
+    }
+
+    private func readingParts(_ reading: SyllableParser.Reading) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            readingPart(reading.initial, caption: "Initial")
+            if let mark = reading.toneMark {
+                partSeparator
+                readingPart(markDisplay(mark), caption: "Tone Mark")
+            }
+            partSeparator
+            readingPart(vowelDisplay(reading.form), caption: "Vowel")
+            if let final = reading.final {
+                partSeparator
+                readingPart(final, caption: "Final")
+            }
+            if let silenced = reading.silenced {
+                partSeparator
+                readingPart(silenced + Self.thanthakhat, caption: "Silent")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func readingPart(_ text: String, caption: LocalizedStringKey) -> some View {
+        VStack(spacing: 4) {
+            Text(verbatim: text)
+                .font(.title2)
+            Text(caption)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+    }
+
+    private var partSeparator: some View {
+        Text(verbatim: "+")
+            .font(.title3)
+            .foregroundStyle(.tertiary)
+            .padding(.top, 4)
+            .accessibilityHidden(true)
+    }
+
+    private static let thanthakhat = "\u{0E4C}"
+
+    /// A data form ("กา-") as shown: placeholder for ก, no final slot
+    private func vowelDisplay(_ form: String) -> String {
+        ThaiDisplay.placeholder(form.replacingOccurrences(of: "-", with: ""))
+    }
+
+    private func markDisplay(_ mark: String) -> String {
+        ThaiDisplay.placeholder(ToneMark.midConsonant + mark)
+    }
+
+    @ViewBuilder
+    private func noteText(_ note: ToneFinder.ReadingNote) -> some View {
+        switch note {
+        case .otherReading:
+            Text("This spelling can also be read another way. Check the parts below.")
+                .foregroundStyle(.orange)
+        case .consonantClass(let letter, .low):
+            Text("\(letter) is a low-class consonant.")
+        case .consonantClass(let letter, .mid):
+            Text("\(letter) is a mid-class consonant.")
+        case .consonantClass(let letter, .high):
+            Text("\(letter) is a high-class consonant.")
+        case .silentHo(let following):
+            Text("ห is silent and makes \(following) follow the high-class rules.")
+        case .cluster(let letters, let classLetter):
+            Text("\(letters) is a cluster: both letters are pronounced, and \(classLetter) sets the class.")
+        case .irregularCluster(let letters, let classLetter):
+            Text("\(letters) is read as one sound, and \(classLetter) sets the class.")
+        case .toneMark(let mark):
+            Text("\(markDisplay(mark)) is a tone mark: with the consonant class, it sets the tone.")
+        case .unwrittenVowel:
+            Text("No vowel is written: a short o is read between the consonants.")
+        case .vowelWithEnding(let form):
+            Text("\(vowelDisplay(form)) includes its ending, so the syllable is live.")
+        case .vowelLength(let form, .short):
+            Text("\(vowelDisplay(form)) is a short vowel.")
+        case .vowelLength(let form, .long):
+            Text("\(vowelDisplay(form)) is a long vowel.")
+        case .vowelLengthNotShown(let form):
+            Text("\(vowelDisplay(form)) does not show whether the vowel is short or long.")
+        case .finalConsonant(let letters, let sound, .dead):
+            Text("\(letters) is read \(sound.romanized): a dead ending.")
+        case .finalConsonant(let letters, let sound, .live):
+            Text("\(letters) is read \(sound.romanized): a live ending.")
+        case .noFinal(.long):
+            Text("No final consonant after a long vowel: a live ending.")
+        case .noFinal(.short):
+            Text("No final consonant after a short vowel: a dead ending.")
+        case .silenced(let letters):
+            Text("\(letters) is silent: \(markDisplay(Self.thanthakhat)) cancels it.")
+        }
     }
 
     // MARK: - Result

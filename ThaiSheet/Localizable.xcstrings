@@ -2595,6 +2595,206 @@
           }
         }
       }
+    },
+    "Read as" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lu comme"
+          }
+        }
+      }
+    },
+    "Silent" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muet"
+          }
+        }
+      }
+    },
+    "This spelling can also be read another way. Check the parts below." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette graphie peut aussi se lire autrement. Vérifiez les éléments ci-dessous."
+          }
+        }
+      }
+    },
+    "%@ is a low-class consonant." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une consonne de classe basse."
+          }
+        }
+      }
+    },
+    "%@ is a mid-class consonant." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une consonne de classe moyenne."
+          }
+        }
+      }
+    },
+    "%@ is a high-class consonant." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une consonne de classe haute."
+          }
+        }
+      }
+    },
+    "ห is silent and makes %@ follow the high-class rules." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ห est muet et fait suivre à %@ les règles de la classe haute."
+          }
+        }
+      }
+    },
+    "%@ is a cluster: both letters are pronounced, and %@ sets the class." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ est un groupe : les deux lettres se prononcent, et %2$@ donne la classe."
+          }
+        }
+      }
+    },
+    "%@ is read as one sound, and %@ sets the class." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ se lit comme un seul son, et %2$@ donne la classe."
+          }
+        }
+      }
+    },
+    "%@ is a tone mark: with the consonant class, it sets the tone." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est un signe de ton : avec la classe de la consonne, il fixe le ton."
+          }
+        }
+      }
+    },
+    "No vowel is written: a short o is read between the consonants." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune voyelle n'est écrite : on lit un o bref entre les consonnes."
+          }
+        }
+      }
+    },
+    "%@ includes its ending, so the syllable is live." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ inclut sa finale : la syllabe est vivante."
+          }
+        }
+      }
+    },
+    "%@ is a short vowel." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une voyelle brève."
+          }
+        }
+      }
+    },
+    "%@ is a long vowel." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une voyelle longue."
+          }
+        }
+      }
+    },
+    "%@ does not show whether the vowel is short or long." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ n'indique pas si la voyelle est brève ou longue."
+          }
+        }
+      }
+    },
+    "%@ is read %@: a dead ending." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ se lit %2$@ : une fin morte."
+          }
+        }
+      }
+    },
+    "%@ is read %@: a live ending." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ se lit %2$@ : une fin vivante."
+          }
+        }
+      }
+    },
+    "No final consonant after a long vowel: a live ending." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de consonne finale après une voyelle longue : une fin vivante."
+          }
+        }
+      }
+    },
+    "No final consonant after a short vowel: a dead ending." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de consonne finale après une voyelle brève : une fin morte."
+          }
+        }
+      }
+    },
+    "%@ is silent: %@ cancels it." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ est muet : %2$@ l'annule."
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

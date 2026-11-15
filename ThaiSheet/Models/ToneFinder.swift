@@ -39,9 +39,37 @@ struct ToneFinder {
         case noRule
     }
 
+    /// One plain-language statement about how the text was read, so the
+    /// learner can check the reading before trusting the tone. Built from
+    /// the text only: facts set by hand do not change it.
+    enum ReadingNote: Equatable {
+        /// The readings of the spelling start differently (ควบ: ค or คว)
+        case otherReading
+        case consonantClass(letter: String, ConsonantClass)
+        /// Leading ห: silent, and puts the following letter in the high class
+        case silentHo(following: String)
+        /// Both letters pronounced; the first sets the class
+        case cluster(letters: String, classLetter: String)
+        /// Read as one sound (ทร, สร, จร); the first letter sets the class
+        case irregularCluster(letters: String, classLetter: String)
+        case toneMark(String)
+        case unwrittenVowel
+        /// A vowel-plus-ending row (◌าย, ไ◌): live, takes no final
+        case vowelWithEnding(form: String)
+        case vowelLength(form: String, VowelCard.VowelDuration)
+        /// The spelling is the same short and long (เ◌ิ-)
+        case vowelLengthNotShown(form: String)
+        case finalConsonant(letters: String, sound: String, ToneDerivation.Ending)
+        /// Open syllable: the vowel length decides live or dead
+        case noFinal(VowelCard.VowelDuration)
+        case silenced(letters: String)
+    }
+
     struct Resolution {
         /// The most likely reading of the text, when it reads as one syllable
         let reading: SyllableParser.Reading?
+        /// How the text was read, in reading order. Empty when it was not read.
+        let readingNotes: [ReadingNote]
         /// The text is not empty and does not read as one syllable
         let textNotRead: Bool
 
@@ -140,6 +168,7 @@ struct ToneFinder {
 
         return Resolution(
             reading: readings.first,
+            readingNotes: Self.notes(for: readings),
             textNotRead: textNotRead,
             consonantClass: consonantClass,
             mark: mark,
@@ -148,5 +177,60 @@ struct ToneFinder {
             derivation: derivation,
             notice: notice
         )
+    }
+
+    /// Notes for the first (most likely) reading. A fact the readings do
+    /// not agree on is described as unknown, never taken from one reading.
+    static func notes(for readings: [SyllableParser.Reading]) -> [ReadingNote] {
+        guard let reading = readings.first else { return [] }
+        var notes: [ReadingNote] = []
+
+        if readings.contains(where: { $0.initial != reading.initial }) {
+            notes.append(.otherReading)
+        }
+
+        let classLetter = String(reading.initial.prefix(1))
+        switch reading.initialCluster?.type {
+        case .silent?:
+            notes.append(.silentHo(following: String(reading.initial.dropFirst())))
+        case .smooth?:
+            notes.append(.cluster(letters: reading.initial, classLetter: classLetter))
+            notes.append(.consonantClass(letter: classLetter, reading.consonantClass))
+        case .irregular?:
+            notes.append(.irregularCluster(letters: reading.initial, classLetter: classLetter))
+            notes.append(.consonantClass(letter: classLetter, reading.consonantClass))
+        case nil:
+            notes.append(.consonantClass(letter: reading.initial, reading.consonantClass))
+        }
+
+        if let mark = reading.toneMark {
+            notes.append(.toneMark(mark))
+        }
+
+        let lengthIsShown = readings.allSatisfy { $0.vowelDuration == reading.vowelDuration }
+        if !reading.isVowelWritten {
+            notes.append(.unwrittenVowel)
+        } else if reading.vowel.isCombination {
+            notes.append(.vowelWithEnding(form: reading.form))
+        } else if reading.toneMark == nil {
+            // With a tone mark the written length can mislead (◌็ is not
+            // written: เล่น), and the mark decides the tone without it
+            notes.append(lengthIsShown
+                ? .vowelLength(form: reading.form, reading.vowelDuration)
+                : .vowelLengthNotShown(form: reading.form))
+        }
+
+        if reading.toneMark == nil {
+            if let final = reading.final, let sound = reading.finalSound {
+                notes.append(.finalConsonant(letters: final, sound: sound, reading.ending))
+            } else if reading.final == nil, !reading.vowel.isCombination, lengthIsShown {
+                notes.append(.noFinal(reading.vowelDuration))
+            }
+        }
+
+        if let silenced = reading.silenced {
+            notes.append(.silenced(letters: silenced))
+        }
+        return notes
     }
 }

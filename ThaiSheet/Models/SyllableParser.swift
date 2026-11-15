@@ -24,19 +24,27 @@ struct SyllableParser {
     struct Reading {
         /// The initial consonant or cluster as written ("น", "หน", "กร")
         let initial: String
+        /// The row of `clusters.json` when the initial is two letters
+        let initialCluster: Cluster?
         /// The class that governs the tone: the class of the first letter
         let consonantClass: ConsonantClass
         let vowel: Vowel
         /// The vowel's written form as the data stores it ("กา-", "เกา")
         let form: String
+        /// False for the unwritten vowel (กลม: no vowel letter, o is read)
+        let isVowelWritten: Bool
         /// The written length. With a tone mark, ◌็ is not written (เล่น),
         /// so a short vowel can read as long here: a marked syllable's tone
         /// does not depend on length.
         let vowelDuration: VowelCard.VowelDuration
         /// The final consonant or final cluster as written, if any
         let final: String?
+        /// The final's sound as the data states it ("-k"), if any
+        let finalSound: String?
         let ending: ToneDerivation.Ending
         let toneMark: String?
+        /// Letters cancelled by ◌์ at the end, without the ◌์ (ว in สัตว์)
+        let silenced: String?
 
         var toneInput: ToneDerivation.Input {
             ToneDerivation.Input(
@@ -108,7 +116,8 @@ struct SyllableParser {
 
     private let templates: [Template]
     private let consonants: [Unicode.Scalar: Consonant]
-    private let initialClusters: Set<String>
+    /// Initial cluster letters → row ("หน" → the silent ห row)
+    private let initialClusters: [String: Cluster]
     /// Final cluster letters → final sound ("ทร" → "-t")
     private let finalClusterSounds: [String: String]
     private let toneMarks: Set<Unicode.Scalar>
@@ -121,12 +130,12 @@ struct SyllableParser {
         }
         self.consonants = byScalar
 
-        var initials: Set<String> = []
+        var initials: [String: Cluster] = [:]
         var finals: [String: String] = [:]
         for cluster in clusters {
             let letters = cluster.cluster.replacingOccurrences(of: "-", with: "")
             if cluster.cluster.hasSuffix("-") {
-                initials.insert(letters)
+                initials[letters] = cluster
             } else if cluster.cluster.hasPrefix("-"), let sound = cluster.sound {
                 finals[letters] = sound
             }
@@ -173,13 +182,19 @@ struct SyllableParser {
         }
 
         // A silenced last letter (สัตว์, สิทธิ์) is not part of the reading
+        var silenced: String?
         if let killer = scalars.firstIndex(of: Self.thanthakhat) {
             guard killer == scalars.count - 1 else { return .notCovered(.noKnownPattern) }
             scalars.removeLast()
-            if let mark = scalars.last, Self.silencedVowelMarks.contains(mark) { scalars.removeLast() }
-            guard let silenced = scalars.popLast(), consonants[silenced] != nil else {
+            var cancelled: [Unicode.Scalar] = []
+            if let mark = scalars.last, Self.silencedVowelMarks.contains(mark) {
+                cancelled.append(scalars.removeLast())
+            }
+            guard let letter = scalars.popLast(), consonants[letter] != nil else {
                 return .notCovered(.noKnownPattern)
             }
+            cancelled.insert(letter, at: 0)
+            silenced = Self.string(cancelled)
         }
 
         let markIndices = scalars.indices.filter { toneMarks.contains(scalars[$0]) }
@@ -188,7 +203,7 @@ struct SyllableParser {
         let mark = markIndex.map { String(scalars[$0]) }
         if let markIndex { scalars.remove(at: markIndex) }
 
-        let found = readings(of: scalars, markIndex: markIndex, mark: mark)
+        let found = readings(of: scalars, markIndex: markIndex, mark: mark, silenced: silenced)
         guard !found.isEmpty else { return .notCovered(.noKnownPattern) }
         // Ties keep the data order
         let ordered = found.enumerated().sorted {
@@ -218,7 +233,8 @@ struct SyllableParser {
     private func readings(
         of scalars: [Unicode.Scalar],
         markIndex: Int?,
-        mark: String?
+        mark: String?,
+        silenced: String?
     ) -> [(reading: Reading, rank: Int)] {
         var result: [(reading: Reading, rank: Int)] = []
         for template in templates {
@@ -233,7 +249,8 @@ struct SyllableParser {
 
                 let initial = Array(scalars[initialStart..<rimeStart])
                 guard let first = consonants[initial[0]] else { continue }
-                if initialLength == 2, !initialClusters.contains(Self.string(initial)) { continue }
+                let cluster = initialLength == 2 ? initialClusters[Self.string(initial)] : nil
+                if initialLength == 2, cluster == nil { continue }
                 guard Array(scalars[rimeStart..<rimeEnd]) == template.rime else { continue }
 
                 let rest = Array(scalars[rimeEnd...])
@@ -244,8 +261,12 @@ struct SyllableParser {
                 let isUnwrittenVowel = template.prefix.isEmpty && template.rime.isEmpty
                 if isUnwrittenVowel, rest == [Self.unwrittenVowelSpoiler] { continue }
                 let ending: ToneDerivation.Ending
+                var finalSound: String?
                 if template.takesFinal {
-                    guard let closed = self.ending(ofFinal: rest) else { continue }
+                    guard let sound = self.finalSound(of: rest), let closed = Self.ending(forFinalSound: sound) else {
+                        continue
+                    }
+                    finalSound = sound
                     ending = closed
                 } else {
                     guard rest.isEmpty else { continue }
@@ -267,13 +288,17 @@ struct SyllableParser {
                 result.append((
                     Reading(
                         initial: Self.string(initial),
+                        initialCluster: cluster,
                         consonantClass: first.consonantClass,
                         vowel: template.vowel,
                         form: template.form,
+                        isVowelWritten: !isUnwrittenVowel,
                         vowelDuration: template.duration,
                         final: rest.isEmpty ? nil : Self.string(rest),
+                        finalSound: finalSound,
                         ending: ending,
-                        toneMark: mark
+                        toneMark: mark,
+                        silenced: silenced
                     ),
                     rank
                 ))
@@ -282,16 +307,17 @@ struct SyllableParser {
         return result
     }
 
-    private func ending(ofFinal letters: [Unicode.Scalar]) -> ToneDerivation.Ending? {
-        let sound: String?
+    private func finalSound(of letters: [Unicode.Scalar]) -> String? {
         switch letters.count {
-        case 1: sound = consonants[letters[0]]?.finalSound
-        case 2: sound = finalClusterSounds[Self.string(letters)]
-        default: sound = nil
+        case 1: return consonants[letters[0]]?.finalSound
+        case 2: return finalClusterSounds[Self.string(letters)]
+        default: return nil
         }
-        guard let sound else { return nil }
-        if Self.deadFinalSounds.contains(sound) { return .dead }
-        if Self.liveFinalSounds.contains(sound) { return .live }
+    }
+
+    private static func ending(forFinalSound sound: String) -> ToneDerivation.Ending? {
+        if deadFinalSounds.contains(sound) { return .dead }
+        if liveFinalSounds.contains(sound) { return .live }
         return nil
     }
 
