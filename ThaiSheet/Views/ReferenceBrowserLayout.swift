@@ -9,6 +9,7 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.practiceMode) private var practiceMode
+    @Environment(\.referenceViewport) private var referenceViewport
     @ScaledMetric(relativeTo: .body) private var minimumTableWidth: CGFloat = 500
     @ScaledMetric(relativeTo: .body) private var minimumDetailWidth: CGFloat = 320
     @State private var containerSize: CGSize = .zero
@@ -19,11 +20,7 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
                 && containerSize.height >= 440
             // The first layout pass can be zero-sized while navigation mounts.
             // It must not briefly present the compact sheet on a wide screen.
-            // A returning tab can still hold the previous width until the
-            // keyboard-independent measurement below catches up. Do not consume
-            // its first return measurement using that obsolete container.
             let measuredExpanded: Bool? = containerSize.width > 0 && containerSize.height > 0
-                && containerSize.width == geometry.size.width
                 ? expanded : nil
             let detailWidth = max(minimumDetailWidth, min(geometry.size.width * 0.36, minimumDetailWidth * 1.3))
 
@@ -59,7 +56,8 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
                     selection.setExpanded(
                         expanded,
                         readingIsConcealed: concealed,
-                        allowsAutomaticSheet: !isSearching
+                        allowsAutomaticSheet: !isSearching,
+                        viewportSize: referenceViewport?.size
                     )
                 }
             }

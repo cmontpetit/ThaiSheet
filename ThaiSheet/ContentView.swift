@@ -107,6 +107,7 @@ struct ContentView: View {
                 .tag(AppTab.flashcards)
             }
         }
+        .referenceViewportScope()
         .onAppear {
             if manager == nil {
                 manager = FlashcardManager(settings: settings, learningModel: learningModel, data: thaiData)

@@ -37,7 +37,12 @@ final class ReferenceSelection {
     private(set) var wantsSheet = false
     private(set) var hasMeasuredContainer = false
     private(set) var isReferenceActive = true
-    private var awaitsReturnMeasurement = false
+    private enum AutomaticSheetPolicy {
+        case allowed
+        case awaitingViewportChange(CGSize?)
+    }
+    private var automaticSheetPolicy = AutomaticSheetPolicy.allowed
+    private(set) var retainedCompactSelectionID: String?
     /// A compact Show details action ends search before its sheet opens.
     private(set) var explicitSheetRequestID: UUID?
 
@@ -48,6 +53,7 @@ final class ReferenceSelection {
     func showDetails(_ item: ReferenceItem) {
         self.item = item
         wantsSheet = !isExpanded
+        retainedCompactSelectionID = nil
         if !isExpanded { explicitSheetRequestID = UUID() }
     }
 
@@ -56,28 +62,46 @@ final class ReferenceSelection {
         showDetails(item)
     }
 
-    func setReferenceActive(_ active: Bool) {
+    func isVisiblySelected(_ item: ReferenceItem) -> Bool {
+        self.item?.id == item.id && (isExpanded || retainedCompactSelectionID == item.id)
+    }
+
+    func setReferenceActive(_ active: Bool, viewportSize: CGSize? = nil) {
         guard active != isReferenceActive else { return }
         isReferenceActive = active
-        if !active {
+        if active {
+            // Any number of obsolete child measurements can arrive on return.
+            // Only a real outer viewport change or an explicit details action
+            // can permit a compact popup at this size.
+            automaticSheetPolicy = .awaitingViewportChange(viewportSize)
+        } else {
             // Preserve the exact selected cell, but returning to a tab must not
             // replay an automatic popup requested while that tab was hidden.
             wantsSheet = false
             explicitSheetRequestID = nil
-            awaitsReturnMeasurement = true
         }
     }
 
     func setExpanded(
         _ expanded: Bool,
         readingIsConcealed: Bool = false,
-        allowsAutomaticSheet: Bool = true
+        allowsAutomaticSheet: Bool = true,
+        viewportSize: CGSize? = nil
     ) {
-        let canOpenAutomatically = isReferenceActive && !awaitsReturnMeasurement && allowsAutomaticSheet
-        // Consume the return measurement even if the layout did not change.
-        // Later folds while Reference is visible still hand off to a sheet.
-        if isReferenceActive { awaitsReturnMeasurement = false }
+        var suppressReturnSheet = false
+        if isReferenceActive, case .awaitingViewportChange(let protectedViewport) = automaticSheetPolicy {
+            if let protectedViewport, let viewportSize, protectedViewport != viewportSize {
+                automaticSheetPolicy = .allowed
+            } else {
+                suppressReturnSheet = true
+                if protectedViewport == nil, let viewportSize {
+                    automaticSheetPolicy = .awaitingViewportChange(viewportSize)
+                }
+            }
+        }
+        let canOpenAutomatically = isReferenceActive && !suppressReturnSheet && allowsAutomaticSheet
         guard !hasMeasuredContainer || expanded != isExpanded else { return }
+        retainedCompactSelectionID = !expanded && isExpanded ? item?.id : nil
         hasMeasuredContainer = true
         isExpanded = expanded
         // Keep the selection even when concealment or an active search prevents
@@ -96,6 +120,7 @@ final class ReferenceSelection {
 
     func clear() {
         item = nil
+        retainedCompactSelectionID = nil
         wantsSheet = false
         explicitSheetRequestID = nil
     }

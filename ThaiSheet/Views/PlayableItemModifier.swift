@@ -22,7 +22,7 @@ struct PlayableItemModifier: ViewModifier {
     @Environment(\.referenceSelection) private var selection
 
     private var isSelected: Bool {
-        selection?.item?.id == item.id
+        selection?.isVisiblySelected(item) == true
     }
 
     private var isConcealed: Bool {

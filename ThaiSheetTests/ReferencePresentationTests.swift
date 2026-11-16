@@ -49,7 +49,7 @@ final class ReferencePresentationTests: XCTestCase {
         }
         .environment(\.flashcardSettings, settings)
         .environment(\.learningModel, LearningModel(store: defaults))
-        let host = UIHostingController(rootView: root)
+        let host = UIHostingController(rootView: root.referenceViewportScope())
         let window = show(host)
         defer { window.endEditing(true); window.isHidden = true }
         await waitFor { self.searchField(in: window) != nil }
@@ -111,7 +111,7 @@ final class ReferencePresentationTests: XCTestCase {
         )
         .environment(\.flashcardSettings, settings)
         .environment(\.learningModel, LearningModel(store: defaults))
-        let host = UIHostingController(rootView: browser)
+        let host = UIHostingController(rootView: browser.referenceViewportScope())
         let window = show(host)
         defer { window.endEditing(true); window.isHidden = true }
 
@@ -168,7 +168,7 @@ final class ReferencePresentationTests: XCTestCase {
         )
         .environment(\.flashcardSettings, settings)
         .environment(\.learningModel, LearningModel(store: defaults))
-        let host = UIHostingController(rootView: browser)
+        let host = UIHostingController(rootView: browser.referenceViewportScope())
         let window = show(host)
         defer { window.endEditing(true); window.isHidden = true }
         host.view.frame = CGRect(x: 0, y: 0, width: 1000, height: 650)
@@ -262,7 +262,7 @@ final class ReferencePresentationTests: XCTestCase {
             ReferenceDetailPane(selection: selection) { _ in Text("Answer") }
         }
         .environment(\.practiceMode, practice)
-        let host = UIHostingController(rootView: view)
+        let host = UIHostingController(rootView: view.referenceViewportScope())
         let window = show(host)
         defer { window.isHidden = true }
         await waitFor { selection.isExpanded }
@@ -294,7 +294,7 @@ final class ReferencePresentationTests: XCTestCase {
         )
         .environment(\.flashcardSettings, settings)
         .environment(\.learningModel, LearningModel(store: defaults))
-        let host = UIHostingController(rootView: browser)
+        let host = UIHostingController(rootView: browser.referenceViewportScope())
         let window = show(host)
         defer { window.isHidden = true }
 
@@ -367,9 +367,10 @@ final class ReferencePresentationTests: XCTestCase {
             browser.tabItem { Label("Reference", systemImage: "book") }.tag(AppTab.reference)
             Text("Flashcards").tabItem { Label("Flashcards", systemImage: "rectangle.on.rectangle") }.tag(AppTab.flashcards)
         }
+        .background { ReferenceViewportCapture(observation: navigation) }
         .environment(\.flashcardSettings, settings)
         .environment(\.learningModel, LearningModel(store: defaults))
-        let host = UIHostingController(rootView: root)
+        let host = UIHostingController(rootView: root.referenceViewportScope())
         let window = show(host)
         defer { window.endEditing(true); window.isHidden = true }
 
@@ -390,6 +391,9 @@ final class ReferencePresentationTests: XCTestCase {
         navigation.activeTab = .flashcards
         await waitFor { !selection.isReferenceActive }
         resize(CGSize(width: 650, height: 1000))
+        // Read the real outer size immediately, while Reference is still
+        // hidden. This must not depend on its cached nested geometry updating.
+        XCTAssertEqual(navigation.viewport?.size, CGSize(width: 650, height: 1000))
         navigation.activeTab = .reference
         await waitFor { selection.isReferenceActive && !selection.isExpanded && self.searchField(in: window) != nil }
         for _ in 0..<10 {
@@ -397,6 +401,14 @@ final class ReferencePresentationTests: XCTestCase {
             XCTAssertFalse(selection.isSheetPresented)
             try await Task.sleep(for: .milliseconds(50))
         }
+        // Force the reviewer's obsolete wide/narrow readings at an unchanged
+        // real viewport; even repeated readings must not open a popup.
+        for _ in 0..<3 {
+            selection.setExpanded(true, viewportSize: navigation.viewport?.size)
+            selection.setExpanded(false, viewportSize: navigation.viewport?.size)
+        }
+        XCTAssertFalse(selection.isSheetPresented)
+        XCTAssertTrue(selection.isVisiblySelected(item))
         XCTAssertEqual(selection.item, item)
         XCTAssertEqual(searchField(in: window)?.text, "ถ")
         XCTAssertEqual(referenceSections(in: window)?.selectedSegmentIndex, 0)
@@ -429,7 +441,7 @@ final class ReferencePresentationTests: XCTestCase {
                 .onDisappear { observation.answerIsPresent = false }
         }
         .environment(\.practiceMode, practice)
-        let host = UIHostingController(rootView: pane)
+        let host = UIHostingController(rootView: pane.referenceViewportScope())
         let window = show(host)
         defer { window.isHidden = true }
 
@@ -451,7 +463,7 @@ final class ReferencePresentationTests: XCTestCase {
     func test_resizingPreservesBrowserIdentityAndMovesSelectionBetweenPresentations() async {
         let selection = ReferenceSelection()
         let observation = ReferenceViewObservation()
-        let host = UIHostingController(rootView: ReferenceLayoutHarness(selection: selection, observation: observation))
+        let host = UIHostingController(rootView: ReferenceLayoutHarness(selection: selection, observation: observation).referenceViewportScope())
         let window = show(host)
         defer { window.isHidden = true }
 
@@ -481,12 +493,12 @@ final class ReferencePresentationTests: XCTestCase {
 
         resize(CGSize(width: 1000, height: 650))
         await waitFor { selection.isExpanded }
-        host.rootView = ReferenceLayoutHarness(selection: selection, observation: observation, typeSize: .accessibility3)
+        host.rootView = ReferenceLayoutHarness(selection: selection, observation: observation, typeSize: .accessibility3).referenceViewportScope()
         await waitFor { !selection.isExpanded }
         XCTAssertEqual(observation.browserIdentity, originalIdentity)
         XCTAssertEqual(selection.item, item)
 
-        host.rootView = ReferenceLayoutHarness(selection: selection, observation: observation)
+        host.rootView = ReferenceLayoutHarness(selection: selection, observation: observation).referenceViewportScope()
         resize(CGSize(width: 867, height: 320))
         await waitFor { !selection.isExpanded && !observation.paneIsPresent }
         XCTAssertEqual(observation.browserIdentity, originalIdentity)
@@ -523,6 +535,7 @@ private final class ReferenceViewObservation {
     var answerIsPresent = false
     var paneIsPresent = false
     var browserIdentity: UUID?
+    var viewport: ReferenceViewport?
 }
 
 private struct ReferenceLayoutHarness: View {
@@ -556,4 +569,13 @@ private struct BrowserIdentityProbe: View {
 @Observable
 private final class ReferenceSearchNavigation {
     var items: [FlashcardType: String] = [:]
+}
+
+private struct ReferenceViewportCapture: View {
+    let observation: ReferenceViewObservation
+    @Environment(\.referenceViewport) private var viewport
+
+    var body: some View {
+        Color.clear.onAppear { observation.viewport = viewport }
+    }
 }

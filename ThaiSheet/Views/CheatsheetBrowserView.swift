@@ -56,6 +56,7 @@ struct CheatsheetBrowserView: View {
 
     @Environment(\.thaiData) private var thaiData
     @Environment(\.learningModel) private var learningModel
+    @Environment(\.referenceViewport) private var referenceViewport
 
     @ScaledMetric(relativeTo: .body) private var searchFieldHeight: CGFloat = 44
     @State private var searchText = ScreenshotScenario.initialSearchText
@@ -661,13 +662,13 @@ struct CheatsheetBrowserView: View {
             }
         }
         .onAppear {
-            referenceSelection.setReferenceActive(selectedTab == .reference)
+            referenceSelection.setReferenceActive(selectedTab == .reference, viewportSize: referenceViewport?.size)
         }
         .onDisappear {
-            referenceSelection.setReferenceActive(false)
+            referenceSelection.setReferenceActive(false, viewportSize: referenceViewport?.size)
         }
         .onChange(of: selectedTab) { _, tab in
-            referenceSelection.setReferenceActive(tab == .reference)
+            referenceSelection.setReferenceActive(tab == .reference, viewportSize: referenceViewport?.size)
         }
         .onChange(of: isSearchFocused) { _, searching in
             // Search takes priority over any automatic compact-sheet handoff.
