@@ -19,35 +19,30 @@ struct ClusterFlashcardView: View {
 
     private var overrideItemID: String { FlashcardType.cluster.cardId(for: cluster.id) }
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
-    @State private var soundOptions: [String] = []
+    @State private var options = QuizOptionCache(value: [String]())
+
+    private var optionContext: QuizOptionContext {
+        QuizOptionContext(
+            cardID: FlashcardType.cluster.cardId(for: cluster.id),
+            romanization: RomanizationState.shared.scheme
+        )
+    }
 
     private let typeOptions: [ClusterType] = [.smooth, .silent, .irregular]
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Cluster display with status indicator
-                clusterCard
-
-                // Summary section
-                summarySection
-
-                // Selection area
-                selectionArea
-            }
-            .padding()
-            .contentColumn()
+        FlashcardLayout {
+            clusterCard
+        } summary: {
+            summarySection
+        } question: {
+            selectionArea
         }
-        .onAppear {
-            generateSoundOptions()
+        .onChange(of: optionContext, initial: true) { _, context in
+            options.update(for: context) { generateSoundOptions() }
         }
         .onChange(of: cluster.id) { _, _ in
             cardState = ClusterCardState()
-            generateSoundOptions()
-        }
-        // Two options can collide when the scheme changes mid-card (RTGS merges sounds)
-        .onChange(of: RomanizationState.shared.scheme) { _, _ in
-            generateSoundOptions()
         }
         .sheet(isPresented: $showingDetails) {
             ClusterDetailSheet(cluster: cluster)
@@ -142,7 +137,7 @@ struct ClusterFlashcardView: View {
     private var soundSelectionView: some View {
         FlashcardStepSection(title: "Select the sound") {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
-                ForEach(soundOptions, id: \.self) { sound in
+                ForEach(options.value, id: \.self) { sound in
                     FlashcardSelectionButton(label: sound.romanized) {
                         cardState.selectedSound = sound
                         completeCard()
@@ -155,6 +150,7 @@ struct ClusterFlashcardView: View {
     // MARK: - Card Completion
 
     private func completeCard(revealed: Bool = false) {
+        guard cardState.step != .completed else { return }
         cardState.step = .completed
         // Revealed early counts as incorrect; otherwise correct if no errors were made
         onComplete?(revealed ? false : !cardState.hasError(for: cluster))
@@ -189,8 +185,8 @@ struct ClusterFlashcardView: View {
 
     // MARK: - Option Generation
 
-    private func generateSoundOptions() {
-        soundOptions = QuizOptions.pickDistinct(
+    private func generateSoundOptions() -> [String] {
+        QuizOptions.pickDistinct(
             correct: cluster.soundLabel,
             from: allClusters.compactMap { $0.sound },
             wrongCount: 5

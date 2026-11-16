@@ -41,19 +41,12 @@ struct ToneRuleFlashcardView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Sample word display with status indicator
-                sampleWordCardView
-
-                // Summary section
-                summarySection
-
-                // Selection area
-                selectionArea
-            }
-            .padding()
-            .contentColumn()
+        FlashcardLayout {
+            sampleWordCardView
+        } summary: {
+            summarySection
+        } question: {
+            selectionArea
         }
         .onChange(of: card.id) { _, _ in
             // Reset state when card changes
@@ -281,6 +274,7 @@ struct ToneRuleFlashcardView: View {
     // MARK: - Card Completion
 
     private func completeCard(revealed: Bool = false) {
+        guard cardState.step != .completed else { return }
         cardState.step = .completed
         // Revealed early counts as incorrect; otherwise correct if no errors were made
         onComplete?(revealed ? false : !cardState.hasError(for: card))

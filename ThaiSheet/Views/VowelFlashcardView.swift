@@ -22,34 +22,29 @@ struct VowelFlashcardView: View {
     @ScaledMetric(relativeTo: .largeTitle) private var glyphSize: CGFloat = 72
 
     // Generated options for sound selection
-    @State private var soundOptions: [String] = []
+    @State private var options = QuizOptionCache(value: [String]())
+
+    private var optionContext: QuizOptionContext {
+        QuizOptionContext(
+            cardID: FlashcardType.vowel.cardId(for: card.id),
+            romanization: RomanizationState.shared.scheme
+        )
+    }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Vowel display with status indicator
-                vowelCardView
-
-                // Summary section
-                summarySection
-
-                // Selection area (changes based on current step)
-                selectionArea
-            }
-            .padding()
-            .contentColumn()
+        FlashcardLayout {
+            vowelCardView
+        } summary: {
+            summarySection
+        } question: {
+            selectionArea
         }
-        .onAppear {
-            generateOptions()
+        .onChange(of: optionContext, initial: true) { _, context in
+            options.update(for: context) { generateOptions() }
         }
         .onChange(of: card.id) { _, _ in
             // Reset state when card changes
             cardState = VowelCardState()
-            generateOptions()
-        }
-        // Two options can collide when the scheme changes mid-card (RTGS merges sounds)
-        .onChange(of: RomanizationState.shared.scheme) { _, _ in
-            generateOptions()
         }
         .sheet(isPresented: $showingDetails) {
             VowelDetailSheet(
@@ -188,7 +183,7 @@ struct VowelFlashcardView: View {
         FlashcardStepSection(title: "Select the sound", onBack: soundStepBack) {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
-                ForEach(soundOptions, id: \.self) { sound in
+                ForEach(options.value, id: \.self) { sound in
                     FlashcardGridButton(label: sound.romanized) {
                         cardState.selectedSound = sound
                         completeCard()
@@ -218,6 +213,7 @@ struct VowelFlashcardView: View {
     // MARK: - Card Completion
 
     private func completeCard(revealed: Bool = false) {
+        guard currentStep != .completed else { return }
         cardState.step = .completed
         // Revealed early counts as incorrect; otherwise correct if no errors were made
         onComplete?(revealed ? false : !cardState.hasError(for: card))
@@ -257,8 +253,8 @@ struct VowelFlashcardView: View {
 
     // MARK: - Option Generation
 
-    private func generateOptions() {
-        soundOptions = QuizOptions.pickDistinct(
+    private func generateOptions() -> [String] {
+        QuizOptions.pickDistinct(
             correct: card.vowel.sound,
             from: allVowels.map { $0.sound },
             wrongCount: 7
