@@ -1,36 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Search filter: %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filtre de recherche : %@"
-          }
-        }
-      }
-    },
-    "Edit search" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier la recherche"
-          }
-        }
-      }
-    },
-    "Clear search" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Effacer la recherche"
-          }
-        }
-      }
-    },
     "Reading hidden" : {
       "localizations" : {
         "fr" : {

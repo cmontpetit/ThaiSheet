@@ -58,7 +58,7 @@ struct CheatsheetBrowserView: View {
     @Environment(\.learningModel) private var learningModel
 
     @State private var searchText = ScreenshotScenario.initialSearchText
-    @State private var isSearchPresented = false
+    @State private var isSearchPresented = ScreenshotScenario.current == .vowelsSearching
     @State private var selectedType: CheatsheetEntryType =
         ScreenshotScenario.current?.referenceType ?? .consonants
     @State private var referenceSelection = ScreenshotScenario.initialReferenceSelection
@@ -373,10 +373,6 @@ struct CheatsheetBrowserView: View {
             .padding(.vertical, 8)
             .contentColumn()
 
-            ReferenceSearchFilter(text: $searchText) {
-                isSearchPresented = true
-            }
-
             // Filter chips
             if selectedType == .consonants {
                 FilterChipRow(
@@ -589,8 +585,10 @@ struct CheatsheetBrowserView: View {
             .searchable(
                 text: $searchText,
                 isPresented: $isSearchPresented,
+                placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "Thai character or sound (e.g. kh)"
             )
+            .modifier(ReferenceSearchToolbarBehavior())
             .toolbar {
                 // Reorder menu — only the flat-list sections (Consonants, Vowels) can
                 // be shuffled/sorted; Clusters (matrix) and Tones (tables) keep their
@@ -800,4 +798,17 @@ private struct ReferenceInfoView: View {
         flashcardStarting: .constant([:]),
         selectedTab: .constant(.reference)
     )
+}
+
+/// Search must not replace Reference actions with the system's search-focused
+/// toolbar. Keep the iOS 17.0 fallback buildable with the minimum Xcode version.
+private struct ReferenceSearchToolbarBehavior: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 17.1, *) {
+            content.searchPresentationToolbarBehavior(.avoidHidingContent)
+        } else {
+            content
+        }
+    }
 }

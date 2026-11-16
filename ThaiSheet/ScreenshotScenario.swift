@@ -12,6 +12,7 @@ enum ScreenshotScenario: String {
     case vowels
     case vowelsBlurred = "vowels-blurred"
     case vowelsFiltered = "vowels-filtered"
+    case vowelsSearching = "vowels-searching"
     case consonantDetails = "consonant-details"
     case consonantDetailsHidden = "consonant-details-hidden"
     case vowelDetails = "vowel-details"
@@ -48,7 +49,7 @@ enum ScreenshotScenario: String {
 
     var referenceType: CheatsheetEntryType {
         switch self {
-        case .vowels, .vowelsBlurred, .vowelsFiltered, .vowelDetails:
+        case .vowels, .vowelsBlurred, .vowelsFiltered, .vowelsSearching, .vowelDetails:
             return .vowels
         case .tones, .toneMarkDetails, .toneRuleDetails:
             return .tones
@@ -68,7 +69,7 @@ enum ScreenshotScenario: String {
     }
 
     static var initialSearchText: String {
-        current == .vowelsFiltered ? "ั" : ""
+        current == .vowelsFiltered || current == .vowelsSearching ? "ั" : ""
     }
 
     static var initialReferenceSelection: ReferenceSelection {

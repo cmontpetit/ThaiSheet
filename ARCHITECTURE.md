@@ -56,7 +56,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - Narrowing a concealed pane retains its selection without automatically opening an answer sheet. Compact long-press details remain an explicit route to the answer, as before.
 - The Reference split decision measures the container independently of keyboard safe-area changes. The table and detail scroll areas still avoid the keyboard; focusing search must not trigger a sheet handoff.
 - Active search suppresses automatic compact detail sheets during rotation, preserving selection and unfinished Thai input. Explicit compact Show details requests end search before presenting. Automatic sheet/pane handoffs disable their own modal animations so they do not compete with the system's rotation animation.
-- `ReferenceSearchFilter` always shows a nonempty search query below the section picker, with edit and clear actions. Filtering must remain visible even when the system collapses the toolbar search field or search loses focus.
+- Reference uses a single native search field in an always-visible navigation-bar drawer. Search presentation avoids hiding toolbar content so the Reference actions remain available while editing.
 
 **Shared components:**
 - `FlashcardLayout` — a single `AnyLayout` view tree, stacked in narrow/short containers and arranged in two columns when there is room. Minimum column width scales with Dynamic Type; layout changes preserve quiz view identity and ease between arrangements over 0.25 seconds (immediate with Reduce Motion).
