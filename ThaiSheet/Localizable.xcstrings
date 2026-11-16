@@ -2805,6 +2805,16 @@
           }
         }
       }
+    },
+    "Clear text" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer le texte"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
