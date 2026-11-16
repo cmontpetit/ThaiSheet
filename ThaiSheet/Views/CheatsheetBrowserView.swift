@@ -693,6 +693,9 @@ struct CheatsheetBrowserView: View {
             }
             .sheet(isPresented: $showingToneFinder) {
                 ToneFinderView { type, key in
+                    // This is an explicit request for the table. Cancel any old
+                    // selection, including a sheet handoff queued during rotation.
+                    referenceSelection.clear()
                     // Replace, not add: a highlight left by "view in
                     // Reference" from a flashcard would otherwise win in the
                     // observer below and switch to its own section.
