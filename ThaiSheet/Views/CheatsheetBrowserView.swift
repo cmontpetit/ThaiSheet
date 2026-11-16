@@ -84,7 +84,8 @@ struct CheatsheetBrowserView: View {
         highlighted: Binding<[FlashcardType: String]>,
         flashcardStarting: Binding<[FlashcardType: String]>,
         selectedTab: Binding<AppTab>,
-        referenceSelection: ReferenceSelection = ScreenshotScenario.initialReferenceSelection
+        referenceSelection: ReferenceSelection = ScreenshotScenario.initialReferenceSelection,
+        referenceType: CheatsheetEntryType? = nil
     ) {
         self.settings = settings
         self.syncedStore = syncedStore
@@ -92,6 +93,7 @@ struct CheatsheetBrowserView: View {
         _flashcardStarting = flashcardStarting
         _selectedTab = selectedTab
         _referenceSelection = State(initialValue: referenceSelection)
+        _selectedType = State(initialValue: referenceType ?? ScreenshotScenario.current?.referenceType ?? .consonants)
     }
 
     // Convenience accessors for highlighted values

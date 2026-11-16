@@ -4,6 +4,72 @@ import XCTest
 
 @MainActor
 final class ReferencePresentationTests: XCTestCase {
+    func test_searchWithSelectedToneMarkKeepsInlineDetailsAndKeyboardFocus() async throws {
+        try await assertSearchKeepsDetailsStable(.toneMark(id: "่", soundKey: "ค่า"))
+    }
+
+    func test_searchWithSelectedToneRuleKeepsInlineDetailsAndKeyboardFocus() async throws {
+        try await assertSearchKeepsDetailsStable(.toneRule("Low-Short-Dead/None"))
+    }
+
+    private func assertSearchKeepsDetailsStable(
+        _ item: ReferenceItem,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) async throws {
+        let suiteName = "ReferenceSearchTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = FlashcardSettings(defaults: defaults)
+        let selection = ReferenceSelection()
+        selection.showDetails(item)
+        let browser = CheatsheetBrowserView(
+            settings: settings,
+            highlighted: .constant([:]),
+            flashcardStarting: .constant([:]),
+            selectedTab: .constant(.reference),
+            referenceSelection: selection,
+            referenceType: .tones
+        )
+        .environment(\.flashcardSettings, settings)
+        .environment(\.learningModel, LearningModel(store: defaults))
+        let host = UIHostingController(rootView: browser)
+        let window = show(host)
+        defer { window.endEditing(true); window.isHidden = true }
+        host.view.frame = CGRect(x: 0, y: 0, width: 1000, height: 650)
+        host.view.setNeedsLayout()
+        host.view.layoutIfNeeded()
+        await waitFor { selection.isExpanded && self.searchField(in: window) != nil }
+        let field = try XCTUnwrap(searchField(in: window), file: file, line: line)
+        // A real input view exercises keyboard safe-area changes, independently
+        // of whether the simulator has a Mac hardware keyboard connected.
+        field.inputView = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 300))
+        let keyboardShown = XCTNSNotificationExpectation(name: UIResponder.keyboardDidShowNotification)
+        keyboardShown.handler = { notification in
+            let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue
+            return (frame?.cgRectValue.height ?? 0) >= 200
+        }
+        window.makeKeyAndVisible()
+        XCTAssertTrue(field.becomeFirstResponder(), file: file, line: line)
+        await fulfillment(of: [keyboardShown], timeout: 3)
+
+        // Check throughout the transition, rather than only its final frame:
+        // a sheet stealing focus and closing again is itself the regression.
+        for _ in 0..<20 {
+            guard selection.isExpanded, host.presentedViewController == nil, field.isFirstResponder else {
+                XCTFail("Search changed detail presentation or lost keyboard focus: expanded=\(selection.isExpanded), sheet=\(selection.isSheetPresented), focus=\(field.isFirstResponder)", file: file, line: line)
+                return
+            }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertEqual(selection.item, item, file: file, line: line)
+    }
+
+    private func searchField(in view: UIView) -> UISearchTextField? {
+        if let field = view as? UISearchTextField { return field }
+        return view.subviews.lazy.compactMap { self.searchField(in: $0) }.first
+    }
+
     func test_concealedPaneDoesNotOpenAnAnswerSheetWhenNarrowed() async {
         let selection = ReferenceSelection()
         let item = ReferenceItem.consonant("ค")
@@ -165,7 +231,9 @@ final class ReferencePresentationTests: XCTestCase {
     }
 
     private func show<V: View>(_ host: UIHostingController<V>) -> UIWindow {
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 1100, height: 800))
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map { UIWindow(windowScene: $0) } ?? UIWindow()
+        window.frame = CGRect(x: 0, y: 0, width: 1100, height: 800)
         let container = UIViewController()
         window.rootViewController = container
         container.view.frame = window.bounds

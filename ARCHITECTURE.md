@@ -54,6 +54,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - `ReferenceSelection` owns the exact selected cell and sheet/pane handoff outside the rows. Vowel forms share a reading ID; tone-mark class columns have separate reading IDs. Search, filters, and section changes clear a selection that is no longer visible.
 - `ReferenceBrowserLayout` adds an inline pane when the container can fit a 500-point table and 320-point detail (both scale with Dynamic Type), with at least 440 points of height. The browser stays in the same view-tree location through resizing. `ReferenceDetailPane` removes all answer content and actions whenever `practiceMode.isConcealed(selectedItem.concealID)` is true, including after a second tap or practice activation.
 - Narrowing a concealed pane retains its selection without automatically opening an answer sheet. Compact long-press details remain an explicit route to the answer, as before.
+- The Reference split decision measures the container independently of keyboard safe-area changes. The table and detail scroll areas still avoid the keyboard; focusing search must not trigger a sheet handoff.
 
 **Shared components:**
 - `FlashcardLayout` — a single `AnyLayout` view tree, stacked in narrow/short containers and arranged in two columns when there is room. Minimum column width scales with Dynamic Type; layout changes preserve quiz view identity and ease between arrangements over 0.25 seconds (immediate with Reduce Motion).
