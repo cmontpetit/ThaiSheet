@@ -57,8 +57,9 @@ struct CheatsheetBrowserView: View {
     @Environment(\.thaiData) private var thaiData
     @Environment(\.learningModel) private var learningModel
 
+    @ScaledMetric(relativeTo: .body) private var searchFieldHeight: CGFloat = 44
     @State private var searchText = ScreenshotScenario.initialSearchText
-    @State private var isSearchPresented = ScreenshotScenario.current == .vowelsSearching
+    @State private var isSearchFocused = ScreenshotScenario.current == .vowelsSearching
     @State private var selectedType: CheatsheetEntryType =
         ScreenshotScenario.current?.referenceType ?? .consonants
     @State private var referenceSelection = ScreenshotScenario.initialReferenceSelection
@@ -573,22 +574,22 @@ struct CheatsheetBrowserView: View {
         // presenter when only the container presentation changes.
         let showsDetailSheet = canPresentDetailSheet && referenceSelection.isSheetPresented
         NavigationStack {
-            ReferenceBrowserLayout(selection: referenceSelection, isSearching: isSearchPresented) {
-                tables
-            } detail: {
-                ReferenceDetailPane(selection: referenceSelection) { item in
-                    ReferenceSelectedDetail(item: item, onPractice: startPractice)
+            VStack(spacing: 0) {
+                ReferenceSearchField(text: $searchText, isFocused: $isSearchFocused)
+                    .frame(height: searchFieldHeight)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+
+                ReferenceBrowserLayout(selection: referenceSelection, isSearching: isSearchFocused) {
+                    tables
+                } detail: {
+                    ReferenceDetailPane(selection: referenceSelection) { item in
+                        ReferenceSelectedDetail(item: item, onPractice: startPractice)
+                    }
                 }
             }
             .environment(\.practiceMode, practiceMode)
             .environment(\.referenceSelection, referenceSelection)
-            .searchable(
-                text: $searchText,
-                isPresented: $isSearchPresented,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Thai character or sound (e.g. kh)"
-            )
-            .modifier(ReferenceSearchToolbarBehavior())
             .toolbar {
                 // Reorder menu — only the flat-list sections (Consonants, Vowels) can
                 // be shuffled/sorted; Clusters (matrix) and Tones (tables) keep their
@@ -659,14 +660,14 @@ struct CheatsheetBrowserView: View {
                 }
             }
         }
-        .onChange(of: isSearchPresented) { _, searching in
+        .onChange(of: isSearchFocused) { _, searching in
             // Search takes priority over any automatic compact-sheet handoff.
             if searching { referenceSelection.dismissSheet() }
         }
         .onChange(of: referenceSelection.explicitSheetRequestID) { _, request in
             // A long press / Show details action is an explicit request: finish
             // search first, then let the compact detail sheet open normally.
-            if request != nil { isSearchPresented = false }
+            if request != nil { isSearchFocused = false }
         }
         .onChange(of: isSelectionVisible) { _, visible in
             if !visible { referenceSelection.clear() }
@@ -693,7 +694,7 @@ struct CheatsheetBrowserView: View {
 
     /// Defer automatic handoff while another Reference presentation or tab is active.
     private var canPresentDetailSheet: Bool {
-        selectedTab == .reference && !showingSettings && !showingInfo && !isSearchPresented
+        selectedTab == .reference && !showingSettings && !showingInfo && !isSearchFocused
     }
 
     /// Filtering or changing sections must not leave unrelated details visible.
@@ -798,17 +799,4 @@ private struct ReferenceInfoView: View {
         flashcardStarting: .constant([:]),
         selectedTab: .constant(.reference)
     )
-}
-
-/// Search must not replace Reference actions with the system's search-focused
-/// toolbar. Keep the iOS 17.0 fallback buildable with the minimum Xcode version.
-private struct ReferenceSearchToolbarBehavior: ViewModifier {
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if #available(iOS 17.1, *) {
-            content.searchPresentationToolbarBehavior(.avoidHidingContent)
-        } else {
-            content
-        }
-    }
 }

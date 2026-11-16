@@ -29,6 +29,121 @@ final class ReferencePresentationTests: XCTestCase {
         )
     }
 
+    func test_queryStaysVisibleAfterEndingSearchResizingAndSwitchingTabs() async throws {
+        let suiteName = "ReferenceSearchVisibilityTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = FlashcardSettings(defaults: defaults)
+        let navigation = ReferenceViewObservation()
+        let activeTab = Binding(get: { navigation.activeTab }, set: { navigation.activeTab = $0 })
+        let highlighted = ReferenceSearchNavigation()
+        let browser = CheatsheetBrowserView(
+            settings: settings,
+            highlighted: Binding(get: { highlighted.items }, set: { highlighted.items = $0 }),
+            flashcardStarting: .constant([:]),
+            selectedTab: activeTab
+        )
+        let root = TabView(selection: activeTab) {
+            browser.tabItem { Label("Reference", systemImage: "book") }.tag(AppTab.reference)
+            Text("Flashcards").tabItem { Label("Flashcards", systemImage: "rectangle.on.rectangle") }.tag(AppTab.flashcards)
+        }
+        .environment(\.flashcardSettings, settings)
+        .environment(\.learningModel, LearningModel(store: defaults))
+        let host = UIHostingController(rootView: root)
+        let window = show(host)
+        defer { window.endEditing(true); window.isHidden = true }
+        await waitFor { self.searchField(in: window) != nil }
+        let field = try XCTUnwrap(searchField(in: window))
+        field.inputView = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 300))
+        XCTAssertTrue(field.becomeFirstResponder())
+        field.insertText("ถ")
+        field.sendActions(for: .editingChanged)
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true }
+        field.resignFirstResponder()
+        await waitFor { !field.isFirstResponder }
+
+        for size in [CGSize(width: 650, height: 1000), CGSize(width: 1000, height: 650)] {
+            host.view.frame = CGRect(origin: .zero, size: size)
+            host.view.setNeedsLayout()
+            host.view.layoutIfNeeded()
+            // Both the Reference section and the app tab can change while the
+            // keyboard is closed. Neither should conceal an active query.
+            highlighted.items = [.vowel: "กั-"]
+            try await Task.sleep(for: .milliseconds(100))
+            navigation.activeTab = .flashcards
+            try await Task.sleep(for: .milliseconds(100))
+            navigation.activeTab = .reference
+            await waitFor { self.searchField(in: window)?.window != nil }
+            let visibleField = try XCTUnwrap(searchField(in: window))
+            XCTAssertEqual(visibleField.text, "ถ")
+            XCTAssertTrue(referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true)
+            XCTAssertFalse(visibleField.isFirstResponder)
+            XCTAssertFalse(visibleField.isHidden)
+            XCTAssertGreaterThan(visibleField.bounds.width, 100)
+            XCTAssertEqual(visibleField.clearButtonMode, .always)
+        }
+
+        // Clearing the displayed field must also clear the retained filtering
+        // query, rather than bringing it back on the next tab presentation.
+        let visibleField = try XCTUnwrap(searchField(in: window))
+        visibleField.text = ""
+        visibleField.sendActions(for: .editingChanged)
+        navigation.activeTab = .flashcards
+        try await Task.sleep(for: .milliseconds(100))
+        navigation.activeTab = .reference
+        await waitFor { self.searchField(in: window)?.window != nil }
+        XCTAssertEqual(searchField(in: window)?.text, "")
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 0)?.contains("(") == false }
+    }
+
+    func test_queryStaysVisibleWhenCompactDetailsRotateIntoInlinePane() async throws {
+        let suiteName = "ReferenceSearchHandoffTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = FlashcardSettings(defaults: defaults)
+        let selection = ReferenceSelection()
+        let browser = CheatsheetBrowserView(
+            settings: settings,
+            highlighted: .constant([:]),
+            flashcardStarting: .constant([:]),
+            selectedTab: .constant(.reference),
+            referenceSelection: selection
+        )
+        .environment(\.flashcardSettings, settings)
+        .environment(\.learningModel, LearningModel(store: defaults))
+        let host = UIHostingController(rootView: browser)
+        let window = show(host)
+        defer { window.endEditing(true); window.isHidden = true }
+
+        func resize(_ size: CGSize) {
+            host.view.frame = CGRect(origin: .zero, size: size)
+            host.view.setNeedsLayout()
+            host.view.layoutIfNeeded()
+        }
+
+        resize(CGSize(width: 650, height: 1000))
+        await waitFor { selection.hasMeasuredContainer && !selection.isExpanded && self.searchField(in: window) != nil }
+        let field = try XCTUnwrap(searchField(in: window))
+        field.inputView = UIView(frame: CGRect(x: 0, y: 0, width: 650, height: 300))
+        XCTAssertTrue(field.becomeFirstResponder())
+        field.insertText("ถ")
+        field.sendActions(for: .editingChanged)
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true }
+
+        // The same action as a row's long press: search finishes before the
+        // compact popup opens, then rotation hands it to the inline pane.
+        let item = ReferenceItem.consonant("ถ")
+        selection.showDetails(item)
+        await waitFor { host.presentedViewController != nil && !field.isFirstResponder }
+        XCTAssertEqual(field.text, "ถ")
+        resize(CGSize(width: 1000, height: 650))
+        await waitFor { selection.isExpanded && host.presentedViewController == nil }
+        XCTAssertEqual(searchField(in: window)?.text, "ถ")
+        XCTAssertTrue(referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true)
+        XCTAssertEqual(selection.item, item)
+        XCTAssertFalse(field.isHidden)
+    }
+
     private func assertSearchKeepsDetailsStable(
         _ item: ReferenceItem,
         referenceType: CheatsheetEntryType = .tones,
@@ -123,6 +238,11 @@ final class ReferencePresentationTests: XCTestCase {
         XCTAssertEqual(selection.item, item, file: file, line: line)
         selection.dismissSheet()
         await waitFor { host.presentedViewController == nil }
+    }
+
+    private func referenceSections(in view: UIView) -> UISegmentedControl? {
+        if let control = view as? UISegmentedControl { return control }
+        return view.subviews.lazy.compactMap { self.referenceSections(in: $0) }.first
     }
 
     private func searchField(in view: UIView) -> UISearchTextField? {
@@ -348,4 +468,10 @@ private struct BrowserIdentityProbe: View {
         Text("Tables, search, and filters")
             .onAppear { observation.browserIdentity = identity }
     }
+}
+
+@MainActor
+@Observable
+private final class ReferenceSearchNavigation {
+    var items: [FlashcardType: String] = [:]
 }
