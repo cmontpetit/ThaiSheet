@@ -59,6 +59,17 @@ struct ToneFinderView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .submitLabel(.done)
+                if !finder.text.isEmpty {
+                    Button {
+                        finder.text = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Clear text"))
+                }
                 PasteButton(payloadType: String.self) { strings in
                     guard let pasted = strings.first else { return }
                     finder.text = pasted.trimmingCharacters(in: .whitespacesAndNewlines)
