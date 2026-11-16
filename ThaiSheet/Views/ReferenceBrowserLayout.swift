@@ -37,11 +37,14 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
                 }
             }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: expanded)
-            .onChange(of: measuredExpanded, initial: true) { _, expanded in
-                guard let expanded else { return }
+            .task(id: ReferencePresentationRequest(expanded: measuredExpanded, isSearching: isSearching)) {
+                // Safe-area insets can change again during the initial layout.
+                // Coalesce those passes before asking UIKit to present a sheet;
+                // a cancelled task must not leave an obsolete popup behind.
+                await Task.yield()
+                guard !Task.isCancelled, let expanded = measuredExpanded else { return }
                 let concealed = selection.item.map { practiceMode.isConcealed($0.concealID) } ?? false
-                // Let UIKit animate rotation without starting a second native
-                // sheet animation for the automatic presentation handoff.
+                // Let UIKit animate rotation without a second sheet animation.
                 var transaction = Transaction()
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
@@ -68,4 +71,9 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
             .ignoresSafeArea(.keyboard, edges: .bottom)
         }
     }
+}
+
+private struct ReferencePresentationRequest: Equatable {
+    let expanded: Bool?
+    let isSearching: Bool
 }
