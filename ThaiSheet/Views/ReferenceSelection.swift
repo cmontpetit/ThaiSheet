@@ -36,6 +36,8 @@ final class ReferenceSelection {
     private(set) var isExpanded = false
     private(set) var wantsSheet = false
     private(set) var hasMeasuredContainer = false
+    /// A compact Show details action ends search before its sheet opens.
+    private(set) var explicitSheetRequestID: UUID?
 
     var isSheetPresented: Bool {
         hasMeasuredContainer && wantsSheet && !isExpanded
@@ -44,6 +46,7 @@ final class ReferenceSelection {
     func showDetails(_ item: ReferenceItem) {
         self.item = item
         wantsSheet = !isExpanded
+        if !isExpanded { explicitSheetRequestID = UUID() }
     }
 
     func selectFromTap(_ item: ReferenceItem) {
@@ -51,13 +54,18 @@ final class ReferenceSelection {
         showDetails(item)
     }
 
-    func setExpanded(_ expanded: Bool, readingIsConcealed: Bool = false) {
+    func setExpanded(
+        _ expanded: Bool,
+        readingIsConcealed: Bool = false,
+        allowsAutomaticSheet: Bool = true
+    ) {
         guard !hasMeasuredContainer || expanded != isExpanded else { return }
         hasMeasuredContainer = true
         isExpanded = expanded
-        // A concealed pane contains no answer to carry into a compact sheet.
-        // Keep its selection, but never reveal it just because the app narrows.
-        wantsSheet = !expanded && item != nil && !readingIsConcealed
+        // Keep the selection even when concealment or an active search prevents
+        // automatic presentation. Narrowing alone must not reveal an answer.
+        wantsSheet = !expanded && item != nil && !readingIsConcealed && allowsAutomaticSheet
+        explicitSheetRequestID = nil
     }
 
     func dismissSheet() {
@@ -65,11 +73,13 @@ final class ReferenceSelection {
         // That callback must not discard the selection or a later compact sheet.
         guard !isExpanded else { return }
         wantsSheet = false
+        explicitSheetRequestID = nil
     }
 
     func clear() {
         item = nil
         wantsSheet = false
+        explicitSheetRequestID = nil
     }
 }
 

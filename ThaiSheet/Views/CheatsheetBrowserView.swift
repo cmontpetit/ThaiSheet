@@ -58,6 +58,7 @@ struct CheatsheetBrowserView: View {
     @Environment(\.learningModel) private var learningModel
 
     @State private var searchText = ""
+    @State private var isSearchPresented = false
     @State private var selectedType: CheatsheetEntryType =
         ScreenshotScenario.current?.referenceType ?? .consonants
     @State private var referenceSelection = ScreenshotScenario.initialReferenceSelection
@@ -572,7 +573,7 @@ struct CheatsheetBrowserView: View {
         // presenter when only the container presentation changes.
         let showsDetailSheet = canPresentDetailSheet && referenceSelection.isSheetPresented
         NavigationStack {
-            ReferenceBrowserLayout(selection: referenceSelection) {
+            ReferenceBrowserLayout(selection: referenceSelection, isSearching: isSearchPresented) {
                 tables
             } detail: {
                 ReferenceDetailPane(selection: referenceSelection) { item in
@@ -581,7 +582,11 @@ struct CheatsheetBrowserView: View {
             }
             .environment(\.practiceMode, practiceMode)
             .environment(\.referenceSelection, referenceSelection)
-            .searchable(text: $searchText, prompt: "Thai character or sound (e.g. kh)")
+            .searchable(
+                text: $searchText,
+                isPresented: $isSearchPresented,
+                prompt: "Thai character or sound (e.g. kh)"
+            )
             .toolbar {
                 // Reorder menu — only the flat-list sections (Consonants, Vowels) can
                 // be shuffled/sorted; Clusters (matrix) and Tones (tables) keep their
@@ -652,6 +657,15 @@ struct CheatsheetBrowserView: View {
                 }
             }
         }
+        .onChange(of: isSearchPresented) { _, searching in
+            // Search takes priority over any automatic compact-sheet handoff.
+            if searching { referenceSelection.dismissSheet() }
+        }
+        .onChange(of: referenceSelection.explicitSheetRequestID) { _, request in
+            // A long press / Show details action is an explicit request: finish
+            // search first, then let the compact detail sheet open normally.
+            if request != nil { isSearchPresented = false }
+        }
         .onChange(of: isSelectionVisible) { _, visible in
             if !visible { referenceSelection.clear() }
         }
@@ -677,7 +691,7 @@ struct CheatsheetBrowserView: View {
 
     /// Defer automatic handoff while another Reference presentation or tab is active.
     private var canPresentDetailSheet: Bool {
-        selectedTab == .reference && !showingSettings && !showingInfo
+        selectedTab == .reference && !showingSettings && !showingInfo && !isSearchPresented
     }
 
     /// Filtering or changing sections must not leave unrelated details visible.

@@ -12,8 +12,28 @@ final class ReferencePresentationTests: XCTestCase {
         try await assertSearchKeepsDetailsStable(.toneRule("Low-Short-Dead/None"))
     }
 
+    func test_rotatingWithPendingToneMarkKeepsSearchStable() async throws {
+        try await assertSearchKeepsDetailsStable(
+            .toneMark(id: "้", soundKey: "ค้า"),
+            markedText: "้",
+            rotates: true
+        )
+    }
+
+    func test_rotatingWithPendingVowelMarkKeepsSearchStable() async throws {
+        try await assertSearchKeepsDetailsStable(
+            .vowel(id: "a", variant: .shortClosed, text: "กั-"),
+            referenceType: .vowels,
+            markedText: "ั",
+            rotates: true
+        )
+    }
+
     private func assertSearchKeepsDetailsStable(
         _ item: ReferenceItem,
+        referenceType: CheatsheetEntryType = .tones,
+        markedText: String? = nil,
+        rotates: Bool = false,
         file: StaticString = #filePath,
         line: UInt = #line
     ) async throws {
@@ -29,7 +49,7 @@ final class ReferencePresentationTests: XCTestCase {
             flashcardStarting: .constant([:]),
             selectedTab: .constant(.reference),
             referenceSelection: selection,
-            referenceType: .tones
+            referenceType: referenceType
         )
         .environment(\.flashcardSettings, settings)
         .environment(\.learningModel, LearningModel(store: defaults))
@@ -53,6 +73,14 @@ final class ReferencePresentationTests: XCTestCase {
         XCTAssertTrue(field.becomeFirstResponder(), file: file, line: line)
         await fulfillment(of: [keyboardShown], timeout: 3)
 
+        if let markedText {
+            // Thai marks can be in an IME composition while waiting for a base
+            // consonant. Keep that state through filtering and repeated resizes.
+            field.setMarkedText(markedText, selectedRange: NSRange(location: markedText.utf16.count, length: 0))
+            field.sendActions(for: .editingChanged)
+            XCTAssertNotNil(field.markedTextRange, file: file, line: line)
+        }
+
         // Check throughout the transition, rather than only its final frame:
         // a sheet stealing focus and closing again is itself the regression.
         for _ in 0..<20 {
@@ -63,6 +91,38 @@ final class ReferencePresentationTests: XCTestCase {
             try await Task.sleep(for: .milliseconds(50))
         }
         XCTAssertEqual(selection.item, item, file: file, line: line)
+        if let markedText {
+            XCTAssertEqual(field.text, markedText, file: file, line: line)
+            XCTAssertNotNil(field.markedTextRange, file: file, line: line)
+        }
+
+        guard rotates else { return }
+        for size in [CGSize(width: 650, height: 1000), CGSize(width: 1000, height: 650), CGSize(width: 650, height: 1000)] {
+            host.view.frame = CGRect(origin: .zero, size: size)
+            host.view.setNeedsLayout()
+            host.view.layoutIfNeeded()
+            let expanded = size.width > size.height
+            await waitFor { selection.isExpanded == expanded }
+            for _ in 0..<10 {
+                guard !selection.isSheetPresented, host.presentedViewController == nil, field.isFirstResponder else {
+                    XCTFail("Rotation opened a detail popup or interrupted search", file: file, line: line)
+                    return
+                }
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            XCTAssertEqual(selection.item, item, file: file, line: line)
+            if let markedText {
+                XCTAssertEqual(field.text, markedText, file: file, line: line)
+                XCTAssertNotNil(field.markedTextRange, file: file, line: line)
+            }
+        }
+
+        // An explicit compact Show details action still works during search.
+        selection.showDetails(item)
+        await waitFor { host.presentedViewController != nil && !field.isFirstResponder }
+        XCTAssertEqual(selection.item, item, file: file, line: line)
+        selection.dismissSheet()
+        await waitFor { host.presentedViewController == nil }
     }
 
     private func searchField(in view: UIView) -> UISearchTextField? {

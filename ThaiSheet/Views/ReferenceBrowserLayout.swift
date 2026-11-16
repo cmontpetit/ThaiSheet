@@ -3,6 +3,7 @@ import SwiftUI
 /// Keeps the browser in one stable location as the detail pane comes and goes.
 struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
     let selection: ReferenceSelection
+    var isSearching = false
     @ViewBuilder let browser: () -> Browser
     @ViewBuilder let detail: () -> Detail
 
@@ -39,7 +40,17 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
             .onChange(of: measuredExpanded, initial: true) { _, expanded in
                 guard let expanded else { return }
                 let concealed = selection.item.map { practiceMode.isConcealed($0.concealID) } ?? false
-                selection.setExpanded(expanded, readingIsConcealed: concealed)
+                // Let UIKit animate rotation without starting a second native
+                // sheet animation for the automatic presentation handoff.
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    selection.setExpanded(
+                        expanded,
+                        readingIsConcealed: concealed,
+                        allowsAutomaticSheet: !isSearching
+                    )
+                }
             }
             .accessibilityIdentifier(expanded ? "reference.expanded" : "reference.compact")
         }
