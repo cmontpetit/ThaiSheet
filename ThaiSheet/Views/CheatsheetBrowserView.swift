@@ -57,7 +57,7 @@ struct CheatsheetBrowserView: View {
     @Environment(\.thaiData) private var thaiData
     @Environment(\.learningModel) private var learningModel
 
-    @State private var searchText = ""
+    @State private var searchText = ScreenshotScenario.initialSearchText
     @State private var isSearchPresented = false
     @State private var selectedType: CheatsheetEntryType =
         ScreenshotScenario.current?.referenceType ?? .consonants
@@ -372,6 +372,10 @@ struct CheatsheetBrowserView: View {
             .padding(.horizontal)
             .padding(.vertical, 8)
             .contentColumn()
+
+            ReferenceSearchFilter(text: $searchText) {
+                isSearchPresented = true
+            }
 
             // Filter chips
             if selectedType == .consonants {

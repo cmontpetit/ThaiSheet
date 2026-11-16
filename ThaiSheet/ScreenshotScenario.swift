@@ -11,6 +11,7 @@ import Foundation
 enum ScreenshotScenario: String {
     case vowels
     case vowelsBlurred = "vowels-blurred"
+    case vowelsFiltered = "vowels-filtered"
     case consonantDetails = "consonant-details"
     case consonantDetailsHidden = "consonant-details-hidden"
     case vowelDetails = "vowel-details"
@@ -47,7 +48,7 @@ enum ScreenshotScenario: String {
 
     var referenceType: CheatsheetEntryType {
         switch self {
-        case .vowels, .vowelsBlurred, .vowelDetails:
+        case .vowels, .vowelsBlurred, .vowelsFiltered, .vowelDetails:
             return .vowels
         case .tones, .toneMarkDetails, .toneRuleDetails:
             return .tones
@@ -64,6 +65,10 @@ enum ScreenshotScenario: String {
             mode.isActive = true
         }
         return mode
+    }
+
+    static var initialSearchText: String {
+        current == .vowelsFiltered ? "ั" : ""
     }
 
     static var initialReferenceSelection: ReferenceSelection {
