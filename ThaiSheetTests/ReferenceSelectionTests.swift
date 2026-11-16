@@ -58,6 +58,58 @@ final class ReferenceSelectionTests: XCTestCase {
         XCTAssertFalse(selection.wantsSheet)
     }
 
+    func test_foldOnAnotherTabPreservesSelectionWithoutReopeningSheet() {
+        let selection = ReferenceSelection()
+        let item = ReferenceItem.consonant("ค")
+        selection.setExpanded(true)
+        selection.selectFromTap(item)
+        selection.setReferenceActive(false)
+        selection.setExpanded(false)
+        XCTAssertFalse(selection.wantsSheet)
+        selection.setReferenceActive(true)
+        selection.setExpanded(false)
+        XCTAssertEqual(selection.item, item)
+        XCTAssertFalse(selection.isSheetPresented)
+
+        selection.showDetails(item)
+        XCTAssertTrue(selection.isSheetPresented, "An explicit request still opens details")
+        selection.dismissSheet()
+        selection.setExpanded(true)
+        selection.setExpanded(false)
+        XCTAssertTrue(selection.isSheetPresented, "A later fold on Reference still hands off")
+    }
+
+    func test_firstMeasurementAfterReturningHandlesLayoutsThatWereNotUpdatedWhileHidden() {
+        let selection = ReferenceSelection()
+        let item = ReferenceItem.vowel(id: "a", variant: .shortClosed, text: "กั-")
+        selection.setExpanded(true)
+        selection.selectFromTap(item)
+        selection.setReferenceActive(false)
+        // No measurement occurs while hidden, as with a detached tab's view.
+        selection.setReferenceActive(true)
+        selection.setExpanded(false)
+        XCTAssertEqual(selection.item, item)
+        XCTAssertFalse(selection.isSheetPresented)
+        selection.setExpanded(true)
+        selection.setExpanded(false)
+        XCTAssertTrue(selection.isSheetPresented)
+    }
+
+    func test_returningToExpandedReferenceRestoresPaneAndRearmsVisibleFoldHandoff() {
+        let selection = ReferenceSelection()
+        let item = ReferenceItem.cluster("กร:initial")
+        selection.setExpanded(true)
+        selection.selectFromTap(item)
+        selection.setReferenceActive(false)
+        selection.setReferenceActive(true)
+        selection.setExpanded(true)
+        XCTAssertEqual(selection.item, item)
+        XCTAssertTrue(selection.isExpanded)
+        XCTAssertFalse(selection.isSheetPresented)
+        selection.setExpanded(false)
+        XCTAssertTrue(selection.isSheetPresented)
+    }
+
     func test_vowelCellsHaveDistinctSelectionsButShareTheirReading() {
         let closed = ReferenceItem.vowel(id: "a", variant: .shortClosed, text: "กั-")
         let open = ReferenceItem.vowel(id: "a", variant: .shortOpen, text: "กะ")

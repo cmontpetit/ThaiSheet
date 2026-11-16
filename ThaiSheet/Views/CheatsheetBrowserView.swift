@@ -660,6 +660,15 @@ struct CheatsheetBrowserView: View {
                 }
             }
         }
+        .onAppear {
+            referenceSelection.setReferenceActive(selectedTab == .reference)
+        }
+        .onDisappear {
+            referenceSelection.setReferenceActive(false)
+        }
+        .onChange(of: selectedTab) { _, tab in
+            referenceSelection.setReferenceActive(tab == .reference)
+        }
         .onChange(of: isSearchFocused) { _, searching in
             // Search takes priority over any automatic compact-sheet handoff.
             if searching { referenceSelection.dismissSheet() }

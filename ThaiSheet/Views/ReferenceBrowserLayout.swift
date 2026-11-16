@@ -19,7 +19,11 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
                 && containerSize.height >= 440
             // The first layout pass can be zero-sized while navigation mounts.
             // It must not briefly present the compact sheet on a wide screen.
+            // A returning tab can still hold the previous width until the
+            // keyboard-independent measurement below catches up. Do not consume
+            // its first return measurement using that obsolete container.
             let measuredExpanded: Bool? = containerSize.width > 0 && containerSize.height > 0
+                && containerSize.width == geometry.size.width
                 ? expanded : nil
             let detailWidth = max(minimumDetailWidth, min(geometry.size.width * 0.36, minimumDetailWidth * 1.3))
 
@@ -37,7 +41,11 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
                 }
             }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: expanded)
-            .task(id: ReferencePresentationRequest(expanded: measuredExpanded, isSearching: isSearching)) {
+            .task(id: ReferencePresentationRequest(
+                expanded: measuredExpanded,
+                isSearching: isSearching,
+                isReferenceActive: selection.isReferenceActive
+            )) {
                 // Safe-area insets can change again during the initial layout.
                 // Coalesce those passes before asking UIKit to present a sheet;
                 // a cancelled task must not leave an obsolete popup behind.
@@ -76,4 +84,5 @@ struct ReferenceBrowserLayout<Browser: View, Detail: View>: View {
 private struct ReferencePresentationRequest: Equatable {
     let expanded: Bool?
     let isSearching: Bool
+    let isReferenceActive: Bool
 }

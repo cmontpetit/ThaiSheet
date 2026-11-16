@@ -36,6 +36,8 @@ final class ReferenceSelection {
     private(set) var isExpanded = false
     private(set) var wantsSheet = false
     private(set) var hasMeasuredContainer = false
+    private(set) var isReferenceActive = true
+    private var awaitsReturnMeasurement = false
     /// A compact Show details action ends search before its sheet opens.
     private(set) var explicitSheetRequestID: UUID?
 
@@ -54,17 +56,33 @@ final class ReferenceSelection {
         showDetails(item)
     }
 
+    func setReferenceActive(_ active: Bool) {
+        guard active != isReferenceActive else { return }
+        isReferenceActive = active
+        if !active {
+            // Preserve the exact selected cell, but returning to a tab must not
+            // replay an automatic popup requested while that tab was hidden.
+            wantsSheet = false
+            explicitSheetRequestID = nil
+            awaitsReturnMeasurement = true
+        }
+    }
+
     func setExpanded(
         _ expanded: Bool,
         readingIsConcealed: Bool = false,
         allowsAutomaticSheet: Bool = true
     ) {
+        let canOpenAutomatically = isReferenceActive && !awaitsReturnMeasurement && allowsAutomaticSheet
+        // Consume the return measurement even if the layout did not change.
+        // Later folds while Reference is visible still hand off to a sheet.
+        if isReferenceActive { awaitsReturnMeasurement = false }
         guard !hasMeasuredContainer || expanded != isExpanded else { return }
         hasMeasuredContainer = true
         isExpanded = expanded
         // Keep the selection even when concealment or an active search prevents
         // automatic presentation. Narrowing alone must not reveal an answer.
-        wantsSheet = !expanded && item != nil && !readingIsConcealed && allowsAutomaticSheet
+        wantsSheet = !expanded && item != nil && !readingIsConcealed && canOpenAutomatically
         explicitSheetRequestID = nil
     }
 

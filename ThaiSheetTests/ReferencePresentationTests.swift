@@ -329,7 +329,89 @@ final class ReferencePresentationTests: XCTestCase {
         await waitFor { !selection.isExpanded }
         XCTAssertNil(host.presentedViewController, "The Reference sheet must not appear over Flashcards")
         tab.activeTab = .reference
+        await waitFor { selection.isReferenceActive }
+        // Check across subsequent UI updates: returning must not queue a popup
+        // that appears after the first frame, and the selected cell stays put.
+        for _ in 0..<10 {
+            XCTAssertNil(host.presentedViewController)
+            XCTAssertFalse(selection.isSheetPresented)
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertEqual(selection.item, item)
+        selection.showDetails(item)
         await waitFor { host.presentedViewController != nil }
+        resize(CGSize(width: 1000, height: 650))
+        await waitFor { selection.isExpanded && host.presentedViewController == nil }
+        resize(CGSize(width: 390, height: 620))
+        await waitFor { !selection.isExpanded && host.presentedViewController != nil }
+        selection.dismissSheet()
+        await waitFor { host.presentedViewController == nil }
+    }
+
+    func test_actualTabReturnAfterFoldingKeepsSelectedRowAndQueryWithoutOpeningSheet() async throws {
+        let suiteName = "ReferenceTabReturnTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = FlashcardSettings(defaults: defaults)
+        let selection = ReferenceSelection()
+        let navigation = ReferenceViewObservation()
+        let activeTab = Binding(get: { navigation.activeTab }, set: { navigation.activeTab = $0 })
+        let browser = CheatsheetBrowserView(
+            settings: settings,
+            highlighted: .constant([:]),
+            flashcardStarting: .constant([:]),
+            selectedTab: activeTab,
+            referenceSelection: selection
+        )
+        let root = TabView(selection: activeTab) {
+            browser.tabItem { Label("Reference", systemImage: "book") }.tag(AppTab.reference)
+            Text("Flashcards").tabItem { Label("Flashcards", systemImage: "rectangle.on.rectangle") }.tag(AppTab.flashcards)
+        }
+        .environment(\.flashcardSettings, settings)
+        .environment(\.learningModel, LearningModel(store: defaults))
+        let host = UIHostingController(rootView: root)
+        let window = show(host)
+        defer { window.endEditing(true); window.isHidden = true }
+
+        func resize(_ size: CGSize) {
+            host.view.frame = CGRect(origin: .zero, size: size)
+            host.view.setNeedsLayout()
+            host.view.layoutIfNeeded()
+        }
+
+        resize(CGSize(width: 1000, height: 750))
+        await waitFor { selection.isExpanded && self.searchField(in: window) != nil }
+        let field = try XCTUnwrap(searchField(in: window))
+        field.insertText("ถ")
+        field.sendActions(for: .editingChanged)
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true }
+        let item = ReferenceItem.consonant("ถ")
+        selection.selectFromTap(item)
+        navigation.activeTab = .flashcards
+        await waitFor { !selection.isReferenceActive }
+        resize(CGSize(width: 650, height: 1000))
+        navigation.activeTab = .reference
+        await waitFor { selection.isReferenceActive && !selection.isExpanded && self.searchField(in: window) != nil }
+        for _ in 0..<10 {
+            XCTAssertNil(host.presentedViewController)
+            XCTAssertFalse(selection.isSheetPresented)
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        XCTAssertEqual(selection.item, item)
+        XCTAssertEqual(searchField(in: window)?.text, "ถ")
+        XCTAssertEqual(referenceSections(in: window)?.selectedSegmentIndex, 0)
+        XCTAssertTrue(referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true)
+
+        resize(CGSize(width: 1000, height: 750))
+        await waitFor { selection.isExpanded && host.presentedViewController == nil }
+        navigation.activeTab = .flashcards
+        await waitFor { !selection.isReferenceActive }
+        navigation.activeTab = .reference
+        await waitFor { selection.isReferenceActive && selection.isExpanded }
+        XCTAssertEqual(selection.item, item)
+        XCTAssertNil(host.presentedViewController)
+        resize(CGSize(width: 650, height: 1000))
+        await waitFor { !selection.isExpanded && host.presentedViewController != nil }
         selection.dismissSheet()
         await waitFor { host.presentedViewController == nil }
     }
