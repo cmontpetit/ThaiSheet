@@ -2495,6 +2495,436 @@
           }
         }
       }
+    },
+    "Why this tone?" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pourquoi ce ton ?"
+          }
+        }
+      }
+    },
+    "Find the tone of a syllable, step by step." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouver le ton d'une syllabe, étape par étape."
+          }
+        }
+      }
+    },
+    "One Thai syllable" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une syllabe thaïe"
+          }
+        }
+      }
+    },
+    "Type or paste one syllable, or choose its parts below." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez ou collez une syllabe, ou choisissez ses éléments ci-dessous."
+          }
+        }
+      }
+    },
+    "ThaiSheet cannot read this as one syllable. Enter a single syllable, or choose its parts below." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ThaiSheet ne peut pas lire ceci comme une seule syllabe. Saisissez une seule syllabe, ou choisissez ses éléments ci-dessous."
+          }
+        }
+      }
+    },
+    "Syllable" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Syllabe"
+          }
+        }
+      }
+    },
+    "Initial consonant" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consonne initiale"
+          }
+        }
+      }
+    },
+    "Ending" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fin de syllabe"
+          }
+        }
+      }
+    },
+    "Vowel length" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durée de la voyelle"
+          }
+        }
+      }
+    },
+    "None" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun"
+          }
+        }
+      }
+    },
+    "Live: ends in m, n, ng, y, w, or a long vowel. Dead: ends in k, t, p, or a short vowel." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vivante : se termine par m, n, ng, y, w ou une voyelle longue. Morte : se termine par k, t, p ou une voyelle courte."
+          }
+        }
+      }
+    },
+    "%@ count as live." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ comptent comme vivantes."
+          }
+        }
+      }
+    },
+    "A tone mark sets the tone together with the consonant class. The ending and the vowel length do not change it." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un signe de ton fixe le ton avec la classe de la consonne. La fin de syllabe et la durée de la voyelle n'y changent rien."
+          }
+        }
+      }
+    },
+    "Vowel length does not change the tone here." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La durée de la voyelle ne change pas le ton ici."
+          }
+        }
+      }
+    },
+    "Choose the vowel length. It decides the tone of this syllable." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez la durée de la voyelle. Elle détermine le ton de cette syllabe."
+          }
+        }
+      }
+    },
+    "This tone mark is not used with this consonant class." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce signe de ton ne s'emploie pas avec cette classe de consonne."
+          }
+        }
+      }
+    },
+    "No tone rule covers this syllable." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune règle de ton ne couvre cette syllabe."
+          }
+        }
+      }
+    },
+    "Choose the initial consonant, the tone mark and the ending to see the tone." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez la consonne initiale, le signe de ton et la fin de syllabe pour voir le ton."
+          }
+        }
+      }
+    },
+    "Show in the table" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher dans le tableau"
+          }
+        }
+      }
+    },
+    "This is the tone the spelling gives. A few words are pronounced differently." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "C'est le ton indiqué par l'orthographe. Quelques mots se prononcent différemment."
+          }
+        }
+      }
+    },
+    "Examples" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exemples"
+          }
+        }
+      }
+    },
+    "Read as" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lu comme"
+          }
+        }
+      }
+    },
+    "Silent" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muet"
+          }
+        }
+      }
+    },
+    "This spelling can also be read another way. Check the parts below." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette graphie peut aussi se lire autrement. Vérifiez les éléments ci-dessous."
+          }
+        }
+      }
+    },
+    "%@ is a low-class consonant." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une consonne de classe basse."
+          }
+        }
+      }
+    },
+    "%@ is a mid-class consonant." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une consonne de classe moyenne."
+          }
+        }
+      }
+    },
+    "%@ is a high-class consonant." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une consonne de classe haute."
+          }
+        }
+      }
+    },
+    "ห is silent and makes %@ follow the high-class rules." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ห est muet et fait suivre à %@ les règles de la classe haute."
+          }
+        }
+      }
+    },
+    "%@ is a cluster: both letters are pronounced, and %@ sets the class." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ est un groupe : les deux lettres se prononcent, et %2$@ donne la classe."
+          }
+        }
+      }
+    },
+    "%@ is read as one sound, and %@ sets the class." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ se lit comme un seul son, et %2$@ donne la classe."
+          }
+        }
+      }
+    },
+    "%@ is a tone mark: with the consonant class, it sets the tone." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est un signe de ton : avec la classe de la consonne, il fixe le ton."
+          }
+        }
+      }
+    },
+    "No vowel is written: a short o is read between the consonants." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune voyelle n'est écrite : on lit un o bref entre les consonnes."
+          }
+        }
+      }
+    },
+    "%@ includes its ending, so the syllable is live." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ inclut sa finale : la syllabe est vivante."
+          }
+        }
+      }
+    },
+    "%@ is a short vowel." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une voyelle brève."
+          }
+        }
+      }
+    },
+    "%@ is a long vowel." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est une voyelle longue."
+          }
+        }
+      }
+    },
+    "%@ does not show whether the vowel is short or long." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ n'indique pas si la voyelle est brève ou longue."
+          }
+        }
+      }
+    },
+    "%@ is read %@: a dead ending." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ se lit %2$@ : une fin morte."
+          }
+        }
+      }
+    },
+    "%@ is read %@: a live ending." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ se lit %2$@ : une fin vivante."
+          }
+        }
+      }
+    },
+    "No final consonant after a long vowel: a live ending." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de consonne finale après une voyelle longue : une fin vivante."
+          }
+        }
+      }
+    },
+    "No final consonant after a short vowel: a dead ending." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas de consonne finale après une voyelle brève : une fin morte."
+          }
+        }
+      }
+    },
+    "%@ is silent: %@ cancels it." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ est muet : %2$@ l'annule."
+          }
+        }
+      }
+    },
+    "Some words split these letters into two syllables (พลัง is พะ-ลัง). If yours does, enter only the syllable you want to check." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Certains mots séparent ces lettres en deux syllabes (พลัง se lit พะ-ลัง). Si c'est le cas du vôtre, saisissez seulement la syllabe à vérifier."
+          }
+        }
+      }
+    },
+    "Clear text" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer le texte"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
