@@ -1,0 +1,45 @@
+{
+  "comment": "App Store screenshot sets. Order is the store order: the first three show in search results, so they are all Reference. Captions are English only (French store metadata is deferred). iphone and ipad are App Store Connect sizes; the duo sets are marketing images.",
+  "sets": {
+    "iphone": {
+      "corner_ratio": 0.135,
+      "shots": [
+        {"scenario": "consonants", "title": "Every Thai letter at a glance", "subtitle": "Class, sounds, and names in one cheat-sheet table"},
+        {"scenario": "tone-finder", "title": "Why this tone?", "subtitle": "Type a syllable and see the rule that sets its tone"},
+        {"scenario": "tones", "title": "Tone marks and tone rules", "subtitle": "Both tables, color-coded by tone"},
+        {"scenario": "vowels", "title": "All the vowels, laid out", "subtitle": "Short and long, open and closed"},
+        {"scenario": "consonant-details", "title": "Tap to hear it", "subtitle": "Audio and a sample word for every entry"},
+        {"scenario": "vowels-blurred", "title": "Hide the readings", "subtitle": "Test yourself right from the table"},
+        {"scenario": "cluster-details", "title": "Clusters and silent ห", "subtitle": "With sample words and audio"},
+        {"scenario": "flashcard-completed", "title": "Practice with flashcards", "subtitle": "Spaced repetition tracks what you know"}
+      ]
+    },
+    "ipad": {
+      "corner_ratio": 0.045,
+      "shots": [
+        {"scenario": "consonant-details", "title": "The Thai script cheat sheet", "subtitle": "Every letter, with its class, sounds, and audio"},
+        {"scenario": "tone-finder", "title": "Why this tone?", "subtitle": "Type a syllable and see the rule that sets its tone"},
+        {"scenario": "tone-rule-details", "title": "Tone marks and tone rules", "subtitle": "Tap a rule for real examples you can hear"},
+        {"scenario": "vowel-details", "title": "All the vowels, laid out", "subtitle": "Short and long, open and closed"},
+        {"scenario": "cluster-details", "title": "Clusters and silent ห", "subtitle": "With sample words and audio"},
+        {"scenario": "consonant-details-hidden", "title": "Hide the readings", "subtitle": "Test yourself right from the table"},
+        {"scenario": "flashcard-completed", "title": "Practice with flashcards", "subtitle": "Spaced repetition tracks what you know"}
+      ]
+    },
+    "duo-open": {
+      "corner_ratio": 0.05,
+      "shots": [
+        {"scenario": "consonant-details", "title": "The Thai script cheat sheet", "subtitle": "Table and details side by side"},
+        {"scenario": "tone-rule-details", "title": "Tone marks and tone rules", "subtitle": "Tap a rule for real examples you can hear"},
+        {"scenario": "tone-finder", "title": "Why this tone?", "subtitle": "Type a syllable and see the rule that sets its tone"}
+      ]
+    },
+    "duo-closed": {
+      "corner_ratio": 0.09,
+      "shots": [
+        {"scenario": "consonants", "title": "Every Thai letter at a glance", "subtitle": "Class, sounds, and names in one table"},
+        {"scenario": "tones", "title": "Tone marks and tone rules", "subtitle": "Both tables, color-coded by tone"}
+      ]
+    }
+  }
+}

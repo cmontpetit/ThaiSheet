@@ -9,6 +9,7 @@
 import Foundation
 
 enum ScreenshotScenario: String {
+    case consonants
     case vowels
     case vowelsBlurred = "vowels-blurred"
     case vowelsFiltered = "vowels-filtered"
@@ -20,6 +21,7 @@ enum ScreenshotScenario: String {
     case toneMarkDetails = "tone-mark-details"
     case toneRuleDetails = "tone-rule-details"
     case tones
+    case toneFinder = "tone-finder"
     case flashcard
     case flashcardCompleted = "flashcard-completed"
     case progress
@@ -51,7 +53,7 @@ enum ScreenshotScenario: String {
         switch self {
         case .vowels, .vowelsBlurred, .vowelsFiltered, .vowelsSearching, .vowelDetails:
             return .vowels
-        case .tones, .toneMarkDetails, .toneRuleDetails:
+        case .tones, .toneFinder, .toneMarkDetails, .toneRuleDetails:
             return .tones
         case .clusterDetails:
             return .clusters
@@ -70,6 +72,11 @@ enum ScreenshotScenario: String {
 
     static var initialSearchText: String {
         current == .vowelsFiltered || current == .vowelsSearching ? "ั" : ""
+    }
+
+    /// The syllable the tone finder opens with: high class, mai tho, long live
+    static var initialToneFinderText: String {
+        current == .toneFinder ? "ข้าว" : ""
     }
 
     static var initialReferenceSelection: ReferenceSelection {

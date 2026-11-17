@@ -66,7 +66,7 @@ struct CheatsheetBrowserView: View {
     @State private var referenceSelection = ScreenshotScenario.initialReferenceSelection
     @State private var showingSettings = false
     @State private var showingInfo = false
-    @State private var showingToneFinder = false
+    @State private var showingToneFinder = ScreenshotScenario.current == .toneFinder
     /// Bumped on every "Show in the table" from the tone finder, so asking
     /// for the row that is already highlighted still scrolls to it
     @State private var toneFinderScrollRequest = 0

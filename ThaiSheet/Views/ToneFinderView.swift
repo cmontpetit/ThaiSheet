@@ -17,7 +17,7 @@ struct ToneFinderView: View {
     @Environment(\.audioPlayer) private var audioPlayer
     @Environment(\.dismiss) private var dismiss
 
-    @State private var finder = ToneFinder()
+    @State private var finder = ToneFinder(text: ScreenshotScenario.initialToneFinderText)
 
     private var parser: SyllableParser {
         SyllableParser(
