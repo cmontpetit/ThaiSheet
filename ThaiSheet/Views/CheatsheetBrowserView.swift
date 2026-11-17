@@ -628,6 +628,7 @@ struct CheatsheetBrowserView: View {
                         ReferenceSelectedDetail(item: item, onPractice: startPractice)
                     }
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .environment(\.practiceMode, practiceMode)
             .environment(\.referenceSelection, referenceSelection)
@@ -717,9 +718,11 @@ struct CheatsheetBrowserView: View {
             referenceSelection.setReferenceActive(selectedTab == .reference, viewportSize: referenceViewport?.size)
         }
         .onDisappear {
+            isSearchFocused = false
             referenceSelection.setReferenceActive(false, viewportSize: referenceViewport?.size)
         }
         .onChange(of: selectedTab) { _, tab in
+            if tab != .reference { isSearchFocused = false }
             referenceSelection.setReferenceActive(tab == .reference, viewportSize: referenceViewport?.size)
         }
         .onChange(of: isSearchFocused) { _, searching in

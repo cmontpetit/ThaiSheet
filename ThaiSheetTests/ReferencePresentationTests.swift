@@ -144,6 +144,108 @@ final class ReferencePresentationTests: XCTestCase {
         XCTAssertFalse(field.isHidden)
     }
 
+    func test_doneAndSearchReturnHideKeyboardWithoutLosingThaiQueryOrRefocusing() async throws {
+        let suiteName = "ReferenceKeyboardDismissTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = FlashcardSettings(defaults: defaults)
+        let selection = ReferenceSelection()
+        let browser = CheatsheetBrowserView(
+            settings: settings,
+            highlighted: .constant([:]),
+            flashcardStarting: .constant([:]),
+            selectedTab: .constant(.reference),
+            referenceSelection: selection,
+            referenceType: .vowels
+        )
+        .environment(\.flashcardSettings, settings)
+        .environment(\.learningModel, LearningModel(store: defaults))
+        let host = UIHostingController(rootView: browser.referenceViewportScope())
+        let window = show(host)
+        defer { window.endEditing(true); window.isHidden = true }
+        await waitFor { self.searchField(in: window) != nil }
+        let field = try XCTUnwrap(searchField(in: window))
+        field.inputView = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 300))
+
+        for useDone in [true, false] {
+            host.view.frame = CGRect(origin: .zero, size: useDone
+                ? CGSize(width: 1000, height: 750) : CGSize(width: 650, height: 1000))
+            host.view.setNeedsLayout()
+            host.view.layoutIfNeeded()
+            let keyboardShown = XCTNSNotificationExpectation(name: UIResponder.keyboardDidShowNotification)
+            keyboardShown.handler = { notification in
+                let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue
+                return (frame?.cgRectValue.height ?? 0) >= 200
+            }
+            XCTAssertTrue(field.becomeFirstResponder())
+            await fulfillment(of: [keyboardShown], timeout: 3)
+            field.selectedTextRange = field.textRange(from: field.beginningOfDocument, to: field.endOfDocument)
+            field.setMarkedText("ั", selectedRange: NSRange(location: 1, length: 0))
+            field.sendActions(for: .editingChanged)
+            await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 1)?.contains("(") == true }
+            let results = try XCTUnwrap(referenceSections(in: window)?.titleForSegment(at: 1))
+            let keyboardHidden = XCTNSNotificationExpectation(name: UIResponder.keyboardDidHideNotification)
+
+            if useDone {
+                let toolbar = try XCTUnwrap(field.inputAccessoryView as? UIToolbar)
+                let done = try XCTUnwrap(toolbar.items?.first { $0.accessibilityIdentifier == "reference.search.done" })
+                let action = try XCTUnwrap(done.action)
+                XCTAssertTrue(UIApplication.shared.sendAction(action, to: done.target, from: done, for: nil))
+            } else {
+                XCTAssertTrue(field.delegate?.textFieldShouldReturn?(field) == true)
+            }
+            await fulfillment(of: [keyboardHidden], timeout: 3)
+            for _ in 0..<10 {
+                XCTAssertFalse(field.isFirstResponder, "Finishing search must not reopen the keyboard")
+                XCTAssertEqual(field.text, "ั")
+                XCTAssertEqual(referenceSections(in: window)?.titleForSegment(at: 1), results)
+                XCTAssertNil(host.presentedViewController)
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            XCTAssertTrue(searchField(in: window) === field)
+        }
+    }
+
+    func test_switchingAppTabsEndsSearchFocusWithoutClearingOrRestoringKeyboard() async throws {
+        let suiteName = "ReferenceKeyboardTabTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = FlashcardSettings(defaults: defaults)
+        let navigation = ReferenceViewObservation()
+        let activeTab = Binding(get: { navigation.activeTab }, set: { navigation.activeTab = $0 })
+        let browser = CheatsheetBrowserView(
+            settings: settings,
+            highlighted: .constant([:]),
+            flashcardStarting: .constant([:]),
+            selectedTab: activeTab
+        )
+        let root = TabView(selection: activeTab) {
+            browser.tabItem { Label("Reference", systemImage: "book") }.tag(AppTab.reference)
+            Text("Flashcards").tabItem { Label("Flashcards", systemImage: "rectangle.on.rectangle") }.tag(AppTab.flashcards)
+        }
+        .environment(\.flashcardSettings, settings)
+        .environment(\.learningModel, LearningModel(store: defaults))
+        let host = UIHostingController(rootView: root.referenceViewportScope())
+        let window = show(host)
+        defer { window.endEditing(true); window.isHidden = true }
+        await waitFor { self.searchField(in: window) != nil }
+        let field = try XCTUnwrap(searchField(in: window))
+        field.inputView = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 300))
+        XCTAssertTrue(field.becomeFirstResponder())
+        field.insertText("ถ")
+        field.sendActions(for: .editingChanged)
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true }
+        navigation.activeTab = .flashcards
+        await waitFor { !field.isFirstResponder }
+        navigation.activeTab = .reference
+        await waitFor { self.searchField(in: window)?.window != nil }
+        for _ in 0..<10 {
+            XCTAssertFalse(searchField(in: window)?.isFirstResponder ?? false)
+            XCTAssertEqual(searchField(in: window)?.text, "ถ")
+            try await Task.sleep(for: .milliseconds(50))
+        }
+    }
+
     private func assertSearchKeepsDetailsStable(
         _ item: ReferenceItem,
         referenceType: CheatsheetEntryType = .tones,
