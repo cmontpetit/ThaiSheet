@@ -44,14 +44,16 @@ struct ReferenceSearchField: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
 
     static func dismantleUIView(_ searchBar: UISearchBar, coordinator: Coordinator) {
+        coordinator.removeOutsideTap()
         searchBar.delegate = nil
         coordinator.searchBar = nil
         searchBar.searchTextField.removeTarget(coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
     }
 
-    final class Coordinator: NSObject, UISearchBarDelegate {
+    final class Coordinator: NSObject, UISearchBarDelegate, UIGestureRecognizerDelegate {
         var parent: ReferenceSearchField
         weak var searchBar: UISearchBar?
+        private var outsideTap: UITapGestureRecognizer?
 
         init(parent: ReferenceSearchField) { self.parent = parent }
 
@@ -65,11 +67,13 @@ struct ReferenceSearchField: UIViewRepresentable {
         }
 
         func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+            installOutsideTap(in: searchBar.window)
             searchBar.setShowsCancelButton(true, animated: true)
             if !parent.isFocused { parent.isFocused = true }
         }
 
         func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+            removeOutsideTap()
             textChanged(searchBar.searchTextField)
             searchBar.setShowsCancelButton(false, animated: true)
             if parent.isFocused { parent.isFocused = false }
@@ -92,6 +96,49 @@ struct ReferenceSearchField: UIViewRepresentable {
 
         func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
             finishEditing()
+        }
+
+        private func installOutsideTap(in window: UIWindow?) {
+            removeOutsideTap()
+            guard let window else { return }
+            let tap = UITapGestureRecognizer(target: self, action: #selector(tappedOutside))
+            tap.name = "reference.search.dismissOutside"
+            // Observe the tap alongside controls and SwiftUI row gestures.
+            // The same tap must still play/select a row or activate a button.
+            tap.cancelsTouchesInView = false
+            tap.delaysTouchesBegan = false
+            tap.delaysTouchesEnded = false
+            tap.delegate = self
+            window.addGestureRecognizer(tap)
+            outsideTap = tap
+        }
+
+        func removeOutsideTap() {
+            if let tap = outsideTap { tap.view?.removeGestureRecognizer(tap) }
+            outsideTap = nil
+        }
+
+        @objc func tappedOutside() {
+            guard searchBar?.searchTextField.isFirstResponder == true else { return }
+            finishEditing()
+        }
+
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+            guard let searchBar, searchBar.searchTextField.isFirstResponder,
+                  let view = touch.view else { return false }
+            // Editing, clearing, and the native cancel control belong to the
+            // search bar. Keyboard touches must keep editing too.
+            if view.isDescendant(of: searchBar) { return false }
+            if let keyboard = searchBar.searchTextField.inputView,
+               view.isDescendant(of: keyboard) { return false }
+            return view.window === searchBar.window
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            true
         }
 
         func updateFocus(_ field: UISearchTextField) {

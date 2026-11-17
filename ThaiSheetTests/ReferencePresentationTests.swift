@@ -217,6 +217,77 @@ final class ReferencePresentationTests: XCTestCase {
         }
     }
 
+    func test_outsideTapDismissesKeyboardKeepsThaiQueryAndDoesNotConsumeControlTouches() async throws {
+        let suiteName = "ReferenceOutsideTapTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = FlashcardSettings(defaults: defaults)
+        let browser = CheatsheetBrowserView(
+            settings: settings,
+            highlighted: .constant([:]),
+            flashcardStarting: .constant([:]),
+            selectedTab: .constant(.reference),
+            referenceType: .vowels
+        )
+        .environment(\.flashcardSettings, settings)
+        .environment(\.learningModel, LearningModel(store: defaults))
+        let host = UIHostingController(rootView: AnyView(browser.referenceViewportScope()))
+        let window = show(host)
+        defer { window.endEditing(true); window.isHidden = true }
+        func outsideTaps() -> [UIGestureRecognizer] {
+            (window.gestureRecognizers ?? []).filter { $0.name == "reference.search.dismissOutside" }
+        }
+        await waitFor { self.searchField(in: window) != nil }
+        let field = try XCTUnwrap(searchField(in: window))
+        let bar = try XCTUnwrap(searchBar(in: window))
+        let coordinator = try XCTUnwrap(bar.delegate as? ReferenceSearchField.Coordinator)
+        let keyboard = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 300))
+        field.inputView = keyboard
+        XCTAssertTrue(outsideTaps().isEmpty)
+        let keyboardShown = XCTNSNotificationExpectation(name: UIResponder.keyboardDidShowNotification)
+        XCTAssertTrue(field.becomeFirstResponder())
+        await fulfillment(of: [keyboardShown], timeout: 3)
+        field.setMarkedText("ั", selectedRange: NSRange(location: 1, length: 0))
+        field.sendActions(for: .editingChanged)
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 1)?.contains("(") == true }
+        let results = referenceSections(in: window)?.titleForSegment(at: 1)
+        let tap = try XCTUnwrap(outsideTaps().first)
+        XCTAssertEqual(outsideTaps().count, 1)
+        XCTAssertFalse(tap.cancelsTouchesInView)
+        XCTAssertFalse(tap.delaysTouchesBegan)
+        XCTAssertFalse(tap.delaysTouchesEnded)
+        XCTAssertTrue(coordinator.gestureRecognizer(tap, shouldRecognizeSimultaneouslyWith: UITapGestureRecognizer()))
+        XCTAssertTrue(coordinator.gestureRecognizer(tap, shouldRecognizeSimultaneouslyWith: UILongPressGestureRecognizer()))
+        XCTAssertFalse(coordinator.gestureRecognizer(tap, shouldReceive: ReferenceTapTouch(view: field)))
+        XCTAssertFalse(coordinator.gestureRecognizer(tap, shouldReceive: ReferenceTapTouch(view: bar)))
+        XCTAssertFalse(coordinator.gestureRecognizer(tap, shouldReceive: ReferenceTapTouch(view: keyboard)))
+        XCTAssertTrue(coordinator.gestureRecognizer(tap, shouldReceive: ReferenceTapTouch(view: host.view)))
+        let button = UIButton(type: .system)
+        host.view.addSubview(button)
+        XCTAssertTrue(coordinator.gestureRecognizer(tap, shouldReceive: ReferenceTapTouch(view: button)))
+        button.removeFromSuperview()
+
+        let keyboardHidden = XCTNSNotificationExpectation(name: UIResponder.keyboardDidHideNotification)
+        XCTAssertTrue(UIApplication.shared.sendAction(
+            #selector(ReferenceSearchField.Coordinator.tappedOutside), to: coordinator, from: tap, for: nil
+        ))
+        await fulfillment(of: [keyboardHidden], timeout: 3)
+        for _ in 0..<10 {
+            XCTAssertFalse(field.isFirstResponder)
+            XCTAssertEqual(field.text, "ั")
+            XCTAssertEqual(referenceSections(in: window)?.titleForSegment(at: 1), results)
+            XCTAssertTrue(outsideTaps().isEmpty)
+            try await Task.sleep(for: .milliseconds(50))
+        }
+
+        // A new editing session gets one observer, and removing Reference
+        // tears it down so unrelated screens are never affected.
+        XCTAssertTrue(field.becomeFirstResponder())
+        await waitFor { outsideTaps().count == 1 }
+        host.rootView = AnyView(Text("Other content"))
+        await waitFor { outsideTaps().isEmpty && field.window == nil }
+    }
+
     func test_switchingAppTabsEndsSearchFocusWithoutClearingOrRestoringKeyboard() async throws {
         let suiteName = "ReferenceKeyboardTabTests_\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -695,6 +766,18 @@ private struct BrowserIdentityProbe: View {
 @Observable
 private final class ReferenceSearchNavigation {
     var items: [FlashcardType: String] = [:]
+}
+
+@MainActor
+private final class ReferenceTapTouch: UITouch {
+    private let touchedView: UIView
+
+    init(view: UIView) {
+        touchedView = view
+        super.init()
+    }
+
+    override var view: UIView? { touchedView }
 }
 
 private struct ReferenceViewportCapture: View {
