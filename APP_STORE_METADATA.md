@@ -10,8 +10,8 @@ This file is a working draft for App Store Connect. Review it before submission,
 - Secondary category: Reference
 - Bundle ID: `net.montpetit.thaisheet`
 - SKU: `thaisheet`
-- Version: `1.2.1`
-- Build: `9`
+- Version: `1.3.0`
+- Build: `10`
 - Copyright: `2026 Claude Montpetit`
 - Pricing: Free
 - In-App Purchases: None
@@ -52,8 +52,10 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 
 ## What's New
 
-- This update improves reading practice and flashcard ordering, while making learning progress more reliable.
-- It also includes clearer error messages and other stability improvements.
+- New "Why this tone?" sheet: type or paste a Thai syllable to see how it is read and which rule gives its tone.
+- Choose how Thai is romanized: the learner spelling, Paiboon, IPA, or RTGS.
+- On iPad and iPhone Duo, the Reference shows details beside the table, and flashcards use two columns.
+- Consonant flashcards can skip the name question, transcriptions follow one consistent spelling, and early reviews no longer advance a card.
 
 ## French Store Metadata — DEFERRED
 
@@ -127,7 +129,7 @@ No user-generated content, web browsing, purchases, gambling, violence, medical 
 
 ## Required Before Submission
 
-- [x] Capture App Store screenshots for iPhone and iPad (`docs/screenshots/appstore-1.1/`, July 20, 2026).
+- [x] Capture App Store screenshots for iPhone 6.9" and iPad 13" (`docs/screenshots/appstore-1.3/`, November 17, 2026; regenerate with `scripts/capture_app_store_screenshots.sh` and `scripts/frame_app_store_screenshots.py`).
 - [x] Publish the GitHub repository and enable GitHub Pages (`main:/docs`).
 - [x] Verify the privacy/support/marketing URLs above are live (HTTP 200, July 20, 2026).
 - [x] Verify App Privacy declares no data collected and uses the published privacy URL.
@@ -135,10 +137,10 @@ No user-generated content, web browsing, purchases, gambling, violence, medical 
 - [x] Regenerate bundled audio with official Google Cloud Text-to-Speech credentials (commit 46c0ffd, July 2026).
 - [x] Document rights/attribution for learning data and audio (Content Rights above).
 - [x] Run `scripts/check_release_binary.sh` on the unsigned 1.1 (5) Release product (passed July 20, 2026).
-- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.2.1 (9) archive before upload.
+- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.3.0 (10) archive before upload.
 - [ ] Complete the account-level EU Digital Services Act trader-status declaration in Business.
 - [ ] Optionally complete the App Accessibility questionnaire after VoiceOver and Dynamic Type device testing.
 - [x] Create the App Store Connect app record.
-- [ ] Upload and select build 9 for version 1.2.1.
-- [ ] Create an internal TestFlight group, add build 9, and perform the upgrade/device test pass.
-- [ ] Create the 1.2.1 App Store version, add the What's New text, and reuse or update the screenshots.
+- [ ] Upload and select build 10 for version 1.3.0.
+- [ ] Create an internal TestFlight group, add build 10, and perform the upgrade/device test pass.
+- [ ] Create the 1.3.0 App Store version, add the What's New text, and upload the `appstore-1.3` screenshots.

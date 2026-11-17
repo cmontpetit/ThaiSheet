@@ -2,19 +2,19 @@
 
 An open-source iOS quick reference to help you learn to read Thai, based on a comprehensive cheatsheet.
 
-**Latest release: 1.2.1.** App Store release details are tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
+**Latest release: 1.3.0.** App Store release details are tracked in [APP_STORE_METADATA.md](APP_STORE_METADATA.md).
 
 ## Screenshots
 
-| Vowels | Reading practice | Consonant details |
-|---|---|---|
-| ![Vowel reference](docs/screenshots/appstore-1.1/iphone/01-vowels.jpg) | ![Vowel practice with hidden transcriptions](docs/screenshots/appstore-1.1/iphone/02-vowels-practice.jpg) | ![Consonant details](docs/screenshots/appstore-1.1/iphone/03-consonant-details.jpg) |
+| Consonants | Why this tone? | Tones | Vowels |
+|---|---|---|---|
+| ![Consonant table](docs/screenshots/appstore-1.3/iphone/01-consonants.jpg) | ![Why this tone? sheet](docs/screenshots/appstore-1.3/iphone/02-tone-finder.jpg) | ![Tone marks and rules](docs/screenshots/appstore-1.3/iphone/03-tones.jpg) | ![Vowel table](docs/screenshots/appstore-1.3/iphone/04-vowels.jpg) |
 
-| Tones | Completed flashcard | Progress |
-|---|---|---|
-| ![Tone marks and rules](docs/screenshots/appstore-1.1/iphone/04-tones.jpg) | ![Completed flashcard](docs/screenshots/appstore-1.1/iphone/05-flashcard-completed.jpg) | ![SRS learning progress](docs/screenshots/appstore-1.1/iphone/06-progress.jpg) |
+| Details | Reading practice | Clusters | Flashcards |
+|---|---|---|---|
+| ![Consonant details](docs/screenshots/appstore-1.3/iphone/05-consonant-details.jpg) | ![Vowels with readings hidden](docs/screenshots/appstore-1.3/iphone/06-vowels-blurred.jpg) | ![Cluster details](docs/screenshots/appstore-1.3/iphone/07-cluster-details.jpg) | ![Completed flashcard](docs/screenshots/appstore-1.3/iphone/08-flashcard-completed.jpg) |
 
-The latest iPhone screenshots are also shown on the [website](https://cmontpetit.github.io/ThaiSheet/). App Store-sized iPhone and iPad sets are kept in [docs/screenshots/appstore-1.1/](docs/screenshots/appstore-1.1/).
+The latest iPhone screenshots are also shown on the [website](https://cmontpetit.github.io/ThaiSheet/). App Store-sized iPhone and iPad sets, plus iPhone Duo images, are kept in [docs/screenshots/appstore-1.3/](docs/screenshots/appstore-1.3/).
 
 ## Features
 

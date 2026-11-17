@@ -2,6 +2,13 @@
 
 All notable changes to ThaiSheet will be documented in this file.
 
+## 1.3.0 - 2026-11-17
+
+- New "Why this tone?" sheet: type or paste a Thai syllable to see how it is read and which rule gives its tone.
+- Choose how Thai is romanized: the learner spelling, Paiboon, IPA, or RTGS.
+- On iPad and iPhone Duo, the Reference shows details beside the table, and flashcards use two columns.
+- Consonant flashcards can skip the name question, transcriptions follow one consistent spelling, and early reviews no longer advance a card.
+
 ## 1.2.1 - 2026-08-26
 
 - This update improves reading practice and flashcard ordering, while making learning progress more reliable.
