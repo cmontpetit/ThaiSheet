@@ -32,7 +32,6 @@ struct ReferenceSearchField: UIViewRepresentable {
         context.coordinator.parent = self
         let field = searchBar.searchTextField
         searchBar.placeholder = String(localized: "Thai character or sound (e.g. kh)", bundle: .appLanguage, locale: locale)
-        searchBar.setShowsCancelButton(isFocused, animated: false)
         // Never replace an unfinished Thai IME composition during a layout or
         // focus update. Editing events already keep the filtering query current.
         if field.text != text && field.markedTextRange == nil {
@@ -68,14 +67,12 @@ struct ReferenceSearchField: UIViewRepresentable {
 
         func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
             installOutsideTap(in: searchBar.window)
-            searchBar.setShowsCancelButton(true, animated: true)
             if !parent.isFocused { parent.isFocused = true }
         }
 
         func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
             removeOutsideTap()
             textChanged(searchBar.searchTextField)
-            searchBar.setShowsCancelButton(false, animated: true)
             if parent.isFocused { parent.isFocused = false }
         }
 
@@ -88,10 +85,6 @@ struct ReferenceSearchField: UIViewRepresentable {
             }
             parent.isFocused = false
             searchBar?.searchTextField.resignFirstResponder()
-        }
-
-        func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-            finishEditing()
         }
 
         func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -126,8 +119,8 @@ struct ReferenceSearchField: UIViewRepresentable {
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
             guard let searchBar, searchBar.searchTextField.isFirstResponder,
                   let view = touch.view else { return false }
-            // Editing, clearing, and the native cancel control belong to the
-            // search bar. Keyboard touches must keep editing too.
+            // Editing and clearing belong to the search bar. Keyboard
+            // touches must keep editing too.
             if view.isDescendant(of: searchBar) { return false }
             if let keyboard = searchBar.searchTextField.inputView,
                view.isDescendant(of: keyboard) { return false }
