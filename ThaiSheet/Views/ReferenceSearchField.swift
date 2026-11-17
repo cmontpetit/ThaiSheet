@@ -8,44 +8,31 @@ struct ReferenceSearchField: UIViewRepresentable {
     @Binding var isFocused: Bool
     @Environment(\.locale) private var locale
 
-    func makeUIView(context: Context) -> UISearchTextField {
-        let field = UISearchTextField(frame: .zero)
+    func makeUIView(context: Context) -> UISearchBar {
+        let searchBar = UISearchBar(frame: .zero)
+        searchBar.searchBarStyle = .minimal
+        searchBar.delegate = context.coordinator
+        let field = searchBar.searchTextField
         field.font = .preferredFont(forTextStyle: .body)
         field.adjustsFontForContentSizeCategory = true
         field.autocapitalizationType = .none
         field.autocorrectionType = .no
         field.returnKeyType = .search
+        searchBar.enablesReturnKeyAutomatically = false
         field.clearButtonMode = .always
-        field.delegate = context.coordinator
-        context.coordinator.field = field
-        let done = UIBarButtonItem(
-            title: nil,
-            style: .done,
-            target: context.coordinator,
-            action: #selector(Coordinator.finishEditing)
-        )
-        done.accessibilityIdentifier = "reference.search.done"
-        let toolbar = UIToolbar()
-        toolbar.autoresizingMask = [.flexibleWidth]
-        toolbar.items = [
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            done
-        ]
-        toolbar.sizeToFit()
-        field.inputAccessoryView = toolbar
+        context.coordinator.searchBar = searchBar
         field.addTarget(context.coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
         field.accessibilityIdentifier = "reference.search"
-        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        return field
+        searchBar.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        searchBar.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return searchBar
     }
 
-    func updateUIView(_ field: UISearchTextField, context: Context) {
+    func updateUIView(_ searchBar: UISearchBar, context: Context) {
         context.coordinator.parent = self
-        field.placeholder = String(localized: "Thai character or sound (e.g. kh)", bundle: .appLanguage, locale: locale)
-        if let toolbar = field.inputAccessoryView as? UIToolbar {
-            toolbar.items?.last?.title = String(localized: "Done", bundle: .appLanguage, locale: locale)
-        }
+        let field = searchBar.searchTextField
+        searchBar.placeholder = String(localized: "Thai character or sound (e.g. kh)", bundle: .appLanguage, locale: locale)
+        searchBar.setShowsCancelButton(isFocused, animated: false)
         // Never replace an unfinished Thai IME composition during a layout or
         // focus update. Editing events already keep the filtering query current.
         if field.text != text && field.markedTextRange == nil {
@@ -56,15 +43,15 @@ struct ReferenceSearchField: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
 
-    static func dismantleUIView(_ field: UISearchTextField, coordinator: Coordinator) {
-        field.delegate = nil
-        coordinator.field = nil
-        field.removeTarget(coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
+    static func dismantleUIView(_ searchBar: UISearchBar, coordinator: Coordinator) {
+        searchBar.delegate = nil
+        coordinator.searchBar = nil
+        searchBar.searchTextField.removeTarget(coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
     }
 
-    final class Coordinator: NSObject, UITextFieldDelegate {
+    final class Coordinator: NSObject, UISearchBarDelegate {
         var parent: ReferenceSearchField
-        weak var field: UISearchTextField?
+        weak var searchBar: UISearchBar?
 
         init(parent: ReferenceSearchField) { self.parent = parent }
 
@@ -73,29 +60,38 @@ struct ReferenceSearchField: UIViewRepresentable {
             if parent.text != text { parent.text = text }
         }
 
-        func textFieldDidBeginEditing(_ textField: UITextField) {
+        func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+            textChanged(searchBar.searchTextField)
+        }
+
+        func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+            searchBar.setShowsCancelButton(true, animated: true)
             if !parent.isFocused { parent.isFocused = true }
         }
 
-        func textFieldDidEndEditing(_ textField: UITextField) {
-            if let field = textField as? UISearchTextField { textChanged(field) }
+        func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+            textChanged(searchBar.searchTextField)
+            searchBar.setShowsCancelButton(false, animated: true)
             if parent.isFocused { parent.isFocused = false }
         }
 
-        @objc func finishEditing() {
+        func finishEditing() {
             // End focus as well as hiding the keyboard so a later SwiftUI
             // update cannot restore editing. The filtering query is unchanged.
-            if let field {
+            if let field = searchBar?.searchTextField {
                 field.unmarkText()
                 textChanged(field)
             }
             parent.isFocused = false
-            field?.resignFirstResponder()
+            searchBar?.searchTextField.resignFirstResponder()
         }
 
-        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
             finishEditing()
-            return true
+        }
+
+        func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+            finishEditing()
         }
 
         func updateFocus(_ field: UISearchTextField) {

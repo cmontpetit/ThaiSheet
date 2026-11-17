@@ -617,9 +617,8 @@ struct CheatsheetBrowserView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 ReferenceSearchField(text: $searchText, isFocused: $isSearchFocused)
-                    .frame(height: searchFieldHeight)
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
+                    .frame(height: searchFieldHeight + 16)
+                    .padding(.horizontal, 8)
 
                 ReferenceBrowserLayout(selection: referenceSelection, isSearching: isSearchFocused) {
                     tables

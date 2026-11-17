@@ -144,7 +144,7 @@ final class ReferencePresentationTests: XCTestCase {
         XCTAssertFalse(field.isHidden)
     }
 
-    func test_doneAndSearchReturnHideKeyboardWithoutLosingThaiQueryOrRefocusing() async throws {
+    func test_nativeCancelAndSearchReturnHideKeyboardWithoutLosingThaiQueryOrRefocusing() async throws {
         let suiteName = "ReferenceKeyboardDismissTests_\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -165,10 +165,13 @@ final class ReferencePresentationTests: XCTestCase {
         defer { window.endEditing(true); window.isHidden = true }
         await waitFor { self.searchField(in: window) != nil }
         let field = try XCTUnwrap(searchField(in: window))
+        let searchBar = try XCTUnwrap(searchBar(in: window))
+        XCTAssertNil(field.inputAccessoryView, "Search must not add a floating keyboard toolbar")
+        XCTAssertFalse(searchBar.enablesReturnKeyAutomatically, "An empty query must still allow keyboard dismissal")
         field.inputView = UIView(frame: CGRect(x: 0, y: 0, width: 1000, height: 300))
 
-        for useDone in [true, false] {
-            host.view.frame = CGRect(origin: .zero, size: useDone
+        for (isWide, query, useCancel) in [(true, "ั", true), (false, "ั", false), (true, "", false)] {
+            host.view.frame = CGRect(origin: .zero, size: isWide
                 ? CGSize(width: 1000, height: 750) : CGSize(width: 650, height: 1000))
             host.view.setNeedsLayout()
             host.view.layoutIfNeeded()
@@ -179,25 +182,33 @@ final class ReferencePresentationTests: XCTestCase {
             }
             XCTAssertTrue(field.becomeFirstResponder())
             await fulfillment(of: [keyboardShown], timeout: 3)
-            field.selectedTextRange = field.textRange(from: field.beginningOfDocument, to: field.endOfDocument)
-            field.setMarkedText("ั", selectedRange: NSRange(location: 1, length: 0))
+            if query.isEmpty {
+                field.text = ""
+            } else {
+                field.selectedTextRange = field.textRange(from: field.beginningOfDocument, to: field.endOfDocument)
+                field.setMarkedText(query, selectedRange: NSRange(location: 1, length: 0))
+            }
             field.sendActions(for: .editingChanged)
-            await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 1)?.contains("(") == true }
+            await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 1)?.contains("(") == !query.isEmpty }
             let results = try XCTUnwrap(referenceSections(in: window)?.titleForSegment(at: 1))
             let keyboardHidden = XCTNSNotificationExpectation(name: UIResponder.keyboardDidHideNotification)
 
-            if useDone {
-                let toolbar = try XCTUnwrap(field.inputAccessoryView as? UIToolbar)
-                let done = try XCTUnwrap(toolbar.items?.first { $0.accessibilityIdentifier == "reference.search.done" })
-                let action = try XCTUnwrap(done.action)
-                XCTAssertTrue(UIApplication.shared.sendAction(action, to: done.target, from: done, for: nil))
+            // UISearchBar intentionally omits Cancel on iPad. There the
+            // keyboard's Search key (and native keyboard-dismiss key) ends
+            // editing; iPhone/Duo also have the bar's native Cancel control.
+            if useCancel && searchBar.traitCollection.userInterfaceIdiom != .pad {
+                await waitFor { self.cancelButton(in: searchBar)?.isEnabled == true }
+                let cancel = try XCTUnwrap(cancelButton(in: searchBar))
+                XCTAssertFalse(cancel.isHidden)
+                XCTAssertGreaterThan(cancel.bounds.width, 0)
+                cancel.sendActions(for: .touchUpInside)
             } else {
-                XCTAssertTrue(field.delegate?.textFieldShouldReturn?(field) == true)
+                searchBar.delegate?.searchBarSearchButtonClicked?(searchBar)
             }
             await fulfillment(of: [keyboardHidden], timeout: 3)
             for _ in 0..<10 {
                 XCTAssertFalse(field.isFirstResponder, "Finishing search must not reopen the keyboard")
-                XCTAssertEqual(field.text, "ั")
+                XCTAssertEqual(field.text, query)
                 XCTAssertEqual(referenceSections(in: window)?.titleForSegment(at: 1), results)
                 XCTAssertNil(host.presentedViewController)
                 try await Task.sleep(for: .milliseconds(50))
@@ -350,6 +361,19 @@ final class ReferencePresentationTests: XCTestCase {
     private func searchField(in view: UIView) -> UISearchTextField? {
         if let field = view as? UISearchTextField { return field }
         return view.subviews.lazy.compactMap { self.searchField(in: $0) }.first
+    }
+
+    private func searchBar(in view: UIView) -> UISearchBar? {
+        if let bar = view as? UISearchBar { return bar }
+        return view.subviews.lazy.compactMap { self.searchBar(in: $0) }.first
+    }
+
+    private func cancelButton(in searchBar: UISearchBar) -> UIButton? {
+        func buttons(in view: UIView) -> [UIButton] {
+            if view === searchBar.searchTextField { return [] }
+            return (view as? UIButton).map { [$0] } ?? view.subviews.flatMap { buttons(in: $0) }
+        }
+        return buttons(in: searchBar).first { !$0.isHidden && $0.bounds.width > 0 }
     }
 
     func test_concealedPaneDoesNotOpenAnAnswerSheetWhenNarrowed() async {
