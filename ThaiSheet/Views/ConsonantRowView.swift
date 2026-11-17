@@ -86,23 +86,7 @@ struct ConsonantHeaderView: View {
 struct ConsonantRowView: View {
     let consonant: Consonant
     var isHighlighted: Bool = false
-    var onPractice: (() -> Void)? = nil
-
     @Environment(\.audioPlayer) private var audioPlayer
-    @State private var showingSheet: Bool
-
-    init(
-        consonant: Consonant,
-        isHighlighted: Bool = false,
-        onPractice: (() -> Void)? = nil
-    ) {
-        self.consonant = consonant
-        self.isHighlighted = isHighlighted
-        self.onPractice = onPractice
-        _showingSheet = State(initialValue:
-            ScreenshotScenario.current == .consonantDetails && consonant.character == "ค"
-        )
-    }
 
     private var hasSound: Bool {
         audioPlayer.hasSound(.consonant, key: consonant.character)
@@ -160,17 +144,14 @@ struct ConsonantRowView: View {
                 label: "\(consonant.character), \(consonant.consonantClass.displayName), \(consonant.transcription.romanized), \(consonant.initialSound.romanized), \(consonant.finalSound.romanized)",
                 hasSound: hasSound,
                 conceal: PracticeConceal(id: concealID, concealedLabel: consonant.character),
-                onPlay: { audioPlayer.play(.consonant, key: consonant.character, itemID: concealID) },
-                onDetails: { showingSheet = true }
+                item: .consonant(consonant.id),
+                onPlay: { audioPlayer.play(.consonant, key: consonant.character, itemID: concealID) }
             )
         }
         .padding(.vertical, 4)
         .padding(.leading, 8)
         .padding(.trailing, 4)
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
-        .sheet(isPresented: $showingSheet) {
-            ConsonantDetailSheet(consonant: consonant, onPractice: onPractice)
-        }
     }
 }
 

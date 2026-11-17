@@ -11,7 +11,14 @@ import Foundation
 enum ScreenshotScenario: String {
     case vowels
     case vowelsBlurred = "vowels-blurred"
+    case vowelsFiltered = "vowels-filtered"
+    case vowelsSearching = "vowels-searching"
     case consonantDetails = "consonant-details"
+    case consonantDetailsHidden = "consonant-details-hidden"
+    case vowelDetails = "vowel-details"
+    case clusterDetails = "cluster-details"
+    case toneMarkDetails = "tone-mark-details"
+    case toneRuleDetails = "tone-rule-details"
     case tones
     case flashcard
     case flashcardCompleted = "flashcard-completed"
@@ -42,10 +49,12 @@ enum ScreenshotScenario: String {
 
     var referenceType: CheatsheetEntryType {
         switch self {
-        case .vowels, .vowelsBlurred:
+        case .vowels, .vowelsBlurred, .vowelsFiltered, .vowelsSearching, .vowelDetails:
             return .vowels
-        case .tones:
+        case .tones, .toneMarkDetails, .toneRuleDetails:
             return .tones
+        case .clusterDetails:
+            return .clusters
         default:
             return .consonants
         }
@@ -53,9 +62,38 @@ enum ScreenshotScenario: String {
 
     static var initialPracticeMode: PracticeMode {
         let mode = PracticeMode()
-        if current == .vowelsBlurred {
+        if current == .vowelsBlurred || current == .consonantDetailsHidden {
             mode.isActive = true
         }
         return mode
+    }
+
+    static var initialSearchText: String {
+        current == .vowelsFiltered || current == .vowelsSearching ? "ั" : ""
+    }
+
+    static var initialReferenceSelection: ReferenceSelection {
+        let selection = ReferenceSelection()
+        if let item = current?.referenceItem {
+            selection.showDetails(item)
+        }
+        return selection
+    }
+
+    private var referenceItem: ReferenceItem? {
+        switch self {
+        case .consonantDetails, .consonantDetailsHidden:
+            return .consonant("ค")
+        case .vowelDetails:
+            return .vowel(id: "a", variant: .shortClosed, text: "กั-")
+        case .clusterDetails:
+            return .cluster("กร:initial")
+        case .toneMarkDetails:
+            return .toneMark(id: "่", soundKey: "ค่า")
+        case .toneRuleDetails:
+            return .toneRule("Low-Short-Dead/None")
+        default:
+            return nil
+        }
     }
 }

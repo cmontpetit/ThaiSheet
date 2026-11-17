@@ -6,7 +6,7 @@
 import SwiftUI
 
 /// The single interaction contract for a reference item: tap plays the sound
-/// (opens details when there is none), long press opens details. When a
+/// and selects inline details on wide containers; long press opens details. When a
 /// `PracticeConceal` is supplied it also owns the practice-mode contract —
 /// reveal-on-tap, the concealed VoiceOver label, and the concealed hint — so
 /// individual rows can't forget a step and silently leak the answer.
@@ -15,10 +15,15 @@ struct PlayableItemModifier: ViewModifier {
     let label: String
     let hasSound: Bool
     let conceal: PracticeConceal?
+    let item: ReferenceItem
     let onPlay: () -> Void
-    let onDetails: () -> Void
 
     @Environment(\.practiceMode) private var practiceMode
+    @Environment(\.referenceSelection) private var selection
+
+    private var isSelected: Bool {
+        selection?.isVisiblySelected(item) == true
+    }
 
     private var isConcealed: Bool {
         guard let conceal else { return false }
@@ -35,6 +40,23 @@ struct PlayableItemModifier: ViewModifier {
     /// and plays the sound when there is one; a revealed reveal-only cell only
     /// re-plays (or does nothing without audio).
     private var hint: String {
+        if selection?.isExpanded == true {
+            if let conceal, practiceMode.isActive {
+                if practiceMode.isConcealed(conceal.id) {
+                    return hasSound
+                        ? String(localized: "Plays the sound, reveals the answer, and shows details.", bundle: .appLanguage)
+                        : String(localized: "Reveals the answer and shows details.", bundle: .appLanguage)
+                }
+                if !conceal.revealOnly {
+                    return hasSound
+                        ? String(localized: "Plays the sound and hides the answer.", bundle: .appLanguage)
+                        : String(localized: "Hides the answer.", bundle: .appLanguage)
+                }
+            }
+            return hasSound
+                ? String(localized: "Plays the sound and shows details.", bundle: .appLanguage)
+                : String(localized: "Shows details.", bundle: .appLanguage)
+        }
         guard let conceal, practiceMode.isActive else {
             return hasSound
                 ? String(localized: "Plays the sound. Touch and hold for details.", bundle: .appLanguage)
@@ -78,41 +100,48 @@ struct PlayableItemModifier: ViewModifier {
                 } else if hasSound {
                     onPlay()
                 } else {
-                    onDetails()
+                    selection?.showDetails(item)
                 }
+                selection?.selectFromTap(item)
             }
             .onLongPressGesture {
-                onDetails()
+                selection?.showDetails(item)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(isSelected ? Color.accentColor : .clear, lineWidth: 1.5)
+                    .allowsHitTesting(false)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(effectiveLabel)
             .accessibilityHint(hint)
             .accessibilityAddTraits(.isButton)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
             // An explicit, tap-free route to details for assistive-technology
             // users: long press is a poor primary path for motor impairments,
             // and this doesn't depend on discovering the ⓘ "how to use" popover.
             .accessibilityAction(named: Text("Show details")) {
-                onDetails()
+                selection?.showDetails(item)
             }
     }
 }
 
 extension View {
-    /// Tap plays the sound (details sheet when there is none), long press opens details.
+    /// Tap plays and selects inline details; compact containers use a details sheet.
     /// Pass `conceal` to opt the item into practice mode's hide/reveal contract.
     func playableItem(
         label: String,
         hasSound: Bool,
         conceal: PracticeConceal? = nil,
-        onPlay: @escaping () -> Void,
-        onDetails: @escaping () -> Void
+        item: ReferenceItem,
+        onPlay: @escaping () -> Void
     ) -> some View {
         modifier(PlayableItemModifier(
             label: label,
             hasSound: hasSound,
             conceal: conceal,
-            onPlay: onPlay,
-            onDetails: onDetails
+            item: item,
+            onPlay: onPlay
         ))
     }
 }

@@ -152,10 +152,7 @@ struct ToneRuleHeaderView: View {
 struct ToneRuleRowView: View {
     let rule: ToneRule
     var isHighlighted: Bool = false
-    var onPractice: (() -> Void)? = nil
-
     @Environment(\.audioPlayer) private var audioPlayer
-    @State private var showingSheet = false
 
     private var hasSound: Bool {
         guard let sample = rule.primarySample else { return false }
@@ -222,12 +219,12 @@ struct ToneRuleRowView: View {
                 label: ruleAccessibilityLabel,
                 hasSound: hasSound && rule.primarySample != nil,
                 conceal: PracticeConceal(id: concealID, concealedLabel: ruleInputsLabel),
+                item: .toneRule(rule.id),
                 onPlay: {
                     if let sample = rule.primarySample {
                         audioPlayer.play(.toneRule, key: sample.full, itemID: concealID)
                     }
-                },
-                onDetails: { showingSheet = true }
+                }
             )
         }
         .font(.subheadline)
@@ -235,9 +232,6 @@ struct ToneRuleRowView: View {
         .padding(.leading, 8)
         .padding(.trailing, 12)
         .background(isHighlighted ? Color.accentColor.opacity(0.1) : Color.clear)
-        .sheet(isPresented: $showingSheet) {
-            ToneRuleDetailSheet(rule: rule, onPractice: onPractice)
-        }
     }
 }
 

@@ -50,7 +50,14 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 
 **Reference views** — row views for the browse/search tab:
 - `ConsonantRowView`, `VowelRowView`, `ToneMarkRowView`, `ToneRuleRowView`, `ClusterViews` (matrix + grid cells)
-- All playable items share one interaction, via `PlayableItemModifier`: tap plays the sound (details sheet when there is none), long press opens the details sheet. The modifier also carries the VoiceOver semantics (label, hint, button trait) — use it instead of raw gestures.
+- All playable items share one interaction, via `PlayableItemModifier`: tap plays the sound and selects the inline detail on expanded containers; compact containers open a sheet when there is no sound. Long press and the VoiceOver Show details action always request details. The modifier also carries practice concealment and selected-item semantics — use it instead of raw gestures.
+- `ReferenceSelection` owns the exact selected cell and sheet/pane handoff outside the rows. Vowel forms share a reading ID; tone-mark class columns have separate reading IDs. Search, filters, and section changes clear a selection that is no longer visible.
+- `ReferenceBrowserLayout` adds an inline pane when the container can fit a 500-point table and 320-point detail (both scale with Dynamic Type), with at least 440 points of height. The browser stays in the same view-tree location through resizing. `ReferenceDetailPane` removes all answer content and actions whenever `practiceMode.isConcealed(selectedItem.concealID)` is true, including after a second tap or practice activation.
+- Narrowing a concealed pane retains its selection without automatically opening an answer sheet. Compact long-press details remain an explicit route to the answer, as before.
+- Leaving Reference cancels automatic sheet intent and preserves the selected cell. Returning after an off-tab fold highlights that cell in the compact table and waits for an explicit detail request; returning wide restores the inline pane. `ReferenceViewport` reads the live owning-controller bounds from a probe outside `TabView`. Automatic sheets stay suppressed at the returned viewport size regardless of stale child measurements; a genuine viewport resize while Reference is active rearms handoff. Compact selection outlines and VoiceOver selection apply only to cells retained after folding. An explicit compact details request clears that fold marker, so ordinary compact rows do not stay selected after their sheets close.
+- The Reference split decision measures the container independently of keyboard safe-area changes. The table and detail scroll areas still avoid the keyboard; focusing search must not trigger a sheet handoff. A cancellable task coalesces initial safe-area layout passes before applying presentation changes, so a superseded short-height measurement cannot leave a compact popup over an expanded pane.
+- Active search suppresses automatic compact detail sheets during rotation, preserving selection and unfinished Thai input. Explicit compact Show details requests end search before presenting. Automatic sheet/pane handoffs disable their own modal animations so they do not compete with the system's rotation animation.
+- `ReferenceSearchField` hosts one persistent `UISearchTextField` above the adaptive browser. The query stays visible when editing ends or the app tabs, sections, and container size change. It does not use navigation-bar search presentation, so searching cannot replace the toolbar actions with overflow. Its coordinator preserves marked Thai input during SwiftUI updates and keeps focus separate from the filtering query.
 
 **Shared components:**
 - `FlashcardLayout` — a single `AnyLayout` view tree, stacked in narrow/short containers and arranged in two columns when there is room. Minimum column width scales with Dynamic Type; layout changes preserve quiz view identity and ease between arrangements over 0.25 seconds (immediate with Reduce Motion).
@@ -58,7 +65,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - `FlashcardComponents.swift` — `FlashcardResultCard`, `FlashcardSummaryRow`, `FlashcardNextButton`, `NavigableTapArea`, etc.
 - `PlayableItemModifier` — tap-to-play/long-press-details gesture + accessibility for reference items
 - `FilterChipView` — reusable filter chip
-- `ReferenceItemSheet` — detail sheet for reference items
+- `ReferenceItemSheet` — shared detail content for compact sheets and the inline Reference pane; sheet detents and dismissal apply only to sheet placement
 
 **Screens:**
 - `CheatsheetBrowserView` — reference tab with search and section navigation
