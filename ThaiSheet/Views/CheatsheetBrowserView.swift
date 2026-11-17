@@ -617,9 +617,8 @@ struct CheatsheetBrowserView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 ReferenceSearchField(text: $searchText, isFocused: $isSearchFocused)
-                    .frame(height: searchFieldHeight)
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
+                    .frame(height: searchFieldHeight + 16)
+                    .padding(.horizontal, 8)
 
                 ReferenceBrowserLayout(selection: referenceSelection, isSearching: isSearchFocused) {
                     tables
@@ -628,6 +627,7 @@ struct CheatsheetBrowserView: View {
                         ReferenceSelectedDetail(item: item, onPractice: startPractice)
                     }
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .environment(\.practiceMode, practiceMode)
             .environment(\.referenceSelection, referenceSelection)
@@ -717,9 +717,11 @@ struct CheatsheetBrowserView: View {
             referenceSelection.setReferenceActive(selectedTab == .reference, viewportSize: referenceViewport?.size)
         }
         .onDisappear {
+            isSearchFocused = false
             referenceSelection.setReferenceActive(false, viewportSize: referenceViewport?.size)
         }
         .onChange(of: selectedTab) { _, tab in
+            if tab != .reference { isSearchFocused = false }
             referenceSelection.setReferenceActive(tab == .reference, viewportSize: referenceViewport?.size)
         }
         .onChange(of: isSearchFocused) { _, searching in

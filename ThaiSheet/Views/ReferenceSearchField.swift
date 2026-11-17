@@ -8,25 +8,30 @@ struct ReferenceSearchField: UIViewRepresentable {
     @Binding var isFocused: Bool
     @Environment(\.locale) private var locale
 
-    func makeUIView(context: Context) -> UISearchTextField {
-        let field = UISearchTextField(frame: .zero)
+    func makeUIView(context: Context) -> UISearchBar {
+        let searchBar = UISearchBar(frame: .zero)
+        searchBar.searchBarStyle = .minimal
+        searchBar.delegate = context.coordinator
+        let field = searchBar.searchTextField
         field.font = .preferredFont(forTextStyle: .body)
         field.adjustsFontForContentSizeCategory = true
         field.autocapitalizationType = .none
         field.autocorrectionType = .no
         field.returnKeyType = .search
+        searchBar.enablesReturnKeyAutomatically = false
         field.clearButtonMode = .always
-        field.delegate = context.coordinator
+        context.coordinator.searchBar = searchBar
         field.addTarget(context.coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
         field.accessibilityIdentifier = "reference.search"
-        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        return field
+        searchBar.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        searchBar.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return searchBar
     }
 
-    func updateUIView(_ field: UISearchTextField, context: Context) {
+    func updateUIView(_ searchBar: UISearchBar, context: Context) {
         context.coordinator.parent = self
-        field.placeholder = String(localized: "Thai character or sound (e.g. kh)", bundle: .appLanguage, locale: locale)
+        let field = searchBar.searchTextField
+        searchBar.placeholder = String(localized: "Thai character or sound (e.g. kh)", bundle: .appLanguage, locale: locale)
         // Never replace an unfinished Thai IME composition during a layout or
         // focus update. Editing events already keep the filtering query current.
         if field.text != text && field.markedTextRange == nil {
@@ -37,13 +42,17 @@ struct ReferenceSearchField: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
 
-    static func dismantleUIView(_ field: UISearchTextField, coordinator: Coordinator) {
-        field.delegate = nil
-        field.removeTarget(coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
+    static func dismantleUIView(_ searchBar: UISearchBar, coordinator: Coordinator) {
+        coordinator.removeOutsideTap()
+        searchBar.delegate = nil
+        coordinator.searchBar = nil
+        searchBar.searchTextField.removeTarget(coordinator, action: #selector(Coordinator.textChanged(_:)), for: .editingChanged)
     }
 
-    final class Coordinator: NSObject, UITextFieldDelegate {
+    final class Coordinator: NSObject, UISearchBarDelegate, UIGestureRecognizerDelegate {
         var parent: ReferenceSearchField
+        weak var searchBar: UISearchBar?
+        private var outsideTap: UITapGestureRecognizer?
 
         init(parent: ReferenceSearchField) { self.parent = parent }
 
@@ -52,17 +61,77 @@ struct ReferenceSearchField: UIViewRepresentable {
             if parent.text != text { parent.text = text }
         }
 
-        func textFieldDidBeginEditing(_ textField: UITextField) {
+        func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+            textChanged(searchBar.searchTextField)
+        }
+
+        func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+            installOutsideTap(in: searchBar.window)
             if !parent.isFocused { parent.isFocused = true }
         }
 
-        func textFieldDidEndEditing(_ textField: UITextField) {
+        func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+            removeOutsideTap()
+            textChanged(searchBar.searchTextField)
             if parent.isFocused { parent.isFocused = false }
         }
 
-        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-            textField.resignFirstResponder()
-            return true
+        func finishEditing() {
+            // End focus as well as hiding the keyboard so a later SwiftUI
+            // update cannot restore editing. The filtering query is unchanged.
+            if let field = searchBar?.searchTextField {
+                field.unmarkText()
+                textChanged(field)
+            }
+            parent.isFocused = false
+            searchBar?.searchTextField.resignFirstResponder()
+        }
+
+        func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+            finishEditing()
+        }
+
+        private func installOutsideTap(in window: UIWindow?) {
+            removeOutsideTap()
+            guard let window else { return }
+            let tap = UITapGestureRecognizer(target: self, action: #selector(tappedOutside))
+            tap.name = "reference.search.dismissOutside"
+            // Observe the tap alongside controls and SwiftUI row gestures.
+            // The same tap must still play/select a row or activate a button.
+            tap.cancelsTouchesInView = false
+            tap.delaysTouchesBegan = false
+            tap.delaysTouchesEnded = false
+            tap.delegate = self
+            window.addGestureRecognizer(tap)
+            outsideTap = tap
+        }
+
+        func removeOutsideTap() {
+            if let tap = outsideTap { tap.view?.removeGestureRecognizer(tap) }
+            outsideTap = nil
+        }
+
+        @objc func tappedOutside() {
+            guard searchBar?.searchTextField.isFirstResponder == true else { return }
+            finishEditing()
+        }
+
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+            guard let searchBar, searchBar.searchTextField.isFirstResponder,
+                  let view = touch.view else { return false }
+            // Editing and clearing belong to the search bar. Keyboard
+            // touches must keep editing too.
+            if view.isDescendant(of: searchBar) { return false }
+            if let keyboard = searchBar.searchTextField.inputView,
+               view.isDescendant(of: keyboard) { return false }
+            return view.window === searchBar.window
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            true
         }
 
         func updateFocus(_ field: UISearchTextField) {
