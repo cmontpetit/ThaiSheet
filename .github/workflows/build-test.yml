@@ -35,4 +35,23 @@ jobs:
           set -o pipefail
           xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet \
             -destination "platform=iOS Simulator,name=${{ steps.simulator.outputs.device }}" \
-            test | tail -100
+            -resultBundlePath "$RUNNER_TEMP/ThaiSheet.xcresult" \
+            test 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log" | tail -100
+
+      - name: Show test failure details
+        if: failure()
+        run: |
+          if [ -f "$RUNNER_TEMP/xcodebuild.log" ]; then
+            grep -n -C 3 -E 'error:|Test Case .*failed|Test crashed|Asynchronous wait failed|XCTAssert|XCTUnwrap' \
+              "$RUNNER_TEMP/xcodebuild.log" || true
+          fi
+
+      - name: Preserve test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-diagnostics
+          path: |
+            ${{ runner.temp }}/xcodebuild.log
+            ${{ runner.temp }}/ThaiSheet.xcresult
+          retention-days: 7
