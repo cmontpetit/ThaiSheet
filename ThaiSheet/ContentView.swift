@@ -138,7 +138,7 @@ struct FlashcardsView: View {
     @State private var showingBookChapters = false
     @State private var filterRefreshID = UUID()
 
-    /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the Content toggles).
+    /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the Content toggle).
     private var bookChapters: BookChapterMap? { manager.data.bookChapters }
 
     private var bookScope: BookScope { BookScope(settings: manager.settings, map: bookChapters) }

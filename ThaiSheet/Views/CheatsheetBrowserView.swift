@@ -146,7 +146,7 @@ struct CheatsheetBrowserView: View {
     }
 
     /// Whether the chapter covers anything in the section once its chips are
-    /// cleared (the Content toggles are settings, not chips, and stay).
+    /// cleared (the Content toggle is a setting, not a chip, and stays).
     private func hasChapterContentWithoutChips(_ type: CheatsheetEntryType) -> Bool {
         let scope = bookScope
         let content = contentFilter
@@ -184,7 +184,7 @@ struct CheatsheetBrowserView: View {
         ReferenceJumpTarget(highlighted: highlighted)
     }
 
-    /// The Content toggles for the lists. Not applied while searching, like
+    /// The Content toggle for the lists. Not applied while searching, like
     /// the chapter scope; a jump target stays visible.
     private var contentFilter: ReferenceContentFilter {
         guard searchText.isEmpty else { return .all }
@@ -729,7 +729,7 @@ struct CheatsheetBrowserView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    // Always shown: the sheet also holds the Content toggles,
+                    // Always shown: the sheet also holds the Content toggle,
                     // even when the chapter mapping failed to load.
                     BookChaptersButton(
                         isActive: BookScope(settings: settings, map: thaiData.bookChapters).isActive

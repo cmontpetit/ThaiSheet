@@ -5,8 +5,9 @@
 
 import Foundation
 
-/// The Content toggles ("Uncommon, rare & ancient" consonants, "Uncommon,
-/// rare & archaic" vowels) as the Reference tab applies them. Flashcards apply
+/// The content settings (`uncommonConsonants`, `uncommonVowels`, set together
+/// by the Book Chapters "Uncommon & rare letters" toggle) as the Reference tab
+/// applies them. Flashcards apply
 /// the same settings through `FlashcardSettings.isConsonantEnabled` /
 /// `isVowelCardEnabled`. The browser passes `.all` while searching, so search
 /// still finds everything, and an explicit jump target stays visible.

@@ -403,6 +403,23 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.uncommonVowels)
     }
 
+    /// One sheet toggle drives both content settings; a mixed state reads as off.
+    func test_uncommonLetters_drivesBothSettings() {
+        XCTAssertTrue(settings.uncommonLetters)
+        settings.setUncommonLetters(false)
+        XCTAssertFalse(settings.uncommonConsonants)
+        XCTAssertFalse(settings.uncommonVowels)
+        XCTAssertFalse(settings.uncommonLetters)
+
+        settings.uncommonVowels = true
+        XCTAssertFalse(settings.uncommonLetters, "mixed saved state reads as off")
+        settings.setUncommonLetters(true)
+        XCTAssertTrue(settings.uncommonConsonants)
+        XCTAssertTrue(settings.uncommonVowels)
+        XCTAssertEqual(defaults.object(forKey: "fc_uncommonConsonants") as? Bool, true)
+        XCTAssertEqual(defaults.object(forKey: "fc_uncommonVowels") as? Bool, true)
+    }
+
     /// The keys are unchanged, so saved values carry over with no migration.
     func test_contentToggles_keepTheirKeys() {
         settings.uncommonConsonants = false

@@ -88,6 +88,17 @@ class FlashcardSettings {
         didSet { persist(uncommonVowels, forKey: "fc_uncommonVowels") }
     }
 
+    /// The Book Chapters "Uncommon & rare letters" toggle: on only when both
+    /// content settings are on, so a mixed saved state reads as off. Reads the
+    /// stored properties, so observation still tracks it.
+    var uncommonLetters: Bool { uncommonConsonants && uncommonVowels }
+
+    /// Sets both content settings from the single toggle.
+    func setUncommonLetters(_ shown: Bool) {
+        uncommonConsonants = shown
+        uncommonVowels = shown
+    }
+
     // MARK: - Tone Filters
 
     var highToneRules = true {

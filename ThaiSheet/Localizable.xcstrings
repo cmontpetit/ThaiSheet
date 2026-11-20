@@ -2340,26 +2340,6 @@
         }
       }
     },
-    "Uncommon, rare & ancient" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Peu commun, rare et ancien"
-          }
-        }
-      }
-    },
-    "Uncommon, rare & archaic" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Peu commun, rare et archaïque"
-          }
-        }
-      }
-    },
     "Unmarked syllable tone rules" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3110,12 +3090,22 @@
         }
       }
     },
-    "Consonants and vowels most learners can skip. Applies to both tabs. Reference search still finds them." : {
+    "Uncommon & rare letters" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Consonnes et voyelles que la plupart des apprenants peuvent ignorer. S’applique aux deux onglets. La recherche dans Référence les trouve toujours."
+            "value" : "Lettres rares et peu courantes"
+          }
+        }
+      }
+    },
+    "Rare and obsolete consonants and vowels, such as ฃ, ฅ and ฦ. Applies to both tabs. Reference search still finds them." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consonnes et voyelles rares ou obsolètes, comme ฃ, ฅ et ฦ. S’applique aux deux onglets. La recherche dans Référence les trouve toujours."
           }
         }
       }

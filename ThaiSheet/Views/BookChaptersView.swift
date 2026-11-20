@@ -15,20 +15,22 @@ struct BookChaptersView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Chapter controls need the mapping; the Content toggles do not.
+                // Chapter controls need the mapping; the Content toggle does not.
                 if thaiData.bookChapters != nil {
                     chapterSections
                 }
 
-                // These were flashcard filters. They keep their keys
-                // (fc_uncommonConsonants, fc_uncommonVowels): nothing migrates.
+                // One toggle for the two former flashcard filters. It drives both
+                // keys (fc_uncommonConsonants, fc_uncommonVowels): nothing migrates.
                 Section {
-                    Toggle("Uncommon, rare & ancient", isOn: $settings.uncommonConsonants)
-                    Toggle("Uncommon, rare & archaic", isOn: $settings.uncommonVowels)
+                    Toggle("Uncommon & rare letters", isOn: Binding(
+                        get: { settings.uncommonLetters },
+                        set: { settings.setUncommonLetters($0) }
+                    ))
                 } header: {
                     Text("Content")
                 } footer: {
-                    Text("Consonants and vowels most learners can skip. Applies to both tabs. Reference search still finds them.")
+                    Text("Rare and obsolete consonants and vowels, such as ฃ, ฅ and ฦ. Applies to both tabs. Reference search still finds them.")
                 }
             }
             .navigationTitle("Book Chapters")
