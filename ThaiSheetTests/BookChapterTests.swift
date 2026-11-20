@@ -257,6 +257,19 @@ final class BookProgressSettingsTests: XCTestCase {
         XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_showNotInBook"))
     }
 
+    /// The Study Content button fills whenever the sheet hides something.
+    func test_studyContentButton_activeWhenChapterSetOrUncommonHidden() {
+        let map = ThaiDataStore().bookChapters
+        XCTAssertFalse(StudyContentButton.isActive(settings: settings, map: map))
+        settings.bookProgress = .day1
+        XCTAssertTrue(StudyContentButton.isActive(settings: settings, map: map))
+        settings.bookProgress = nil
+        settings.uncommonVowels = false
+        XCTAssertTrue(StudyContentButton.isActive(settings: settings, map: map), "either kind hidden counts")
+        settings.setUncommonLetters(true)
+        XCTAssertFalse(StudyContentButton.isActive(settings: settings, map: map))
+    }
+
     func test_bulkActions_doNotTouchBookScope() {
         settings.bookProgress = .day2
         settings.showNotInBook = true

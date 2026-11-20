@@ -59,6 +59,9 @@ class FlashcardSettings {
         didSet { persist(lowConsonants, forKey: "fc_lowConsonants") }
     }
 
+    /// Content setting, shown in the Study Content sheet and applied to both
+    /// tabs (it was a flashcard filter; the key is unchanged). Not a filter:
+    /// select/deselect-all never touch it.
     var uncommonConsonants = true {
         didSet { persist(uncommonConsonants, forKey: "fc_uncommonConsonants") }
     }
@@ -80,8 +83,20 @@ class FlashcardSettings {
         didSet { persist(shortVowels, forKey: "fc_shortVowels") }
     }
 
+    /// Content setting, like `uncommonConsonants`.
     var uncommonVowels = true {
         didSet { persist(uncommonVowels, forKey: "fc_uncommonVowels") }
+    }
+
+    /// The Study Content "Show uncommon consonants and vowels" toggle: on only when both
+    /// content settings are on, so a mixed saved state reads as off. Reads the
+    /// stored properties, so observation still tracks it.
+    var uncommonLetters: Bool { uncommonConsonants && uncommonVowels }
+
+    /// Sets both content settings from the single toggle.
+    func setUncommonLetters(_ shown: Bool) {
+        uncommonConsonants = shown
+        uncommonVowels = shown
     }
 
     // MARK: - Tone Filters
@@ -486,12 +501,10 @@ class FlashcardSettings {
         highConsonants = true
         midConsonants = true
         lowConsonants = true
-        uncommonConsonants = true
 
         // Vowels
         longVowels = true
         shortVowels = true
-        uncommonVowels = true
 
         // Tones
         highToneRules = true
@@ -516,12 +529,10 @@ class FlashcardSettings {
         highConsonants = false
         midConsonants = false
         lowConsonants = false
-        uncommonConsonants = false
 
         // Vowels
         longVowels = false
         shortVowels = false
-        uncommonVowels = false
 
         // Tones
         highToneRules = false
@@ -537,8 +548,8 @@ class FlashcardSettings {
 
     var isAllSelected: Bool {
         consonantsEnabled && vowelsEnabled && tonesEnabled && clusters &&
-        highConsonants && midConsonants && lowConsonants && uncommonConsonants &&
-        longVowels && shortVowels && uncommonVowels &&
+        highConsonants && midConsonants && lowConsonants &&
+        longVowels && shortVowels &&
         highToneRules && midToneRules && lowToneRules && toneMarks &&
         smoothClusters && silentClusters && irregularClusters
     }

@@ -377,10 +377,8 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.highConsonants)
         XCTAssertTrue(settings.midConsonants)
         XCTAssertTrue(settings.lowConsonants)
-        XCTAssertTrue(settings.uncommonConsonants)
         XCTAssertTrue(settings.longVowels)
         XCTAssertTrue(settings.shortVowels)
-        XCTAssertTrue(settings.uncommonVowels)
         XCTAssertTrue(settings.highToneRules)
         XCTAssertTrue(settings.midToneRules)
         XCTAssertTrue(settings.lowToneRules)
@@ -388,6 +386,48 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.smoothClusters)
         XCTAssertTrue(settings.silentClusters)
         XCTAssertTrue(settings.irregularClusters)
+    }
+
+    /// The Content toggles moved to the Study Content sheet: bulk filter
+    /// actions leave them alone, and they do not count toward "all selected".
+    func test_bulkActions_leaveContentTogglesAlone() {
+        settings.uncommonConsonants = false
+        settings.uncommonVowels = true
+        settings.selectAll()
+        XCTAssertFalse(settings.uncommonConsonants)
+        XCTAssertTrue(settings.uncommonVowels)
+        XCTAssertTrue(settings.isAllSelected, "uncommon content off still counts as all filters selected")
+
+        settings.deselectAll()
+        XCTAssertFalse(settings.uncommonConsonants)
+        XCTAssertTrue(settings.uncommonVowels)
+    }
+
+    /// One sheet toggle drives both content settings; a mixed state reads as off.
+    func test_uncommonLetters_drivesBothSettings() {
+        XCTAssertTrue(settings.uncommonLetters)
+        settings.setUncommonLetters(false)
+        XCTAssertFalse(settings.uncommonConsonants)
+        XCTAssertFalse(settings.uncommonVowels)
+        XCTAssertFalse(settings.uncommonLetters)
+
+        settings.uncommonVowels = true
+        XCTAssertFalse(settings.uncommonLetters, "mixed saved state reads as off")
+        settings.setUncommonLetters(true)
+        XCTAssertTrue(settings.uncommonConsonants)
+        XCTAssertTrue(settings.uncommonVowels)
+        XCTAssertEqual(defaults.object(forKey: "fc_uncommonConsonants") as? Bool, true)
+        XCTAssertEqual(defaults.object(forKey: "fc_uncommonVowels") as? Bool, true)
+    }
+
+    /// The keys are unchanged, so saved values carry over with no migration.
+    func test_contentToggles_keepTheirKeys() {
+        settings.uncommonConsonants = false
+        settings.uncommonVowels = false
+        XCTAssertEqual(defaults.object(forKey: "fc_uncommonConsonants") as? Bool, false)
+        XCTAssertEqual(defaults.object(forKey: "fc_uncommonVowels") as? Bool, false)
+        XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_uncommonConsonants"))
+        XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_uncommonVowels"))
     }
 
     func test_deselectAll_disablesEverything() {
@@ -401,10 +441,8 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertFalse(settings.highConsonants)
         XCTAssertFalse(settings.midConsonants)
         XCTAssertFalse(settings.lowConsonants)
-        XCTAssertFalse(settings.uncommonConsonants)
         XCTAssertFalse(settings.longVowels)
         XCTAssertFalse(settings.shortVowels)
-        XCTAssertFalse(settings.uncommonVowels)
         XCTAssertFalse(settings.highToneRules)
         XCTAssertFalse(settings.midToneRules)
         XCTAssertFalse(settings.lowToneRules)

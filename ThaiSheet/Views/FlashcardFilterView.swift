@@ -37,8 +37,6 @@ struct FlashcardFilterView: View {
                         childToggle(title: "High", isOn: $settings.highConsonants)
                         childToggle(title: "Mid", isOn: $settings.midConsonants)
                         childToggle(title: "Low", isOn: $settings.lowConsonants)
-                        childToggle(title: "Uncommon, rare & ancient", isOn: $settings.uncommonConsonants)
-                            .disabled(!settings.highConsonants && !settings.midConsonants && !settings.lowConsonants)
                         childToggle(title: "Quiz consonant names", isOn: $settings.consonantNames)
                     }
                 } header: {
@@ -55,8 +53,6 @@ struct FlashcardFilterView: View {
                     if settings.vowelsEnabled {
                         childToggle(title: "Long", isOn: $settings.longVowels)
                         childToggle(title: "Short", isOn: $settings.shortVowels)
-                        childToggle(title: "Uncommon, rare & archaic", isOn: $settings.uncommonVowels)
-                            .disabled(!settings.longVowels && !settings.shortVowels)
                     }
                 }
 
@@ -82,10 +78,10 @@ struct FlashcardFilterView: View {
                 }
             }
             .onChange(of: settings.consonantsEnabled) { _, newValue in
-                setChildren([\.highConsonants, \.midConsonants, \.lowConsonants, \.uncommonConsonants], to: newValue)
+                setChildren([\.highConsonants, \.midConsonants, \.lowConsonants], to: newValue)
             }
             .onChange(of: settings.vowelsEnabled) { _, newValue in
-                setChildren([\.longVowels, \.shortVowels, \.uncommonVowels], to: newValue)
+                setChildren([\.longVowels, \.shortVowels], to: newValue)
             }
             .onChange(of: settings.tonesEnabled) { _, newValue in
                 setChildren([\.highToneRules, \.midToneRules, \.lowToneRules, \.toneMarks], to: newValue)

@@ -1565,16 +1565,6 @@
         }
       }
     },
-    "Rare" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rares"
-          }
-        }
-      }
-    },
     "Recorded voice" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2350,26 +2340,6 @@
         }
       }
     },
-    "Uncommon, rare & ancient" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Peu commun, rare et ancien"
-          }
-        }
-      }
-    },
-    "Uncommon, rare & archaic" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Peu commun, rare et archaïque"
-          }
-        }
-      }
-    },
     "Unmarked syllable tone rules" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2977,16 +2947,6 @@
         }
       }
     },
-    "Book Chapters" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chapitres du livre"
-          }
-        }
-      }
-    },
     "Day 5 · Intermission" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3020,32 +2980,12 @@
         }
       }
     },
-    "Open Book Chapters" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvrir les chapitres du livre"
-          }
-        }
-      }
-    },
     "Both tabs show only what the book has taught up to the chosen chapter. Reference search includes all chapters." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Les deux onglets n’affichent que ce que le livre a enseigné jusqu’au chapitre choisi. La recherche dans Référence inclut tous les chapitres."
-          }
-        }
-      }
-    },
-    "Enable some options in Filters, or choose a later chapter in Book Chapters" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activez des options dans les filtres, ou choisissez un chapitre plus avancé dans Chapitres du livre"
           }
         }
       }
@@ -3066,16 +3006,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pas encore enseigné"
-          }
-        }
-      }
-    },
-    "The book has not reached this section by the chosen chapter. You can change it in Book Chapters." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le livre n’aborde pas encore cette section au chapitre choisi. Vous pouvez le changer dans Chapitres du livre."
           }
         }
       }
@@ -3106,6 +3036,96 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tout afficher"
+          }
+        }
+      }
+    },
+    "Rare and obsolete consonants and vowels, such as ฃ, ฅ and ฦ. Applies to both tabs. Reference search still finds them." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consonnes et voyelles rares ou obsolètes, comme ฃ, ฅ et ฦ. S’applique aux deux onglets. La recherche dans Référence les trouve toujours."
+          }
+        }
+      }
+    },
+    "Study Content" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contenu d’étude"
+          }
+        }
+      }
+    },
+    "Open Study Content" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir le contenu d’étude"
+          }
+        }
+      }
+    },
+    "Enable some options in Filters, or choose a later chapter in Study Content" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez des options dans les filtres, ou choisissez un chapitre plus avancé dans Contenu d’étude"
+          }
+        }
+      }
+    },
+    "The book has not reached this section by the chosen chapter. You can change it in Study Content." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le livre n’aborde pas encore cette section au chapitre choisi. Vous pouvez le changer dans Contenu d’étude."
+          }
+        }
+      }
+    },
+    "Show uncommon consonants and vowels" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les consonnes et voyelles peu courantes"
+          }
+        }
+      }
+    },
+    "Uncommon content" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contenu peu courant"
+          }
+        }
+      }
+    },
+    "Your saved settings currently show uncommon vowels only." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos réglages enregistrés n’affichent actuellement que les voyelles peu courantes."
+          }
+        }
+      }
+    },
+    "Your saved settings currently show uncommon consonants only." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos réglages enregistrés n’affichent actuellement que les consonnes peu courantes."
           }
         }
       }
