@@ -21,18 +21,57 @@ jobs:
       - name: Select an available iPhone simulator
         id: simulator
         run: |
-          DEVICE=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9][^(]*' | head -1 | xargs)
-          if [ -z "$DEVICE" ]; then
+          # Pick by UDID so the runtime is unambiguous, and log it with the
+          # Xcode version: both decide how the simulator behaves.
+          LINE=$(xcrun simctl list devices available | awk '
+            /^-- iOS / { runtime = substr($0, 4, length($0) - 6) }
+            /^    iPhone [0-9]/ && runtime != "" { print runtime "|" $0; exit }')
+          if [ -z "$LINE" ]; then
             echo "No iPhone simulator available" >&2
             xcrun simctl list devices available >&2
             exit 1
           fi
-          echo "Using simulator: $DEVICE"
-          echo "device=$DEVICE" >> "$GITHUB_OUTPUT"
+          RUNTIME=${LINE%%|*}
+          DEVICE=$(echo "${LINE#*|}" | sed -E 's/ \([0-9A-F-]{36}\).*//' | xargs)
+          UDID=$(echo "$LINE" | grep -oE '[0-9A-F-]{36}')
+          xcodebuild -version
+          echo "Using simulator: $DEVICE, $RUNTIME ($UDID)"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       - name: Run tests
         run: |
           set -o pipefail
           xcodebuild -project ThaiSheet.xcodeproj -scheme ThaiSheet \
-            -destination "platform=iOS Simulator,name=${{ steps.simulator.outputs.device }}" \
-            test | tail -100
+            -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.udid }}" \
+            -resultBundlePath TestResults.xcresult \
+            test 2>&1 | tee xcodebuild.log | tail -100
+
+      - name: Show test failures
+        if: failure()
+        run: |
+          echo "::group::Failure lines from the xcodebuild log"
+          grep -E ': error: |Test Case .* failed' xcodebuild.log || echo "No failure lines found in xcodebuild.log"
+          echo "::endgroup::"
+          if [ -d TestResults.xcresult ]; then
+            xcrun xcresulttool get test-results summary --path TestResults.xcresult --compact \
+              | python3 -c '
+          import json, sys
+          summary = json.load(sys.stdin)
+          for failure in summary.get("testFailures", []):
+              name = failure.get("testIdentifierString") or failure.get("testName")
+              text = failure.get("failureText", "")
+              print(f"::error title={name}::{text}")
+              print(f"{name}: {text}")
+          '
+          fi
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            TestResults.xcresult
+            xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 14

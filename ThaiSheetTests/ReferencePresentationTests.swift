@@ -37,11 +37,13 @@ final class ReferencePresentationTests: XCTestCase {
         let navigation = ReferenceViewObservation()
         let activeTab = Binding(get: { navigation.activeTab }, set: { navigation.activeTab = $0 })
         let highlighted = ReferenceSearchNavigation()
+        let selection = ReferenceSelection()
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: Binding(get: { highlighted.items }, set: { highlighted.items = $0 }),
             flashcardStarting: .constant([:]),
-            selectedTab: activeTab
+            selectedTab: activeTab,
+            referenceSelection: selection
         )
         let root = TabView(selection: activeTab) {
             browser.tabItem { Label("Reference", systemImage: "book") }.tag(AppTab.reference)
@@ -69,11 +71,11 @@ final class ReferencePresentationTests: XCTestCase {
             // Both the Reference section and the app tab can change while the
             // keyboard is closed. Neither should conceal an active query.
             highlighted.items = [.vowel: "กั-"]
-            try await Task.sleep(for: .milliseconds(100))
+            await waitFor { self.referenceSections(in: window)?.selectedSegmentIndex == 1 }
             navigation.activeTab = .flashcards
-            try await Task.sleep(for: .milliseconds(100))
+            await waitFor { !selection.isReferenceActive }
             navigation.activeTab = .reference
-            await waitFor { self.searchField(in: window)?.window != nil }
+            await waitFor { selection.isReferenceActive && self.searchField(in: window) != nil }
             let visibleField = try XCTUnwrap(searchField(in: window))
             XCTAssertEqual(visibleField.text, "ถ")
             XCTAssertTrue(referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true)
@@ -89,9 +91,9 @@ final class ReferencePresentationTests: XCTestCase {
         visibleField.text = ""
         visibleField.sendActions(for: .editingChanged)
         navigation.activeTab = .flashcards
-        try await Task.sleep(for: .milliseconds(100))
+        await waitFor { !selection.isReferenceActive }
         navigation.activeTab = .reference
-        await waitFor { self.searchField(in: window)?.window != nil }
+        await waitFor { selection.isReferenceActive && self.searchField(in: window) != nil }
         XCTAssertEqual(searchField(in: window)?.text, "")
         await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 0)?.contains("(") == false }
     }
@@ -219,7 +221,7 @@ final class ReferencePresentationTests: XCTestCase {
                 return (frame?.cgRectValue.height ?? 0) >= 200
             }
             XCTAssertTrue(field.becomeFirstResponder())
-            await fulfillment(of: [keyboardShown], timeout: 3)
+            await fulfillment(of: [keyboardShown], timeout: keyboardTimeout)
             XCTAssertFalse(searchBar.showsCancelButton, "Only the clear-text X should be visible")
             XCTAssertGreaterThanOrEqual(searchBar.bounds.height, 44)
             if query.isEmpty {
@@ -234,7 +236,7 @@ final class ReferencePresentationTests: XCTestCase {
             let keyboardHidden = XCTNSNotificationExpectation(name: UIResponder.keyboardDidHideNotification)
 
             searchBar.delegate?.searchBarSearchButtonClicked?(searchBar)
-            await fulfillment(of: [keyboardHidden], timeout: 3)
+            await fulfillment(of: [keyboardHidden], timeout: keyboardTimeout)
             for _ in 0..<10 {
                 XCTAssertFalse(field.isFirstResponder, "Finishing search must not reopen the keyboard")
                 XCTAssertEqual(field.text, query)
@@ -275,7 +277,7 @@ final class ReferencePresentationTests: XCTestCase {
         XCTAssertTrue(outsideTaps().isEmpty)
         let keyboardShown = XCTNSNotificationExpectation(name: UIResponder.keyboardDidShowNotification)
         XCTAssertTrue(field.becomeFirstResponder())
-        await fulfillment(of: [keyboardShown], timeout: 3)
+        await fulfillment(of: [keyboardShown], timeout: keyboardTimeout)
         field.setMarkedText("ั", selectedRange: NSRange(location: 1, length: 0))
         field.sendActions(for: .editingChanged)
         await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 1)?.contains("(") == true }
@@ -300,7 +302,7 @@ final class ReferencePresentationTests: XCTestCase {
         XCTAssertTrue(UIApplication.shared.sendAction(
             #selector(ReferenceSearchField.Coordinator.tappedOutside), to: coordinator, from: tap, for: nil
         ))
-        await fulfillment(of: [keyboardHidden], timeout: 3)
+        await fulfillment(of: [keyboardHidden], timeout: keyboardTimeout)
         for _ in 0..<10 {
             XCTAssertFalse(field.isFirstResponder)
             XCTAssertEqual(field.text, "ั")
@@ -324,11 +326,13 @@ final class ReferencePresentationTests: XCTestCase {
         let settings = FlashcardSettings(defaults: defaults)
         let navigation = ReferenceViewObservation()
         let activeTab = Binding(get: { navigation.activeTab }, set: { navigation.activeTab = $0 })
+        let selection = ReferenceSelection()
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
             flashcardStarting: .constant([:]),
-            selectedTab: activeTab
+            selectedTab: activeTab,
+            referenceSelection: selection
         )
         let root = TabView(selection: activeTab) {
             browser.tabItem { Label("Reference", systemImage: "book") }.tag(AppTab.reference)
@@ -347,9 +351,9 @@ final class ReferencePresentationTests: XCTestCase {
         field.sendActions(for: .editingChanged)
         await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 0)?.hasSuffix("(1)") == true }
         navigation.activeTab = .flashcards
-        await waitFor { !field.isFirstResponder }
+        await waitFor { !selection.isReferenceActive && !field.isFirstResponder }
         navigation.activeTab = .reference
-        await waitFor { self.searchField(in: window)?.window != nil }
+        await waitFor { selection.isReferenceActive && self.searchField(in: window) != nil }
         for _ in 0..<10 {
             XCTAssertFalse(searchField(in: window)?.isFirstResponder ?? false)
             XCTAssertEqual(searchField(in: window)?.text, "ถ")
@@ -399,7 +403,7 @@ final class ReferencePresentationTests: XCTestCase {
         }
         window.makeKeyAndVisible()
         XCTAssertTrue(field.becomeFirstResponder(), file: file, line: line)
-        await fulfillment(of: [keyboardShown], timeout: 3)
+        await fulfillment(of: [keyboardShown], timeout: keyboardTimeout)
 
         if let markedText {
             // Thai marks can be in an IME composition while waiting for a base
@@ -454,18 +458,27 @@ final class ReferencePresentationTests: XCTestCase {
     }
 
     private func referenceSections(in view: UIView) -> UISegmentedControl? {
-        if let control = view as? UISegmentedControl { return control }
-        return view.subviews.lazy.compactMap { self.referenceSections(in: $0) }.first
+        firstView(of: UISegmentedControl.self, in: view)
     }
 
     private func searchField(in view: UIView) -> UISearchTextField? {
-        if let field = view as? UISearchTextField { return field }
-        return view.subviews.lazy.compactMap { self.searchField(in: $0) }.first
+        firstView(of: UISearchTextField.self, in: view)
     }
 
     private func searchBar(in view: UIView) -> UISearchBar? {
-        if let bar = view as? UISearchBar { return bar }
-        return view.subviews.lazy.compactMap { self.searchBar(in: $0) }.first
+        firstView(of: UISearchBar.self, in: view)
+    }
+
+    /// Depth-first, pre-order: the first matching view in hierarchy order.
+    /// A plain loop visits each view once. (`subviews.lazy.compactMap(…).first`
+    /// evaluates the matching subtree twice per level, which is exponential in
+    /// depth and blocked the main actor for about a second per lookup.)
+    private func firstView<T: UIView>(of type: T.Type, in view: UIView) -> T? {
+        if let match = view as? T { return match }
+        for subview in view.subviews {
+            if let match = firstView(of: type, in: subview) { return match }
+        }
+        return nil
     }
 
     func test_concealedPaneDoesNotOpenAnAnswerSheetWhenNarrowed() async {
@@ -737,12 +750,31 @@ final class ReferencePresentationTests: XCTestCase {
         return window
     }
 
-    private func waitFor(file: StaticString = #filePath, line: UInt = #line, _ condition: () -> Bool) async {
-        for _ in 0..<40 {
+    /// Keyboard show/hide notifications come from the out-of-process keyboard
+    /// session, which a loaded CI simulator can delay well past 3 seconds.
+    private let keyboardTimeout: TimeInterval = 10
+
+    /// Polls until `condition` holds. Animations, tab switches, and keyboard
+    /// sessions take wall-clock time that a loaded CI simulator stretches, so
+    /// the budget is time-based (with at least the original 40 polls), not a
+    /// fixed poll count. Returning as soon as the condition holds keeps fast
+    /// runs fast. The condition itself is unchanged.
+    private func waitFor(
+        timeout: Duration = .seconds(10),
+        file: StaticString = #filePath,
+        line: UInt = #line,
+        _ condition: () -> Bool
+    ) async {
+        let clock = ContinuousClock()
+        let deadline = clock.now + timeout
+        var polls = 0
+        while true {
             if condition() { return }
+            polls += 1
+            if polls >= 40 && clock.now >= deadline { break }
             try? await Task.sleep(for: .milliseconds(50))
         }
-        XCTFail("Reference presentation did not reach the expected state", file: file, line: line)
+        XCTFail("Reference presentation did not reach the expected state within \(timeout)", file: file, line: line)
     }
 }
 
