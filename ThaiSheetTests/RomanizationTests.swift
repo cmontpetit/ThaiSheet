@@ -158,13 +158,13 @@ final class RomanizationTests: XCTestCase {
             ("gà", "gà"), ("gan", "gun"), ("dtè", "dtày’"), ("dèk", "dèk"),
             ("gaaeng", "gang"), ("khǎeng", "kă’ng"), ("gàe", "gàir’"),
             ("dii", "dee"), ("lôhk", "lôhk"), ("dtó", "dtó’"),
-            ("gàw", "gòr’"), ("juuh", "jer"), ("nguhn", "nger’n"),
+            ("gàw", "gòr’"), ("juuh", "jer"), ("nguhn", "ngern"),
             ("jam", "jum"), ("àang", "àang"), ("meuang", "mueang"),
             ("leeuy", "leui"), ("dohy", "doey"), ("khaawy", "koi"),
             ("hǐo", "hĭw"), ("khǐao", "kĭao"), ("sǔay", "sŭai"),
             ("nèuay", "nùeai"), ("khuy", "kui"), ("dtào", "dtào"),
             ("sà-àat", "sà-àat"), ("rohng-raaem", "rohng-ram"),
-            ("sà-ngàa", "sà-ngàa"), ("jùt-dta-waa", "jòo’t-dtawaa"),
+            ("sà-ngàa", "sà-ngàa"), ("jàt-dtà-waa", "jùt-dtàwaa"),
         ]
         for (learner, expected) in examples {
             XCTAssertEqual(Romanization.render(learner, as: .readThaiIn10Days), expected, learner)

@@ -13,6 +13,8 @@ enum ReadThaiBookRomanization {
     // or’ in shortened อ forms, though some examples omit the mark.
     private static let closedVowels = [
         "a": "u", "e": "e", "ae": "a’", "aae": "a", "o": "o",
+        // Medial เ◌ิ- is always er: เงิน ngern, เหิม herm (pp. xvii, xx, 138).
+        "uh": "er",
     ]
 
     // For short counterparts absent from the guide, retain the long counterpart's
