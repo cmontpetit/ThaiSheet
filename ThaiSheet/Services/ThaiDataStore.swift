@@ -27,6 +27,12 @@ final class ThaiDataStore {
     let toneRuleCards: [ToneRuleCard]
     let clusters: [Cluster]
 
+    /// "Read Thai in 10 Days" chapter mapping. Optional data: nil when it failed
+    /// to load, which disables the book scope without affecting any catalog
+    /// (it is deliberately not a `ThaiDataset`).
+    let bookChapters: BookChapterMap?
+    let bookChaptersFailure: DatasetLoadError?
+
     /// Why each failed dataset failed. Empty when everything loaded.
     let failures: [ThaiDataset: DatasetLoadError]
 
@@ -51,6 +57,15 @@ final class ThaiDataStore {
         toneRules = rows(.toneRules, ToneRule.loadAll(provider: provider))
         toneRuleCards = ToneRuleCard.allCards(from: toneRules)
         clusters = rows(.clusters, Cluster.loadAll(provider: provider))
+
+        switch BookChapterMap.load(provider: provider) {
+        case .success(let map):
+            bookChapters = map
+            bookChaptersFailure = nil
+        case .failure(let error):
+            bookChapters = nil
+            bookChaptersFailure = error
+        }
 
         self.failures = failures
     }

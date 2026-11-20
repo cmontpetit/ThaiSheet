@@ -54,6 +54,7 @@ struct ReferenceItemSheet: View {
 
     @Environment(\.dismiss) var dismiss
     @Environment(\.flashcardSettings) private var settings
+    @Environment(\.practiceIsOutsideChapter) private var practiceIsOutsideChapter
     @Environment(\.referenceDetailPlacement) private var placement
     @State private var showingVoicePicker = false
     @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 48
@@ -129,7 +130,13 @@ struct ReferenceItemSheet: View {
                         } label: {
                             HStack {
                                 Image(systemName: "rectangle.stack")
-                                Text("Practice")
+                                // Practice still works beyond the chapter scope, as a
+                                // one-off card graded normally; the label says so.
+                                if practiceIsOutsideChapter {
+                                    Text("Practice outside chapter")
+                                } else {
+                                    Text("Practice")
+                                }
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -300,4 +307,18 @@ private struct ReferenceSheetPresentation: ViewModifier {
                 onPractice: {}
             )
         }
+}
+
+// MARK: - Practice outside the chapter scope
+
+private struct PracticeIsOutsideChapterKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Whether the detail's Practice action opens a card beyond the chapter scope.
+    var practiceIsOutsideChapter: Bool {
+        get { self[PracticeIsOutsideChapterKey.self] }
+        set { self[PracticeIsOutsideChapterKey.self] = newValue }
+    }
 }

@@ -66,6 +66,7 @@ struct CheatsheetBrowserView: View {
     @State private var referenceSelection = ScreenshotScenario.initialReferenceSelection
     @State private var showingSettings = false
     @State private var showingInfo = false
+    @State private var showingBookChapters = false
     @State private var showingToneFinder = ScreenshotScenario.current == .toneFinder
     /// Bumped on every "Show in the table" from the tone finder, so asking
     /// for the row that is already highlighted still scrolls to it
@@ -118,13 +119,74 @@ struct CheatsheetBrowserView: View {
         selectedTab = .flashcards
     }
 
+    /// Chapter scope for the lists. Not applied while searching: Reference
+    /// search includes all chapters. The tab filters (chips) still apply.
+    private var bookScope: ReferenceBookScope {
+        guard searchText.isEmpty else { return .inactive }
+        return ReferenceBookScope(settings: settings, map: thaiData.bookChapters)
+            .revealing(highlighted)
+    }
+
+    /// An empty section: a search miss; a chip that filtered out everything
+    /// the chapter does cover here; or a section the chapter has not reached.
+    @ViewBuilder
+    private func emptySectionView(_ type: CheatsheetEntryType) -> some View {
+        if !searchText.isEmpty || !bookScope.isActive {
+            ContentUnavailableView.search(text: searchText)
+        } else if hasChapterContentWithoutChips(type) {
+            ContentUnavailableView {
+                Label("Nothing taught yet with this filter", systemImage: "line.3.horizontal.decrease.circle")
+            } description: {
+                Text("The chosen chapter covers other items in this section.")
+            } actions: {
+                Button("Show All") { clearChips(type) }
+            }
+        } else {
+            notTaughtYetView
+        }
+    }
+
+    /// Whether the chapter covers anything in the section once its chips are
+    /// cleared (the Rare toggle is a visibility setting, not a chip, and stays).
+    private func hasChapterContentWithoutChips(_ type: CheatsheetEntryType) -> Bool {
+        let scope = bookScope
+        switch type {
+        case .consonants: return consonants.contains { scope.includes($0) }
+        case .vowels: return vowels.contains { scope.showsRow($0) && (showRareVowels || !$0.isUncommon) }
+        case .clusters: return clusters.contains { scope.includes($0) }
+        case .tones: return false
+        }
+    }
+
+    private func clearChips(_ type: CheatsheetEntryType) {
+        switch type {
+        case .consonants: selectedConsonantClass = nil
+        case .vowels: selectedVowelDuration = nil
+        case .clusters: selectedClusterType = nil
+        case .tones: break
+        }
+    }
+
+    private var notTaughtYetView: some View {
+        ContentUnavailableView {
+            Label("Not taught yet", systemImage: "text.book.closed")
+        } description: {
+            Text("The book has not reached this section by the chosen chapter. You can change it in Book Chapters.")
+        } actions: {
+            Button("Open Book Chapters") {
+                showingBookChapters = true
+            }
+        }
+    }
+
     /// The row a jump asked for. A saved search shows it beside its matches.
     private var jumpTarget: ReferenceJumpTarget {
         ReferenceJumpTarget(highlighted: highlighted)
     }
 
     var filteredConsonants: [Consonant] {
-        var result = consonants
+        let scope = bookScope
+        var result = consonants.filter { scope.includes($0) }
 
         // Apply class filter
         if let classFilter = selectedConsonantClass {
@@ -162,7 +224,8 @@ struct CheatsheetBrowserView: View {
             vowel: vowel,
             highlightedForm: highlightedVowel,
             searchQuery: normalizedVowelSearch,
-            visibleDuration: selectedVowelDuration
+            visibleDuration: selectedVowelDuration,
+            hiddenForms: bookScope.hiddenForms(of: vowel)
         )
         .listRowInsets(EdgeInsets())
         .id(vowel.id)
@@ -173,6 +236,12 @@ struct CheatsheetBrowserView: View {
 
         if let duration = selectedVowelDuration {
             result = result.filter { $0.hasForm(for: duration) }
+        }
+
+        // Drop rows whose forms (of the chosen duration) are all beyond the chapter
+        let scope = bookScope
+        if scope.isActive {
+            result = result.filter { scope.showsRow($0, duration: selectedVowelDuration) }
         }
 
         guard let normalizedSearch = normalizedVowelSearch else {
@@ -295,7 +364,8 @@ struct CheatsheetBrowserView: View {
     }
 
     var filteredToneRules: [ToneRule] {
-        guard !searchText.isEmpty else { return toneRules }
+        let scope = bookScope
+        guard !searchText.isEmpty else { return toneRules.filter { scope.includes($0) } }
 
         let query = searchText.lowercased()
         return ReferenceJumpTarget.searchResults(toneRules, target: jumpTarget.contains) { rule in
@@ -307,7 +377,8 @@ struct CheatsheetBrowserView: View {
     }
 
     var filteredToneMarks: [ToneMark] {
-        guard !searchText.isEmpty else { return toneMarks }
+        let scope = bookScope
+        guard !searchText.isEmpty else { return toneMarks.filter { scope.includes($0) } }
 
         // Don't match tone marks if searching for just the placeholder consonant
         if searchText == "ก" { return toneMarks.filter(jumpTarget.contains) }
@@ -325,7 +396,8 @@ struct CheatsheetBrowserView: View {
     }
 
     var filteredClusters: [Cluster] {
-        var result = clusters
+        let scope = bookScope
+        var result = clusters.filter { scope.includes($0) }
 
         // Apply type filter
         if let typeFilter = selectedClusterType {
@@ -441,7 +513,7 @@ struct CheatsheetBrowserView: View {
             switch selectedType {
             case .consonants:
                 if filteredConsonants.isEmpty {
-                    ContentUnavailableView.search(text: searchText)
+                    emptySectionView(.consonants)
                 } else {
                 VStack(spacing: 0) {
                     ConsonantHeaderView()
@@ -463,7 +535,7 @@ struct CheatsheetBrowserView: View {
                 }
             case .vowels:
                 if filteredVowels.isEmpty {
-                    ContentUnavailableView.search(text: searchText)
+                    emptySectionView(.vowels)
                 } else {
                 VStack(spacing: 0) {
                     ScrollViewReader { proxy in
@@ -508,7 +580,9 @@ struct CheatsheetBrowserView: View {
                 .contentColumn()
                 }
             case .tones:
-                if filteredToneMarks.isEmpty && filteredToneRules.isEmpty {
+                // The Tone Finder works on any syllable, so it stays available
+                // when the chosen chapter has no tone tables yet.
+                if filteredToneMarks.isEmpty && filteredToneRules.isEmpty && !searchText.isEmpty {
                     ContentUnavailableView.search(text: searchText)
                 } else {
                 ScrollViewReader { proxy in
@@ -517,6 +591,10 @@ struct CheatsheetBrowserView: View {
                             // Not a search result, so it steps aside while searching
                             if searchText.isEmpty {
                                 toneFinderButton
+                            }
+
+                            if filteredToneMarks.isEmpty && filteredToneRules.isEmpty {
+                                notTaughtYetView
                             }
 
                             // Tone Marks table
@@ -580,7 +658,7 @@ struct CheatsheetBrowserView: View {
                 }
             case .clusters:
                 if filteredClusters.isEmpty {
-                    ContentUnavailableView.search(text: searchText)
+                    emptySectionView(.clusters)
                 } else {
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -647,6 +725,14 @@ struct CheatsheetBrowserView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    // Hidden when the chapter mapping failed to load (scope Off).
+                    if thaiData.bookChapters != nil {
+                        BookChaptersButton(
+                            isActive: BookScope(settings: settings, map: thaiData.bookChapters).isActive
+                        ) {
+                            showingBookChapters = true
+                        }
+                    }
                     Button {
                         practiceMode.toggleActive()
                     } label: {
@@ -695,6 +781,9 @@ struct CheatsheetBrowserView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(settings: settings, syncedStore: syncedStore)
+            }
+            .sheet(isPresented: $showingBookChapters) {
+                BookChaptersView(settings: settings)
             }
             .sheet(isPresented: $showingToneFinder) {
                 ToneFinderView { type, key in
@@ -763,7 +852,7 @@ struct CheatsheetBrowserView: View {
 
     /// Defer automatic handoff while another Reference presentation or tab is active.
     private var canPresentDetailSheet: Bool {
-        selectedTab == .reference && !showingSettings && !showingInfo && !showingToneFinder && !isSearchFocused
+        selectedTab == .reference && !showingSettings && !showingInfo && !showingBookChapters && !showingToneFinder && !isSearchFocused
     }
 
     /// Filtering or changing sections must not leave unrelated details visible.
@@ -776,6 +865,7 @@ struct CheatsheetBrowserView: View {
         case .vowel(let id, let variant, _):
             return selectedType == .vowels && filteredVowels.contains { $0.id == id }
                 && (selectedVowelDuration == nil || selectedVowelDuration == variant.duration)
+                && !(vowels.first { $0.id == id }.map { bookScope.hiddenForms(of: $0).contains(variant) } ?? false)
         case .toneMark(let id, _):
             return selectedType == .tones && filteredToneMarks.contains { $0.id == id }
         case .toneRule(let id):

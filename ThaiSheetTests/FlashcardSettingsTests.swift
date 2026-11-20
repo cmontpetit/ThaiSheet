@@ -318,46 +318,7 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertFalse(settings.areToneMarksEnabled)
     }
 
-    // MARK: - isPartialTesting
-
-    func test_isPartialTesting_consonant_trueWhenOnlyOneClassEnabled() {
-        settings.highConsonants = true
-        settings.midConsonants = false
-        settings.lowConsonants = false
-        XCTAssertTrue(settings.isPartialTesting(for: .consonant))
-    }
-
-    func test_isPartialTesting_consonant_falseWhenMultipleClassesEnabled() {
-        settings.highConsonants = true
-        settings.midConsonants = true
-        settings.lowConsonants = false
-        XCTAssertFalse(settings.isPartialTesting(for: .consonant))
-    }
-
-    func test_isPartialTesting_consonant_falseWhenAllClassesEnabled() {
-        settings.highConsonants = true
-        settings.midConsonants = true
-        settings.lowConsonants = true
-        XCTAssertFalse(settings.isPartialTesting(for: .consonant))
-    }
-
-    func test_isPartialTesting_vowel_trueWhenOnlyOneDurationEnabled() {
-        settings.longVowels = true
-        settings.shortVowels = false
-        settings.uncommonVowels = true
-        XCTAssertTrue(settings.isPartialTesting(for: .vowel))
-    }
-
-    func test_isPartialTesting_vowelCard_notCappedWithoutADurationQuestion() throws {
-        settings.longVowels = true
-        settings.shortVowels = false
-        let cards = VowelCard.allCards(from: Vowel.loadAll())
-        let asksDuration = try XCTUnwrap(cards.first { $0.display == "กา" })
-        let soundOnly = try XCTUnwrap(cards.first { $0.display == "กวย" })
-        XCTAssertTrue(settings.isPartialTesting(forCard: .vowel(asksDuration)))
-        XCTAssertFalse(settings.isPartialTesting(forCard: .vowel(soundOnly)),
-                       "The duration filter trivializes nothing on a card that does not ask duration")
-    }
+    // MARK: - Length contrast
 
     func test_isVowelCardEnabled_withoutLengthContrast_followsEitherDuration() {
         settings.vowelsEnabled = true
@@ -367,35 +328,6 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.isVowelCardEnabled(duration: .long, isUncommon: false, hasLengthContrast: false))
         settings.shortVowels = false
         XCTAssertFalse(settings.isVowelCardEnabled(duration: .long, isUncommon: false, hasLengthContrast: false))
-    }
-
-    func test_isPartialTesting_vowel_falseWhenMultipleDurationsEnabled() {
-        settings.longVowels = true
-        settings.shortVowels = true
-        settings.uncommonVowels = false
-        XCTAssertFalse(settings.isPartialTesting(for: .vowel))
-    }
-
-    func test_isPartialTesting_toneMark_alwaysFalse() {
-        XCTAssertFalse(settings.isPartialTesting(for: .toneMark))
-    }
-
-    func test_isPartialTesting_toneRule_trueWhenOnlyOneClassEnabled() {
-        settings.highToneRules = true
-        settings.midToneRules = false
-        settings.lowToneRules = false
-        XCTAssertTrue(settings.isPartialTesting(for: .toneRule))
-    }
-
-    func test_isPartialTesting_toneRule_falseWhenMultipleClassesEnabled() {
-        settings.highToneRules = true
-        settings.midToneRules = true
-        settings.lowToneRules = false
-        XCTAssertFalse(settings.isPartialTesting(for: .toneRule))
-    }
-
-    func test_isPartialTesting_cluster_alwaysFalse() {
-        XCTAssertFalse(settings.isPartialTesting(for: .cluster))
     }
 
     // MARK: - isAllSelected / isNoneSelected

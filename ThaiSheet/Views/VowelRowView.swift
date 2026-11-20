@@ -7,7 +7,7 @@ import SwiftUI
 
 /// Duration × form pair identifying one of a vowel row's four cells,
 /// expressed with the model's own enums (see VowelCard)
-struct VowelFormVariant: Equatable {
+struct VowelFormVariant: Hashable {
     let duration: VowelCard.VowelDuration
     let form: VowelCard.VowelFormType
 
@@ -15,6 +15,16 @@ struct VowelFormVariant: Equatable {
     static let shortOpen = VowelFormVariant(duration: .short, form: .open)
     static let longClosed = VowelFormVariant(duration: .long, form: .closed)
     static let longOpen = VowelFormVariant(duration: .long, form: .open)
+
+    static let all: [VowelFormVariant] = [.shortClosed, .shortOpen, .longClosed, .longOpen]
+}
+
+extension Vowel {
+    /// The written form in one of the row's four cells, if the row has it.
+    func form(_ variant: VowelFormVariant) -> String? {
+        let pair = variant.duration == .short ? short : long
+        return variant.form == .closed ? pair.closed : pair.open
+    }
 }
 
 struct VowelReferenceWordSource {
@@ -172,6 +182,9 @@ struct VowelRowView: View {
     var searchQuery: String? = nil
     /// When set, only that duration's cells are shown (full width)
     var visibleDuration: VowelCard.VowelDuration? = nil
+    /// Forms the chapter scope hides: shown as empty cells, never played, never
+    /// selected. Audio and details only ever use a visible form.
+    var hiddenForms: Set<VowelFormVariant> = []
     @Environment(\.audioPlayer) private var audioPlayer
     @ScaledMetric(relativeTo: .title2) private var singleDurationFormSize: CGFloat = 34
 
@@ -185,34 +198,42 @@ struct VowelRowView: View {
         return vowel.allForms.contains(highlighted)
     }
 
-    // Find a form that has a sound file (prefer visible forms, then closed forms)
+    /// The forms the row displays, in the order the Sound cell prefers them:
+    /// closed before open, long before short when both durations show. Only
+    /// displayed forms qualify, so the Sound cell never plays or opens a form
+    /// the duration chip or the chapter scope hides.
+    static func soundCandidates(
+        for vowel: Vowel,
+        visibleDuration: VowelCard.VowelDuration?,
+        hiddenForms: Set<VowelFormVariant>
+    ) -> [(text: String, formType: VowelFormVariant)] {
+        let order: [VowelFormVariant] = [.longClosed, .shortClosed, .longOpen, .shortOpen]
+        return order.compactMap { variant in
+            guard visibleDuration == nil || variant.duration == visibleDuration,
+                  !hiddenForms.contains(variant),
+                  let text = vowel.form(variant) else { return nil }
+            return (text, variant)
+        }
+    }
+
+    private var displayedCandidates: [(text: String, formType: VowelFormVariant)] {
+        Self.soundCandidates(for: vowel, visibleDuration: visibleDuration, hiddenForms: hiddenForms)
+    }
+
+    // The first displayed form with a recording
     private var soundForm: (
         text: String,
         formType: VowelFormVariant,
         pronunciation: ReferenceSampleWord
     )? {
-        let candidates: [(String?, VowelFormVariant)]
-        switch visibleDuration {
-        case .short:
-            candidates = [(vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen),
-                          (vowel.long.closed, .longClosed), (vowel.long.open, .longOpen)]
-        case .long:
-            candidates = [(vowel.long.closed, .longClosed), (vowel.long.open, .longOpen),
-                          (vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen)]
-        case nil:
-            candidates = [(vowel.long.closed, .longClosed), (vowel.short.closed, .shortClosed),
-                          (vowel.long.open, .longOpen), (vowel.short.open, .shortOpen)]
-        }
-        return candidates.compactMap { candidate -> (
+        displayedCandidates.compactMap { candidate -> (
             text: String,
             formType: VowelFormVariant,
             pronunciation: ReferenceSampleWord
         )? in
-            let (text, formType) = candidate
-            guard let text,
-                  let pronunciation = pronunciation(for: formType),
+            guard let pronunciation = pronunciation(for: candidate.formType),
                   audioPlayer.hasSound(.vowel, key: pronunciation.word) else { return nil }
-            return (text, formType, pronunciation)
+            return (candidate.text, candidate.formType, pronunciation)
         }.first
     }
 
@@ -225,14 +246,7 @@ struct VowelRowView: View {
     /// reveals on tap, and can open details.
     private var displayForm: (text: String, formType: VowelFormVariant)? {
         if let sound = soundForm { return (sound.text, sound.formType) }
-        let candidates: [(String?, VowelFormVariant)] = [
-            (vowel.long.closed, .longClosed), (vowel.long.open, .longOpen),
-            (vowel.short.closed, .shortClosed), (vowel.short.open, .shortOpen),
-        ]
-        for (formText, formType) in candidates where formText != nil {
-            return (formText!, formType)
-        }
-        return nil
+        return displayedCandidates.first
     }
 
     // One reveal per row: tapping any of its form cells reveals the shared reading
@@ -288,6 +302,7 @@ struct VowelRowView: View {
     /// One duration's cells. Basic vowels keep the Closed/Open columns; a
     /// combination row has no such columns, so it shows only its real forms.
     private func cells(_ slots: [(text: String?, formType: VowelFormVariant)]) -> some View {
+        let slots = slots.map { (text: hiddenForms.contains($0.formType) ? nil : $0.text, formType: $0.formType) }
         let shown = vowel.isCombination ? slots.filter { $0.text != nil } : slots
         return HStack(spacing: 0) {
             if shown.isEmpty {

@@ -21,6 +21,7 @@ class FlashcardSettings {
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
         "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage",
         "fc_romanization",
+        "fc_bookProgress", "fc_showNotInBook",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -113,6 +114,25 @@ class FlashcardSettings {
 
     var irregularClusters = true {
         didSet { persist(irregularClusters, forKey: "fc_irregularClusters") }
+    }
+
+    // MARK: - Book Chapter Scope
+
+    /// "Read Thai in 10 Days" progress: both tabs show only what the book has
+    /// introduced up to this chapter. nil = Off. A scope, not a filter, so
+    /// select/deselect-all never touch it. Persisted as the chapter's raw value,
+    /// or "off" explicitly: an absent key would not sync turning it off, since
+    /// iCloud reconciliation only copies keys that exist.
+    var bookProgress: BookChapter? = nil {
+        didSet { persist(bookProgress?.rawValue ?? Self.bookProgressOff, forKey: "fc_bookProgress") }
+    }
+
+    static let bookProgressOff = "off"
+
+    /// Whether an active book scope also includes items no chapter teaches
+    /// ("Not taught in the book"). Ignored while the scope is Off.
+    var showNotInBook = false {
+        didSet { persist(showNotInBook, forKey: "fc_showNotInBook") }
     }
 
     // MARK: - Other Settings
@@ -352,6 +372,9 @@ class FlashcardSettings {
         silentClusters = defaults.object(forKey: "fc_silentClusters") as? Bool ?? true
         irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
 
+        bookProgress = defaults.string(forKey: "fc_bookProgress").flatMap(BookChapter.init(rawValue:))
+        showNotInBook = defaults.object(forKey: "fc_showNotInBook") as? Bool ?? false
+
         useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
         let recordedVoiceValue = defaults.string(forKey: "fc_recordedVoice")
         let voiceOverridesData = defaults.data(forKey: "fc_voiceOverrides")
@@ -522,57 +545,6 @@ class FlashcardSettings {
 
     var isNoneSelected: Bool {
         !consonantsEnabled && !vowelsEnabled && !tonesEnabled && !clusters
-    }
-
-    // MARK: - Partial Testing Detection
-
-    func isPartialTesting(for cardType: FlashcardType) -> Bool {
-        switch cardType {
-        case .consonant:
-            // Class question is trivial if only one consonant class is enabled
-            return enabledConsonantClassCount == 1
-
-        case .vowel:
-            // Duration question is trivial if only one duration is enabled
-            return enabledVowelDurationCount == 1
-
-        case .toneMark:
-            return false
-
-        case .toneRule:
-            return enabledToneRuleClassCount == 1
-
-        case .cluster:
-            return false
-        }
-    }
-
-    /// Per-card cap: a filter only makes a card partial when it trivializes a
-    /// question that card asks. Vowel cards without a duration question are
-    /// unaffected by the duration filter.
-    func isPartialTesting(forCard card: FlashcardItem) -> Bool {
-        if case .vowel(let vowelCard) = card, !vowelCard.asksDuration {
-            return false
-        }
-        return isPartialTesting(for: card.type)
-    }
-
-    /// Count of enabled consonant classes (high/mid/low, excluding uncommon)
-    private var enabledConsonantClassCount: Int {
-        var count = 0
-        if highConsonants { count += 1 }
-        if midConsonants { count += 1 }
-        if lowConsonants { count += 1 }
-        return count
-    }
-
-    /// Count of enabled tone rule consonant classes
-    private var enabledToneRuleClassCount: Int {
-        var count = 0
-        if highToneRules { count += 1 }
-        if midToneRules { count += 1 }
-        if lowToneRules { count += 1 }
-        return count
     }
 }
 

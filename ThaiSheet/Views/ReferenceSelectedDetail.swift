@@ -40,8 +40,22 @@ struct ReferenceSelectedDetail: View {
     let item: ReferenceItem
     let onPractice: (String, FlashcardType) -> Void
     @Environment(\.thaiData) private var thaiData
+    @Environment(\.flashcardSettings) private var settings
+
+    /// Judged on the chapter scope alone, even while searching: search can
+    /// surface items beyond the chapter, and Practice should say so.
+    private var isOutsideChapter: Bool {
+        guard let settings else { return false }
+        return !ReferenceBookScope(settings: settings, map: thaiData.bookChapters).includes(item, data: thaiData)
+    }
 
     var body: some View {
+        detail
+            .environment(\.practiceIsOutsideChapter, isOutsideChapter)
+    }
+
+    @ViewBuilder
+    private var detail: some View {
         switch item {
         case .consonant(let id):
             if let consonant = thaiData.consonants.first(where: { $0.id == id }) {

@@ -49,7 +49,7 @@ struct VowelFlashcardView: View {
         .sheet(isPresented: $showingDetails) {
             VowelDetailSheet(
                 vowel: card.vowel,
-                formType: VowelFormVariant(duration: card.duration, form: card.form),
+                formType: VowelFormVariant(duration: card.shownDuration, form: card.form),
                 text: card.display
             )
         }
@@ -89,7 +89,7 @@ struct VowelFlashcardView: View {
                     FlashcardSummaryRow(
                         label: "Duration",
                         selectedValue: cardState.selectedDuration?.label,
-                        correctValue: card.duration.label,
+                        correctValue: card.shownDuration.label,
                         showResult: currentStep == .completed,
                         alternativeCorrectValue: card.alternativeDuration?.label
                     )
@@ -112,7 +112,7 @@ struct VowelFlashcardView: View {
 
                 // Show note if available and card is completed
                 if currentStep == .completed,
-                   let note = card.vowel.note(for: card.duration.rawValue, form: card.form.rawValue) {
+                   let note = card.vowel.note(for: card.shownDuration.rawValue, form: card.form.rawValue) {
                     Divider()
                     Text(note)
                         .font(.caption)

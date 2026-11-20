@@ -2925,6 +2925,190 @@
           }
         }
       }
+    },
+    "Up to" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jusqu’à"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé"
+          }
+        }
+      }
+    },
+    "On" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activé"
+          }
+        }
+      }
+    },
+    "Not taught in the book" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non enseigné dans le livre"
+          }
+        }
+      }
+    },
+    "Also show content no chapter teaches, such as the obsolete letters ฃ and ฅ." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher aussi le contenu qu’aucun chapitre n’enseigne, comme les lettres obsolètes ฃ et ฅ."
+          }
+        }
+      }
+    },
+    "Book Chapters" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chapitres du livre"
+          }
+        }
+      }
+    },
+    "Day 5 · Intermission" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jour 5 · Entracte"
+          }
+        }
+      }
+    },
+    "Last Day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dernier jour"
+          }
+        }
+      }
+    },
+    "Day %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jour %lld"
+          }
+        }
+      }
+    },
+    "Open Book Chapters" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir les chapitres du livre"
+          }
+        }
+      }
+    },
+    "Both tabs show only what the book has taught up to the chosen chapter. Reference search includes all chapters." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les deux onglets n’affichent que ce que le livre a enseigné jusqu’au chapitre choisi. La recherche dans Référence inclut tous les chapitres."
+          }
+        }
+      }
+    },
+    "Enable some options in Filters, or choose a later chapter in Book Chapters" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez des options dans les filtres, ou choisissez un chapitre plus avancé dans Chapitres du livre"
+          }
+        }
+      }
+    },
+    "Practice outside chapter" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pratiquer hors chapitre"
+          }
+        }
+      }
+    },
+    "Not taught yet" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas encore enseigné"
+          }
+        }
+      }
+    },
+    "The book has not reached this section by the chosen chapter. You can change it in Book Chapters." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le livre n’aborde pas encore cette section au chapitre choisi. Vous pouvez le changer dans Chapitres du livre."
+          }
+        }
+      }
+    },
+    "Nothing taught yet with this filter" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rien d’enseigné avec ce filtre pour l’instant"
+          }
+        }
+      }
+    },
+    "The chosen chapter covers other items in this section." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le chapitre choisi couvre d’autres éléments de cette section."
+          }
+        }
+      }
+    },
+    "Show All" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout afficher"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
