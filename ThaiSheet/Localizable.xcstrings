@@ -271,12 +271,12 @@
         }
       }
     },
-    "Book romanization is based on the pronunciation guide in Read Thai in 10 Days, 2nd edition, by Arthit Juyaso (Bingo-Lingo)." : {
+    "The book chapters in Study Content and the book romanization follow Read Thai in 10 Days, 2nd edition, by Arthit Juyaso (Bingo-Lingo). ThaiSheet is not affiliated with or endorsed by the author or publisher." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cette romanisation s’appuie sur le guide de prononciation de Read Thai in 10 Days, 2ᵉ édition, d’Arthit Juyaso (Bingo-Lingo)."
+            "value" : "Les chapitres du livre dans Contenu d’étude et la romanisation du livre suivent Read Thai in 10 Days, 2ᵉ édition, d’Arthit Juyaso (Bingo-Lingo). ThaiSheet n’est ni affilié à l’auteur ou à l’éditeur, ni approuvé par eux."
           }
         }
       }
@@ -3017,6 +3017,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Les deux onglets n’affichent que ce que le livre a enseigné jusqu’au chapitre choisi. La recherche dans Référence inclut tous les chapitres."
+          }
+        }
+      }
+    },
+    "Chapters follow the 2nd edition by Arthit Juyaso (Bingo-Lingo). ThaiSheet is not affiliated with or endorsed by the author or publisher." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les chapitres suivent la 2ᵉ édition d’Arthit Juyaso (Bingo-Lingo). ThaiSheet n’est ni affilié à l’auteur ou à l’éditeur, ni approuvé par eux."
           }
         }
       }
