@@ -738,6 +738,16 @@
         }
       }
     },
+    "Details" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Détails"
+          }
+        }
+      }
+    },
     "Device voice" : {
       "extractionState" : "manual",
       "localizations" : {

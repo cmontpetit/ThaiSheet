@@ -112,6 +112,23 @@ final class VowelCardTests: XCTestCase {
         }
     }
 
+    // MARK: - Card prompts
+
+    func test_prompt_distinguishesLongOpenAndClosedA() throws {
+        let open = try XCTUnwrap(allCards.first { $0.id == "a:Long:Open" })
+        let closed = try XCTUnwrap(allCards.first { $0.id == "a:Long:Closed" })
+
+        XCTAssertEqual(open.prompt, "กา")
+        XCTAssertEqual(closed.prompt, "การ")
+    }
+
+    func test_prompt_usesWrittenFormWithoutAnExample() throws {
+        let card = try XCTUnwrap(allCards.first { $0.id == "uea:Short:Open" })
+
+        XCTAssertNil(card.pronunciationWord)
+        XCTAssertEqual(card.prompt, "เกือะ")
+    }
+
     // MARK: - Form assignments
 
     func test_allCards_hasBothForms() {

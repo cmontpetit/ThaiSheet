@@ -69,9 +69,18 @@ struct VowelFlashcardView: View {
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {
-            Text(card.display.replacingOccurrences(of: "-", with: ""))
-                .font(.system(size: glyphSize))
-                .minimumScaleFactor(0.5)
+            VStack(spacing: 4) {
+                Text(card.prompt)
+                    .font(.system(size: glyphSize))
+
+                if currentStep == .completed {
+                    Text(ThaiDisplay.placeholder(card.display))
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
         }
     }
 
