@@ -31,7 +31,18 @@ struct StudyContentView: View {
                 } header: {
                     Text("Uncommon content")
                 } footer: {
-                    Text("Rare and obsolete consonants and vowels, such as ฃ, ฅ and ฦ. Applies to both tabs. Reference search still finds them.")
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Rare and obsolete consonants and vowels, such as ฃ, ฅ and ฦ. Applies to both tabs. Reference search still finds them.")
+                        // Saved from the two former filters: the switch reads Off,
+                        // but one kind still shows. Say so instead of resetting it.
+                        // Two literals, not a ternary: a ternary of literals
+                        // types as String, which Text would not localize.
+                        if settings.uncommonVowels && !settings.uncommonConsonants {
+                            Text("Your saved settings currently show uncommon vowels only.")
+                        } else if settings.uncommonConsonants && !settings.uncommonVowels {
+                            Text("Your saved settings currently show uncommon consonants only.")
+                        }
+                    }
                 }
             }
             .navigationTitle("Study Content")

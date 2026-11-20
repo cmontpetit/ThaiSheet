@@ -3109,6 +3109,26 @@
           }
         }
       }
+    },
+    "Your saved settings currently show uncommon vowels only." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos réglages enregistrés n’affichent actuellement que les voyelles peu courantes."
+          }
+        }
+      }
+    },
+    "Your saved settings currently show uncommon consonants only." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos réglages enregistrés n’affichent actuellement que les consonnes peu courantes."
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
