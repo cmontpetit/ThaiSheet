@@ -295,11 +295,13 @@ final class BookScopeDeckTests: XCTestCase {
     func test_sharedForm_presentsInScopeSlot() throws {
         let original = try deckVowelCard("เกิ-")
         XCTAssertEqual(original.shownDuration, original.duration)
+        XCTAssertEqual(original.prompt, "เงิน")
 
         settings.bookProgress = .day5
         let scoped = try deckVowelCard("เกิ-")
         XCTAssertEqual(scoped.shownDuration, .long)
         XCTAssertEqual(scoped.pronunciationWord?.word, "เดิน")
+        XCTAssertEqual(scoped.prompt, "เดิน")
         XCTAssertEqual(scoped.id, original.id)
         XCTAssertEqual(scoped.duration, original.duration)
         XCTAssertEqual(FlashcardItem.vowel(scoped).fixedAnswerQuestions[.vowelDuration], ["Short", "Long"])

@@ -50,7 +50,7 @@ struct NavigableTapArea<Content: View>: View {
 // MARK: - Card Face
 
 /// The top card of every flashcard: result-tinted background, swipeable
-/// display area, and the Reference / Play button row.
+/// display area, and card actions.
 struct FlashcardFace<Content: View>: View {
     let showResult: Bool
     let hasError: Bool
@@ -61,9 +61,7 @@ struct FlashcardFace<Content: View>: View {
     var overrideItemID: String? = nil
     var displayHeight: CGFloat = 160
     var onViewInReference: (() -> Void)?
-    /// Long-press the revealed card to open its reference detail sheet — mirrors
-    /// the Reference tab gesture. Gated to `showResult` so it can't leak answers.
-    var onShowDetails: (() -> Void)? = nil
+    let onShowDetails: () -> Void
     let onPrevious: () -> Void
     let onNext: () -> Void
     @ViewBuilder let content: () -> Content
@@ -77,41 +75,15 @@ struct FlashcardFace<Content: View>: View {
             VStack(spacing: 12) {
                 displayArea
 
-                HStack(spacing: 20) {
-                    Button {
-                        onViewInReference?()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "book")
-                            Text("Reference")
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.accentColor)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 20) {
+                        actions
                     }
-
-                    // Speaker button (only when completed)
-                    if showResult {
-                        let hasSound = audioPlayer.hasSound(soundType, key: soundKey)
-                        Button {
-                            audioPlayer.play(soundType, key: soundKey, itemID: overrideItemID)
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                                Text("Play")
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(hasSound ? .accentColor : .secondary)
-                        }
-                        .disabled(!hasSound)
+                    VStack(spacing: 0) {
+                        actions
                     }
                 }
-
-                // Only after reveal, so the gesture can never leak the answer.
-                if showResult, onShowDetails != nil {
-                    Label("Touch and hold for details.", systemImage: "hand.tap")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
+                .font(.subheadline)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
@@ -119,40 +91,50 @@ struct FlashcardFace<Content: View>: View {
         .cornerRadius(16)
     }
 
-    /// The swipeable glyph area. After reveal it honors the full Reference
-    /// gesture contract — tap plays the sound (like the Play button), long press
-    /// opens details — plus the same accessibility action. Both are withheld
-    /// until reveal so the gestures can't leak the answer.
+    @ViewBuilder
+    private var actions: some View {
+        Button {
+            onViewInReference?()
+        } label: {
+            actionLabel("Reference", systemImage: "book")
+        }
+
+        if showResult {
+            let hasSound = audioPlayer.hasSound(soundType, key: soundKey)
+            Button(action: playSound) {
+                actionLabel("Play", systemImage: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+            }
+            .disabled(!hasSound)
+
+            Button(action: onShowDetails) {
+                actionLabel("Details", systemImage: "info.circle")
+            }
+        }
+    }
+
+    private func actionLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+    }
+
+    /// The swipeable glyph area also plays the sound on tap after reveal.
     private var displayArea: some View {
         NavigableTapArea(onPrevious: onPrevious, onNext: onNext) {
-            // Tap and long press sit inside the swipe area, not around it: as
-            // the parent of the swipe drag, the long press waited for the drag
-            // to fail, which only happens on lift, so details opened on release
-            revealedGestures(
-                content()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .contentShape(Rectangle())
-            )
+            let area = content()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+            if showResult {
+                area.onTapGesture(perform: playSound)
+            } else {
+                area
+            }
         }
         .frame(height: displayHeight * displayScale)
     }
 
-    @ViewBuilder
-    private func revealedGestures(_ area: some View) -> some View {
-        if showResult {
-            let playable = area.onTapGesture {
-                audioPlayer.play(soundType, key: soundKey, itemID: overrideItemID)
-            }
-            if let onShowDetails {
-                playable
-                    .onLongPressGesture { onShowDetails() }
-                    .accessibilityAction(named: Text("Show details")) { onShowDetails() }
-            } else {
-                playable
-            }
-        } else {
-            area
-        }
+    private func playSound() {
+        audioPlayer.play(soundType, key: soundKey, itemID: overrideItemID)
     }
 }
 

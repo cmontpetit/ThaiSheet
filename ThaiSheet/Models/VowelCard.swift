@@ -47,6 +47,10 @@ struct VowelCard: Identifiable {
         vowel.pronunciation(for: shownDuration, form: form)
     }
 
+    var prompt: String {
+        pronunciationWord?.word ?? ThaiDisplay.placeholder(display.replacingOccurrences(of: "-", with: ""))
+    }
+
     enum VowelDuration: String, CaseIterable {
         case short = "Short"
         case long = "Long"

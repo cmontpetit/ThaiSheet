@@ -112,6 +112,41 @@ final class VowelCardTests: XCTestCase {
         }
     }
 
+    // MARK: - Card prompts
+
+    func test_prompt_distinguishesLongOpenAndClosedA() throws {
+        let open = try XCTUnwrap(allCards.first { $0.id == "a:Long:Open" })
+        let closed = try XCTUnwrap(allCards.first { $0.id == "a:Long:Closed" })
+
+        XCTAssertEqual(open.prompt, "กา")
+        XCTAssertEqual(closed.prompt, "การ")
+    }
+
+    func test_prompt_usesPlaceholderWithoutAnExample() throws {
+        let card = try XCTUnwrap(allCards.first { $0.id == "uea:Short:Open" })
+
+        XCTAssertNil(card.pronunciationWord)
+        XCTAssertEqual(card.prompt, "เ\u{200A}ือะ")
+    }
+
+    func test_prompts_distinguishOpenAndClosedFormsForEachDuration() throws {
+        for vowel in allVowels where !vowel.isCombination {
+            let cards = allCards.filter { $0.vowel.id == vowel.id }
+            for duration in VowelCard.VowelDuration.allCases {
+                let forms = duration == .short ? vowel.short : vowel.long
+                guard let openForm = forms.open, let closedForm = forms.closed else { continue }
+
+                let open = try XCTUnwrap(cards.first { $0.form == .open && $0.display == openForm })
+                let closed = try XCTUnwrap(cards.first { $0.form == .closed && $0.display == closedForm })
+                XCTAssertNotEqual(
+                    open.presenting(duration).prompt,
+                    closed.presenting(duration).prompt,
+                    "The \(duration.rawValue.lowercased()) forms of \(vowel.id) need distinct prompts."
+                )
+            }
+        }
+    }
+
     // MARK: - Form assignments
 
     func test_allCards_hasBothForms() {
