@@ -73,7 +73,7 @@ struct VowelFlashcardView: View {
                 Text(card.prompt)
                     .font(.system(size: glyphSize))
 
-                if currentStep == .completed {
+                if currentStep == .completed, card.pronunciationWord != nil {
                     Text(ThaiDisplay.placeholder(card.display))
                         .font(.largeTitle)
                         .foregroundStyle(.secondary)
