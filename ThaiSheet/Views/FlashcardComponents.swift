@@ -445,24 +445,44 @@ struct FlashcardGridButton: View {
     }
 }
 
-// MARK: - Practice-Only Hint
+// MARK: - Review Outcome Hint
 
-/// A correct answer on a card that is not due yet: which card, and when it is due
-struct PracticeOnlyNotice: Equatable {
+/// A correct answer that did not move the card's stage, and on which card
+struct ReviewNotice: Equatable {
     let cardID: String
-    let nextReview: Date
+    let outcome: ReviewOutcome
 }
 
-/// Tells the learner a correct answer did not move the card's stage because
-/// the card was not due yet (`LearningModel.recordResult`)
-struct PracticeOnlyHint: View {
-    let nextReview: Date
+/// Tells the learner why a correct answer did not move the card's stage
+/// (`LearningModel.recordResult`): not due yet, capped, or already mastered.
+/// Shows nothing for an answer that counted.
+struct ReviewOutcomeHint: View {
+    let outcome: ReviewOutcome
 
     var body: some View {
+        switch outcome {
+        case .counted:
+            EmptyView()
+        case .notDue(let nextReview):
+            hint(systemImage: "clock") {
+                Text("Not due yet, so the stage stays the same. Next review \(nextReview, format: .relative(presentation: .named)).")
+            }
+        case .capped(let nextReview):
+            hint(systemImage: "lock.fill") {
+                Text("Stage capped: it stays the same until Filter or Study Content offers more choices. Next review \(nextReview, format: .relative(presentation: .named)).")
+            }
+        case .mastered:
+            hint(systemImage: "checkmark.seal") {
+                Text("Mastered: this card is no longer reviewed, so the stage stays the same.")
+            }
+        }
+    }
+
+    private func hint(systemImage: String, @ViewBuilder text: () -> Text) -> some View {
         Label {
-            Text("Not due yet, so the stage stays the same. Next review \(nextReview, format: .relative(presentation: .named)).")
+            text()
         } icon: {
-            Image(systemName: "clock")
+            Image(systemName: systemImage)
         }
         .font(.caption2)
         .foregroundColor(.secondary)

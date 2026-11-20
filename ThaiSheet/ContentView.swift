@@ -137,8 +137,8 @@ struct FlashcardsView: View {
     @State private var showingFilter = false
     @State private var showingStudyContent = false
     @State private var filterRefreshID = UUID()
-    /// Set when the last answer was correct but early, so it did not count
-    @State private var practiceOnlyNotice: PracticeOnlyNotice?
+    /// Set when the last correct answer did not move the card's stage
+    @State private var reviewNotice: ReviewNotice?
 
     /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the uncommon-content toggle).
     private var bookChapters: BookChapterMap? { manager.data.bookChapters }
@@ -166,27 +166,23 @@ struct FlashcardsView: View {
     private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
         let fullTesting = !manager.isPartialTesting(card)
         let outcome = manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
-        if case .notDue(let nextReview) = outcome {
-            practiceOnlyNotice = PracticeOnlyNotice(cardID: card.id, nextReview: nextReview)
-        } else {
-            practiceOnlyNotice = nil
-        }
+        reviewNotice = outcome == .counted ? nil : ReviewNotice(cardID: card.id, outcome: outcome)
         UINotificationFeedbackGenerator().notificationOccurred(correct ? .success : .error)
     }
 
     private func showNext() {
-        practiceOnlyNotice = nil
+        reviewNotice = nil
         manager.nextCard()
     }
 
     private func showPrevious() {
-        practiceOnlyNotice = nil
+        reviewNotice = nil
         manager.previousCard()
     }
 
-    /// The current card's notice, if its last answer was practice only
-    private func practiceOnlyNotice(for card: FlashcardItem) -> PracticeOnlyNotice? {
-        guard let notice = practiceOnlyNotice, notice.cardID == card.id else { return nil }
+    /// The current card's notice, if its last correct answer did not move its stage
+    private func reviewNotice(for card: FlashcardItem) -> ReviewNotice? {
+        guard let notice = reviewNotice, notice.cardID == card.id else { return nil }
         return notice
     }
 
@@ -350,8 +346,8 @@ struct FlashcardsView: View {
                 Spacer()
                 stageIndicator(for: card)
             }
-            if let notice = practiceOnlyNotice(for: card) {
-                PracticeOnlyHint(nextReview: notice.nextReview)
+            if let notice = reviewNotice(for: card) {
+                ReviewOutcomeHint(outcome: notice.outcome)
             }
         }
         .padding(.horizontal)

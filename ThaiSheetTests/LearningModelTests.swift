@@ -164,6 +164,43 @@ final class LearningModelTests: XCTestCase {
         XCTAssertEqual(model.recordResult(for: card1, correct: true), .counted)
     }
 
+    func test_recordResult_correctOnMastered_reportsMastered() {
+        for _ in 0..<8 { model.recordResult(for: card1, correct: true, fullTesting: true) }
+        XCTAssertEqual(model.srsStage(for: card1), .mastered)
+
+        XCTAssertEqual(model.recordResult(for: card1, correct: true), .mastered,
+                       "A mastered card has no next review, so it is not reported as not due")
+    }
+
+    func test_recordResult_correctBlockedByCap_reportsCappedWithNextReview() {
+        for _ in 0..<6 { model.recordResult(for: card1, correct: true, fullTesting: false) }
+        XCTAssertEqual(model.srsStage(for: card1), .familiar2)
+
+        let outcome = model.recordResult(for: card1, correct: true, fullTesting: false)
+
+        XCTAssertEqual(model.srsStage(for: card1), .familiar2)
+        let nextReview = try? XCTUnwrap(model.getProgress(for: card1).nextReviewDate)
+        XCTAssertEqual(outcome, .capped(nextReview: nextReview!))
+    }
+
+    func test_recordResult_capAboveEarnedStage_reportsCapped() {
+        for _ in 0..<7 { model.recordResult(for: card1, correct: true, fullTesting: true) }
+        XCTAssertEqual(model.srsStage(for: card1), .confident)
+
+        let outcome = model.recordResult(for: card1, correct: true, fullTesting: false)
+
+        XCTAssertEqual(model.srsStage(for: card1), .confident, "A capped answer never lowers an earned stage")
+        guard case .capped = outcome else { return XCTFail("Expected .capped, got \(outcome)") }
+    }
+
+    func test_recordResult_reachingCap_reportsCounted() {
+        for _ in 0..<5 { model.recordResult(for: card1, correct: true, fullTesting: false) }
+        XCTAssertEqual(model.srsStage(for: card1), .familiar1)
+
+        XCTAssertEqual(model.recordResult(for: card1, correct: true, fullTesting: false), .counted,
+                       "Familiar 1 to Familiar 2 is allowed under the cap")
+    }
+
     func test_recordResult_incorrectBeforeDue_stillDemotes() {
         var now = Date()
         model.clock = { now }
