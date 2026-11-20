@@ -75,7 +75,8 @@ struct VowelDetailSheet: View {
     private var concealID: String { FlashcardType.vowel.cardId(for: vowel.id) }
 
     private func referenceWordAudios() -> [ReferenceWordAudio] {
-        vowelReferenceWordSources(
+        let context: RomanizationContext = formType == .shortOpen ? .shortOpenVowelExample : .transcription
+        return vowelReferenceWordSources(
             for: vowel,
             duration: formType.duration,
             form: formType.form
@@ -83,6 +84,7 @@ struct VowelDetailSheet: View {
             ReferenceWordAudio(
                 role: source.role,
                 word: source.word,
+                romanizationContext: context,
                 hasSound: audioPlayer.hasSound(source.soundType, key: source.word.word),
                 onPlay: {
                     audioPlayer.play(
@@ -109,6 +111,7 @@ struct VowelDetailSheet: View {
         ReferenceItemSheet(
             title: ThaiDisplay.placeholder(text),
             romanization: vowel.sound,
+            romanizationContext: .vowelLabel,
             stage: stage,
             note: vowel.note(for: formType.duration.rawValue, form: formType.form.rawValue),
             wordAudios: referenceWordAudios(),

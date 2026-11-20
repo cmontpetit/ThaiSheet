@@ -260,6 +260,27 @@
         }
       }
     },
+    "Read Thai in 10 Days (2nd ed.)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read Thai in 10 Days (2ᵉ éd.)"
+          }
+        }
+      }
+    },
+    "Book romanization is based on the pronunciation guide in Read Thai in 10 Days, 2nd edition, by Arthit Juyaso (Bingo-Lingo)." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette romanisation s’appuie sur le guide de prononciation de Read Thai in 10 Days, 2ᵉ édition, d’Arthit Juyaso (Bingo-Lingo)."
+          }
+        }
+      }
+    },
     "Romanization" : {
       "localizations" : {
         "fr" : {

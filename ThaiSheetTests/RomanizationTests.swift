@@ -150,6 +150,67 @@ final class RomanizationTests: XCTestCase {
         XCTAssertEqual(Romanization.render("jù-laa", as: .rtgs), "chula")
     }
 
+    func test_bookRendersWordsWithItsOwnVowelsTonesAndBoundaries() {
+        let examples: [(learner: String, expected: String)] = [
+            ("khǎaw khài", "kŏr kài"), ("thaaw thá-hǎan", "tor táhăan"),
+            ("phêung", "pûe’ng"), ("gàawn", "gòrn"), ("khon", "kon"),
+            ("khun", "koo’n"), ("bplaa", "bplaa"), ("dtrong", "dtrong"),
+            ("gà", "gà"), ("gan", "gun"), ("dtè", "dtày’"), ("dèk", "dèk"),
+            ("gaaeng", "gang"), ("khǎeng", "kă’ng"), ("gàe", "gàir’"),
+            ("dii", "dee"), ("lôhk", "lôhk"), ("dtó", "dtó’"),
+            ("gàw", "gòr’"), ("juuh", "jer"), ("nguhn", "nger’n"),
+            ("jam", "jum"), ("àang", "àang"), ("meuang", "mueang"),
+            ("leeuy", "leui"), ("dohy", "doey"), ("khaawy", "koi"),
+            ("hǐo", "hĭw"), ("khǐao", "kĭao"), ("sǔay", "sŭai"),
+            ("nèuay", "nùeai"), ("khuy", "kui"), ("dtào", "dtào"),
+            ("sà-àat", "sà-àat"), ("rohng-raaem", "rohng-ram"),
+            ("sà-ngàa", "sà-ngàa"), ("jùt-dta-waa", "jòo’t-dtawaa"),
+        ]
+        for (learner, expected) in examples {
+            XCTAssertEqual(Romanization.render(learner, as: .readThaiIn10Days), expected, learner)
+        }
+    }
+
+    func test_bookUsesABreveAndCanonicalUnicode() {
+        XCTAssertEqual(
+            Romanization.render("gaa gàa gâa gáa gǎa", as: .readThaiIn10Days),
+            "gaa gàa gâa gáa găa"
+        )
+        let decomposedLearner = "khǎaw".decomposedStringWithCanonicalMapping
+        let rendered = Romanization.render(decomposedLearner, as: .readThaiIn10Days)
+        XCTAssertEqual(Array(rendered.unicodeScalars), Array("kŏr".unicodeScalars))
+        XCTAssertFalse(Romanization.isWellFormed(rendered), "Book output is not a learner input")
+    }
+
+    func test_bookFragmentsAndVowelLabels() {
+        let examples = [
+            "khr-": "kr-", "th-": "t-", "bp-": "bp-", "j-/ch-": "j-/ch-",
+            "-y/-w/-ng": "-i/-o/-ng", "phl-/pl-": "pl-",
+            "a/aa": "a/aa", "e/ee": "ay’/ay", "eu/euu": "ue’/ue",
+            "aeo/aaeo": "aeo’/aeo", "eo/eeo": "eo’/eo", "awy/aawy": "oi’/oi",
+            "uuho": "ero", "ia": "ia’/ia", "eua": "uea’/uea", "ua": "ua’/ua",
+        ]
+        for (learner, expected) in examples {
+            XCTAssertEqual(Romanization.render(learner, as: .readThaiIn10Days, context: .vowelLabel), expected)
+        }
+    }
+
+    func test_bookShortDiphthongsUseTheExampleContext() throws {
+        let vowels = Vowel.loadAll()
+        for (id, expected) in [("ia", "gía’"), ("ua", "pùa’")] {
+            let vowel = try XCTUnwrap(vowels.first { $0.id == id })
+            let sample = try XCTUnwrap(vowel.pronunciation(for: .short, form: .open)?.romanization)
+            XCTAssertEqual(
+                Romanization.render(sample, as: .readThaiIn10Days, context: .shortOpenVowelExample),
+                expected
+            )
+            XCTAssertEqual(Romanization.render(sample, as: .readThaiIn10Days), String(expected.dropLast()))
+            XCTAssertEqual(Romanization.render(sample, as: .learner, context: .shortOpenVowelExample), sample)
+        }
+        XCTAssertEqual(Romanization.render("héua", as: .readThaiIn10Days, context: .shortOpenVowelExample), "húea’")
+        XCTAssertEqual(Romanization.render("rian", as: .readThaiIn10Days, context: .shortOpenVowelExample), "rian")
+    }
+
     func test_fragmentsAndLabels() {
         XCTAssertEqual(Romanization.render("kh-", as: .ipa), "kʰ-")
         XCTAssertEqual(Romanization.render("j-", as: .rtgs), "ch-")
@@ -207,6 +268,58 @@ final class RomanizationTests: XCTestCase {
         XCTAssertFalse("g-".matchesRomanized("ph"))
     }
 
+    func test_bookSearchChecksStoredAndDisplayedLabelsAndBothApostrophes() {
+        RomanizationState.shared.scheme = .readThaiIn10Days
+        XCTAssertTrue("kh-".matchesRomanized("kh"))
+        XCTAssertTrue("kh-".matchesRomanized("k-"))
+        XCTAssertTrue("phr-".matchesRomanized("pr"))
+        XCTAssertTrue("eu/euu".matchesRomanized("ue’", context: .vowelLabel))
+        XCTAssertTrue("eu/euu".matchesRomanized("ue'", context: .vowelLabel))
+        XCTAssertTrue("eua".matchesRomanized("uea'/", context: .vowelLabel))
+        XCTAssertFalse("eua".matchesRomanized("uea'/"))
+        XCTAssertFalse("eua".matchesRomanized("way", context: .vowelLabel))
+        RomanizationState.shared.scheme = .learner
+        XCTAssertFalse("eu/euu".matchesRomanized("ue'", context: .vowelLabel))
+    }
+
+    func test_bookClusterCollisionKeepsTheRawCorrectAnswerAndGrade() {
+        RomanizationState.shared.scheme = .readThaiIn10Days
+        let options = QuizOptions.pickDistinct(correct: "phl-", from: ["phl-", "pl-", "bpl-"], wrongCount: 7)
+        XCTAssertEqual(Set(options), ["phl-", "bpl-"])
+        let summary = FlashcardSummaryRow(
+            label: "Sound", selectedValue: "pl-", correctValue: "phl-", showResult: true, display: \.romanized
+        )
+        XCTAssertEqual(summary.display("pl-"), summary.display("phl-"))
+        XCTAssertFalse(summary.isCorrect)
+    }
+
+    func test_bookPreservesDistinctDisplayedOptionsAcrossCatalogs() {
+        RomanizationState.shared.scheme = .readThaiIn10Days
+        let consonants = Consonant.loadAll()
+        let pools: [(options: [String], context: RomanizationContext, wrongCount: Int)] = [
+            (consonants.map(\.initialSound), .transcription, 7),
+            (consonants.map(\.finalSound), .transcription, 3),
+            (Cluster.loadAll().compactMap(\.sound), .transcription, 3),
+            (Vowel.loadAll().map(\.sound), .vowelLabel, 7),
+        ]
+        for (pool, context, wrongCount) in pools {
+            let available = Set(pool.map { $0.romanized(in: context) }).count
+            for correct in Set(pool) {
+                let choices = QuizOptions.pickDistinct(
+                    correct: correct, from: pool, wrongCount: wrongCount, context: context
+                )
+                XCTAssertEqual(choices.filter { $0 == correct }.count, 1)
+                XCTAssertEqual(Set(choices.map { $0.romanized(in: context) }).count, choices.count)
+                XCTAssertEqual(choices.count, min(wrongCount + 1, available))
+            }
+        }
+        for consonant in consonants {
+            let choices = ConsonantFlashcardView.transcriptionOptions(for: consonant, from: consonants)
+            XCTAssertEqual(choices.filter { $0 == consonant.transcription }.count, 1)
+            XCTAssertEqual(Set(choices.map(\.romanized)).count, 4)
+        }
+    }
+
     // MARK: - Setting
 
     func test_setting_persistsAndDrivesTheSharedState() {
@@ -223,5 +336,25 @@ final class RomanizationTests: XCTestCase {
         let reloaded = FlashcardSettings(defaults: defaults)
         XCTAssertEqual(reloaded.romanization, .ipa)
         XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_romanization"))
+    }
+
+    func test_settingReloadsBookAndPreviouslyStoredSchemes() {
+        let suite = "RomanizationTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = FlashcardSettings(defaults: defaults)
+        settings.romanization = .readThaiIn10Days
+        XCTAssertEqual(defaults.string(forKey: "fc_romanization"), "readThaiIn10Days")
+        XCTAssertEqual("khǎaw".romanized, "kŏr")
+        for scheme in RomanizationScheme.allCases {
+            defaults.set(scheme.rawValue, forKey: "fc_romanization")
+            settings.reload()
+            XCTAssertEqual(settings.romanization, scheme)
+            XCTAssertEqual(RomanizationState.shared.scheme, scheme)
+        }
+        defaults.set("unknown", forKey: "fc_romanization")
+        settings.reload()
+        XCTAssertEqual(settings.romanization, .learner)
+        XCTAssertEqual(RomanizationState.shared.scheme, .learner)
     }
 }

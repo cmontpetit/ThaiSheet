@@ -81,6 +81,9 @@ struct AboutView: View {
                     Spacer()
                     Text("SwiftUI")
                 }
+                Text("Book romanization is based on the pronunciation guide in Read Thai in 10 Days, 2nd edition, by Arthit Juyaso (Bingo-Lingo).")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Privacy") {

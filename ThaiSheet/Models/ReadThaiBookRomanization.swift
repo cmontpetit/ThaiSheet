@@ -1,0 +1,58 @@
+/// Rimes and word boundaries for Arthit Juyaso’s *Read Thai in 10 Days*, 2nd ed.
+/// See the Pronunciation guide (pp. xviii–xxi) and the vowel summary (pp. 138–139).
+enum ReadThaiBookRomanization {
+    static let diphthongs = ["ia": "ia", "eua": "uea", "ua": "ua"]
+
+    private static let openVowels = [
+        "a": "a", "aa": "aa", "i": "i", "ii": "ee", "u": "oo’", "uu": "oo",
+        "e": "ay’", "ee": "ay", "ae": "air’", "aae": "air", "o": "o’", "oh": "oh",
+        "aw": "or’", "aaw": "or", "eu": "ue’", "euu": "ue", "uh": "er’", "uuh": "er",
+    ]
+
+    // Day 3 uses u for a before a coda. Day 8 shows a’ in shortened แ forms and
+    // or’ in shortened อ forms, though some examples omit the mark.
+    private static let closedVowels = [
+        "a": "u", "e": "e", "ae": "a’", "aae": "a", "o": "o",
+    ]
+
+    // For short counterparts absent from the guide, retain the long counterpart's
+    // spelling and append the short marker. The rare เออว combines er and o.
+    private static let yGlides = [
+        "a": "ai", "aa": "aai", "u": "ui", "uu": "ooi", "aw": "oi’", "aaw": "oi",
+        "oh": "oey", "uuh": "eui", "ua": "uai", "eua": "ueai",
+    ]
+    private static let wGlides = [
+        "a": "ao", "aa": "aao", "i": "iw", "ia": "iao",
+        "ae": "aeo’", "aae": "aeo", "e": "eo’", "ee": "eo", "uuh": "ero",
+    ]
+
+    static func rime(for syllable: ThaiSyllable, shortOpenDiphthong: Bool) -> String {
+        let nucleus = syllable.vowel
+        let vowel = openVowels[nucleus] ?? diphthongs[nucleus] ?? nucleus
+        switch syllable.glide {
+        case "y": return yGlides[nucleus] ?? vowel + "i"
+        case "o": return wGlides[nucleus] ?? vowel + "o"
+        default: break
+        }
+        if !syllable.coda.isEmpty {
+            return (closedVowels[nucleus] ?? vowel) + syllable.coda
+        }
+        if shortOpenDiphthong, diphthongs[nucleus] != nil {
+            return vowel + "’"
+        }
+        return vowel
+    }
+
+    /// The book commonly writes words solid. Keep a hyphen at vowel-led and
+    /// ambiguous consonant boundaries, including ng + r and t + dt (pp. xviii, xxi).
+    static func separator(after previous: ThaiSyllable, before next: ThaiSyllable) -> String {
+        if next.onset.isEmpty ||
+            (next.onset.hasPrefix("ng") && previous.coda.isEmpty) ||
+            (next.onset.hasPrefix("g") && previous.coda == "n") ||
+            (next.onset.hasPrefix("dt") && previous.coda == "t") ||
+            (next.onset.hasPrefix("r") && previous.coda == "ng") {
+            return "-"
+        }
+        return ""
+    }
+}
