@@ -37,7 +37,60 @@ class FlashcardManager {
         self.settings = settings
         self.learningModel = learningModel
         self.data = data
+        self.vowelPlacementsByForm = Self.makeVowelPlacementsByForm(data)
         updateStrategies()
+    }
+
+    // MARK: - Book Chapter Scope
+
+    /// The chapter scope from settings; Off when the mapping failed to load.
+    var bookScope: BookScope {
+        BookScope(settings: settings, map: data.bookChapters)
+    }
+
+    /// Chapter placements of every Reference slot, by written form. A vowel card
+    /// stands for each slot sharing its form (เกิ- is both the short and the
+    /// long closed slot), so it is eligible once any of those slots is.
+    private let vowelPlacementsByForm: [String: [BookPlacement?]]
+
+    private static func makeVowelPlacementsByForm(_ data: ThaiDataStore) -> [String: [BookPlacement?]] {
+        guard let map = data.bookChapters else { return [:] }
+        var result: [String: [BookPlacement?]] = [:]
+        for vowel in data.vowels {
+            let slots: [(String?, VowelCard.VowelDuration, VowelCard.VowelFormType)] = [
+                (vowel.short.closed, .short, .closed), (vowel.short.open, .short, .open),
+                (vowel.long.closed, .long, .closed), (vowel.long.open, .long, .open),
+            ]
+            for case let (form?, duration, formType) in slots {
+                result[form, default: []].append(map.placement(of: vowel, duration: duration, form: formType))
+            }
+        }
+        return result
+    }
+
+    /// Whether the book has introduced this card's content by the chosen chapter.
+    func isInBookScope(_ item: FlashcardItem) -> Bool {
+        let scope = bookScope
+        guard scope.isActive, let map = data.bookChapters else { return true }
+        switch item {
+        case .consonant(let consonant, _):
+            return scope.includes(map.placement(of: consonant))
+        case .vowel(let card):
+            let placements = vowelPlacementsByForm[card.display] ?? [nil]
+            return placements.contains { scope.includes($0) }
+        case .toneMark(let card):
+            return scope.includes(map.placement(of: card))
+        case .toneRule(let card):
+            return scope.includes(map.placement(of: card.rule, sample: card.sample))
+        case .cluster(let cluster):
+            return scope.includes(map.placement(of: cluster))
+        }
+    }
+
+    /// SRS cap for a card, judged against the eligible deck (`QuestionCap`).
+    /// The lock icon and grading both use this.
+    func isPartialTesting(_ card: FlashcardItem) -> Bool {
+        QuestionCap.isCapped(card, deck: filteredCards)
     }
 
     /// Update both strategies with current filtered cards
@@ -49,8 +102,25 @@ class FlashcardManager {
 
     // MARK: - Filtered Cards
 
-    /// Returns all cards that match current settings, in order
+    /// Returns all cards that match current settings and the chapter scope, in order
     var filteredCards: [FlashcardItem] {
+        filterCardsBySettings().filter(isInBookScope).map(presentedInBookScope)
+    }
+
+    /// A shared-form vowel card (เกิ-) is built from its short slot. When only
+    /// its long slot is in scope, present that slot's example instead; the
+    /// progress id and both accepted durations are unchanged.
+    private func presentedInBookScope(_ item: FlashcardItem) -> FlashcardItem {
+        guard case .vowel(let card) = item, card.acceptsBothDurations,
+              bookScope.isActive, let map = data.bookChapters else { return item }
+        let ownSlotInScope = bookScope.includes(map.placement(of: card.vowel, duration: card.duration, form: card.form))
+        guard !ownSlotInScope else { return item }
+        let other: VowelCard.VowelDuration = card.duration == .short ? .long : .short
+        guard bookScope.includes(map.placement(of: card.vowel, duration: other, form: card.form)) else { return item }
+        return .vowel(card.presenting(other))
+    }
+
+    private func filterCardsBySettings() -> [FlashcardItem] {
         var cards: [FlashcardItem] = []
 
         // Add filtered consonants
@@ -169,6 +239,10 @@ class FlashcardManager {
 
     /// Jump to a specific card (e.g., from Reference view)
     func jumpTo(item: FlashcardItem) {
+        // Use the deck's copy: it carries the chapter scope's presentation
+        // (a shared vowel form showing its in-scope slot), which a card
+        // fetched from the catalog does not.
+        let item = filteredCards.first { $0.id == item.id } ?? item
         // Jump in both strategies to keep them in sync
         if let index = sequentialStrategy.indexOf(cardId: item.id) {
             sequentialStrategy.jumpTo(index: index)
@@ -182,7 +256,9 @@ class FlashcardManager {
             overrideCard = nil
             jumpTo(item: item)
         } else {
-            overrideCard = item
+            // Not in the deck (outside the chapter, or excluded by Filters). Still
+            // present a shared vowel form's in-scope slot when it has one.
+            overrideCard = presentedInBookScope(item)
         }
     }
 
@@ -222,6 +298,18 @@ class FlashcardManager {
     func applyConsonantMode() {
         if case .consonant(let consonant, _) = overrideCard {
             overrideCard = .consonant(consonant, includesName: settings.consonantNames)
+        }
+        resetToStart()
+    }
+
+    /// The chapter scope changed (here, from the other tab, or via iCloud):
+    /// restart the deck, and drop a card opened from Reference that the new
+    /// scope or filters no longer include.
+    func applyBookScopeChange() {
+        // Keep an opened card only if the deck now includes it, and then as the
+        // deck's copy so it picks up the new scope's presentation.
+        if let override = overrideCard {
+            overrideCard = filteredCards.first { $0.id == override.id }
         }
         resetToStart()
     }

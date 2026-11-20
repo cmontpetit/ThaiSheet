@@ -13,6 +13,23 @@ struct VowelCard: Identifiable {
     let display: String
     let acceptsBothDurations: Bool  // True if this form appears in both short and long
 
+    /// For a form shared by both durations (เกิ-): the slot whose example the
+    /// card presents, when it is not `duration`. Set by the chapter scope when
+    /// only the other slot is in scope. Presentation only: the progress `id`
+    /// and grading (both durations accepted) still follow `duration`.
+    var presentedDuration: VowelDuration? = nil
+
+    /// The duration whose example, audio, details, and note the card shows.
+    var shownDuration: VowelDuration { presentedDuration ?? duration }
+
+    /// This card presenting its other duration's slot. Only meaningful for a
+    /// card that accepts both durations.
+    func presenting(_ duration: VowelDuration) -> VowelCard {
+        var card = self
+        card.presentedDuration = duration == self.duration ? nil : duration
+        return card
+    }
+
     /// Durable progress key: the vowel row's stable id plus the structural
     /// variant this card represents (or the row's explicit key for that slot).
     /// Independent of `display`, so correcting a written form does not orphan
@@ -27,7 +44,7 @@ struct VowelCard: Identifiable {
     var asksForm: Bool { !vowel.isCombination }
 
     var pronunciationWord: ReferenceSampleWord? {
-        vowel.pronunciation(for: duration, form: form)
+        vowel.pronunciation(for: shownDuration, form: form)
     }
 
     enum VowelDuration: String, CaseIterable {
@@ -57,7 +74,7 @@ struct VowelCard: Identifiable {
     /// Returns the alternative duration if this card accepts both, nil otherwise
     var alternativeDuration: VowelDuration? {
         guard acceptsBothDurations else { return nil }
-        return duration == .short ? .long : .short
+        return shownDuration == .short ? .long : .short
     }
 
     static func allCards(from vowels: [Vowel]) -> [VowelCard] {

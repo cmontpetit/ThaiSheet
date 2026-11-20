@@ -135,7 +135,13 @@ struct FlashcardsView: View {
     @State private var showingSettings = false
     @State private var showingStats = ScreenshotScenario.current == .progress
     @State private var showingFilter = false
+    @State private var showingBookChapters = false
     @State private var filterRefreshID = UUID()
+
+    /// nil when the chapter mapping failed to load: the button is hidden and the scope is Off.
+    private var bookChapters: BookChapterMap? { manager.data.bookChapters }
+
+    private var bookScope: BookScope { BookScope(settings: manager.settings, map: bookChapters) }
 
     private var typeLabel: String {
         manager.currentCard?.type.label ?? String(localized: "Flashcard", bundle: .appLanguage)
@@ -144,7 +150,7 @@ struct FlashcardsView: View {
     @ViewBuilder
     private func stageIndicator(for card: FlashcardItem) -> some View {
         let stage = manager.learningModel.srsStage(for: card)
-        let isCapped = manager.settings.isPartialTesting(forCard: card)
+        let isCapped = manager.isPartialTesting(card)
         StageIndicatorView(stage: stage, isCapped: isCapped)
     }
 
@@ -156,7 +162,7 @@ struct FlashcardsView: View {
 
     /// Record a quiz answer and give haptic feedback
     private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
-        let fullTesting = !manager.settings.isPartialTesting(forCard: card)
+        let fullTesting = !manager.isPartialTesting(card)
         manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
         UINotificationFeedbackGenerator().notificationOccurred(correct ? .success : .error)
     }
@@ -240,18 +246,33 @@ struct FlashcardsView: View {
         ContentUnavailableView {
             Label("No Cards", systemImage: "rectangle.on.rectangle")
         } description: {
-            Text("Enable some options in Filters")
+            if bookScope.isActive {
+                Text("Enable some options in Filters, or choose a later chapter in Book Chapters")
+            } else {
+                Text("Enable some options in Filters")
+            }
         } actions: {
             Button("Open Filters") {
                 showingFilter = true
             }
             .buttonStyle(.borderedProminent)
+            // The chapter scope alone can empty the deck.
+            if bookScope.isActive {
+                Button("Open Book Chapters") {
+                    showingBookChapters = true
+                }
+            }
         }
         .navigationTitle("Flashcards")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 16) {
+                    if bookChapters != nil {
+                        BookChaptersButton(isActive: bookScope.isActive) {
+                            showingBookChapters = true
+                        }
+                    }
                     Button {
                         showingFilter = true
                     } label: {
@@ -274,6 +295,11 @@ struct FlashcardsView: View {
                 showingStats = true
             } label: {
                 Image(systemName: "chart.bar")
+            }
+            if bookChapters != nil {
+                BookChaptersButton(isActive: bookScope.isActive) {
+                    showingBookChapters = true
+                }
             }
             Button {
                 showingFilter = true
@@ -346,6 +372,7 @@ struct FlashcardsView: View {
         }
         .modifier(FlashcardsSheetModifier(
             showingFilter: $showingFilter,
+            showingBookChapters: $showingBookChapters,
             showingSettings: $showingSettings,
             showingStats: $showingStats,
             filterRefreshID: $filterRefreshID,
@@ -374,6 +401,7 @@ struct FlashcardsView: View {
 /// Modifier for sheet presentations
 struct FlashcardsSheetModifier: ViewModifier {
     @Binding var showingFilter: Bool
+    @Binding var showingBookChapters: Bool
     @Binding var showingSettings: Bool
     @Binding var showingStats: Bool
     @Binding var filterRefreshID: UUID
@@ -389,6 +417,9 @@ struct FlashcardsSheetModifier: ViewModifier {
                 if !isShowing {
                     filterRefreshID = UUID()
                 }
+            }
+            .sheet(isPresented: $showingBookChapters) {
+                BookChaptersView(settings: manager.settings)
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(settings: manager.settings, syncedStore: syncedStore)
@@ -459,6 +490,18 @@ struct FlashcardsSettingsModifier: ViewModifier {
             .modifier(ParentSettingsModifier(manager: manager))
             .modifier(ConsonantVowelSettingsModifier(manager: manager))
             .modifier(ToneClusterSettingsModifier(manager: manager))
+            .modifier(BookScopeSettingsModifier(manager: manager))
+    }
+}
+
+/// Modifier for chapter scope changes (from either tab or via iCloud)
+struct BookScopeSettingsModifier: ViewModifier {
+    var manager: FlashcardManager
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: manager.settings.bookProgress) { _, _ in manager.applyBookScopeChange() }
+            .onChange(of: manager.settings.showNotInBook) { _, _ in manager.applyBookScopeChange() }
     }
 }
 
