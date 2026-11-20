@@ -445,6 +445,32 @@ struct FlashcardGridButton: View {
     }
 }
 
+// MARK: - Practice-Only Hint
+
+/// A correct answer on a card that is not due yet: which card, and when it is due
+struct PracticeOnlyNotice: Equatable {
+    let cardID: String
+    let nextReview: Date
+}
+
+/// Tells the learner a correct answer did not move the card's stage because
+/// the card was not due yet (`LearningModel.recordResult`)
+struct PracticeOnlyHint: View {
+    let nextReview: Date
+
+    var body: some View {
+        Label {
+            Text("Not due yet, so the stage stays the same. Next review \(nextReview, format: .relative(presentation: .named)).")
+        } icon: {
+            Image(systemName: "clock")
+        }
+        .font(.caption2)
+        .foregroundColor(.secondary)
+        .multilineTextAlignment(.trailing)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+}
+
 // MARK: - Stage Indicator
 
 /// Shows the SRS progress indicator for the current card: 8 dots with stage name

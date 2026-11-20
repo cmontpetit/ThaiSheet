@@ -1,6 +1,17 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Not due yet, so the stage stays the same. Next review %@." : {
+      "comment" : "Flashcard header hint after a correct answer on a card that is not due yet. The argument is a relative time such as \"in 3 hours\".",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas encore à réviser : le niveau ne change pas. Prochaine révision %@."
+          }
+        }
+      }
+    },
     "Reading hidden" : {
       "localizations" : {
         "fr" : {

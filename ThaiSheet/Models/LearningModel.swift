@@ -20,6 +20,14 @@ extension EnvironmentValues {
     }
 }
 
+/// What a recorded answer did to a card's progress
+enum ReviewOutcome: Equatable {
+    /// The answer changed the card's stage and schedule
+    case counted
+    /// A correct answer before the card was due: practice only, nothing changed
+    case notDue(nextReview: Date)
+}
+
 /// Tracks learning progress for all flashcards using Wanikani-style SRS
 @Observable
 class LearningModel {
@@ -82,13 +90,14 @@ class LearningModel {
     /// A correct answer on a card reviewed before it is due changes nothing:
     /// the interval has not elapsed, so it is extra practice, not evidence of
     /// retention. A wrong answer always demotes.
-    func recordResult(for card: FlashcardItem, correct: Bool, fullTesting: Bool = true) {
+    @discardableResult
+    func recordResult(for card: FlashcardItem, correct: Bool, fullTesting: Bool = true) -> ReviewOutcome {
         var progress = progressByCardId[card.id] ?? CardProgress(cardId: card.id)
         let now = clock()
 
         if correct {
             let isEarlyReview = progress.srsStage != .new && !progress.isDue(at: now)
-            guard !isEarlyReview else { return }
+            guard !isEarlyReview else { return .notDue(nextReview: progress.nextReviewDate ?? now) }
 
             progress.correctCount += 1
             var newStage = progress.srsStage.advance()
@@ -115,6 +124,7 @@ class LearningModel {
 
         progressByCardId[card.id] = progress
         save()
+        return .counted
     }
 
     /// Get progress for a specific card

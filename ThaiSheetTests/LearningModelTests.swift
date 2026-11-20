@@ -142,6 +142,28 @@ final class LearningModelTests: XCTestCase {
         XCTAssertEqual(model.srsStage(for: card1), .learning2)
     }
 
+    func test_recordResult_correctBeforeDue_reportsNotDueWithNextReview() {
+        var now = Date()
+        model.clock = { now }
+        XCTAssertEqual(model.recordResult(for: card1, correct: true), .counted, "A new card's first answer counts")
+        let nextReview = try? XCTUnwrap(model.getProgress(for: card1).nextReviewDate)
+
+        now = now.addingTimeInterval(3_600)
+        XCTAssertEqual(model.recordResult(for: card1, correct: true), .notDue(nextReview: nextReview!))
+    }
+
+    func test_recordResult_onceDueOrWrong_reportsCounted() {
+        var now = Date()
+        model.clock = { now }
+        model.recordResult(for: card1, correct: true)
+
+        now = now.addingTimeInterval(60)
+        XCTAssertEqual(model.recordResult(for: card1, correct: false), .counted, "A wrong answer always counts")
+
+        now = now.addingTimeInterval(SRSStage.learning1.intervalSeconds)
+        XCTAssertEqual(model.recordResult(for: card1, correct: true), .counted)
+    }
+
     func test_recordResult_incorrectBeforeDue_stillDemotes() {
         var now = Date()
         model.clock = { now }
