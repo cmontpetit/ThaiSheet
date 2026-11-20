@@ -125,6 +125,13 @@ consonant classes, sounds, tone rules — expressed in this project's own struct
 wording, with corrections and additions by the author. No third-party images, prose,
 or artwork are included.
 
+Two optional features follow *Read Thai in 10 Days* (2nd edition, Arthit Juyaso,
+Bingo-Lingo, 2016): the Study Content chapter scope (`read-thai-10-days.json`), which
+records which chapter first teaches each character, and the book romanization, which
+renders ThaiSheet's own transcriptions with the book's spellings. No text, exercises,
+or images from the book are included. ThaiSheet is not affiliated with or endorsed by
+the book's author or publisher.
+
 Bundled pronunciation audio was generated with
 [Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech) and
 ElevenLabs (see Sound Generation above).

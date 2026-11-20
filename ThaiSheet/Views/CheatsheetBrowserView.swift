@@ -265,7 +265,7 @@ struct CheatsheetBrowserView: View {
         let query = searchText.lowercased()
         return ReferenceJumpTarget.searchResults(result, target: jumpTarget.contains) { vowel in
             vowel.allForms.contains { $0.contains(normalizedSearch) } ||
-            vowel.sound.matchesRomanized(query)
+            vowel.sound.matchesRomanized(query, context: .vowelLabel)
         }
     }
 

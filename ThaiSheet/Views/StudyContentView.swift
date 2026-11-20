@@ -72,7 +72,10 @@ struct StudyContentView: View {
         } header: {
             Text(verbatim: "Read Thai in 10 Days")
         } footer: {
-            Text("Both tabs show only what the book has taught up to the chosen chapter. Reference search includes all chapters.")
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Both tabs show only what the book has taught up to the chosen chapter. Reference search includes all chapters.")
+                Text("Chapters follow the 2nd edition by Arthit Juyaso (Bingo-Lingo). ThaiSheet is not affiliated with or endorsed by the author or publisher.")
+            }
         }
 
         Section {

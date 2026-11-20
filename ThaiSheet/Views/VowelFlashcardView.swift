@@ -118,7 +118,9 @@ struct VowelFlashcardView: View {
                     showResult: currentStep == .completed,
                     // Grades on the row label, shows the card's own form
                     display: { [card] value in
-                        value == card.vowel.sound ? card.shownSound.romanized : value.romanized
+                        value == card.vowel.sound
+                            ? card.shownSound.romanizedVowelLabel
+                            : value.romanizedVowelLabel
                     }
                 )
 
@@ -196,7 +198,7 @@ struct VowelFlashcardView: View {
             // 2 rows of 4 buttons
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                 ForEach(options.value, id: \.self) { sound in
-                    FlashcardGridButton(label: sound.romanized) {
+                    FlashcardGridButton(label: sound.romanizedVowelLabel) {
                         cardState.selectedSound = sound
                         completeCard()
                     }
@@ -269,7 +271,8 @@ struct VowelFlashcardView: View {
         QuizOptions.pickDistinct(
             correct: card.vowel.sound,
             from: allVowels.map { $0.sound },
-            wrongCount: 7
+            wrongCount: 7,
+            context: .vowelLabel
         )
     }
 }

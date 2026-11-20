@@ -85,6 +85,34 @@ final class BookScopeDeckTests: XCTestCase {
         XCTAssertEqual(manager.filteredCards.count, manager.allCards.count)
     }
 
+    func test_bookRomanizationAndChapterScopeAreIndependent() throws {
+        let originalScheme = settings.romanization
+        defer { settings.romanization = originalScheme }
+        let unscoped = manager.filteredCards.map(\.id)
+        manager.jumpToConsonant("ข")
+        let originalCard = try XCTUnwrap(manager.currentCard?.id)
+        let consonant = try XCTUnwrap(manager.data.consonants.first { $0.character == "ข" })
+
+        settings.romanization = .readThaiIn10Days
+        XCTAssertNil(settings.bookProgress)
+        XCTAssertEqual(manager.filteredCards.map(\.id), unscoped)
+        XCTAssertEqual(manager.currentCard?.id, originalCard)
+        XCTAssertEqual(consonant.transcription.romanized, "kŏr kài")
+
+        settings.bookProgress = .day1
+        settings.showNotInBook = true
+        manager.applyBookScopeChange()
+        let scoped = manager.filteredCards.map(\.id)
+        XCTAssertNotEqual(scoped, unscoped)
+        XCTAssertEqual(settings.romanization, .readThaiIn10Days)
+        XCTAssertEqual(consonant.transcription.romanized, "kŏr kài")
+
+        settings.romanization = .learner
+        XCTAssertEqual(settings.bookProgress, .day1)
+        XCTAssertTrue(settings.showNotInBook)
+        XCTAssertEqual(manager.filteredCards.map(\.id), scoped)
+    }
+
     func test_day1_consonantsAreLowClass1_inBothNameModes() {
         settings.bookProgress = .day1
         let expected = ["ง", "ม", "น", "ร", "ล", "ย", "ว"]

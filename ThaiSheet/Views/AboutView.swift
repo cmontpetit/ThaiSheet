@@ -81,6 +81,9 @@ struct AboutView: View {
                     Spacer()
                     Text("SwiftUI")
                 }
+                Text("The book chapters in Study Content and the book romanization follow Read Thai in 10 Days, 2nd edition, by Arthit Juyaso (Bingo-Lingo). ThaiSheet is not affiliated with or endorsed by the author or publisher.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Privacy") {

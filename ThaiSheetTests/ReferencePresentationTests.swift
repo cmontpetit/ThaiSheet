@@ -96,6 +96,44 @@ final class ReferencePresentationTests: XCTestCase {
         await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 0)?.contains("(") == false }
     }
 
+    func test_savedVowelSearchUpdatesWhenBookRomanizationIsSelectedDuringChapterScope() async throws {
+        let suiteName = "ReferenceBookRomanizationTests_\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        let previousScheme = RomanizationState.shared.scheme
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+            RomanizationState.shared.scheme = previousScheme
+        }
+        let settings = FlashcardSettings(defaults: defaults)
+        settings.bookProgress = .day1
+        let browser = CheatsheetBrowserView(
+            settings: settings,
+            highlighted: .constant([:]),
+            flashcardStarting: .constant([:]),
+            selectedTab: .constant(.reference),
+            referenceType: .vowels
+        )
+        .environment(\.flashcardSettings, settings)
+        .environment(\.learningModel, LearningModel(store: defaults))
+        let window = show(UIHostingController(rootView: browser.referenceViewportScope()))
+        defer { window.endEditing(true); window.isHidden = true }
+
+        await waitFor { self.searchField(in: window) != nil }
+        let field = try XCTUnwrap(searchField(in: window))
+        let query = "ue'/ue"
+        field.text = query
+        field.sendActions(for: .editingChanged)
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 1)?.hasSuffix("(0)") == true }
+
+        settings.romanization = .readThaiIn10Days
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 1)?.hasSuffix("(1)") == true }
+        XCTAssertEqual(searchField(in: window)?.text, query)
+        XCTAssertEqual(settings.bookProgress, .day1)
+
+        settings.romanization = .learner
+        await waitFor { self.referenceSections(in: window)?.titleForSegment(at: 1)?.hasSuffix("(0)") == true }
+    }
+
     func test_queryStaysVisibleWhenCompactDetailsRotateIntoInlinePane() async throws {
         let suiteName = "ReferenceSearchHandoffTests_\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

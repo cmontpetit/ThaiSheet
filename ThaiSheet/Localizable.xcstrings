@@ -260,6 +260,27 @@
         }
       }
     },
+    "Read Thai in 10 Days (2nd ed.)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read Thai in 10 Days (2ᵉ éd.)"
+          }
+        }
+      }
+    },
+    "The book chapters in Study Content and the book romanization follow Read Thai in 10 Days, 2nd edition, by Arthit Juyaso (Bingo-Lingo). ThaiSheet is not affiliated with or endorsed by the author or publisher." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les chapitres du livre dans Contenu d’étude et la romanisation du livre suivent Read Thai in 10 Days, 2ᵉ édition, d’Arthit Juyaso (Bingo-Lingo). ThaiSheet n’est ni affilié à l’auteur ou à l’éditeur, ni approuvé par eux."
+          }
+        }
+      }
+    },
     "Romanization" : {
       "localizations" : {
         "fr" : {
@@ -2996,6 +3017,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Les deux onglets n’affichent que ce que le livre a enseigné jusqu’au chapitre choisi. La recherche dans Référence inclut tous les chapitres."
+          }
+        }
+      }
+    },
+    "Chapters follow the 2nd edition by Arthit Juyaso (Bingo-Lingo). ThaiSheet is not affiliated with or endorsed by the author or publisher." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les chapitres suivent la 2ᵉ édition d’Arthit Juyaso (Bingo-Lingo). ThaiSheet n’est ni affilié à l’auteur ou à l’éditeur, ni approuvé par eux."
           }
         }
       }

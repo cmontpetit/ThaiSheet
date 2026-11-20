@@ -31,6 +31,7 @@ enum ReferenceWordAudioRole: String {
 struct ReferenceWordAudio {
     let role: ReferenceWordAudioRole
     let word: ReferenceSampleWord
+    var romanizationContext: RomanizationContext = .transcription
     let hasSound: Bool
     let onPlay: () -> Void
 }
@@ -39,6 +40,7 @@ struct ReferenceWordAudio {
 struct ReferenceItemSheet: View {
     let title: String
     var romanization: String? = nil
+    var romanizationContext: RomanizationContext = .transcription
     var toneMarkContext: ToneMarkSheetContext? = nil
     var toneRule: ToneRule? = nil
     var usesCompactTitle: Bool = false
@@ -92,7 +94,7 @@ struct ReferenceItemSheet: View {
                     .multilineTextAlignment(.center)
 
                     if let romanization, !romanization.isEmpty {
-                        Text(romanization.romanized)
+                        Text(romanization.romanized(in: romanizationContext))
                             .font(.title3)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -216,20 +218,18 @@ struct ReferenceItemSheet: View {
 
     private func wordAudioButton(_ audio: ReferenceWordAudio) -> some View {
         Button(action: audio.onPlay) {
-            wordButtonLabel(audio.word, title: audio.role.label, hasSound: audio.hasSound)
+            wordButtonLabel(audio)
         }
         .disabled(!audio.hasSound)
         .buttonStyle(.plain)
     }
 
-    private func wordButtonLabel(
-        _ word: ReferenceSampleWord,
-        title: LocalizedStringKey,
-        hasSound: Bool
-    ) -> some View {
-        HStack(spacing: 12) {
+    private func wordButtonLabel(_ audio: ReferenceWordAudio) -> some View {
+        let word = audio.word
+        let hasSound = audio.hasSound
+        return HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
+                Text(audio.role.label)
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
@@ -238,7 +238,7 @@ struct ReferenceItemSheet: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                 if let romanization = word.romanization {
-                    Text(romanization.romanized)
+                    Text(romanization.romanized(in: audio.romanizationContext))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }

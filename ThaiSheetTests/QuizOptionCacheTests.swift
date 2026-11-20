@@ -58,4 +58,19 @@ final class QuizOptionCacheTests: XCTestCase {
         }
         XCTAssertEqual(generations, 4)
     }
+
+    func test_switchingToBookNotationRegeneratesClusterChoicesOnTheSameCard() {
+        let previousScheme = RomanizationState.shared.scheme
+        defer { RomanizationState.shared.scheme = previousScheme }
+        let cardID = FlashcardType.cluster.cardId(for: "พล:initial")
+        var cache = QuizOptionCache(value: [String]())
+        for scheme in [RomanizationScheme.learner, .readThaiIn10Days] {
+            RomanizationState.shared.scheme = scheme
+            cache.update(for: QuizOptionContext(cardID: cardID, romanization: scheme)) {
+                QuizOptions.pickDistinct(correct: "phl-", from: ["phl-", "pl-", "bpl-"], wrongCount: 3)
+            }
+            XCTAssertEqual(cache.value.contains("pl-"), scheme == .learner)
+            XCTAssertTrue(cache.value.contains("phl-"))
+        }
+    }
 }

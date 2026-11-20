@@ -24,6 +24,8 @@ enum RomanizationScheme: String, CaseIterable, Identifiable {
     case ipa
     /// Royal Thai General System: the official scheme. No tones, no vowel length.
     case rtgs
+    /// English-letter notation from the second edition’s pronunciation guide.
+    case readThaiIn10Days
 
     var id: String { rawValue }
 
@@ -33,6 +35,7 @@ enum RomanizationScheme: String, CaseIterable, Identifiable {
         case .paiboon: return String(localized: "Paiboon (textbooks)", bundle: .appLanguage)
         case .ipa: return String(localized: "IPA (phonetic alphabet)", bundle: .appLanguage)
         case .rtgs: return String(localized: "RTGS (official Thai)", bundle: .appLanguage)
+        case .readThaiIn10Days: return String(localized: "Read Thai in 10 Days (2nd ed.)", bundle: .appLanguage)
         }
     }
 }
@@ -51,17 +54,30 @@ final class RomanizationState {
     var scheme: RomanizationScheme = .learner
 }
 
-extension String {
-    /// This stored learner transcription, shown in the selected scheme
-    var romanized: String {
-        Romanization.render(self, as: RomanizationState.shared.scheme)
-    }
+enum RomanizationContext {
+    case transcription
+    case vowelLabel
+    case shortOpenVowelExample
 }
 
 extension String {
+    /// This stored learner transcription, shown in the selected scheme
+    var romanized: String { romanized(in: .transcription) }
+
+    var romanizedVowelLabel: String { romanized(in: .vowelLabel) }
+
+    func romanized(in context: RomanizationContext) -> String {
+        Romanization.render(self, as: RomanizationState.shared.scheme, context: context)
+    }
+
     /// Search match against this stored transcription as written and as shown
-    func matchesRomanized(_ lowercasedQuery: String) -> Bool {
-        lowercased().contains(lowercasedQuery) || romanized.lowercased().contains(lowercasedQuery)
+    func matchesRomanized(_ lowercasedQuery: String, context: RomanizationContext = .transcription) -> Bool {
+        let scheme = RomanizationState.shared.scheme
+        if lowercased().contains(lowercasedQuery) { return true }
+        let query = scheme == .readThaiIn10Days
+            ? lowercasedQuery.replacingOccurrences(of: "'", with: "’")
+            : lowercasedQuery
+        return Romanization.render(self, as: scheme, context: context).lowercased().contains(query)
     }
 }
 
@@ -69,11 +85,16 @@ extension QuizOptions {
     /// Like `pick`, but no two options look the same in the selected scheme.
     /// RTGS writes จ and ช both as "ch": without this a card could show two
     /// identical buttons with only one graded correct.
-    static func pickDistinct(correct: String, from all: some Sequence<String>, wrongCount: Int) -> [String] {
-        var shown: Set<String> = [correct.romanized]
+    static func pickDistinct(
+        correct: String,
+        from all: some Sequence<String>,
+        wrongCount: Int,
+        context: RomanizationContext = .transcription
+    ) -> [String] {
+        var shown: Set<String> = [correct.romanized(in: context)]
         var options: [String] = []
         for option in Set(all).subtracting([correct]).shuffled() where options.count < wrongCount {
-            if shown.insert(option.romanized).inserted {
+            if shown.insert(option.romanized(in: context)).inserted {
                 options.append(option)
             }
         }
@@ -107,8 +128,16 @@ enum Romanization {
     /// ("thá-hǎan"), consonant names ("khǎaw khài"), sound fragments ("kh-",
     /// "-k"), and vowel labels ("a/aa"). Text that is not a transcription
     /// ("[silent]", "n/a") or does not parse is returned unchanged.
-    static func render(_ text: String, as scheme: RomanizationScheme) -> String {
+    static func render(
+        _ text: String,
+        as scheme: RomanizationScheme,
+        context: RomanizationContext = .transcription
+    ) -> String {
         guard scheme != .learner, let units = parse(text) else { return text }
+        if scheme == .readThaiIn10Days, context == .vowelLabel,
+           let diphthong = ReadThaiBookRomanization.diphthongs[text] {
+            return "\(diphthong)’/\(diphthong)"
+        }
 
         var rendered: [String] = []
         for alternative in units {
@@ -116,7 +145,12 @@ enum Romanization {
                 switch word {
                 case .onset(let onset): return renderOnset(onset, scheme) + "-"
                 case .final(let final): return "-" + renderFinal(final, scheme)
-                case .syllables(let syllables): return join(syllables, scheme)
+                case .syllables(let syllables):
+                    if context == .shortOpenVowelExample, alternative.count == 1, syllables.count == 1,
+                       let syllable = syllables.first {
+                        return renderSyllable(syllable, scheme, shortOpenDiphthong: true)
+                    }
+                    return join(syllables, scheme, vowelLabel: context == .vowelLabel)
                 }
             }
             let joined = words.joined(separator: " ")
@@ -269,7 +303,7 @@ enum Romanization {
         "aw": "o", "aaw": "o", "eu": "ue", "euu": "ue", "uh": "oe", "uuh": "oe",
         "ia": "ia", "eua": "uea", "ua": "ua",
     ]
-    /// Paiboon keeps the learner scheme's unaspirated g/dt/bp and writes the
+    /// Paiboon and Read Thai in 10 Days keep unaspirated g/dt/bp and write
     /// aspirated stops bare. ผล- ("p", issue #7) and พล- ("ph") both come out "p".
     private static let paiboonOnsets: [String: String] = [
         "g": "g", "kh": "k", "ng": "ng", "j": "j", "ch": "ch", "s": "s", "y": "y",
@@ -290,7 +324,7 @@ enum Romanization {
     private static func onsets(_ scheme: RomanizationScheme) -> [String: String] {
         switch scheme {
         case .learner: return [:]
-        case .paiboon: return paiboonOnsets
+        case .paiboon, .readThaiIn10Days: return paiboonOnsets
         case .ipa: return ipaOnsets
         case .rtgs: return rtgsOnsets
         }
@@ -298,7 +332,7 @@ enum Romanization {
 
     private static func vowels(_ scheme: RomanizationScheme) -> [String: String] {
         switch scheme {
-        case .learner: return [:]
+        case .learner, .readThaiIn10Days: return [:]
         case .paiboon: return paiboonVowels
         case .ipa: return ipaVowels
         case .rtgs: return rtgsVowels
@@ -314,31 +348,55 @@ enum Romanization {
         switch (final, scheme) {
         case ("ng", .ipa): return "ŋ"
         case ("y", .ipa): return "j"
-        case ("y", .rtgs), ("y", .paiboon): return "i"
+        case ("y", .rtgs), ("y", .paiboon), ("y", .readThaiIn10Days): return "i"
         case ("o", .ipa), ("w", .ipa): return "w"
         case ("o", .rtgs), ("w", .rtgs), ("o", .paiboon), ("w", .paiboon): return "o"
+        case ("w", .readThaiIn10Days): return "o"
         default: return final
         }
     }
 
-    private static func renderSyllable(_ syllable: ThaiSyllable, _ scheme: RomanizationScheme) -> String {
-        var vowel = vowels(scheme)[syllable.vowel] ?? syllable.vowel
-        if scheme != .rtgs, let mark = toneDiacritics[syllable.tone], let first = vowel.first {
-            vowel = "\(first)\(mark)\(vowel.dropFirst())"
+    private static func renderSyllable(
+        _ syllable: ThaiSyllable,
+        _ scheme: RomanizationScheme,
+        shortOpenDiphthong: Bool = false,
+        vowelLabel: Bool = false
+    ) -> String {
+        let onset = renderOnset(syllable.onset, scheme)
+        let mark: String? = switch (scheme, syllable.tone) {
+        case (.rtgs, _): nil
+        case (.readThaiIn10Days, .rising): "\u{0306}"
+        default: toneDiacritics[syllable.tone]
         }
+        if scheme == .readThaiIn10Days {
+            let rime = ReadThaiBookRomanization.rime(
+                for: syllable, shortOpenDiphthong: shortOpenDiphthong, vowelLabel: vowelLabel
+            )
+            return (onset + applyingTone(mark, to: rime)).precomposedStringWithCanonicalMapping
+        }
+
+        let vowel = vowels(scheme)[syllable.vowel] ?? syllable.vowel
         var ending = syllable.glide.map { renderFinal(String($0), scheme) } ?? renderFinal(syllable.coda, scheme)
         // Paiboon writes ◌ิว as "iu"; after every other vowel the ว glide is "o"
         if scheme == .paiboon, syllable.vowel == "i", syllable.glide == "o" {
             ending = "u"
         }
-        return (renderOnset(syllable.onset, scheme) + vowel + ending).precomposedStringWithCanonicalMapping
+        return (onset + applyingTone(mark, to: vowel) + ending).precomposedStringWithCanonicalMapping
+    }
+
+    private static func applyingTone(_ mark: String?, to vowel: String) -> String {
+        guard let mark, let first = vowel.first else { return vowel }
+        return "\(first)\(mark)\(vowel.dropFirst())"
     }
 
     /// IPA separates syllables with a period and Paiboon with a hyphen. RTGS
-    /// writes a word solid, with a hyphen only where the break would otherwise
-    /// be misread.
-    private static func join(_ syllables: [ThaiSyllable], _ scheme: RomanizationScheme) -> String {
-        guard scheme == .rtgs else {
+    /// and the book usually join syllables, with different rules for hyphens.
+    private static func join(
+        _ syllables: [ThaiSyllable],
+        _ scheme: RomanizationScheme,
+        vowelLabel: Bool = false
+    ) -> String {
+        guard scheme == .rtgs || scheme == .readThaiIn10Days else {
             return syllables.map { renderSyllable($0, scheme) }
                 .joined(separator: scheme == .paiboon ? "-" : ".")
         }
@@ -346,12 +404,13 @@ enum Romanization {
         for (index, syllable) in syllables.enumerated() {
             if index > 0 {
                 let previous = syllables[index - 1]
-                let previousEndsInVowel = previous.coda.isEmpty
-                if syllable.onset.isEmpty || (previousEndsInVowel && syllable.onset.hasPrefix("ng")) {
+                if scheme == .readThaiIn10Days {
+                    result += ReadThaiBookRomanization.separator(after: previous, before: syllable)
+                } else if syllable.onset.isEmpty || (previous.coda.isEmpty && syllable.onset.hasPrefix("ng")) {
                     result += "-"
                 }
             }
-            result += renderSyllable(syllable, scheme)
+            result += renderSyllable(syllable, scheme, vowelLabel: vowelLabel)
         }
         return result
     }

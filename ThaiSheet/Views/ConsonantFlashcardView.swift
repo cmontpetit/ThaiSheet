@@ -303,12 +303,12 @@ struct ConsonantFlashcardView: View {
         return AnswerOptions(
             initialSounds: initialSounds,
             finalSounds: finalSounds,
-            transcriptions: generateTranscriptionOptions()
+            transcriptions: Self.transcriptionOptions(for: consonant, from: allConsonants)
         )
     }
 
     /// Extracts the prefix from a transcription (first word, normalized without tone marks)
-    private func transcriptionPrefix(_ transcription: String) -> String {
+    private static func transcriptionPrefix(_ transcription: String) -> String {
         // Get first word (before space)
         let firstWord = transcription.split(separator: " ").first.map(String.init) ?? transcription
         // Fold away the tone diacritics (khǎaw → khaaw) so tonal variants match
@@ -316,7 +316,7 @@ struct ConsonantFlashcardView: View {
     }
 
     /// Generates transcription options, prioritizing confusers with the same prefix
-    private func generateTranscriptionOptions() -> [String] {
+    static func transcriptionOptions(for consonant: Consonant, from allConsonants: [Consonant]) -> [String] {
         let correctPrefix = transcriptionPrefix(consonant.transcription)
 
         // Find other consonants with the same prefix (confusers)
