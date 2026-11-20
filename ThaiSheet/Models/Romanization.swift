@@ -150,7 +150,7 @@ enum Romanization {
                        let syllable = syllables.first {
                         return renderSyllable(syllable, scheme, shortOpenDiphthong: true)
                     }
-                    return join(syllables, scheme)
+                    return join(syllables, scheme, vowelLabel: context == .vowelLabel)
                 }
             }
             let joined = words.joined(separator: " ")
@@ -359,7 +359,8 @@ enum Romanization {
     private static func renderSyllable(
         _ syllable: ThaiSyllable,
         _ scheme: RomanizationScheme,
-        shortOpenDiphthong: Bool = false
+        shortOpenDiphthong: Bool = false,
+        vowelLabel: Bool = false
     ) -> String {
         let onset = renderOnset(syllable.onset, scheme)
         let mark: String? = switch (scheme, syllable.tone) {
@@ -368,7 +369,9 @@ enum Romanization {
         default: toneDiacritics[syllable.tone]
         }
         if scheme == .readThaiIn10Days {
-            let rime = ReadThaiBookRomanization.rime(for: syllable, shortOpenDiphthong: shortOpenDiphthong)
+            let rime = ReadThaiBookRomanization.rime(
+                for: syllable, shortOpenDiphthong: shortOpenDiphthong, vowelLabel: vowelLabel
+            )
             return (onset + applyingTone(mark, to: rime)).precomposedStringWithCanonicalMapping
         }
 
@@ -388,7 +391,11 @@ enum Romanization {
 
     /// IPA separates syllables with a period and Paiboon with a hyphen. RTGS
     /// and the book usually join syllables, with different rules for hyphens.
-    private static func join(_ syllables: [ThaiSyllable], _ scheme: RomanizationScheme) -> String {
+    private static func join(
+        _ syllables: [ThaiSyllable],
+        _ scheme: RomanizationScheme,
+        vowelLabel: Bool = false
+    ) -> String {
         guard scheme == .rtgs || scheme == .readThaiIn10Days else {
             return syllables.map { renderSyllable($0, scheme) }
                 .joined(separator: scheme == .paiboon ? "-" : ".")
@@ -403,7 +410,7 @@ enum Romanization {
                     result += "-"
                 }
             }
-            result += renderSyllable(syllable, scheme)
+            result += renderSyllable(syllable, scheme, vowelLabel: vowelLabel)
         }
         return result
     }

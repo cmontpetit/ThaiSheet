@@ -15,6 +15,8 @@ enum ReadThaiBookRomanization {
         "a": "u", "e": "e", "ae": "a’", "aae": "a", "o": "o",
         // Medial เ◌ิ- is always er: เงิน ngern, เหิม herm (pp. xvii, xx, 138).
         "uh": "er",
+        // Closed ◌ุ keeps the guide's oo’: คุณ koo’n (p. xx), บุคคล bòo’k (p. 134).
+        "u": "oo’",
     ]
 
     // For short counterparts absent from the guide, retain the long counterpart's
@@ -28,7 +30,7 @@ enum ReadThaiBookRomanization {
         "ae": "aeo’", "aae": "aeo", "e": "eo’", "ee": "eo", "uuh": "ero",
     ]
 
-    static func rime(for syllable: ThaiSyllable, shortOpenDiphthong: Bool) -> String {
+    static func rime(for syllable: ThaiSyllable, shortOpenDiphthong: Bool, vowelLabel: Bool = false) -> String {
         let nucleus = syllable.vowel
         let vowel = openVowels[nucleus] ?? diphthongs[nucleus] ?? nucleus
         switch syllable.glide {
@@ -39,6 +41,12 @@ enum ReadThaiBookRomanization {
         if !syllable.coda.isEmpty {
             return (closedVowels[nucleus] ?? vowel) + syllable.coda
         }
+        // Open ◌ุ in a word is u: จุ ju (p. xx), จุฬา jùlaa (pp. 95, 143). The book
+        // is not uniform: ดุ is dòo’ on p. 55, which this renders as dù. Vowel
+        // labels keep the guide's oo’ (p. xix).
+        if nucleus == "u", !vowelLabel {
+            return "u"
+        }
         if shortOpenDiphthong, diphthongs[nucleus] != nil {
             return vowel + "’"
         }
@@ -46,12 +54,14 @@ enum ReadThaiBookRomanization {
     }
 
     /// The book commonly writes words solid. Keep a hyphen at vowel-led and
-    /// ambiguous consonant boundaries, including ng + r and t + dt (pp. xviii, xxi).
+    /// ambiguous consonant boundaries, including ng + r (pp. xviii, xxi), and
+    /// before dt and bp, which the book hyphenates in most words (ปฏัก bpà-dtùk,
+    /// p. 141) though it prints some solid (ถูกต้อง tòokdtôrng). A default, not exact.
     static func separator(after previous: ThaiSyllable, before next: ThaiSyllable) -> String {
         if next.onset.isEmpty ||
             (next.onset.hasPrefix("ng") && previous.coda.isEmpty) ||
             (next.onset.hasPrefix("g") && previous.coda == "n") ||
-            (next.onset.hasPrefix("dt") && previous.coda == "t") ||
+            next.onset.hasPrefix("dt") || next.onset.hasPrefix("bp") ||
             (next.onset.hasPrefix("r") && previous.coda == "ng") {
             return "-"
         }

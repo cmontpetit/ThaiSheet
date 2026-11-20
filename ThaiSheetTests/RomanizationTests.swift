@@ -165,6 +165,13 @@ final class RomanizationTests: XCTestCase {
             ("nèuay", "nùeai"), ("khuy", "kui"), ("dtào", "dtào"),
             ("sà-àat", "sà-àat"), ("rohng-raaem", "rohng-ram"),
             ("sà-ngàa", "sà-ngàa"), ("jàt-dtà-waa", "jùt-dtàwaa"),
+            // Open ◌ุ is u and closed is oo’. The book prints ดุ dòo’ (p. 55),
+            // an exception this scheme does not follow.
+            ("jù", "jù"), ("jù-laa", "jùlaa"), ("dù", "dù"), ("bùk", "bòo’k"),
+            // The book hyphenates before dt and bp by default.
+            ("bpà-dtàk", "bpà-dtùk"), ("dtà-bpuu", "dtà-bpoo"),
+            // Appendix II (pp. 141, 143)
+            ("dtaaw bpà-dtàk", "dtor bpà-dtùk"), ("laaw jù-laa", "lor jùlaa"),
         ]
         for (learner, expected) in examples {
             XCTAssertEqual(Romanization.render(learner, as: .readThaiIn10Days), expected, learner)
@@ -188,7 +195,7 @@ final class RomanizationTests: XCTestCase {
             "-y/-w/-ng": "-i/-o/-ng", "phl-/pl-": "pl-",
             "a/aa": "a/aa", "e/ee": "ay’/ay", "eu/euu": "ue’/ue",
             "aeo/aaeo": "aeo’/aeo", "eo/eeo": "eo’/eo", "awy/aawy": "oi’/oi",
-            "uuho": "ero", "ia": "ia’/ia", "eua": "uea’/uea", "ua": "ua’/ua",
+            "uuho": "ero", "u/uu": "oo’/oo", "ia": "ia’/ia", "eua": "uea’/uea", "ua": "ua’/ua",
         ]
         for (learner, expected) in examples {
             XCTAssertEqual(Romanization.render(learner, as: .readThaiIn10Days, context: .vowelLabel), expected)
