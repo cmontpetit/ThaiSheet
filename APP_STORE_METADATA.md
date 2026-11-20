@@ -53,7 +53,7 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 ## What's New
 
 - New "Why this tone?" sheet: type or paste a Thai syllable to see how it is read and which rule gives its tone.
-- Choose ThaiSheet learner spelling, Paiboon, IPA, RTGS, or the notation from *Read Thai in 10 Days* (2nd ed.).
+- Choose how Thai is romanized: the learner spelling, Paiboon, IPA, or RTGS.
 - On iPad and iPhone Duo, the Reference shows details beside the table, and flashcards use two columns.
 - Consonant flashcards can skip the name question, transcriptions follow one consistent spelling, and early reviews no longer advance a card.
 
