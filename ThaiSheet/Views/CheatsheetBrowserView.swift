@@ -150,6 +150,11 @@ struct CheatsheetBrowserView: View {
         }
     }
 
+    /// The row a jump asked for. A saved search shows it beside its matches.
+    private var jumpTarget: ReferenceJumpTarget {
+        ReferenceJumpTarget(highlighted: highlighted)
+    }
+
     var filteredConsonants: [Consonant] {
         let scope = bookScope
         var result = consonants.filter { scope.includes($0) }
@@ -162,7 +167,7 @@ struct CheatsheetBrowserView: View {
         // Apply search filter
         if !searchText.isEmpty {
             let query = searchText.lowercased()
-            result = result.filter { consonant in
+            result = ReferenceJumpTarget.searchResults(result, target: jumpTarget.contains) { consonant in
                 // Match Thai character
                 if consonant.character.contains(searchText) {
                     return true
@@ -216,11 +221,11 @@ struct CheatsheetBrowserView: View {
         }
 
         // Don't match vowels if searching for just the placeholder consonant
-        if searchText == "ก" { return [] }
+        if searchText == "ก" { return result.filter(jumpTarget.contains) }
 
         // Searching bypasses the rare toggle so matches are never hidden
         let query = searchText.lowercased()
-        return result.filter { vowel in
+        return ReferenceJumpTarget.searchResults(result, target: jumpTarget.contains) { vowel in
             vowel.allForms.contains { $0.contains(normalizedSearch) } ||
             vowel.sound.matchesRomanized(query)
         }
@@ -334,7 +339,7 @@ struct CheatsheetBrowserView: View {
         guard !searchText.isEmpty else { return toneRules.filter { scope.includes($0) } }
 
         let query = searchText.lowercased()
-        return toneRules.filter { rule in
+        return ReferenceJumpTarget.searchResults(toneRules, target: jumpTarget.contains) { rule in
             matchesQuery(rule.initialConsonant, query: query) ||
             matchesQuery(rule.vowelDuration, query: query) ||
             matchesQuery(rule.end, query: query) ||
@@ -347,11 +352,11 @@ struct CheatsheetBrowserView: View {
         guard !searchText.isEmpty else { return toneMarks.filter { scope.includes($0) } }
 
         // Don't match tone marks if searching for just the placeholder consonant
-        if searchText == "ก" { return [] }
+        if searchText == "ก" { return toneMarks.filter(jumpTarget.contains) }
 
         let query = searchText.lowercased()
         let normalizedSearch = ThaiDisplay.normalizeSearch(searchText)
-        return toneMarks.filter { mark in
+        return ReferenceJumpTarget.searchResults(toneMarks, target: jumpTarget.contains) { mark in
             mark.classEntries.contains { entry in
                 guard let tone = entry.tone else { return false }
                 return entry.display.contains(normalizedSearch) ||
@@ -373,7 +378,7 @@ struct CheatsheetBrowserView: View {
         // Apply search filter
         if !searchText.isEmpty {
             let query = searchText.lowercased()
-            result = result.filter { cluster in
+            result = ReferenceJumpTarget.searchResults(result, target: jumpTarget.contains) { cluster in
                 cluster.cluster.contains(searchText) ||
                 (cluster.sound?.matchesRomanized(query) ?? false) ||
                 cluster.type.displayName.lowercased().contains(query)
