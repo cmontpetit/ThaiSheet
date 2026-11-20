@@ -1,5 +1,5 @@
 /// Rimes and word boundaries for Arthit Juyaso’s *Read Thai in 10 Days*, 2nd ed.
-/// See the Pronunciation guide (pp. xviii–xxi) and the vowel summary (pp. 138–139).
+/// See the Pronunciation guide (pp. xvi–xxi) and the vowel summary (pp. 138–139).
 enum ReadThaiBookRomanization {
     static let diphthongs = ["ia": "ia", "eua": "uea", "ua": "ua"]
 
