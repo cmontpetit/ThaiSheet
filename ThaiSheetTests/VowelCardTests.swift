@@ -283,6 +283,39 @@ final class VowelCardTests: XCTestCase {
         }
     }
 
+    // MARK: - Per-form sound
+
+    private func vowel(_ id: String) throws -> Vowel {
+        try XCTUnwrap(allVowels.first { $0.id == id }, "Missing vowel row '\(id)'")
+    }
+
+    func test_soundForForm_splitsShortLongLabel() throws {
+        let a = try vowel("a")
+        XCTAssertEqual(a.sound(for: .short, form: "กะ"), "a")
+        XCTAssertEqual(a.sound(for: .long, form: "กา"), "aa")
+    }
+
+    func test_soundForForm_keepsSingleSpellingLabel() throws {
+        let ia = try vowel("ia")
+        XCTAssertEqual(ia.sound(for: .short, form: "เกียะ"), "ia")
+        XCTAssertEqual(ia.sound(for: .long, form: "เกีย"), "ia")
+    }
+
+    func test_soundForForm_keepsLabelForFormSharedByBothDurations() throws {
+        let oe = try vowel("oe")
+        XCTAssertEqual(oe.sound(for: .short, form: "เกิ-"), "uh/uuh")
+        XCTAssertEqual(oe.sound(for: .long, form: "เกิ-"), "uh/uuh")
+        XCTAssertEqual(oe.sound(for: .long, form: "เกอ"), "uuh")
+    }
+
+    func test_shownSound_isOneSpellingOfTheRowLabel() {
+        for card in allCards {
+            let parts = card.vowel.sound.split(separator: "/").map(String.init)
+            XCTAssertTrue(parts.contains(card.shownSound) || card.shownSound == card.vowel.sound,
+                          "Card '\(card.display)' shows '\(card.shownSound)', not part of '\(card.vowel.sound)'")
+        }
+    }
+
     // MARK: - VowelDuration
 
     func test_vowelDuration_labels_nonEmpty() {
