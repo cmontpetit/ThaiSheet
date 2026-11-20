@@ -445,6 +445,61 @@ struct FlashcardGridButton: View {
     }
 }
 
+// MARK: - Review Outcome Hint
+
+/// A correct answer that did not move the card's stage, on which card, and the
+/// card's saved progress right after that answer
+struct ReviewNotice: Equatable {
+    let cardID: String
+    let outcome: ReviewOutcome
+    let progress: CardProgress
+
+    /// Whether the notice still describes this card: the same card with the
+    /// progress the answer left. A reset, sync merge, or later answer changes
+    /// the progress, and the notice no longer applies.
+    func applies(to cardID: String, progress current: CardProgress) -> Bool {
+        cardID == self.cardID && current == progress
+    }
+}
+
+/// Tells the learner why a correct answer did not move the card's stage
+/// (`LearningModel.recordResult`): not due yet, capped, or already mastered.
+/// Shows nothing for an answer that counted.
+struct ReviewOutcomeHint: View {
+    let outcome: ReviewOutcome
+
+    var body: some View {
+        switch outcome {
+        case .counted:
+            EmptyView()
+        case .notDue(let nextReview):
+            hint(systemImage: "clock") {
+                Text("Not due yet, so the stage stays the same. Next review \(nextReview, format: .relative(presentation: .named)).")
+            }
+        case .capped(let nextReview):
+            hint(systemImage: "lock.fill") {
+                Text("Stage capped: it stays the same until Filter or Study Content offers more choices. Next review \(nextReview, format: .relative(presentation: .named)).")
+            }
+        case .mastered:
+            hint(systemImage: "checkmark.seal") {
+                Text("Mastered: this card is no longer reviewed, so the stage stays the same.")
+            }
+        }
+    }
+
+    private func hint(systemImage: String, @ViewBuilder text: () -> Text) -> some View {
+        Label {
+            text()
+        } icon: {
+            Image(systemName: systemImage)
+        }
+        .font(.caption2)
+        .foregroundColor(.secondary)
+        .multilineTextAlignment(.trailing)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+}
+
 // MARK: - Stage Indicator
 
 /// Shows the SRS progress indicator for the current card: 8 dots with stage name

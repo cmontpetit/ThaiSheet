@@ -137,6 +137,8 @@ struct FlashcardsView: View {
     @State private var showingFilter = false
     @State private var showingStudyContent = false
     @State private var filterRefreshID = UUID()
+    /// Set when the last correct answer did not move the card's stage
+    @State private var reviewNotice: ReviewNotice?
 
     /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the uncommon-content toggle).
     private var bookChapters: BookChapterMap? { manager.data.bookChapters }
@@ -163,8 +165,33 @@ struct FlashcardsView: View {
     /// Record a quiz answer and give haptic feedback
     private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
         let fullTesting = !manager.isPartialTesting(card)
-        manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
+        let learningModel = manager.learningModel
+        let outcome = learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
+        reviewNotice = outcome == .counted ? nil : ReviewNotice(
+            cardID: card.id,
+            outcome: outcome,
+            progress: learningModel.getProgress(for: card)
+        )
         UINotificationFeedbackGenerator().notificationOccurred(correct ? .success : .error)
+    }
+
+    private func showNext() {
+        reviewNotice = nil
+        manager.nextCard()
+    }
+
+    private func showPrevious() {
+        reviewNotice = nil
+        manager.previousCard()
+    }
+
+    /// The current card's notice, if its last correct answer did not move its
+    /// stage and its progress has not changed since (Reset All Progress, sync)
+    private func reviewNotice(for card: FlashcardItem) -> ReviewNotice? {
+        guard let notice = reviewNotice,
+              notice.applies(to: card.id, progress: manager.learningModel.getProgress(for: card))
+        else { return nil }
+        return notice
     }
 
     /// Flashcard content view for the current card - extracted to reduce body complexity
@@ -178,8 +205,8 @@ struct FlashcardsView: View {
                 allConsonants: manager.data.consonants,
                 onViewInReference: { viewInReference($0, type: .consonant) },
                 onComplete: { recordAnswer(for: card, type: .consonant, correct: $0) },
-                onNext: { manager.nextCard() },
-                onPrevious: { manager.previousCard() }
+                onNext: showNext,
+                onPrevious: showPrevious
             )
         case .vowel(let vowelCard):
             VowelFlashcardView(
@@ -187,24 +214,24 @@ struct FlashcardsView: View {
                 allVowels: manager.data.vowels,
                 onViewInReference: { viewInReference($0, type: .vowel) },
                 onComplete: { recordAnswer(for: card, type: .vowel, correct: $0) },
-                onNext: { manager.nextCard() },
-                onPrevious: { manager.previousCard() }
+                onNext: showNext,
+                onPrevious: showPrevious
             )
         case .toneMark(let toneMarkCard):
             ToneMarkFlashcardView(
                 card: toneMarkCard,
                 onViewInReference: { viewInReference($0, type: .toneMark) },
                 onComplete: { recordAnswer(for: card, type: .toneMark, correct: $0) },
-                onNext: { manager.nextCard() },
-                onPrevious: { manager.previousCard() }
+                onNext: showNext,
+                onPrevious: showPrevious
             )
         case .toneRule(let toneRuleCard):
             ToneRuleFlashcardView(
                 card: toneRuleCard,
                 onViewInReference: { viewInReference($0, type: .toneRule) },
                 onComplete: { recordAnswer(for: card, type: .toneRule, correct: $0) },
-                onNext: { manager.nextCard() },
-                onPrevious: { manager.previousCard() }
+                onNext: showNext,
+                onPrevious: showPrevious
             )
         case .cluster(let cluster):
             ClusterFlashcardView(
@@ -212,8 +239,8 @@ struct FlashcardsView: View {
                 allClusters: manager.data.clusters,
                 onViewInReference: { viewInReference($0, type: .cluster) },
                 onComplete: { recordAnswer(for: card, type: .cluster, correct: $0) },
-                onNext: { manager.nextCard() },
-                onPrevious: { manager.previousCard() }
+                onNext: showNext,
+                onPrevious: showPrevious
             )
         }
     }
@@ -316,15 +343,20 @@ struct FlashcardsView: View {
     /// Card header with type label, position, and stage indicator
     @ViewBuilder
     private func cardHeader(for card: FlashcardItem) -> some View {
-        HStack {
-            Text(typeLabel)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
-            Spacer()
-            positionIndicator
-            Spacer()
-            stageIndicator(for: card)
+        VStack(alignment: .trailing, spacing: 4) {
+            HStack {
+                Text(typeLabel)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                Spacer()
+                positionIndicator
+                Spacer()
+                stageIndicator(for: card)
+            }
+            if let notice = reviewNotice(for: card) {
+                ReviewOutcomeHint(outcome: notice.outcome)
+            }
         }
         .padding(.horizontal)
         .padding(.top, 8)
@@ -379,6 +411,9 @@ struct FlashcardsView: View {
             manager: manager,
             flashcardStarting: $flashcardStarting
         ))
+        // Any other way to a different card (Reference → Practice, a filter or
+        // scope change) starts a new attempt: a later return must not show it
+        .onChange(of: manager.currentCard?.id) { _, _ in reviewNotice = nil }
         .onAppear {
             #if DEBUG
             if ScreenshotScenario.current == .flashcardCompleted,

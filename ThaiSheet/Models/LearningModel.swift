@@ -20,6 +20,20 @@ extension EnvironmentValues {
     }
 }
 
+/// What a recorded answer did to a card's progress
+enum ReviewOutcome: Equatable {
+    /// The answer changed the card's stage and schedule
+    case counted
+    /// A correct answer before the card was due: practice only, nothing changed
+    case notDue(nextReview: Date)
+    /// A correct, due answer that partial testing kept from advancing: the
+    /// stage stayed the same, the schedule moved on
+    case capped(nextReview: Date)
+    /// A correct answer on a mastered card, which is never reviewed again:
+    /// nothing changed
+    case mastered
+}
+
 /// Tracks learning progress for all flashcards using Wanikani-style SRS
 @Observable
 class LearningModel {
@@ -82,23 +96,36 @@ class LearningModel {
     /// A correct answer on a card reviewed before it is due changes nothing:
     /// the interval has not elapsed, so it is extra practice, not evidence of
     /// retention. A wrong answer always demotes.
-    func recordResult(for card: FlashcardItem, correct: Bool, fullTesting: Bool = true) {
+    @discardableResult
+    func recordResult(for card: FlashcardItem, correct: Bool, fullTesting: Bool = true) -> ReviewOutcome {
         var progress = progressByCardId[card.id] ?? CardProgress(cardId: card.id)
         let now = clock()
 
+        var outcome = ReviewOutcome.counted
         if correct {
+            // Mastered cards are never due, so this also covers them
             let isEarlyReview = progress.srsStage != .new && !progress.isDue(at: now)
-            guard !isEarlyReview else { return }
+            guard !isEarlyReview else {
+                guard let nextReview = progress.nextReviewDate, progress.srsStage != .mastered else {
+                    return .mastered
+                }
+                return .notDue(nextReview: nextReview)
+            }
 
             progress.correctCount += 1
             var newStage = progress.srsStage.advance()
+            var isBlockedByCap = false
 
             // Cap advancement for partial testing
             if !fullTesting && newStage > LearningModel.partialTestingMaxStage {
                 newStage = max(progress.srsStage, LearningModel.partialTestingMaxStage)
+                isBlockedByCap = newStage <= progress.srsStage
             }
 
             progress.srsStage = newStage
+            if isBlockedByCap {
+                outcome = .capped(nextReview: now.addingTimeInterval(newStage.intervalSeconds))
+            }
         } else {
             progress.incorrectCount += 1
             progress.srsStage = progress.srsStage.demote()
@@ -115,6 +142,7 @@ class LearningModel {
 
         progressByCardId[card.id] = progress
         save()
+        return outcome
     }
 
     /// Get progress for a specific card
