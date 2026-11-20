@@ -1,13 +1,14 @@
 //
-//  BookChaptersView.swift
+//  StudyContentView.swift
 //  ThaiSheet
 //
 
 import SwiftUI
 
-/// What both tabs include: "Read Thai in 10 Days" progress (up to a chapter)
-/// and the uncommon-content toggles. One sheet, opened from either tab.
-struct BookChaptersView: View {
+/// Study Content: what both tabs include. "Read Thai in 10 Days" progress (up
+/// to a chapter) and whether uncommon content shows. One sheet, opened from
+/// either tab; quiz-only choices stay in the flashcard Filters.
+struct StudyContentView: View {
     @Bindable var settings: FlashcardSettings
     @Environment(\.dismiss) private var dismiss
     @Environment(\.thaiData) private var thaiData
@@ -15,7 +16,7 @@ struct BookChaptersView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Chapter controls need the mapping; the Content toggle does not.
+                // Chapter controls need the mapping; the uncommon-content toggle does not.
                 if thaiData.bookChapters != nil {
                     chapterSections
                 }
@@ -23,17 +24,17 @@ struct BookChaptersView: View {
                 // One toggle for the two former flashcard filters. It drives both
                 // keys (fc_uncommonConsonants, fc_uncommonVowels): nothing migrates.
                 Section {
-                    Toggle("Uncommon & rare letters", isOn: Binding(
+                    Toggle("Show uncommon consonants and vowels", isOn: Binding(
                         get: { settings.uncommonLetters },
                         set: { settings.setUncommonLetters($0) }
                     ))
                 } header: {
-                    Text("Content")
+                    Text("Uncommon content")
                 } footer: {
                     Text("Rare and obsolete consonants and vowels, such as ฃ, ฅ and ฦ. Applies to both tabs. Reference search still finds them.")
                 }
             }
-            .navigationTitle("Book Chapters")
+            .navigationTitle("Study Content")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -90,17 +91,28 @@ extension BookChapter {
     }
 }
 
-/// Toolbar button that opens the Book Chapters sheet. Filled while a scope is active.
-struct BookChaptersButton: View {
+/// Toolbar button that opens the Study Content sheet, the same in both tabs.
+/// Filled whenever the sheet is hiding something: a chapter is selected, or
+/// uncommon content is off.
+struct StudyContentButton: View {
     let isActive: Bool
     let action: () -> Void
 
+    init(settings: FlashcardSettings, map: BookChapterMap?, action: @escaping () -> Void) {
+        self.isActive = Self.isActive(settings: settings, map: map)
+        self.action = action
+    }
+
+    static func isActive(settings: FlashcardSettings, map: BookChapterMap?) -> Bool {
+        BookScope(settings: settings, map: map).isActive || !settings.uncommonLetters
+    }
+
     var body: some View {
         Button(action: action) {
-            // Not "book": that is the Reference tab's icon.
-            Image(systemName: isActive ? "text.book.closed.fill" : "text.book.closed")
+            // Distinct from the Reference tab's book and the Filters funnel.
+            Image(systemName: isActive ? "graduationcap.fill" : "graduationcap")
         }
-        .accessibilityLabel(String(localized: "Book Chapters", bundle: .appLanguage))
+        .accessibilityLabel(String(localized: "Study Content", bundle: .appLanguage))
         .accessibilityValue(isActive
             ? String(localized: "On", bundle: .appLanguage)
             : String(localized: "Off", bundle: .appLanguage))
@@ -108,5 +120,5 @@ struct BookChaptersButton: View {
 }
 
 #Preview {
-    BookChaptersView(settings: FlashcardSettings())
+    StudyContentView(settings: FlashcardSettings())
 }

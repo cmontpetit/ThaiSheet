@@ -388,7 +388,7 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.irregularClusters)
     }
 
-    /// The Content toggles moved to the Book Chapters sheet: bulk filter
+    /// The Content toggles moved to the Study Content sheet: bulk filter
     /// actions leave them alone, and they do not count toward "all selected".
     func test_bulkActions_leaveContentTogglesAlone() {
         settings.uncommonConsonants = false

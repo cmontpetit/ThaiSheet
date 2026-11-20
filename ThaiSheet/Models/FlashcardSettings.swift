@@ -59,7 +59,7 @@ class FlashcardSettings {
         didSet { persist(lowConsonants, forKey: "fc_lowConsonants") }
     }
 
-    /// Content setting, shown in the Book Chapters sheet and applied to both
+    /// Content setting, shown in the Study Content sheet and applied to both
     /// tabs (it was a flashcard filter; the key is unchanged). Not a filter:
     /// select/deselect-all never touch it.
     var uncommonConsonants = true {
@@ -88,7 +88,7 @@ class FlashcardSettings {
         didSet { persist(uncommonVowels, forKey: "fc_uncommonVowels") }
     }
 
-    /// The Book Chapters "Uncommon & rare letters" toggle: on only when both
+    /// The Study Content "Show uncommon consonants and vowels" toggle: on only when both
     /// content settings are on, so a mixed saved state reads as off. Reads the
     /// stored properties, so observation still tracks it.
     var uncommonLetters: Bool { uncommonConsonants && uncommonVowels }

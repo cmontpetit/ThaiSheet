@@ -6,7 +6,7 @@
 import Foundation
 
 /// The content settings (`uncommonConsonants`, `uncommonVowels`, set together
-/// by the Book Chapters "Uncommon & rare letters" toggle) as the Reference tab
+/// by the Study Content "Show uncommon consonants and vowels" toggle) as the Reference tab
 /// applies them. Flashcards apply
 /// the same settings through `FlashcardSettings.isConsonantEnabled` /
 /// `isVowelCardEnabled`. The browser passes `.all` while searching, so search

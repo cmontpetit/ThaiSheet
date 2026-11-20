@@ -66,7 +66,7 @@ struct CheatsheetBrowserView: View {
     @State private var referenceSelection = ScreenshotScenario.initialReferenceSelection
     @State private var showingSettings = false
     @State private var showingInfo = false
-    @State private var showingBookChapters = false
+    @State private var showingStudyContent = false
     @State private var showingToneFinder = ScreenshotScenario.current == .toneFinder
     /// Bumped on every "Show in the table" from the tone finder, so asking
     /// for the row that is already highlighted still scrolls to it
@@ -146,7 +146,7 @@ struct CheatsheetBrowserView: View {
     }
 
     /// Whether the chapter covers anything in the section once its chips are
-    /// cleared (the Content toggle is a setting, not a chip, and stays).
+    /// cleared (the uncommon-content toggle is a setting, not a chip, and stays).
     private func hasChapterContentWithoutChips(_ type: CheatsheetEntryType) -> Bool {
         let scope = bookScope
         let content = contentFilter
@@ -171,10 +171,10 @@ struct CheatsheetBrowserView: View {
         ContentUnavailableView {
             Label("Not taught yet", systemImage: "text.book.closed")
         } description: {
-            Text("The book has not reached this section by the chosen chapter. You can change it in Book Chapters.")
+            Text("The book has not reached this section by the chosen chapter. You can change it in Study Content.")
         } actions: {
-            Button("Open Book Chapters") {
-                showingBookChapters = true
+            Button("Open Study Content") {
+                showingStudyContent = true
             }
         }
     }
@@ -184,7 +184,7 @@ struct CheatsheetBrowserView: View {
         ReferenceJumpTarget(highlighted: highlighted)
     }
 
-    /// The Content toggle for the lists. Not applied while searching, like
+    /// The uncommon-content toggle for the lists. Not applied while searching, like
     /// the chapter scope; a jump target stays visible.
     private var contentFilter: ReferenceContentFilter {
         guard searchText.isEmpty else { return .all }
@@ -253,7 +253,7 @@ struct CheatsheetBrowserView: View {
         }
 
         guard let normalizedSearch = normalizedVowelSearch else {
-            // No search: the Content toggle decides rare/archaic rows
+            // No search: the uncommon-content toggle decides rare/archaic rows
             let content = contentFilter
             return result.filter { content.includes($0) }
         }
@@ -336,8 +336,8 @@ struct CheatsheetBrowserView: View {
         }
     }
 
-    /// Duration selection chips. Rare/archaic rows follow the Content toggle
-    /// in the Book Chapters sheet.
+    /// Duration selection chips. Rare/archaic rows follow the uncommon-content toggle
+    /// in the Study Content sheet.
     private var vowelFilterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -729,12 +729,10 @@ struct CheatsheetBrowserView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    // Always shown: the sheet also holds the Content toggle,
+                    // Always shown: the sheet also holds the uncommon-content toggle,
                     // even when the chapter mapping failed to load.
-                    BookChaptersButton(
-                        isActive: BookScope(settings: settings, map: thaiData.bookChapters).isActive
-                    ) {
-                        showingBookChapters = true
+                    StudyContentButton(settings: settings, map: thaiData.bookChapters) {
+                        showingStudyContent = true
                     }
                     Button {
                         practiceMode.toggleActive()
@@ -785,8 +783,8 @@ struct CheatsheetBrowserView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView(settings: settings, syncedStore: syncedStore)
             }
-            .sheet(isPresented: $showingBookChapters) {
-                BookChaptersView(settings: settings)
+            .sheet(isPresented: $showingStudyContent) {
+                StudyContentView(settings: settings)
             }
             .sheet(isPresented: $showingToneFinder) {
                 ToneFinderView { type, key in
@@ -852,7 +850,7 @@ struct CheatsheetBrowserView: View {
 
     /// Defer automatic handoff while another Reference presentation or tab is active.
     private var canPresentDetailSheet: Bool {
-        selectedTab == .reference && !showingSettings && !showingInfo && !showingBookChapters && !showingToneFinder && !isSearchFocused
+        selectedTab == .reference && !showingSettings && !showingInfo && !showingStudyContent && !showingToneFinder && !isSearchFocused
     }
 
     /// Filtering or changing sections must not leave unrelated details visible.

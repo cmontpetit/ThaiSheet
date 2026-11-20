@@ -135,10 +135,10 @@ struct FlashcardsView: View {
     @State private var showingSettings = false
     @State private var showingStats = ScreenshotScenario.current == .progress
     @State private var showingFilter = false
-    @State private var showingBookChapters = false
+    @State private var showingStudyContent = false
     @State private var filterRefreshID = UUID()
 
-    /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the Content toggle).
+    /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the uncommon-content toggle).
     private var bookChapters: BookChapterMap? { manager.data.bookChapters }
 
     private var bookScope: BookScope { BookScope(settings: manager.settings, map: bookChapters) }
@@ -247,7 +247,7 @@ struct FlashcardsView: View {
             Label("No Cards", systemImage: "rectangle.on.rectangle")
         } description: {
             if bookScope.isActive {
-                Text("Enable some options in Filters, or choose a later chapter in Book Chapters")
+                Text("Enable some options in Filters, or choose a later chapter in Study Content")
             } else {
                 Text("Enable some options in Filters")
             }
@@ -258,8 +258,8 @@ struct FlashcardsView: View {
             .buttonStyle(.borderedProminent)
             // The chapter scope alone can empty the deck.
             if bookScope.isActive {
-                Button("Open Book Chapters") {
-                    showingBookChapters = true
+                Button("Open Study Content") {
+                    showingStudyContent = true
                 }
             }
         }
@@ -268,8 +268,8 @@ struct FlashcardsView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 16) {
-                    BookChaptersButton(isActive: bookScope.isActive) {
-                        showingBookChapters = true
+                    StudyContentButton(settings: manager.settings, map: bookChapters) {
+                        showingStudyContent = true
                     }
                     Button {
                         showingFilter = true
@@ -294,8 +294,8 @@ struct FlashcardsView: View {
             } label: {
                 Image(systemName: "chart.bar")
             }
-            BookChaptersButton(isActive: bookScope.isActive) {
-                showingBookChapters = true
+            StudyContentButton(settings: manager.settings, map: bookChapters) {
+                showingStudyContent = true
             }
             Button {
                 showingFilter = true
@@ -368,7 +368,7 @@ struct FlashcardsView: View {
         }
         .modifier(FlashcardsSheetModifier(
             showingFilter: $showingFilter,
-            showingBookChapters: $showingBookChapters,
+            showingStudyContent: $showingStudyContent,
             showingSettings: $showingSettings,
             showingStats: $showingStats,
             filterRefreshID: $filterRefreshID,
@@ -397,7 +397,7 @@ struct FlashcardsView: View {
 /// Modifier for sheet presentations
 struct FlashcardsSheetModifier: ViewModifier {
     @Binding var showingFilter: Bool
-    @Binding var showingBookChapters: Bool
+    @Binding var showingStudyContent: Bool
     @Binding var showingSettings: Bool
     @Binding var showingStats: Bool
     @Binding var filterRefreshID: UUID
@@ -414,8 +414,8 @@ struct FlashcardsSheetModifier: ViewModifier {
                     filterRefreshID = UUID()
                 }
             }
-            .sheet(isPresented: $showingBookChapters) {
-                BookChaptersView(settings: manager.settings)
+            .sheet(isPresented: $showingStudyContent) {
+                StudyContentView(settings: manager.settings)
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(settings: manager.settings, syncedStore: syncedStore)
