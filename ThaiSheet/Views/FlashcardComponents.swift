@@ -447,10 +447,19 @@ struct FlashcardGridButton: View {
 
 // MARK: - Review Outcome Hint
 
-/// A correct answer that did not move the card's stage, and on which card
+/// A correct answer that did not move the card's stage, on which card, and the
+/// card's saved progress right after that answer
 struct ReviewNotice: Equatable {
     let cardID: String
     let outcome: ReviewOutcome
+    let progress: CardProgress
+
+    /// Whether the notice still describes this card: the same card with the
+    /// progress the answer left. A reset, sync merge, or later answer changes
+    /// the progress, and the notice no longer applies.
+    func applies(to cardID: String, progress current: CardProgress) -> Bool {
+        cardID == self.cardID && current == progress
+    }
 }
 
 /// Tells the learner why a correct answer did not move the card's stage

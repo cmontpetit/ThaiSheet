@@ -165,8 +165,13 @@ struct FlashcardsView: View {
     /// Record a quiz answer and give haptic feedback
     private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
         let fullTesting = !manager.isPartialTesting(card)
-        let outcome = manager.learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
-        reviewNotice = outcome == .counted ? nil : ReviewNotice(cardID: card.id, outcome: outcome)
+        let learningModel = manager.learningModel
+        let outcome = learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
+        reviewNotice = outcome == .counted ? nil : ReviewNotice(
+            cardID: card.id,
+            outcome: outcome,
+            progress: learningModel.getProgress(for: card)
+        )
         UINotificationFeedbackGenerator().notificationOccurred(correct ? .success : .error)
     }
 
@@ -180,9 +185,12 @@ struct FlashcardsView: View {
         manager.previousCard()
     }
 
-    /// The current card's notice, if its last correct answer did not move its stage
+    /// The current card's notice, if its last correct answer did not move its
+    /// stage and its progress has not changed since (Reset All Progress, sync)
     private func reviewNotice(for card: FlashcardItem) -> ReviewNotice? {
-        guard let notice = reviewNotice, notice.cardID == card.id else { return nil }
+        guard let notice = reviewNotice,
+              notice.applies(to: card.id, progress: manager.learningModel.getProgress(for: card))
+        else { return nil }
         return notice
     }
 
@@ -403,6 +411,9 @@ struct FlashcardsView: View {
             manager: manager,
             flashcardStarting: $flashcardStarting
         ))
+        // Any other way to a different card (Reference → Practice, a filter or
+        // scope change) starts a new attempt: a later return must not show it
+        .onChange(of: manager.currentCard?.id) { _, _ in reviewNotice = nil }
         .onAppear {
             #if DEBUG
             if ScreenshotScenario.current == .flashcardCompleted,
