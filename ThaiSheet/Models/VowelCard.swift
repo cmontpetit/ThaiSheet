@@ -43,6 +43,10 @@ struct VowelCard: Identifiable {
     /// combinations, which take no further final consonant.
     var asksForm: Bool { !vowel.isCombination }
 
+    /// The sound of the form the card shows ("a", not the row's "a/aa").
+    /// Display only: the Sound question's options and grading use the row label.
+    var shownSound: String { vowel.sound(for: shownDuration, form: display) }
+
     var pronunciationWord: ReferenceSampleWord? {
         vowel.pronunciation(for: shownDuration, form: form)
     }
