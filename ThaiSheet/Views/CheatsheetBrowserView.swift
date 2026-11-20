@@ -84,7 +84,6 @@ struct CheatsheetBrowserView: View {
     @State private var selectedConsonantClass: ConsonantClass? = nil
     @State private var selectedClusterType: ClusterType? = nil
     @State private var selectedVowelDuration: VowelCard.VowelDuration? = nil
-    @State private var showRareVowels = false
 
     init(
         settings: FlashcardSettings,
@@ -147,12 +146,13 @@ struct CheatsheetBrowserView: View {
     }
 
     /// Whether the chapter covers anything in the section once its chips are
-    /// cleared (the Rare toggle is a visibility setting, not a chip, and stays).
+    /// cleared (the Content toggles are settings, not chips, and stay).
     private func hasChapterContentWithoutChips(_ type: CheatsheetEntryType) -> Bool {
         let scope = bookScope
+        let content = contentFilter
         switch type {
-        case .consonants: return consonants.contains { scope.includes($0) }
-        case .vowels: return vowels.contains { scope.showsRow($0) && (showRareVowels || !$0.isUncommon) }
+        case .consonants: return consonants.contains { scope.includes($0) && content.includes($0) }
+        case .vowels: return vowels.contains { scope.showsRow($0) && content.includes($0) }
         case .clusters: return clusters.contains { scope.includes($0) }
         case .tones: return false
         }
@@ -184,9 +184,17 @@ struct CheatsheetBrowserView: View {
         ReferenceJumpTarget(highlighted: highlighted)
     }
 
+    /// The Content toggles for the lists. Not applied while searching, like
+    /// the chapter scope; a jump target stays visible.
+    private var contentFilter: ReferenceContentFilter {
+        guard searchText.isEmpty else { return .all }
+        return ReferenceContentFilter(settings: settings).revealing(highlighted)
+    }
+
     var filteredConsonants: [Consonant] {
         let scope = bookScope
-        var result = consonants.filter { scope.includes($0) }
+        let content = contentFilter
+        var result = consonants.filter { scope.includes($0) && content.includes($0) }
 
         // Apply class filter
         if let classFilter = selectedConsonantClass {
@@ -245,8 +253,9 @@ struct CheatsheetBrowserView: View {
         }
 
         guard let normalizedSearch = normalizedVowelSearch else {
-            // No search: hide rare/archaic rows unless the Rare toggle is on
-            return showRareVowels ? result : result.filter { !$0.isUncommon }
+            // No search: the Content toggle decides rare/archaic rows
+            let content = contentFilter
+            return result.filter { content.includes($0) }
         }
 
         // Don't match vowels if searching for just the placeholder consonant
@@ -327,7 +336,8 @@ struct CheatsheetBrowserView: View {
         }
     }
 
-    /// Duration selection chips plus the independent "Rare" visibility toggle
+    /// Duration selection chips. Rare/archaic rows follow the Content toggle
+    /// in the Book Chapters sheet.
     private var vowelFilterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -343,12 +353,6 @@ struct CheatsheetBrowserView: View {
                         action: { selectedVowelDuration = duration }
                     )
                 }
-                FilterChipView(
-                    label: String(localized: "Rare", bundle: .appLanguage),
-                    isSelected: showRareVowels,
-                    color: .pink,
-                    action: { showRareVowels.toggle() }
-                )
             }
             .padding(.horizontal)
         }
@@ -725,13 +729,12 @@ struct CheatsheetBrowserView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    // Hidden when the chapter mapping failed to load (scope Off).
-                    if thaiData.bookChapters != nil {
-                        BookChaptersButton(
-                            isActive: BookScope(settings: settings, map: thaiData.bookChapters).isActive
-                        ) {
-                            showingBookChapters = true
-                        }
+                    // Always shown: the sheet also holds the Content toggles,
+                    // even when the chapter mapping failed to load.
+                    BookChaptersButton(
+                        isActive: BookScope(settings: settings, map: thaiData.bookChapters).isActive
+                    ) {
+                        showingBookChapters = true
                     }
                     Button {
                         practiceMode.toggleActive()
@@ -835,12 +838,9 @@ struct CheatsheetBrowserView: View {
             if newValue[.consonant] != nil {
                 selectedType = .consonants
                 selectedConsonantClass = nil
-            } else if let form = newValue[.vowel] {
+            } else if newValue[.vowel] != nil {
                 selectedType = .vowels
                 selectedVowelDuration = nil
-                if vowels.first(where: { $0.allForms.contains(form) })?.isUncommon == true {
-                    showRareVowels = true
-                }
             } else if newValue[.toneMark] != nil || newValue[.toneRule] != nil {
                 selectedType = .tones
             } else if newValue[.cluster] != nil {

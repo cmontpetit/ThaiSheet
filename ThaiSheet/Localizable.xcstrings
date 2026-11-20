@@ -1565,16 +1565,6 @@
         }
       }
     },
-    "Rare" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rares"
-          }
-        }
-      }
-    },
     "Recorded voice" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3106,6 +3096,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tout afficher"
+          }
+        }
+      }
+    },
+    "Content" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contenu"
+          }
+        }
+      }
+    },
+    "Consonants and vowels most learners can skip. Applies to both tabs. Reference search still finds them." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consonnes et voyelles que la plupart des apprenants peuvent ignorer. S’applique aux deux onglets. La recherche dans Référence les trouve toujours."
           }
         }
       }

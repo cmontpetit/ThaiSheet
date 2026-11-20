@@ -5,36 +5,30 @@
 
 import SwiftUI
 
-/// "Read Thai in 10 Days" progress: limits both tabs to what the book has
-/// taught up to the chosen chapter. One sheet, opened from either tab.
+/// What both tabs include: "Read Thai in 10 Days" progress (up to a chapter)
+/// and the uncommon-content toggles. One sheet, opened from either tab.
 struct BookChaptersView: View {
     @Bindable var settings: FlashcardSettings
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.thaiData) private var thaiData
 
     var body: some View {
         NavigationStack {
             Form {
-                // A menu, not an inline list: 11 rows would push the toggle
-                // below the fold on iPhone.
-                Section {
-                    Picker("Up to", selection: $settings.bookProgress) {
-                        Text("Off").tag(BookChapter?.none)
-                        ForEach(BookChapter.allCases, id: \.self) { chapter in
-                            Text(chapter.title).tag(BookChapter?.some(chapter))
-                        }
-                    }
-                    .pickerStyle(.menu)
-                } header: {
-                    Text(verbatim: "Read Thai in 10 Days")
-                } footer: {
-                    Text("Both tabs show only what the book has taught up to the chosen chapter. Reference search includes all chapters.")
+                // Chapter controls need the mapping; the Content toggles do not.
+                if thaiData.bookChapters != nil {
+                    chapterSections
                 }
 
+                // These were flashcard filters. They keep their keys
+                // (fc_uncommonConsonants, fc_uncommonVowels): nothing migrates.
                 Section {
-                    Toggle("Not taught in the book", isOn: $settings.showNotInBook)
-                        .disabled(settings.bookProgress == nil)
+                    Toggle("Uncommon, rare & ancient", isOn: $settings.uncommonConsonants)
+                    Toggle("Uncommon, rare & archaic", isOn: $settings.uncommonVowels)
+                } header: {
+                    Text("Content")
                 } footer: {
-                    Text("Also show content no chapter teaches, such as the obsolete letters ฃ and ฅ.")
+                    Text("Consonants and vowels most learners can skip. Applies to both tabs. Reference search still finds them.")
                 }
             }
             .navigationTitle("Book Chapters")
@@ -46,6 +40,32 @@ struct BookChaptersView: View {
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var chapterSections: some View {
+        // A menu, not an inline list: 11 rows would push the toggle
+        // below the fold on iPhone.
+        Section {
+            Picker("Up to", selection: $settings.bookProgress) {
+                Text("Off").tag(BookChapter?.none)
+                ForEach(BookChapter.allCases, id: \.self) { chapter in
+                    Text(chapter.title).tag(BookChapter?.some(chapter))
+                }
+            }
+            .pickerStyle(.menu)
+        } header: {
+            Text(verbatim: "Read Thai in 10 Days")
+        } footer: {
+            Text("Both tabs show only what the book has taught up to the chosen chapter. Reference search includes all chapters.")
+        }
+
+        Section {
+            Toggle("Not taught in the book", isOn: $settings.showNotInBook)
+                .disabled(settings.bookProgress == nil)
+        } footer: {
+            Text("Also show content no chapter teaches, such as the obsolete letters ฃ and ฅ.")
         }
     }
 }

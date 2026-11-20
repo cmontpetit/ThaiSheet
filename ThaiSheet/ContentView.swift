@@ -138,7 +138,7 @@ struct FlashcardsView: View {
     @State private var showingBookChapters = false
     @State private var filterRefreshID = UUID()
 
-    /// nil when the chapter mapping failed to load: the button is hidden and the scope is Off.
+    /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the Content toggles).
     private var bookChapters: BookChapterMap? { manager.data.bookChapters }
 
     private var bookScope: BookScope { BookScope(settings: manager.settings, map: bookChapters) }
@@ -268,10 +268,8 @@ struct FlashcardsView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 16) {
-                    if bookChapters != nil {
-                        BookChaptersButton(isActive: bookScope.isActive) {
-                            showingBookChapters = true
-                        }
+                    BookChaptersButton(isActive: bookScope.isActive) {
+                        showingBookChapters = true
                     }
                     Button {
                         showingFilter = true
@@ -296,10 +294,8 @@ struct FlashcardsView: View {
             } label: {
                 Image(systemName: "chart.bar")
             }
-            if bookChapters != nil {
-                BookChaptersButton(isActive: bookScope.isActive) {
-                    showingBookChapters = true
-                }
+            BookChaptersButton(isActive: bookScope.isActive) {
+                showingBookChapters = true
             }
             Button {
                 showingFilter = true
