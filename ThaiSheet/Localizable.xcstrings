@@ -3079,6 +3079,36 @@
           }
         }
       }
+    },
+    "Nothing taught yet with this filter" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rien d’enseigné avec ce filtre pour l’instant"
+          }
+        }
+      }
+    },
+    "The chosen chapter covers other items in this section." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le chapitre choisi couvre d’autres éléments de cette section."
+          }
+        }
+      }
+    },
+    "Show All" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout afficher"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

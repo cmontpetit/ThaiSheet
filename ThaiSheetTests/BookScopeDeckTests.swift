@@ -346,6 +346,59 @@ final class BookScopeDeckTests: XCTestCase {
         XCTAssertEqual(currentVowelWord, "เดิน")
     }
 
+    // MARK: - Shared form with the duration filter
+
+    private func sharedFormWord() -> String? {
+        manager.filteredCards.lazy.compactMap { item -> String? in
+            guard case .vowel(let card) = item, card.display == "เกิ-" else { return nil }
+            return card.pronunciationWord?.word
+        }.first
+    }
+
+    /// One slot decides the duration filter, the chapter, and the example.
+    func test_sharedForm_day5_longOnly_presentsLongSlot() {
+        settings.bookProgress = .day5
+        settings.shortVowels = false
+        XCTAssertEqual(sharedFormWord(), "เดิน", "its long slot passes both the filter and the chapter")
+    }
+
+    func test_sharedForm_day5_shortOnly_isExcluded() {
+        settings.bookProgress = .day5
+        settings.longVowels = false
+        XCTAssertNil(sharedFormWord(), "its short slot is not taught; its long slot is filtered out")
+    }
+
+    func test_sharedForm_day5_shortOnlyWithNotTaught_presentsShortSlot() {
+        settings.bookProgress = .day5
+        settings.longVowels = false
+        settings.showNotInBook = true
+        XCTAssertEqual(sharedFormWord(), "เงิน")
+    }
+
+    func test_sharedForm_day5_bothDurations_presentsLongSlot() {
+        settings.bookProgress = .day5
+        XCTAssertEqual(sharedFormWord(), "เดิน")
+    }
+
+    /// Without a chapter, the duration filter alone picks the slot. Before,
+    /// Long only dropped the card because only its short slot was checked.
+    func test_sharedForm_off_followsDurationFilter() {
+        XCTAssertEqual(sharedFormWord(), "เงิน", "both durations: the card's own (short) slot")
+        settings.shortVowels = false
+        XCTAssertEqual(sharedFormWord(), "เดิน")
+        settings.shortVowels = true
+        settings.longVowels = false
+        XCTAssertEqual(sharedFormWord(), "เงิน")
+    }
+
+    /// The progress id and accepted durations never follow the presented slot.
+    func test_sharedForm_presentedSlot_keepsIdAndAnswers() throws {
+        let original = try vowelCard("เกิ-")
+        settings.shortVowels = false
+        let item = try XCTUnwrap(manager.filteredCards.first { $0.id == original.id })
+        XCTAssertEqual(item.fixedAnswerQuestions[.vowelDuration], ["Short", "Long"])
+    }
+
     func test_sharedForm_ownSlotInScope_presentsOwnSlot() throws {
         settings.bookProgress = .day5
         settings.showNotInBook = true

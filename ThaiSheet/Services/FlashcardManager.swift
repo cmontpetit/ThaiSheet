@@ -37,7 +37,6 @@ class FlashcardManager {
         self.settings = settings
         self.learningModel = learningModel
         self.data = data
-        self.vowelPlacementsByForm = Self.makeVowelPlacementsByForm(data)
         updateStrategies()
     }
 
@@ -48,26 +47,6 @@ class FlashcardManager {
         BookScope(settings: settings, map: data.bookChapters)
     }
 
-    /// Chapter placements of every Reference slot, by written form. A vowel card
-    /// stands for each slot sharing its form (เกิ- is both the short and the
-    /// long closed slot), so it is eligible once any of those slots is.
-    private let vowelPlacementsByForm: [String: [BookPlacement?]]
-
-    private static func makeVowelPlacementsByForm(_ data: ThaiDataStore) -> [String: [BookPlacement?]] {
-        guard let map = data.bookChapters else { return [:] }
-        var result: [String: [BookPlacement?]] = [:]
-        for vowel in data.vowels {
-            let slots: [(String?, VowelCard.VowelDuration, VowelCard.VowelFormType)] = [
-                (vowel.short.closed, .short, .closed), (vowel.short.open, .short, .open),
-                (vowel.long.closed, .long, .closed), (vowel.long.open, .long, .open),
-            ]
-            for case let (form?, duration, formType) in slots {
-                result[form, default: []].append(map.placement(of: vowel, duration: duration, form: formType))
-            }
-        }
-        return result
-    }
-
     /// Whether the book has introduced this card's content by the chosen chapter.
     func isInBookScope(_ item: FlashcardItem) -> Bool {
         let scope = bookScope
@@ -76,8 +55,7 @@ class FlashcardManager {
         case .consonant(let consonant, _):
             return scope.includes(map.placement(of: consonant))
         case .vowel(let card):
-            let placements = vowelPlacementsByForm[card.display] ?? [nil]
-            return placements.contains { scope.includes($0) }
+            return isSlotInScope(card.vowel, duration: card.shownDuration, form: card.form)
         case .toneMark(let card):
             return scope.includes(map.placement(of: card))
         case .toneRule(let card):
@@ -104,20 +82,39 @@ class FlashcardManager {
 
     /// Returns all cards that match current settings and the chapter scope, in order
     var filteredCards: [FlashcardItem] {
-        filterCardsBySettings().filter(isInBookScope).map(presentedInBookScope)
+        filterCardsBySettings().filter(isInBookScope)
     }
 
-    /// A shared-form vowel card (เกิ-) is built from its short slot. When only
-    /// its long slot is in scope, present that slot's example instead; the
-    /// progress id and both accepted durations are unchanged.
-    private func presentedInBookScope(_ item: FlashcardItem) -> FlashcardItem {
-        guard case .vowel(let card) = item, card.acceptsBothDurations,
-              bookScope.isActive, let map = data.bookChapters else { return item }
-        let ownSlotInScope = bookScope.includes(map.placement(of: card.vowel, duration: card.duration, form: card.form))
-        guard !ownSlotInScope else { return item }
+    /// The duration a vowel card presents. A card for a form shared by both
+    /// durations (เกิ-) stands for both slots: it uses its own slot when that
+    /// passes, else the other one. One slot decides the duration filter, the
+    /// chapter scope, and the example together; the progress id and both
+    /// accepted durations never change. `checkingFilters` is false for a card
+    /// opened from Reference, which Filters do not gate.
+    private func vowelSlot(for card: VowelCard, checkingFilters: Bool) -> VowelCard.VowelDuration? {
         let other: VowelCard.VowelDuration = card.duration == .short ? .long : .short
-        guard bookScope.includes(map.placement(of: card.vowel, duration: other, form: card.form)) else { return item }
-        return .vowel(card.presenting(other))
+        let candidates = card.acceptsBothDurations ? [card.duration, other] : [card.duration]
+        return candidates.first { duration in
+            (!checkingFilters || settings.isVowelCardEnabled(
+                duration: duration,
+                isUncommon: card.vowel.isUncommon,
+                hasLengthContrast: card.asksDuration
+            )) && isSlotInScope(card.vowel, duration: duration, form: card.form)
+        }
+    }
+
+    private func isSlotInScope(_ vowel: Vowel, duration: VowelCard.VowelDuration, form: VowelCard.VowelFormType) -> Bool {
+        let scope = bookScope
+        guard scope.isActive, let map = data.bookChapters else { return true }
+        return scope.includes(map.placement(of: vowel, duration: duration, form: form))
+    }
+
+    /// A card opened from Reference outside the deck: present a shared form's
+    /// in-scope slot when it has one, else the card's own.
+    private func presentedInBookScope(_ item: FlashcardItem) -> FlashcardItem {
+        guard case .vowel(let card) = item,
+              let slot = vowelSlot(for: card, checkingFilters: false) else { return item }
+        return .vowel(card.presenting(slot))
     }
 
     private func filterCardsBySettings() -> [FlashcardItem] {
@@ -132,8 +129,8 @@ class FlashcardManager {
 
         // Add filtered vowels
         for card in data.vowelCards {
-            if isVowelCardEnabled(card) {
-                cards.append(.vowel(card))
+            if let slot = vowelSlot(for: card, checkingFilters: true) {
+                cards.append(.vowel(card.presenting(slot)))
             }
         }
 
@@ -191,14 +188,6 @@ class FlashcardManager {
     /// Whether current filters exclude some cards
     var hasActiveFilters: Bool {
         filteredCards.count < allCards.count
-    }
-
-    private func isVowelCardEnabled(_ card: VowelCard) -> Bool {
-        settings.isVowelCardEnabled(
-            duration: card.duration,
-            isUncommon: card.vowel.isUncommon,
-            hasLengthContrast: card.asksDuration
-        )
     }
 
     private func isToneRuleCardEnabled(_ card: ToneRuleCard) -> Bool {

@@ -127,14 +127,43 @@ struct CheatsheetBrowserView: View {
             .revealing(highlighted)
     }
 
-    /// An empty section: a search miss, or (not searching) a section the
-    /// chosen chapter has not reached yet.
+    /// An empty section: a search miss; a chip that filtered out everything
+    /// the chapter does cover here; or a section the chapter has not reached.
     @ViewBuilder
-    private var emptySectionView: some View {
-        if searchText.isEmpty && bookScope.isActive {
-            notTaughtYetView
-        } else {
+    private func emptySectionView(_ type: CheatsheetEntryType) -> some View {
+        if !searchText.isEmpty || !bookScope.isActive {
             ContentUnavailableView.search(text: searchText)
+        } else if hasChapterContentWithoutChips(type) {
+            ContentUnavailableView {
+                Label("Nothing taught yet with this filter", systemImage: "line.3.horizontal.decrease.circle")
+            } description: {
+                Text("The chosen chapter covers other items in this section.")
+            } actions: {
+                Button("Show All") { clearChips(type) }
+            }
+        } else {
+            notTaughtYetView
+        }
+    }
+
+    /// Whether the chapter covers anything in the section once its chips are
+    /// cleared (the Rare toggle is a visibility setting, not a chip, and stays).
+    private func hasChapterContentWithoutChips(_ type: CheatsheetEntryType) -> Bool {
+        let scope = bookScope
+        switch type {
+        case .consonants: return consonants.contains { scope.includes($0) }
+        case .vowels: return vowels.contains { scope.showsRow($0) && (showRareVowels || !$0.isUncommon) }
+        case .clusters: return clusters.contains { scope.includes($0) }
+        case .tones: return false
+        }
+    }
+
+    private func clearChips(_ type: CheatsheetEntryType) {
+        switch type {
+        case .consonants: selectedConsonantClass = nil
+        case .vowels: selectedVowelDuration = nil
+        case .clusters: selectedClusterType = nil
+        case .tones: break
         }
     }
 
@@ -484,7 +513,7 @@ struct CheatsheetBrowserView: View {
             switch selectedType {
             case .consonants:
                 if filteredConsonants.isEmpty {
-                    emptySectionView
+                    emptySectionView(.consonants)
                 } else {
                 VStack(spacing: 0) {
                     ConsonantHeaderView()
@@ -506,7 +535,7 @@ struct CheatsheetBrowserView: View {
                 }
             case .vowels:
                 if filteredVowels.isEmpty {
-                    emptySectionView
+                    emptySectionView(.vowels)
                 } else {
                 VStack(spacing: 0) {
                     ScrollViewReader { proxy in
@@ -629,7 +658,7 @@ struct CheatsheetBrowserView: View {
                 }
             case .clusters:
                 if filteredClusters.isEmpty {
-                    emptySectionView
+                    emptySectionView(.clusters)
                 } else {
                 ScrollViewReader { proxy in
                     ScrollView {
