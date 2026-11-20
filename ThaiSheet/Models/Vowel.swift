@@ -116,6 +116,15 @@ struct Vowel: Codable, Identifiable {
 
     var sound: String { sounds.en }
 
+    /// The sound of one written form: the short or long half of a
+    /// "short/long" label ("a/aa" → "a" or "aa"). A form shared by both
+    /// durations (เกิ-) and a single-spelling label (ia, ai) keep the label.
+    func sound(for duration: VowelCard.VowelDuration, form: String) -> String {
+        let parts = sound.split(separator: "/")
+        guard parts.count == 2, !isDuplicate(form: form) else { return sound }
+        return String(duration == .short ? parts[0] : parts[1])
+    }
+
     /// All existing written forms, in short-closed/short-open/long-closed/long-open order
     var allForms: [String] {
         [short.closed, short.open, long.closed, long.open].compactMap { $0 }

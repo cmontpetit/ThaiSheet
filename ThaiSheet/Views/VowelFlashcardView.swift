@@ -116,7 +116,12 @@ struct VowelFlashcardView: View {
                     selectedValue: cardState.selectedSound,
                     correctValue: card.vowel.sound,
                     showResult: currentStep == .completed,
-                    display: \.romanizedVowelLabel
+                    // Grades on the row label, shows the card's own form
+                    display: { [card] value in
+                        value == card.vowel.sound
+                            ? card.shownSound.romanizedVowelLabel
+                            : value.romanizedVowelLabel
+                    }
                 )
 
                 // Show note if available and card is completed
