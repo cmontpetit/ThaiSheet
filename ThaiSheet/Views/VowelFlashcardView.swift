@@ -65,6 +65,7 @@ struct VowelFlashcardView: View {
             soundType: .vowel,
             soundKey: primaryWord ?? "",
             overrideItemID: overrideItemID,
+            showsPlayAction: !card.coversClosedForm,
             onViewInReference: { onViewInReference?(card.display) },
             onShowDetails: { showingDetails = true },
             onPrevious: handlePrevious,
