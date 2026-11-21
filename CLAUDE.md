@@ -65,6 +65,7 @@ scripts/check_release_binary.sh /path/to/ThaiSheet.app
 
 ### @Observable and UserDefaults
 - `FlashcardSettings` and `LearningModel` use `@Observable` with stored properties and `didSet` for persistence
+- The app's one `LearningModel` is injected as `\.learningModel` on the whole TabView. The environment default is a separate instance, so a view (or a sheet opened from a flashcard) outside that injection silently shows stale stages
 - Both accept a `KeyValueStore` as init param (default `.standard`) for testability; `SyncedKeyValueStore` mirrors an allowlist to `NSUbiquitousKeyValueStore` after opt-in, with cloud-first settings reconciliation and per-card progress merging
 - **Important:** Computed properties bypass `@Observable` tracking - always use stored properties
 - Pattern: `var setting: Bool { didSet { defaults.set(setting, forKey: "key") } }`
@@ -77,6 +78,7 @@ scripts/check_release_binary.sh /path/to/ThaiSheet.app
 - Correcting content (a transcription, note, sample word, or written form) does NOT orphan progress.
 - A vowel form that moves to another short/long or open/closed slot keeps its key through the row's `progressKeys` (slot → key, e.g. `"long_closed": "uay:Short:Closed"`). A removed card's key goes in `LegacyProgressIDs.retiredProgressIDs` and is never used again; `ProgressIDMigrationTests` fails if a current card reuses one.
 - `ThaiSheet/Services/LegacyProgressIDs.swift` is a **frozen** snapshot of the keys shipped releases wrote (v1.0-build4 through v1.2.0-build8 all wrote the same keys — same derivation sources, same data). Never regenerate it from current content; that would defeat its purpose. When a future release changes an ID scheme, freeze that release's map as a second table and merge it in.
+- `LegacyProgressIDs.mergedVowelFormsAfterV1_3` is that second table: the 12 closed-slot keys folded into their open card (e.g. `vowel-a:Long:Closed` → `vowel-a:Long:Open`). `ProgressIDMigration.bundled` composes it after `upToV1_2`, the folded keys are retired, and when both slots had progress the most recently reviewed one wins
 - Per-item **voice overrides** (`fc_voiceOverrides`) key on a row's identity, not a card's, so they have their own frozen table (`LegacyProgressIDs.voiceOverridesUpToV1_2`, vowels + clusters). `FlashcardSettings.migrateVoiceOverrideIDs` runs on every load and reload — including one triggered by an iCloud change — and writes the normalized form back.
 - `ProgressIDMigration.migrate(_:using:)` applies the frozen map on every decode — locally in `LearningModel.load` (which then persists the normalized keys) and for cloud blobs in `SyncedKeyValueStore` reconciliation, so both sides are normalized before merging. It is idempotent, lossless (unknown keys are kept, never dropped), and collision-safe (most recently reviewed wins). It constructs no catalog to run.
 - Duplicate durable IDs across the catalog are a data bug that would collide progress — `ProgressIDMigrationTests` fails if any appear.
@@ -121,6 +123,8 @@ The app's data intentionally differs from the source cheat sheet (`external-reso
 - **Open** = syllable ends with vowel sound → no dash needed
 - Example: short closed `กั-` (needs final consonant), short open `กะ` (vowel terminates)
 - Open/Closed describes the WRITTEN form of a basic vowel. Rows flagged `"combination": true` (ไ◌, ใ◌, เ◌า, ◌ำ, and the ย/ว glide endings) are vowel-plus-ending spellings that take no further final: the Reference lists them in their own "Vowel + ending" section and their cards skip the form question. Their open/closed slots are storage only (they are part of progress keys), never shown
+- Merged cards: when a row's closed spelling is its open spelling plus the dash in the same duration (◌า / ◌า-), one card covers both slots. It is keyed on the open slot, its Form answer is **Both** (the form question offers Open / Closed / Both, `VowelCard.FormAnswer`), and `VowelCard.covers(form:)` maps the closed Reference form to it. 12 pairs merge, leaving 59 vowel cards
+- Vowel card faces show the bare vowel without the dash (`VowelCard.bareForm`), since a word would give the Form answer away. Only cards whose bare vowel matches another card's prompt with their pronunciation word instead: today the two ฤ cards (ฤดู, ฤทธิ์)
 - Rows flagged `"lengthContrast": false` (เ◌ียว, เ◌ือย, ◌วย) also skip the duration question, follow either duration filter, and are exempt from the single-duration SRS cap (`FlashcardSettings.isPartialTesting(forCard:)`)
 
 ### Thai character rendering on iOS
@@ -254,6 +258,7 @@ URLs with `preload="none"`; do not copy the MP3 set into `docs/`.
   - 8 total cards: 2 low (ค่า, ค้า) + 4 mid (ก่า, ก้า, ก๊า, ก๋า) + 2 high (ข่า, ข้า)
   - No cards for unmarked syllables — those follow the tone rules
   - Display shows full syllable with า vowel for proper pronunciation
+- **Vowels**: after reveal, every example word has its own speaker button (a merged card shows its open and closed words, each labeled; a ฤ card puts the speaker beside its prompt word). Vowel cards therefore hide the card-level Play action (`FlashcardFace.showsPlayAction`). Details lists the examples of every slot the card covers
 - **Tone Rules**: Use predefined sample words (not random combinations) because:
   - Real vocabulary is more pedagogically useful
   - Combinatorial explosion would require thousands of sound files
