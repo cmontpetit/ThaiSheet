@@ -41,7 +41,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: Binding(get: { highlighted.items }, set: { highlighted.items = $0 }),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: activeTab,
             referenceSelection: selection
         )
@@ -111,7 +111,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: .constant(.reference),
             referenceType: .vowels
         )
@@ -145,7 +145,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: .constant(.reference),
             referenceSelection: selection
         )
@@ -193,7 +193,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: .constant(.reference),
             referenceSelection: selection,
             referenceType: .vowels
@@ -256,7 +256,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: .constant(.reference),
             referenceType: .vowels
         )
@@ -330,7 +330,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: activeTab,
             referenceSelection: selection
         )
@@ -378,7 +378,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: .constant(.reference),
             referenceSelection: selection,
             referenceType: referenceType
@@ -519,7 +519,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: Binding(get: { tab.activeTab }, set: { tab.activeTab = $0 }),
             referenceSelection: selection
         )
@@ -590,7 +590,7 @@ final class ReferencePresentationTests: XCTestCase {
         let browser = CheatsheetBrowserView(
             settings: settings,
             highlighted: .constant([:]),
-            flashcardStarting: .constant([:]),
+            practiceTarget: .constant(nil),
             selectedTab: activeTab,
             referenceSelection: selection
         )
@@ -781,6 +781,11 @@ final class ReferencePresentationTests: XCTestCase {
 @MainActor
 @Observable
 private final class ReferenceViewObservation {
+    #if compiler(>=6.2)
+    // Avoid the MainActor deinit back-deployment thunk on affected runtimes.
+    nonisolated deinit {}
+    #endif
+
     var activeTab: AppTab = .reference
     var answerIsPresent = false
     var paneIsPresent = false
@@ -818,6 +823,11 @@ private struct BrowserIdentityProbe: View {
 @MainActor
 @Observable
 private final class ReferenceSearchNavigation {
+    #if compiler(>=6.2)
+    // Avoid the MainActor deinit back-deployment thunk on affected runtimes.
+    nonisolated deinit {}
+    #endif
+
     var items: [FlashcardType: String] = [:]
 }
 

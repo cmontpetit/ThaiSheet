@@ -200,6 +200,61 @@ final class BookScopeDeckTests: XCTestCase {
 
     // MARK: - Deck-based SRS cap (also covers the cases the old settings-based cap did)
 
+    func test_capAcceptedAnswers_matchQuizGradingAcrossCatalog() {
+        for item in manager.allCards {
+            let questions = item.fixedAnswerQuestions
+            func check<Option: RawRepresentable>(
+                _ question: CardQuestion, _ options: [Option], rejects: (Option) -> Bool
+            ) where Option.RawValue == String {
+                let accepted = Set(options.filter { !rejects($0) }.map(\.rawValue))
+                XCTAssertEqual(questions[question], accepted, "\(item.id) \(question)")
+            }
+
+            switch item {
+            case .consonant(let consonant, _):
+                check(.consonantClass, ConsonantClass.allCases) {
+                    CardState(selectedClass: $0).hasError(for: consonant)
+                }
+            case .vowel(let card):
+                if card.asksDuration {
+                    check(.vowelDuration, VowelCard.VowelDuration.allCases) {
+                        VowelCardState(selectedDuration: $0).hasError(for: card)
+                    }
+                } else {
+                    XCTAssertNil(questions[.vowelDuration], item.id)
+                }
+                if card.asksForm {
+                    check(.vowelForm, VowelCard.FormAnswer.allCases) {
+                        VowelCardState(selectedForm: $0).hasError(for: card)
+                    }
+                } else {
+                    XCTAssertNil(questions[.vowelForm], item.id)
+                }
+            case .toneMark(let card):
+                check(.toneMarkClass, ToneMarkCard.ConsonantClassType.allCases) {
+                    ToneMarkCardState(selectedClass: $0).hasError(for: card)
+                }
+            case .toneRule(let card):
+                let classes: [String] = ["Low", "Mid", "High"].filter {
+                    !ToneRuleCardState(selectedConsonantClass: $0).hasError(for: card)
+                }
+                let durations: [String] = ["Short", "Long", "Any"].filter {
+                    !ToneRuleCardState(selectedVowelDuration: $0).hasError(for: card)
+                }
+                let endings: [String] = ["Live", "Dead"].filter {
+                    !ToneRuleCardState(selectedEnd: $0).hasError(for: card)
+                }
+                XCTAssertEqual(questions[.toneRuleClass], Set(classes), item.id)
+                XCTAssertEqual(questions[.toneRuleDuration], Set(durations), item.id)
+                XCTAssertEqual(questions[.toneRuleEnding], Set(endings), item.id)
+            case .cluster(let cluster):
+                check(.clusterType, ClusterType.allCases) {
+                    ClusterCardState(selectedType: $0).hasError(for: cluster)
+                }
+            }
+        }
+    }
+
     func test_cap_fullDeck_capsNothing() throws {
         for card in manager.allCards {
             XCTAssertFalse(manager.isPartialTesting(card), card.id)
@@ -267,6 +322,20 @@ final class BookScopeDeckTests: XCTestCase {
     }
 
     // MARK: - Scope changes and practice outside the chapter
+
+    func test_practicingCurrentDeckCard_startsNewAttempt() {
+        let target = ReferenceItem.consonant("ค")
+        manager.practice(target)
+        let cardID = manager.currentCard?.id
+        let attempt = manager.attempt
+
+        _ = manager.filteredCards
+        XCTAssertEqual(manager.attempt, attempt)
+
+        manager.practice(target)
+        XCTAssertEqual(manager.currentCard?.id, cardID)
+        XCTAssertEqual(manager.attempt, attempt + 1)
+    }
 
     func test_scopeChange_clearsIneligibleOverride_keepsEligibleOne() {
         settings.bookProgress = .day1
@@ -342,9 +411,13 @@ final class BookScopeDeckTests: XCTestCase {
         return card.pronunciationWord?.word
     }
 
+    private func practiceSharedVowel(_ variant: VowelFormVariant) {
+        manager.practice(.vowel(id: "oe", variant: variant, text: "เกิ-"))
+    }
+
     /// Practice on ◌า- in Reference opens the merged ◌า card.
     func test_mergedClosedForm_jumpFromReference_opensTheMergedCard() {
-        manager.jumpToVowel("กา-")
+        manager.practice(.vowel(id: "a", variant: .longClosed, text: "กา-"))
         guard case .vowel(let card) = manager.currentCard else { return XCTFail("No vowel card opened") }
         XCTAssertEqual(card.id, "a:Long:Open")
         XCTAssertTrue(card.coversClosedForm)
@@ -356,7 +429,7 @@ final class BookScopeDeckTests: XCTestCase {
         manager.applyBookScopeChange()
         for smart in [false, true] {
             settings.useIntelligentSelection = smart
-            manager.jumpToVowel("เกิ-")
+            practiceSharedVowel(.shortClosed)
             XCTAssertEqual(currentVowelWord, "เดิน", "smart mode: \(smart)")
         }
     }
@@ -365,14 +438,16 @@ final class BookScopeDeckTests: XCTestCase {
     func test_sharedForm_overrideBecomingEligible_presentsInScopeSlot() throws {
         settings.bookProgress = .day4
         manager.applyBookScopeChange()
-        manager.jumpToVowel("เกิ-")
+        practiceSharedVowel(.shortClosed)
         let openedID = try XCTUnwrap(manager.currentCard?.id)
+        let attempt = manager.attempt
         XCTAssertEqual(currentVowelWord, "เงิน", "outside the deck it presents its own (short) slot")
 
         settings.bookProgress = .day5
         manager.applyBookScopeChange()
         XCTAssertEqual(manager.currentCard?.id, openedID)
         XCTAssertEqual(currentVowelWord, "เดิน")
+        XCTAssertEqual(manager.attempt, attempt + 1)
     }
 
     /// In chapter scope but excluded by Filters: the one-off card still presents the in-scope slot.
@@ -381,8 +456,40 @@ final class BookScopeDeckTests: XCTestCase {
         settings.vowelsEnabled = false
         manager.applyBookScopeChange()
         XCTAssertFalse(vowelDisplays().contains("เกิ-"))
-        manager.jumpToVowel("เกิ-")
+        practiceSharedVowel(.shortClosed)
         XCTAssertEqual(currentVowelWord, "เดิน")
+    }
+
+    func test_sharedForm_practiceUsesSelectedReadingAndKeepsSequentialPosition() throws {
+        let cardID = try vowelCard("เกิ-").id
+        let index = try XCTUnwrap(manager.filteredCards.firstIndex { $0.id == cardID })
+
+        practiceSharedVowel(.shortClosed)
+        XCTAssertEqual(currentVowelWord, "เงิน")
+        XCTAssertEqual(manager.currentCard?.id, cardID)
+        practiceSharedVowel(.longClosed)
+        XCTAssertEqual(currentVowelWord, "เดิน")
+        XCTAssertEqual(manager.currentCard?.id, cardID)
+
+        manager.nextCard()
+        XCTAssertEqual(manager.currentCard?.id, manager.filteredCards[index + 1].id)
+    }
+
+    func test_sharedForm_practiceOutsideFiltersStartsNewAttemptEachTime() throws {
+        settings.vowelsEnabled = false
+        manager.resetToStart()
+        let cardID = try vowelCard("เกิ-").id
+        let initialAttempt = manager.attempt
+
+        practiceSharedVowel(.longClosed)
+        XCTAssertEqual(currentVowelWord, "เดิน")
+        XCTAssertEqual(manager.currentCard?.id, cardID)
+        XCTAssertEqual(manager.attempt, initialAttempt + 1)
+
+        practiceSharedVowel(.longClosed)
+        XCTAssertEqual(currentVowelWord, "เดิน")
+        XCTAssertEqual(manager.currentCard?.id, cardID)
+        XCTAssertEqual(manager.attempt, initialAttempt + 2)
     }
 
     // MARK: - Shared form with the duration filter

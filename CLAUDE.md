@@ -299,7 +299,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - Filter icon filled when not all card types selected
 
 ### Testing Gotchas
-- With Swift 6.2+, `FlashcardSettings` and `LearningModel` compile empty `nonisolated deinit` implementations because newer toolchains' back-deployed MainActor deinit thunk can invalid-free short-lived `@Observable` instances at the iOS 17 deployment target. Keep the compiler guard: Xcode 16.4 requires an experimental flag for this syntax
+- With Swift 6.2+, types with guarded empty `nonisolated deinit` implementations bypass the MainActor deinit back-deployment thunk. With the iOS 17 deployment target, that thunk caused invalid frees in iOS 26.2 simulator tests releasing short-lived models, the audio session controller, and Reference state. Keep the compiler guard: Xcode 16.4 requires an experimental flag for this syntax
 - Tests may instantiate these models normally; lifecycle and second-instance regression tests cover the toolchain workaround
 - The project uses `PBXFileSystemSynchronizedRootGroup` — new source files are auto-discovered, no pbxproj edits needed
 

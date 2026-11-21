@@ -202,6 +202,34 @@ final class RomanizationTests: XCTestCase {
         }
     }
 
+    func test_bookVowelFormLabelsUseTheSelectedDurationAndForm() throws {
+        let vowels = Vowel.loadAll()
+        let examples: [(String, VowelFormVariant, String)] = [
+            ("e", .shortClosed, "e"),
+            ("e", .shortOpen, "ay’"),
+            ("ia", .shortOpen, "ia’"),
+            ("ia", .longOpen, "ia"),
+            ("oe", .longClosed, "er"),
+        ]
+        for (id, variant, expected) in examples {
+            let vowel = try XCTUnwrap(vowels.first { $0.id == id })
+            let form = try XCTUnwrap(vowel.form(variant))
+            let sound = vowel.sound(for: variant.duration, form: form)
+            XCTAssertEqual(
+                Romanization.render(sound, as: .readThaiIn10Days, context: .vowelForm(variant)), expected, form
+            )
+        }
+    }
+
+    func test_bookVowelCardResultShowsEverySpellingForAMergedCard() throws {
+        let cards = VowelCard.allCards(from: Vowel.loadAll())
+        let ae = try XCTUnwrap(cards.first { $0.id == "ae:Long:Open" })
+        let ia = try XCTUnwrap(cards.first { $0.id == "ia:Long:Open" })
+        XCTAssertEqual(ae.renderedSound(as: .readThaiIn10Days), "air/a")
+        XCTAssertEqual(ia.renderedSound(as: .readThaiIn10Days), "ia")
+        XCTAssertEqual(ae.renderedSound(as: .learner), "aae")
+    }
+
     func test_bookShortDiphthongsUseTheExampleContext() throws {
         let vowels = Vowel.loadAll()
         for (id, expected) in [("ia", "gía’"), ("ua", "pùa’")] {

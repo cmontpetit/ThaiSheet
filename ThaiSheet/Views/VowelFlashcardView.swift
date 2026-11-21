@@ -186,7 +186,7 @@ struct VowelFlashcardView: View {
                     // Grades on the row label, shows the card's own form
                     display: { [card] value in
                         value == card.vowel.sound
-                            ? card.shownSound.romanizedVowelLabel
+                            ? card.renderedSound(as: RomanizationState.shared.scheme)
                             : value.romanizedVowelLabel
                     }
                 )

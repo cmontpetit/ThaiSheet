@@ -13,6 +13,11 @@ import SwiftUI
 /// blurred, so its meaning never depends on reveal history.
 @Observable
 final class PracticeMode {
+    #if compiler(>=6.2)
+    // Avoid the MainActor deinit back-deployment thunk on affected runtimes.
+    nonisolated deinit {}
+    #endif
+
     var isActive = false
     var revealedID: String? = nil
 

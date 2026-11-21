@@ -77,7 +77,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 
 - `ContentView` — `TabView` with flashcards and reference tabs
 - `FlashcardsView` — card display with toolbar, delegates to type-specific flashcard views
-- Navigation state uses `[FlashcardType: String]` dictionaries for cross-tab communication (highlight in reference, jump to flashcard)
+- Cross-tab navigation carries the exact `ReferenceItem` into Practice and uses `[FlashcardType: String]` for highlights in Reference
 - View modifiers (`FlashcardsSheetModifier`, `FlashcardsNavigationModifier`, `FlashcardsSettingsModifier`) keep the body lean
 
 ## Dependency Injection

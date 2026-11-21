@@ -4,6 +4,11 @@ import AVFoundation
 /// request supersedes any playback still waiting for activation.
 @MainActor
 final class AudioSessionController {
+    #if compiler(>=6.2)
+    // Avoid the MainActor deinit back-deployment thunk on affected runtimes.
+    nonisolated deinit {}
+    #endif
+
     private let activate: () async throws -> Void
     private let deactivate: () async throws -> Void
     private var pendingOperation: Task<Void, Never>?
