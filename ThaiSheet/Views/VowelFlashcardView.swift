@@ -50,7 +50,8 @@ struct VowelFlashcardView: View {
             VowelDetailSheet(
                 vowel: card.vowel,
                 formType: VowelFormVariant(duration: card.shownDuration, form: card.form),
-                text: card.display
+                text: card.display,
+                coversClosedForm: card.coversClosedForm
             )
         }
     }
@@ -101,12 +102,19 @@ struct VowelFlashcardView: View {
         } else if card.coversClosedForm {
             HStack(spacing: 24) {
                 ForEach(card.revealedSamples) { sample in
+                    let hasSound = audioPlayer.hasSound(.vowel, key: sample.word.word)
                     Button {
                         play(sample.word.word)
                     } label: {
                         VStack(spacing: 0) {
-                            Text(sample.word.word)
-                                .font(.title)
+                            HStack(spacing: 6) {
+                                Text(sample.word.word)
+                                    .font(.title)
+                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                                    .font(.body)
+                                    .foregroundStyle(hasSound ? Color.accentColor : Color.secondary)
+                                    .accessibilityHidden(true)
+                            }
                             Text(sample.form.label)
                                 .font(.caption)
                         }
@@ -115,6 +123,7 @@ struct VowelFlashcardView: View {
                         .minimumScaleFactor(0.5)
                     }
                     .buttonStyle(.plain)
+                    .disabled(!hasSound)
                     .accessibilityLabel(Text(verbatim: "\(sample.word.word), \(sample.form.label)"))
                 }
             }

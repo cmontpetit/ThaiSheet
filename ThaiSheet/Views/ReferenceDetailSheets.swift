@@ -66,6 +66,9 @@ struct VowelDetailSheet: View {
     let formType: VowelFormVariant
     /// The specific form string (e.g. "กา-") shown as the sheet title.
     let text: String
+    /// A merged flashcard (◌า covering ◌า-) also lists its closed slot's
+    /// examples, each labeled with its form.
+    var coversClosedForm: Bool = false
     var onPractice: (() -> Void)? = nil
 
     @Environment(\.audioPlayer) private var audioPlayer
@@ -75,26 +78,42 @@ struct VowelDetailSheet: View {
     private var concealID: String { FlashcardType.vowel.cardId(for: vowel.id) }
 
     private func referenceWordAudios() -> [ReferenceWordAudio] {
-        let context: RomanizationContext = formType == .shortOpen ? .shortOpenVowelExample : .transcription
-        return vowelReferenceWordSources(
-            for: vowel,
-            duration: formType.duration,
-            form: formType.form
-        ).map { source in
-            ReferenceWordAudio(
-                role: source.role,
-                word: source.word,
-                romanizationContext: context,
-                hasSound: audioPlayer.hasSound(source.soundType, key: source.word.word),
-                onPlay: {
-                    audioPlayer.play(
-                        source.soundType,
-                        key: source.word.word,
-                        itemID: source.usesItemVoiceOverride ? concealID : nil
-                    )
-                }
+        let slots = coversClosedForm ? [formType.form, .closed] : [formType.form]
+        var seenWords: Set<String> = []
+        return slots.flatMap { slot -> [ReferenceWordAudio] in
+            let variant = VowelFormVariant(duration: formType.duration, form: slot)
+            let context: RomanizationContext = variant == .shortOpen ? .shortOpenVowelExample : .transcription
+            return vowelReferenceWordSources(
+                for: vowel,
+                duration: variant.duration,
+                form: slot
             )
+            .filter { seenWords.insert($0.word.word).inserted }
+            .map { source in
+                referenceWordAudio(source, context: context, formLabel: coversClosedForm ? slot.label : nil)
+            }
         }
+    }
+
+    private func referenceWordAudio(
+        _ source: VowelReferenceWordSource,
+        context: RomanizationContext,
+        formLabel: String?
+    ) -> ReferenceWordAudio {
+        ReferenceWordAudio(
+            role: source.role,
+            word: source.word,
+            formLabel: formLabel,
+            romanizationContext: context,
+            hasSound: audioPlayer.hasSound(source.soundType, key: source.word.word),
+            onPlay: {
+                audioPlayer.play(
+                    source.soundType,
+                    key: source.word.word,
+                    itemID: source.usesItemVoiceOverride ? concealID : nil
+                )
+            }
+        )
     }
 
     var body: some View {

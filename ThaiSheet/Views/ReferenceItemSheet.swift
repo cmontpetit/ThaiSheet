@@ -31,6 +31,8 @@ enum ReferenceWordAudioRole: String {
 struct ReferenceWordAudio {
     let role: ReferenceWordAudioRole
     let word: ReferenceSampleWord
+    /// The written form the word illustrates, when the sheet covers more than one.
+    var formLabel: String? = nil
     var romanizationContext: RomanizationContext = .transcription
     let hasSound: Bool
     let onPlay: () -> Void
@@ -229,10 +231,15 @@ struct ReferenceItemSheet: View {
         let hasSound = audio.hasSound
         return HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(audio.role.label)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 0) {
+                    Text(audio.role.label)
+                    if let formLabel = audio.formLabel {
+                        Text(verbatim: " · \(formLabel)")
+                    }
+                }
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
                 Text(word.word)
                     .font(.title3)
                     .fontWeight(.semibold)
