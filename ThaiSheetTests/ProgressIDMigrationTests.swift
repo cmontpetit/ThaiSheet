@@ -91,7 +91,7 @@ final class ProgressIDMigrationTests: XCTestCase {
             "cluster--ทร",
         ]
         for legacy in legacyKeys {
-            guard let durable = LegacyProgressIDs.upToV1_2[legacy] else {
+            guard let durable = ProgressIDMigration.bundled[legacy] else {
                 return XCTFail("Frozen table is missing the v1.2 key \(legacy)")
             }
             XCTAssertTrue(durableIDs.contains(durable),
@@ -99,7 +99,7 @@ final class ProgressIDMigrationTests: XCTestCase {
         }
 
         let migrated = ProgressIDMigration.migrate(progress(for: legacyKeys))
-        XCTAssertEqual(Set(migrated.keys), Set(legacyKeys.map { LegacyProgressIDs.upToV1_2[$0]! }))
+        XCTAssertEqual(Set(migrated.keys), Set(legacyKeys.map { ProgressIDMigration.bundled[$0]! }))
         for (key, value) in migrated {
             XCTAssertEqual(value.cardId, key, "Re-keyed progress must carry the new id")
         }
@@ -335,6 +335,36 @@ final class ProgressIDMigrationTests: XCTestCase {
         XCTAssertEqual(durableWins[durable]?.correctCount, 1)
     }
 
+    // MARK: - Vowel forms merged after v1.3.0
+
+    /// A v1.2 key and a v1.3 key for the closed form both land on the merged
+    /// card in one pass, and the most recent review of the pair wins.
+    func test_mergedVowelForms_landOnTheOpenCard_mostRecentWins() {
+        let store = makeRetainedStore()
+        let durableIDs = Set(store.allCardsForTesting.map(\.id))
+        for (closed, open) in LegacyProgressIDs.mergedVowelFormsAfterV1_3 {
+            XCTAssertTrue(durableIDs.contains(open), "\(closed) merges into \(open), which no card owns")
+            XCTAssertFalse(durableIDs.contains(closed), "\(closed) still has its own card")
+        }
+
+        XCTAssertEqual(ProgressIDMigration.bundled["vowel-กา-"], "vowel-a:Long:Open")
+        XCTAssertEqual(ProgressIDMigration.bundled["vowel-a:Long:Closed"], "vowel-a:Long:Open")
+        XCTAssertEqual(ProgressIDMigration.bundled["vowel-กา"], "vowel-a:Long:Open")
+
+        let older = Date(timeIntervalSince1970: 1_600_000_000)
+        let newer = Date(timeIntervalSince1970: 1_700_000_000)
+        let migrated = ProgressIDMigration.migrate([
+            "vowel-a:Long:Open": CardProgress(cardId: "vowel-a:Long:Open", correctCount: 9,
+                                              lastReviewed: older, srsStage: .mastered),
+            "vowel-a:Long:Closed": CardProgress(cardId: "vowel-a:Long:Closed", correctCount: 2,
+                                                lastReviewed: newer, srsStage: .apprentice1),
+        ])
+        XCTAssertEqual(Array(migrated.keys), ["vowel-a:Long:Open"])
+        XCTAssertEqual(migrated["vowel-a:Long:Open"]?.srsStage, .apprentice1)
+        XCTAssertEqual(migrated["vowel-a:Long:Open"]?.cardId, "vowel-a:Long:Open")
+        XCTAssertEqual(ProgressIDMigration.migrate(migrated), migrated, "Migration stays idempotent")
+    }
+
     // MARK: - Reordering and insertion do not move IDs
 
     func test_reorderingAndInsertingJSONRows_leavesExistingIDsUnchanged() throws {
@@ -462,8 +492,9 @@ final class ProgressIDMigrationTests: XCTestCase {
         let store = makeRetainedStore()
         let vowel = try XCTUnwrap(store.vowels.first { $0.id == "a" })
         XCTAssertEqual(Set(store.vowelProgressIDs(for: vowel)),
-                       ["vowel-a:Short:Closed", "vowel-a:Short:Open", "vowel-a:Long:Closed", "vowel-a:Long:Open"])
+                       ["vowel-a:Short:Closed", "vowel-a:Short:Open", "vowel-a:Long:Open"])
         XCTAssertEqual(store.vowelProgressID(forForm: "กา"), "vowel-a:Long:Open")
+        XCTAssertEqual(store.vowelProgressID(forForm: "กา-"), "vowel-a:Long:Open", "Merged into the open card")
         XCTAssertEqual(store.vowelProgressID(forForm: "กวย"), "vowel-uay:Short:Closed")
         XCTAssertNil(store.vowelProgressID(forForm: "กวาย"))
     }

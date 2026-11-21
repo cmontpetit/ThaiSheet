@@ -325,7 +325,28 @@ extension LegacyProgressIDs {
     ///
     /// - `vowel-uay:Long:Closed`: กวาย, removed in the release after v1.2.1.
     ///   It was never a vowel form (ควาย is the cluster คว- plus ◌าย).
-    static let retiredProgressIDs: Set<String> = [
-        "vowel-uay:Long:Closed",
+    ///
+    /// - The closed keys in `mergedVowelFormsAfterV1_3`: their cards merged into
+    ///   the open card of the same row and duration.
+    static let retiredProgressIDs: Set<String> = Set(["vowel-uay:Long:Closed"])
+        .union(mergedVowelFormsAfterV1_3.keys)
+
+    /// Durable → durable progress IDs for the vowel cards merged after v1.3.0:
+    /// the open and closed forms of one row and duration that differ only by
+    /// the final-consonant dash (◌า / ◌า-) became one card whose Form answer
+    /// is Both, keyed on its open slot. Frozen like the tables above.
+    static let mergedVowelFormsAfterV1_3: [String: String] = [
+        "vowel-a:Long:Closed": "vowel-a:Long:Open",
+        "vowel-ae:Long:Closed": "vowel-ae:Long:Open",
+        "vowel-aw:Long:Closed": "vowel-aw:Long:Open",
+        "vowel-e:Long:Closed": "vowel-e:Long:Open",
+        "vowel-o:Long:Closed": "vowel-o:Long:Open",
+        "vowel-i:Short:Closed": "vowel-i:Short:Open",
+        "vowel-i:Long:Closed": "vowel-i:Long:Open",
+        "vowel-ue:Short:Closed": "vowel-ue:Short:Open",
+        "vowel-u:Short:Closed": "vowel-u:Short:Open",
+        "vowel-u:Long:Closed": "vowel-u:Long:Open",
+        "vowel-ia:Long:Closed": "vowel-ia:Long:Open",
+        "vowel-uea:Long:Closed": "vowel-uea:Long:Open",
     ]
 }

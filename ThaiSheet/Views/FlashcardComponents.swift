@@ -59,6 +59,8 @@ struct FlashcardFace<Content: View>: View {
     /// Per-item voice override id (FlashcardType.cardId) so flashcards honor the
     /// same override as the Reference tab.
     var overrideItemID: String? = nil
+    /// False when the card shows its own play controls (one per example word).
+    var showsPlayAction: Bool = true
     var displayHeight: CGFloat = 160
     var onViewInReference: (() -> Void)?
     let onShowDetails: () -> Void
@@ -100,11 +102,13 @@ struct FlashcardFace<Content: View>: View {
         }
 
         if showResult {
-            let hasSound = audioPlayer.hasSound(soundType, key: soundKey)
-            Button(action: playSound) {
-                actionLabel("Play", systemImage: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+            if showsPlayAction {
+                let hasSound = audioPlayer.hasSound(soundType, key: soundKey)
+                Button(action: playSound) {
+                    actionLabel("Play", systemImage: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                }
+                .disabled(!hasSound)
             }
-            .disabled(!hasSound)
 
             Button(action: onShowDetails) {
                 actionLabel("Details", systemImage: "info.circle")

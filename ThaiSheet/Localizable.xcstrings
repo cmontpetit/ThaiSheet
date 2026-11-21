@@ -575,6 +575,16 @@
         }
       }
     },
+    "Both" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les deux"
+          }
+        }
+      }
+    },
     "Built with" : {
       "localizations" : {
         "fr" : {

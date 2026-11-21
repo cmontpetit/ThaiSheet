@@ -50,7 +50,8 @@ struct VowelFlashcardView: View {
             VowelDetailSheet(
                 vowel: card.vowel,
                 formType: VowelFormVariant(duration: card.shownDuration, form: card.form),
-                text: card.display
+                text: card.display,
+                coversClosedForm: card.coversClosedForm
             )
         }
     }
@@ -62,26 +63,92 @@ struct VowelFlashcardView: View {
             showResult: currentStep == .completed,
             hasError: cardState.hasError(for: card),
             soundType: .vowel,
-            soundKey: card.pronunciationWord?.word ?? "",
+            soundKey: primaryWord ?? "",
             overrideItemID: overrideItemID,
+            // Each example word carries its own speaker instead.
+            showsPlayAction: false,
             onViewInReference: { onViewInReference?(card.display) },
             onShowDetails: { showingDetails = true },
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {
             VStack(spacing: 4) {
-                Text(card.prompt)
-                    .font(.system(size: glyphSize))
+                if currentStep == .completed, card.promptsWithWord, let word = primaryWord {
+                    exampleButton(word: word, font: .system(size: glyphSize), primary: true)
+                } else {
+                    Text(card.prompt)
+                        .font(.system(size: glyphSize))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                }
 
-                if currentStep == .completed, card.pronunciationWord != nil {
-                    Text(ThaiDisplay.placeholder(card.display))
-                        .font(.largeTitle)
+                if currentStep == .completed {
+                    revealedAnswer
+                }
+            }
+        }
+    }
+
+    /// The word whose audio the card plays: its first example.
+    private var primaryWord: String? {
+        card.revealedSamples.first?.word.word
+    }
+
+    /// Under the prompt after reveal: the written form for a word prompt
+    /// (whose word is already the prompt), else the example words, each with
+    /// its own speaker. A card covering both forms shows one per form.
+    @ViewBuilder
+    private var revealedAnswer: some View {
+        if card.promptsWithWord, card.pronunciationWord != nil {
+            Text(card.bareForm)
+                .font(.largeTitle)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+        } else if card.coversClosedForm {
+            HStack(spacing: 24) {
+                ForEach(card.revealedSamples) { sample in
+                    exampleButton(word: sample.word.word, caption: sample.form.label, font: .title)
+                }
+            }
+        } else if let word = primaryWord {
+            exampleButton(word: word, font: .largeTitle)
+        }
+    }
+
+    /// An example word with a speaker beside it; tapping plays the word.
+    private func exampleButton(
+        word: String,
+        caption: String? = nil,
+        font: Font,
+        primary: Bool = false
+    ) -> some View {
+        let hasSound = audioPlayer.hasSound(.vowel, key: word)
+        return Button {
+            play(word)
+        } label: {
+            VStack(spacing: 0) {
+                HStack(spacing: 6) {
+                    Text(word)
+                        .font(font)
+                        .foregroundStyle(primary ? Color.primary : Color.secondary)
+                    Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                        .font(.body)
+                        .foregroundStyle(hasSound ? Color.accentColor : Color.secondary)
+                        .accessibilityHidden(true)
+                }
+                if let caption {
+                    Text(caption)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
             .lineLimit(1)
             .minimumScaleFactor(0.5)
         }
+        .buttonStyle(.plain)
+        .disabled(!hasSound)
+        .accessibilityLabel(Text(verbatim: caption.map { "\(word), \($0)" } ?? word))
     }
 
     // MARK: - Summary Section
@@ -107,7 +174,7 @@ struct VowelFlashcardView: View {
                     FlashcardSummaryRow(
                         label: "Form",
                         selectedValue: cardState.selectedForm?.label,
-                        correctValue: card.form.label,
+                        correctValue: card.formAnswer.label,
                         showResult: currentStep == .completed
                     )
                 }
@@ -124,11 +191,10 @@ struct VowelFlashcardView: View {
                     }
                 )
 
-                // Show note if available and card is completed
-                if currentStep == .completed,
-                   let note = card.vowel.note(for: card.shownDuration.rawValue, form: card.form.rawValue) {
+                // Show notes if available and card is completed
+                if currentStep == .completed, !card.notes.isEmpty {
                     Divider()
-                    Text(note)
+                    Text(card.notes.joined(separator: "\n\n"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -181,7 +247,7 @@ struct VowelFlashcardView: View {
             cardState.step = .selectDuration
         } : nil) {
             HStack(spacing: 12) {
-                ForEach(VowelCard.VowelFormType.allCases, id: \.self) { form in
+                ForEach(VowelCard.FormAnswer.allCases, id: \.self) { form in
                     FlashcardSelectionButton(label: form.label) {
                         cardState.selectedForm = form
                         cardState.step = .selectSound
@@ -239,7 +305,11 @@ struct VowelFlashcardView: View {
     }
 
     private func playVowelSound() {
-        guard let word = card.pronunciationWord?.word else { return }
+        guard let word = primaryWord else { return }
+        play(word)
+    }
+
+    private func play(_ word: String) {
         if audioPlayer.hasSound(.vowel, key: word) {
             audioPlayer.play(.vowel, key: word, itemID: overrideItemID)
         }
@@ -290,7 +360,7 @@ struct VowelCardState {
     /// Nil until the first answer: the view then shows the card's first step.
     var step: Step? = nil
     var selectedDuration: VowelCard.VowelDuration? = nil
-    var selectedForm: VowelCard.VowelFormType? = nil
+    var selectedForm: VowelCard.FormAnswer? = nil
     var selectedSound: String? = nil
 }
 
@@ -310,7 +380,7 @@ extension VowelCardState {
                 return true
             }
         }
-        if let selected = selectedForm, selected != card.form {
+        if let selected = selectedForm, selected != card.formAnswer {
             return true
         }
         if let selected = selectedSound, selected != card.vowel.sound {

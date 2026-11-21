@@ -170,9 +170,10 @@ extension ThaiDataStore {
         vowelCards.filter { $0.vowel.id == vowel.id }.map { FlashcardItem.vowel($0).id }
     }
 
-    /// Progress ID of the card for one written form (e.g. "กา-"), if it has one
+    /// Progress ID of the card for one written form (e.g. "กา-"), if it has
+    /// one. A closed form merged into its open card ("กา-" → ◌า) maps to that card.
     func vowelProgressID(forForm form: String) -> String? {
-        vowelCards.first { $0.display == form }.map { FlashcardItem.vowel($0).id }
+        vowelCards.first { $0.covers(form: form) }.map { FlashcardItem.vowel($0).id }
     }
 
     /// Deterministic preview word for a vowel row (mirrors the row's form priority).

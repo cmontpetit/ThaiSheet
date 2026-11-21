@@ -18,8 +18,18 @@ import Foundation
 /// normalized form is what gets persisted.
 enum ProgressIDMigration {
 
-    /// The default map: every historical key up to v1.2.
-    static let bundled: [String: String] = LegacyProgressIDs.upToV1_2
+    /// The default map: every historical key up to v1.2, then the vowel cards
+    /// merged after v1.3.0. Composed so a single pass lands every key on its
+    /// current card: `vowel-กา-` (v1.2) → `vowel-a:Long:Closed` → `vowel-a:Long:Open`.
+    static let bundled: [String: String] = compose(
+        LegacyProgressIDs.upToV1_2,
+        LegacyProgressIDs.mergedVowelFormsAfterV1_3
+    )
+
+    /// Applies `later` after `earlier`, keeping the entries of both.
+    static func compose(_ earlier: [String: String], _ later: [String: String]) -> [String: String] {
+        earlier.mapValues { later[$0] ?? $0 }.merging(later) { current, _ in current }
+    }
 
     /// Re-keys a progress dictionary from legacy to durable IDs.
     ///
