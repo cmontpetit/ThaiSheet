@@ -77,7 +77,6 @@ struct ContentView: View {
                 flashcardStarting: $flashcardStarting,
                 selectedTab: $selectedTab
             )
-            .environment(\.learningModel, learningModel)
             .tabItem {
                 Label("Reference", systemImage: "book")
             }
@@ -108,6 +107,8 @@ struct ContentView: View {
             }
         }
         .referenceViewportScope()
+        // Both tabs: detail sheets opened from a flashcard read stages too.
+        .environment(\.learningModel, learningModel)
         .onAppear {
             if manager == nil {
                 manager = FlashcardManager(settings: settings, learningModel: learningModel, data: thaiData)
