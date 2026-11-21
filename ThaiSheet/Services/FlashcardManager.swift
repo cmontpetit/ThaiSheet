@@ -55,7 +55,7 @@ class FlashcardManager {
         case .consonant(let consonant, _):
             return scope.includes(map.placement(of: consonant))
         case .vowel(let card):
-            return isSlotInScope(card.vowel, duration: card.shownDuration, form: card.form)
+            return isCardInScope(card, duration: card.shownDuration)
         case .toneMark(let card):
             return scope.includes(map.placement(of: card))
         case .toneRule(let card):
@@ -99,8 +99,14 @@ class FlashcardManager {
                 duration: duration,
                 isUncommon: card.vowel.isUncommon,
                 hasLengthContrast: card.asksDuration
-            )) && isSlotInScope(card.vowel, duration: duration, form: card.form)
+            )) && isCardInScope(card, duration: duration)
         }
+    }
+
+    /// A card that covers both forms is in scope once either form is.
+    private func isCardInScope(_ card: VowelCard, duration: VowelCard.VowelDuration) -> Bool {
+        let forms: [VowelCard.VowelFormType] = card.coversClosedForm ? [.open, .closed] : [card.form]
+        return forms.contains { isSlotInScope(card.vowel, duration: duration, form: $0) }
     }
 
     private func isSlotInScope(_ vowel: Vowel, duration: VowelCard.VowelDuration, form: VowelCard.VowelFormType) -> Bool {
@@ -259,7 +265,7 @@ class FlashcardManager {
 
     /// Jump to a vowel by display string
     func jumpToVowel(_ display: String) {
-        guard let vowelCard = data.vowelCards.first(where: { $0.display == display }) else { return }
+        guard let vowelCard = data.vowelCards.first(where: { $0.covers(form: display) }) else { return }
         jumpOrOverride(to: .vowel(vowelCard))
     }
 

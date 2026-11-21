@@ -124,7 +124,7 @@ final class BookScopeDeckTests: XCTestCase {
     func test_day1_vowelsAreLongForms_noTonesOrClusters() {
         settings.bookProgress = .day1
         let displays = vowelDisplays()
-        XCTAssertTrue(displays.isSuperset(of: ["กา", "กา-", "โก", "กอ", "กาย", "กาว"]))
+        XCTAssertTrue(displays.isSuperset(of: ["กา", "โก", "กอ", "กาย", "กาว"]), "กา- is part of the กา card")
         XCTAssertFalse(displays.contains("กะ"), "short vowels arrive on Day 3")
         XCTAssertFalse(displays.contains("กำ"), "taught on Day 2")
         XCTAssertTrue(deckIDs(.toneRule).isEmpty)
@@ -323,13 +323,14 @@ final class BookScopeDeckTests: XCTestCase {
     func test_sharedForm_presentsInScopeSlot() throws {
         let original = try deckVowelCard("เกิ-")
         XCTAssertEqual(original.shownDuration, original.duration)
-        XCTAssertEqual(original.prompt, "เงิน")
+        XCTAssertEqual(original.pronunciationWord?.word, "เงิน")
+        XCTAssertEqual(original.prompt, original.bareForm, "The face shows the vowel, not the word")
 
         settings.bookProgress = .day5
         let scoped = try deckVowelCard("เกิ-")
         XCTAssertEqual(scoped.shownDuration, .long)
         XCTAssertEqual(scoped.pronunciationWord?.word, "เดิน")
-        XCTAssertEqual(scoped.prompt, "เดิน")
+        XCTAssertEqual(scoped.revealedSamples.map(\.word.word), ["เดิน"])
         XCTAssertEqual(scoped.id, original.id)
         XCTAssertEqual(scoped.duration, original.duration)
         XCTAssertEqual(FlashcardItem.vowel(scoped).fixedAnswerQuestions[.vowelDuration], ["Short", "Long"])
@@ -339,6 +340,14 @@ final class BookScopeDeckTests: XCTestCase {
     private var currentVowelWord: String? {
         guard case .vowel(let card) = manager.currentCard else { return nil }
         return card.pronunciationWord?.word
+    }
+
+    /// Practice on ◌า- in Reference opens the merged ◌า card.
+    func test_mergedClosedForm_jumpFromReference_opensTheMergedCard() {
+        manager.jumpToVowel("กา-")
+        guard case .vowel(let card) = manager.currentCard else { return XCTFail("No vowel card opened") }
+        XCTAssertEqual(card.id, "a:Long:Open")
+        XCTAssertTrue(card.coversClosedForm)
     }
 
     /// Opening เกิ- from Reference lands on the deck's copy, in both selection modes.

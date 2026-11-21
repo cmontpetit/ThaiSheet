@@ -114,12 +114,40 @@ final class VowelCardTests: XCTestCase {
 
     // MARK: - Card prompts
 
-    func test_prompt_distinguishesLongOpenAndClosedA() throws {
-        let open = try XCTUnwrap(allCards.first { $0.id == "a:Long:Open" })
-        let closed = try XCTUnwrap(allCards.first { $0.id == "a:Long:Closed" })
+    func test_allCards_mergesTheTwelveDashOnlyPairs() {
+        XCTAssertEqual(allCards.count, 59)
+        let merged = allCards.filter(\.coversClosedForm)
+        XCTAssertEqual(Set(merged.map(\.id)), Set(LegacyProgressIDs.mergedVowelFormsAfterV1_3.values.map {
+            String($0.dropFirst("vowel-".count))
+        }))
+        for card in merged {
+            XCTAssertEqual(card.form, .open, "A merged card is keyed on its open slot")
+            XCTAssertEqual(card.formAnswer, .both)
+        }
+    }
 
-        XCTAssertEqual(open.prompt, "กา")
-        XCTAssertEqual(closed.prompt, "การ")
+    func test_mergedCard_promptsWithTheVowelAndRevealsBothWords() throws {
+        let card = try XCTUnwrap(allCards.first { $0.id == "a:Long:Open" })
+
+        XCTAssertTrue(card.coversClosedForm)
+        XCTAssertEqual(card.prompt, "◌า")
+        XCTAssertEqual(card.revealedSamples.map(\.form), [.open, .closed])
+        XCTAssertEqual(card.revealedSamples.map(\.word.word), ["กา", "การ"])
+        XCTAssertNil(allCards.first { $0.id == "a:Long:Closed" })
+    }
+
+    func test_mergedCard_showsTheClosedSlotsNote() throws {
+        let card = try XCTUnwrap(allCards.first { $0.id == "ia:Long:Open" })
+        XCTAssertEqual(card.notes, [try XCTUnwrap(card.vowel.note(for: "Long", form: "Closed"))])
+    }
+
+    func test_distinctOpenAndClosedForms_stayTwoCards() throws {
+        let open = try XCTUnwrap(allCards.first { $0.id == "a:Short:Open" })
+        let closed = try XCTUnwrap(allCards.first { $0.id == "a:Short:Closed" })
+        XCTAssertEqual(open.formAnswer, .open)
+        XCTAssertEqual(closed.formAnswer, .closed)
+        XCTAssertEqual(open.prompt, "◌ะ")
+        XCTAssertEqual(closed.revealedSamples.map(\.word.word), ["กัน"])
     }
 
     func test_prompt_usesPlaceholderWithoutAnExample() throws {
@@ -129,22 +157,29 @@ final class VowelCardTests: XCTestCase {
         XCTAssertEqual(card.prompt, "เ\u{200A}ือะ")
     }
 
-    func test_prompts_distinguishOpenAndClosedFormsForEachDuration() throws {
-        for vowel in allVowels where !vowel.isCombination {
-            let cards = allCards.filter { $0.vowel.id == vowel.id }
-            for duration in VowelCard.VowelDuration.allCases {
-                let forms = duration == .short ? vowel.short : vowel.long
-                guard let openForm = forms.open, let closedForm = forms.closed else { continue }
+    /// Bare ฤ reads "rue" or "ri": only those two cards prompt with a word.
+    func test_onlyAmbiguousBareVowels_promptWithWords() throws {
+        let wordPrompts = allCards.filter(\.promptsWithWord)
+        XCTAssertEqual(Set(wordPrompts.map(\.id)), ["rue:Short:Open", "ri:Short:Closed"])
+        XCTAssertEqual(Set(wordPrompts.map(\.prompt)), ["ฤดู", "ฤทธิ์"])
+    }
 
-                let open = try XCTUnwrap(cards.first { $0.form == .open && $0.display == openForm })
-                let closed = try XCTUnwrap(cards.first { $0.form == .closed && $0.display == closedForm })
-                XCTAssertNotEqual(
-                    open.presenting(duration).prompt,
-                    closed.presenting(duration).prompt,
-                    "The \(duration.rawValue.lowercased()) forms of \(vowel.id) need distinct prompts."
-                )
-            }
-        }
+    func test_prompts_areUniqueAcrossTheDeck() {
+        let prompts = allCards.map(\.prompt)
+        XCTAssertEqual(prompts.count, Set(prompts).count,
+                       "Two cards look alike: \(findDuplicates(in: prompts))")
+    }
+
+    func test_formGrading_acceptsOnlyTheCardsAnswer() throws {
+        let merged = try XCTUnwrap(allCards.first { $0.id == "a:Long:Open" })
+        let open = try XCTUnwrap(allCards.first { $0.id == "a:Short:Open" })
+
+        XCTAssertFalse(VowelCardState(selectedForm: .both).hasError(for: merged))
+        XCTAssertTrue(VowelCardState(selectedForm: .open).hasError(for: merged))
+        XCTAssertTrue(VowelCardState(selectedForm: .closed).hasError(for: merged))
+        XCTAssertFalse(VowelCardState(selectedForm: .open).hasError(for: open))
+        XCTAssertTrue(VowelCardState(selectedForm: .both).hasError(for: open))
+        XCTAssertEqual(FlashcardItem.vowel(merged).fixedAnswerQuestions[.vowelForm], ["Both"])
     }
 
     // MARK: - Form assignments

@@ -34,7 +34,7 @@ extension FlashcardItem {
                     : [card.duration.rawValue]
             }
             if card.asksForm {
-                questions[.vowelForm] = [card.form.rawValue]
+                questions[.vowelForm] = [card.formAnswer.rawValue]
             }
             return questions
         case .toneMark(let card):
