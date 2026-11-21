@@ -823,6 +823,11 @@ private struct BrowserIdentityProbe: View {
 @MainActor
 @Observable
 private final class ReferenceSearchNavigation {
+    #if compiler(>=6.2)
+    // Avoid the MainActor deinit back-deployment thunk on affected runtimes.
+    nonisolated deinit {}
+    #endif
+
     var items: [FlashcardType: String] = [:]
 }
 

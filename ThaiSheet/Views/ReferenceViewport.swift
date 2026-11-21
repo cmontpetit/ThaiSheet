@@ -6,6 +6,11 @@ import UIKit
 /// current owning controller bounds rather than counting child layout passes.
 @MainActor
 final class ReferenceViewport {
+    #if compiler(>=6.2)
+    // Avoid the MainActor deinit back-deployment thunk on affected runtimes.
+    nonisolated deinit {}
+    #endif
+
     fileprivate weak var controller: UIViewController?
 
     var size: CGSize? {
