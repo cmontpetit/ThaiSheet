@@ -36,10 +36,15 @@ class FlashcardManager {
         data.isLoaded
     }
 
+    /// The deck settings `filteredCards` was built from.
+    @ObservationIgnored private var appliedSettings: FlashcardSettings.DeckSettings
+
     init(settings: FlashcardSettings, learningModel: LearningModel, data: ThaiDataStore) {
         self.settings = settings
         self.learningModel = learningModel
         self.data = data
+        appliedSettings = settings.deckSettings
+        filteredCards = buildDeck()
         updateStrategies()
     }
 
@@ -68,13 +73,13 @@ class FlashcardManager {
         }
     }
 
-    /// SRS cap for a card, judged against the eligible deck (`QuestionCap`).
+    /// SRS cap for a card, judged against the applied deck (`QuestionCap`).
     /// The lock icon and grading both use this.
     func isPartialTesting(_ card: FlashcardItem) -> Bool {
         QuestionCap.isCapped(card, deck: filteredCards)
     }
 
-    /// Update both strategies with current filtered cards
+    /// Update both strategies with the applied deck
     private func updateStrategies() {
         let cards = filteredCards
         sequentialStrategy.update(cards: cards, learningModel: learningModel)
@@ -83,8 +88,12 @@ class FlashcardManager {
 
     // MARK: - Filtered Cards
 
-    /// Returns all cards that match current settings and the chapter scope, in order
-    var filteredCards: [FlashcardItem] {
+    /// The applied deck: the cards that matched the settings and chapter scope
+    /// at the last `syncDeck()`, in order. Both strategies, the position count,
+    /// the stats sheet and the SRS cap read this one snapshot.
+    private(set) var filteredCards: [FlashcardItem] = []
+
+    private func buildDeck() -> [FlashcardItem] {
         filterCardsBySettings().filter(isInBookScope)
     }
 
@@ -239,6 +248,8 @@ class FlashcardManager {
 
     /// Practice a catalog card once and keep deck navigation on its normal copy.
     private func jumpOrOverride(to item: FlashcardItem, preferredDuration: VowelCard.VowelDuration? = nil) {
+        // Look the card up in a deck that matches the settings the card was built with.
+        syncDeck()
         let card: FlashcardItem
         if let index = sequentialStrategy.indexOf(cardId: item.id) {
             card = filteredCards.first { $0.id == item.id } ?? item
@@ -296,30 +307,48 @@ class FlashcardManager {
         jumpOrOverride(to: .cluster(cluster))
     }
 
-    /// Switch consonant cards to the current `consonantNames` mode. A consonant
-    /// opened from Reference is rebuilt in the new mode so it keeps showing but
-    /// records progress under the new mode's ID; then the session restarts.
-    func applyConsonantMode() {
-        if case .consonant(let consonant, _) = overrideCard {
-            overrideCard = .consonant(consonant, includesName: settings.consonantNames)
-        }
-        resetToStart()
-    }
+    // MARK: - Deck Synchronization
 
-    /// The chapter scope changed (here, from the other tab, or via iCloud):
-    /// restart the deck, and drop a card opened from Reference that the new
-    /// scope or filters no longer include.
-    func applyBookScopeChange() {
-        // Keep an opened card only if the deck now includes it, and then as the
-        // deck's copy so it picks up the new scope's presentation.
-        if let override = overrideCard {
+    /// Apply the current deck settings once. When they differ from the
+    /// applied deck: rebuild it, carry a card opened from Reference across
+    /// the change, and restart selection (one new attempt). Otherwise do
+    /// nothing. Call after every settings change, including an iCloud reload;
+    /// `ContentView` observes `deckSettings` and calls this.
+    ///
+    /// Opened-card rules:
+    /// - Consonant-name mode changed: a consonant is rebuilt in the new mode,
+    ///   so it keeps showing but records progress under the new mode's ID.
+    /// - Chapter scope changed: the card stays only if the new deck includes
+    ///   it, and then as the deck's copy so it picks up the new presentation.
+    /// - Other filters: the card stays as it is.
+    @discardableResult
+    func syncDeck() -> Bool {
+        let next = settings.deckSettings
+        guard next != appliedSettings else { return false }
+        let previous = appliedSettings
+        appliedSettings = next
+        filteredCards = buildDeck()
+
+        if next.consonantNames != previous.consonantNames,
+           case .consonant(let consonant, _) = overrideCard {
+            overrideCard = .consonant(consonant, includesName: next.consonantNames)
+        }
+        if next.changesBookScope(from: previous), let override = overrideCard {
             overrideCard = filteredCards.first { $0.id == override.id }
         }
-        resetToStart()
+        restart()
+        return true
     }
 
-    /// Reset to first card and update strategies (call when settings change)
-    func resetToStart() {
+    /// Settings and progress arrived from iCloud: reload both, then apply the
+    /// deck, so Smart selection picks from the reloaded progress.
+    func reloadFromSyncedStore() {
+        settings.reload()
+        learningModel.reload()
+        syncDeck()
+    }
+
+    private func restart() {
         updateStrategies()
         sequentialStrategy.reset()
         wanikaniStrategy.reset()

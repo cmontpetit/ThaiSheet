@@ -70,6 +70,7 @@ scripts/check_release_binary.sh /path/to/ThaiSheet.app
 - **Important:** Computed properties bypass `@Observable` tracking - always use stored properties
 - Pattern: `var setting: Bool { didSet { defaults.set(setting, forKey: "key") } }`
 - Initialize from the store in `init()`, not via computed getters
+- The flashcard deck is a snapshot: `FlashcardManager.filteredCards` is rebuilt only by `syncDeck()`, which compares `FlashcardSettings.deckSettings` with the applied value and restarts selection once per logical change (one new `attempt`). Reads never apply settings. A new deck-affecting setting goes in `DeckSettings` as well as the predicate (`DeckSyncTests` fails for a synced key that is in neither `DeckSettings` nor its non-deck list). Change a Filters parent and its children together with `setCategory(_:to:)`. Tests that mutate settings call `manager.syncDeck()` before reading the deck
 
 ### Persisted progress IDs (durable, content-independent)
 - SRS progress is keyed by `FlashcardItem.id`, which is **structural**, never display text. Consonants/clusters key on their glyph; tone marks on `mark:class`; tone rules on `rule.id#sample.id`; vowels on `vowelID:duration:form`.
