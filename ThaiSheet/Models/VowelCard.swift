@@ -56,6 +56,15 @@ struct VowelCard: Identifiable {
     /// Display only: the Sound question's options and grading use the row label.
     var shownSound: String { vowel.sound(for: shownDuration, form: display) }
 
+    func renderedSound(as scheme: RomanizationScheme) -> String {
+        let variant = VowelFormVariant(duration: shownDuration, form: form)
+        let primary = Romanization.render(shownSound, as: scheme, context: .vowelForm(variant))
+        guard coversClosedForm else { return primary }
+        let closed = VowelFormVariant(duration: shownDuration, form: .closed)
+        let secondary = Romanization.render(shownSound, as: scheme, context: .vowelForm(closed))
+        return primary == secondary ? primary : "\(primary)/\(secondary)"
+    }
+
     var pronunciationWord: ReferenceSampleWord? {
         vowel.pronunciation(for: shownDuration, form: form)
     }

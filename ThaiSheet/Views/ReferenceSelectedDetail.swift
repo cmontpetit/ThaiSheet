@@ -38,7 +38,7 @@ struct ReferenceDetailPane<Detail: View>: View {
 /// Reuses the same domain detail views for the compact sheet and expanded pane.
 struct ReferenceSelectedDetail: View {
     let item: ReferenceItem
-    let onPractice: (String, FlashcardType) -> Void
+    let onPractice: (ReferenceItem) -> Void
     @Environment(\.thaiData) private var thaiData
     @Environment(\.flashcardSettings) private var settings
 
@@ -54,34 +54,30 @@ struct ReferenceSelectedDetail: View {
             .environment(\.practiceIsOutsideChapter, isOutsideChapter)
     }
 
+    private func practice() { onPractice(item) }
+
     @ViewBuilder
     private var detail: some View {
         switch item {
         case .consonant(let id):
             if let consonant = thaiData.consonants.first(where: { $0.id == id }) {
-                ConsonantDetailSheet(consonant: consonant) {
-                    onPractice(consonant.character, .consonant)
-                }
+                ConsonantDetailSheet(consonant: consonant, onPractice: practice)
             }
         case .vowel(let id, let variant, let text):
             if let vowel = thaiData.vowels.first(where: { $0.id == id }) {
-                VowelDetailSheet(vowel: vowel, formType: variant, text: text) {
-                    onPractice(text, .vowel)
-                }
+                VowelDetailSheet(vowel: vowel, formType: variant, text: text, onPractice: practice)
             }
         case .toneMark(let id, let soundKey):
             if let mark = thaiData.toneMarks.first(where: { $0.id == id }) {
-                ToneMarkDetailSheet(toneMark: mark, soundKey: soundKey) {
-                    onPractice(soundKey, .toneMark)
-                }
+                ToneMarkDetailSheet(toneMark: mark, soundKey: soundKey, onPractice: practice)
             }
         case .toneRule(let id):
             if let rule = thaiData.toneRules.first(where: { $0.id == id }) {
-                ToneRuleDetailSheet(rule: rule) { onPractice(id, .toneRule) }
+                ToneRuleDetailSheet(rule: rule, onPractice: practice)
             }
         case .cluster(let id):
             if let cluster = thaiData.clusters.first(where: { $0.id == id }) {
-                ClusterDetailSheet(cluster: cluster) { onPractice($0, .cluster) }
+                ClusterDetailSheet(cluster: cluster) { _ in practice() }
             }
         }
     }

@@ -30,7 +30,7 @@ enum ReadThaiBookRomanization {
         "ae": "aeo’", "aae": "aeo", "e": "eo’", "ee": "eo", "uuh": "ero",
     ]
 
-    static func rime(for syllable: ThaiSyllable, shortOpenDiphthong: Bool, vowelLabel: Bool = false) -> String {
+    static func rime(for syllable: ThaiSyllable, context: RomanizationContext) -> String {
         let nucleus = syllable.vowel
         let vowel = openVowels[nucleus] ?? diphthongs[nucleus] ?? nucleus
         switch syllable.glide {
@@ -38,16 +38,17 @@ enum ReadThaiBookRomanization {
         case "o": return wGlides[nucleus] ?? vowel + "o"
         default: break
         }
-        if !syllable.coda.isEmpty {
+        let variant: VowelFormVariant? = if case .vowelForm(let form) = context { form } else { nil }
+        if !syllable.coda.isEmpty || variant?.form == .closed {
             return (closedVowels[nucleus] ?? vowel) + syllable.coda
         }
         // Open ◌ุ in a word is u: จุ ju (p. xx), จุฬา jùlaa (pp. 95, 143). The book
         // is not uniform: ดุ is dòo’ on p. 55, which this renders as dù. Vowel
         // labels keep the guide's oo’ (p. xix).
-        if nucleus == "u", !vowelLabel {
+        if nucleus == "u", variant == nil, context != .vowelLabel {
             return "u"
         }
-        if shortOpenDiphthong, diphthongs[nucleus] != nil {
+        if context == .shortOpenVowelExample || variant?.duration == .short, diphthongs[nucleus] != nil {
             return vowel + "’"
         }
         return vowel

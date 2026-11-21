@@ -24,6 +24,9 @@ class FlashcardManager {
     // Override card (shown once when jumping from Reference, clears on navigation)
     private var overrideCard: FlashcardItem? = nil
 
+    /// Identifies the current quiz attempt, independently of the card's progress key.
+    private(set) var attempt = 0
+
     /// Current active strategy based on settings
     private var activeStrategy: CardSelectionStrategy {
         settings.useIntelligentSelection ? wanikaniStrategy : sequentialStrategy
@@ -224,36 +227,48 @@ class FlashcardManager {
         // Clear override and resume normal navigation
         overrideCard = nil
         activeStrategy.nextCard()
+        attempt += 1
     }
 
     func previousCard() {
         // Clear override and resume normal navigation
         overrideCard = nil
         activeStrategy.previousCard()
+        attempt += 1
     }
 
-    /// Jump to a specific card (e.g., from Reference view)
-    func jumpTo(item: FlashcardItem) {
-        // Use the deck's copy: it carries the chapter scope's presentation
-        // (a shared vowel form showing its in-scope slot), which a card
-        // fetched from the catalog does not.
-        let item = filteredCards.first { $0.id == item.id } ?? item
-        // Jump in both strategies to keep them in sync
+    /// Practice a catalog card once and keep deck navigation on its normal copy.
+    private func jumpOrOverride(to item: FlashcardItem, preferredDuration: VowelCard.VowelDuration? = nil) {
+        let card: FlashcardItem
         if let index = sequentialStrategy.indexOf(cardId: item.id) {
+            card = filteredCards.first { $0.id == item.id } ?? item
             sequentialStrategy.jumpTo(index: index)
+            wanikaniStrategy.jumpTo(card: card)
+            overrideCard = nil
+        } else {
+            card = presentedInBookScope(item)
+            overrideCard = card
         }
-        wanikaniStrategy.jumpTo(card: item)
+
+        // Explicit Practice can use the selected reading for this attempt.
+        // Prefer an in-chapter example when search surfaced a later reading.
+        if case .vowel(let vowel) = card, vowel.acceptsBothDurations,
+           let preferredDuration, preferredDuration != vowel.shownDuration,
+           isCardInScope(vowel, duration: preferredDuration) {
+            overrideCard = .vowel(vowel.presenting(preferredDuration))
+        }
+        attempt += 1
     }
 
-    /// Jump to a card, using override if not in the filtered list
-    private func jumpOrOverride(to item: FlashcardItem) {
-        if sequentialStrategy.indexOf(cardId: item.id) != nil {
-            overrideCard = nil
-            jumpTo(item: item)
-        } else {
-            // Not in the deck (outside the chapter, or excluded by Filters). Still
-            // present a shared vowel form's in-scope slot when it has one.
-            overrideCard = presentedInBookScope(item)
+    func practice(_ item: ReferenceItem) {
+        switch item {
+        case .consonant(let id): jumpToConsonant(id)
+        case .vowel(let id, let variant, let text):
+            guard let card = data.vowelCards.first(where: { $0.vowel.id == id && $0.covers(form: text) }) else { return }
+            jumpOrOverride(to: .vowel(card), preferredDuration: variant.duration)
+        case .toneMark(_, let soundKey): jumpToToneMark(soundKey)
+        case .toneRule(let id): jumpToToneRule(id)
+        case .cluster(let id): jumpToCluster(id)
         }
     }
 
@@ -261,12 +276,6 @@ class FlashcardManager {
     func jumpToConsonant(_ character: String) {
         guard let consonant = data.consonants.first(where: { $0.character == character }) else { return }
         jumpOrOverride(to: .consonant(consonant, includesName: settings.consonantNames))
-    }
-
-    /// Jump to a vowel by display string
-    func jumpToVowel(_ display: String) {
-        guard let vowelCard = data.vowelCards.first(where: { $0.covers(form: display) }) else { return }
-        jumpOrOverride(to: .vowel(vowelCard))
     }
 
     /// Jump to a tone mark by display string
@@ -314,5 +323,6 @@ class FlashcardManager {
         updateStrategies()
         sequentialStrategy.reset()
         wanikaniStrategy.reset()
+        attempt += 1
     }
 }

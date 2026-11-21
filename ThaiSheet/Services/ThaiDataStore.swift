@@ -18,6 +18,11 @@ enum ThaiDataset: String, CaseIterable {
 }
 
 final class ThaiDataStore {
+    #if compiler(>=6.2)
+    // Avoid the MainActor deinit back-deployment thunk on affected runtimes.
+    nonisolated deinit {}
+    #endif
+
     let consonants: [Consonant]
     let vowels: [Vowel]
     let vowelCards: [VowelCard]

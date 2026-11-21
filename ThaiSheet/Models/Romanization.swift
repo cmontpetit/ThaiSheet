@@ -54,9 +54,10 @@ final class RomanizationState {
     var scheme: RomanizationScheme = .learner
 }
 
-enum RomanizationContext {
+enum RomanizationContext: Equatable {
     case transcription
     case vowelLabel
+    case vowelForm(VowelFormVariant)
     case shortOpenVowelExample
 }
 
@@ -146,11 +147,10 @@ enum Romanization {
                 case .onset(let onset): return renderOnset(onset, scheme) + "-"
                 case .final(let final): return "-" + renderFinal(final, scheme)
                 case .syllables(let syllables):
-                    if context == .shortOpenVowelExample, alternative.count == 1, syllables.count == 1,
-                       let syllable = syllables.first {
-                        return renderSyllable(syllable, scheme, shortOpenDiphthong: true)
+                    if context == .shortOpenVowelExample, alternative.count != 1 || syllables.count != 1 {
+                        return join(syllables, scheme)
                     }
-                    return join(syllables, scheme, vowelLabel: context == .vowelLabel)
+                    return join(syllables, scheme, context: context)
                 }
             }
             let joined = words.joined(separator: " ")
@@ -359,8 +359,7 @@ enum Romanization {
     private static func renderSyllable(
         _ syllable: ThaiSyllable,
         _ scheme: RomanizationScheme,
-        shortOpenDiphthong: Bool = false,
-        vowelLabel: Bool = false
+        context: RomanizationContext = .transcription
     ) -> String {
         let onset = renderOnset(syllable.onset, scheme)
         let mark: String? = switch (scheme, syllable.tone) {
@@ -369,9 +368,7 @@ enum Romanization {
         default: toneDiacritics[syllable.tone]
         }
         if scheme == .readThaiIn10Days {
-            let rime = ReadThaiBookRomanization.rime(
-                for: syllable, shortOpenDiphthong: shortOpenDiphthong, vowelLabel: vowelLabel
-            )
+            let rime = ReadThaiBookRomanization.rime(for: syllable, context: context)
             return (onset + applyingTone(mark, to: rime)).precomposedStringWithCanonicalMapping
         }
 
@@ -394,7 +391,7 @@ enum Romanization {
     private static func join(
         _ syllables: [ThaiSyllable],
         _ scheme: RomanizationScheme,
-        vowelLabel: Bool = false
+        context: RomanizationContext = .transcription
     ) -> String {
         guard scheme == .rtgs || scheme == .readThaiIn10Days else {
             return syllables.map { renderSyllable($0, scheme) }
@@ -410,7 +407,7 @@ enum Romanization {
                     result += "-"
                 }
             }
-            result += renderSyllable(syllable, scheme, vowelLabel: vowelLabel)
+            result += renderSyllable(syllable, scheme, context: context)
         }
         return result
     }

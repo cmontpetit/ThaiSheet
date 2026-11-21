@@ -319,6 +319,45 @@ final class SyncedKeyValueStoreTests: XCTestCase {
                        "Rewriting the cloud would only make the other device put the card back again")
     }
 
+    func test_reset_acceptsPostResetReviewFromOlderClientUnderMergedVowelID() throws {
+        let resetDate = Date(timeIntervalSince1970: 2_000)
+        let reviewedBefore = Date(timeIntervalSince1970: 1_000)
+        let reviewedAfter = Date(timeIntervalSince1970: 2_500)
+        let closedID = "vowel-a:Long:Closed"
+        let mergedID = "vowel-a:Long:Open"
+        local.set(resetDate, forKey: LearningModel.resetDateKey)
+        cloud.seed(resetDate, forKey: LearningModel.resetDateKey)
+        local.set(try encoded([:]), forKey: LearningModel.storageKey)
+        cloud.seed(try encoded([:]), forKey: LearningModel.storageKey)
+        let store = makeStore()
+        store.activateCloud()
+        cloud.resetRecordedWrites()
+
+        cloud.seed(try encoded([
+            closedID: progress(id: closedID, stage: .confident, reviewed: reviewedBefore)
+        ]), forKey: LearningModel.storageKey)
+        store.handleExternalChange(
+            reason: NSUbiquitousKeyValueStoreServerChange,
+            changedKeys: [LearningModel.storageKey]
+        )
+        XCTAssertTrue(try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey))).isEmpty)
+        XCTAssertTrue(cloud.writtenKeys.isEmpty)
+
+        cloud.seed(try encoded([
+            closedID: progress(id: closedID, stage: .learning1, reviewed: reviewedAfter),
+            mergedID: progress(id: mergedID, stage: .confident, reviewed: reviewedBefore),
+        ]), forKey: LearningModel.storageKey)
+        let expected = [mergedID: progress(id: mergedID, stage: .learning1, reviewed: reviewedAfter)]
+        for _ in 0..<2 {
+            store.handleExternalChange(
+                reason: NSUbiquitousKeyValueStoreServerChange,
+                changedKeys: [LearningModel.storageKey]
+            )
+            XCTAssertEqual(try decoded(XCTUnwrap(local.data(forKey: LearningModel.storageKey))), expected)
+            XCTAssertTrue(cloud.writtenKeys.isEmpty)
+        }
+    }
+
     func test_reset_fromAnotherDevice_dropsLocalProgressAndKeepsLaterReviews() throws {
         let resetDate = Date(timeIntervalSince1970: 2_000)
         local.set(try encoded([

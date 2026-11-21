@@ -130,7 +130,7 @@ struct VowelDetailSheet: View {
         ReferenceItemSheet(
             title: ThaiDisplay.placeholder(text),
             romanization: vowel.sound(for: formType.duration, form: text),
-            romanizationContext: .vowelLabel,
+            romanizationContext: .vowelForm(formType),
             stage: stage,
             note: vowel.note(for: formType.duration.rawValue, form: formType.form.rawValue),
             wordAudios: referenceWordAudios(),

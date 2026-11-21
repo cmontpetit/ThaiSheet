@@ -49,9 +49,9 @@ struct CheatsheetBrowserView: View {
     var settings: FlashcardSettings
     var syncedStore: SyncedKeyValueStore? = nil
 
-    // Navigation bindings (dictionaries keyed by FlashcardType)
+    // Cross-tab navigation
     @Binding var highlighted: [FlashcardType: String]
-    @Binding var flashcardStarting: [FlashcardType: String]
+    @Binding var practiceTarget: ReferenceItem?
     @Binding var selectedTab: AppTab
 
     @Environment(\.thaiData) private var thaiData
@@ -89,7 +89,7 @@ struct CheatsheetBrowserView: View {
         settings: FlashcardSettings,
         syncedStore: SyncedKeyValueStore? = nil,
         highlighted: Binding<[FlashcardType: String]>,
-        flashcardStarting: Binding<[FlashcardType: String]>,
+        practiceTarget: Binding<ReferenceItem?>,
         selectedTab: Binding<AppTab>,
         referenceSelection: ReferenceSelection = ScreenshotScenario.initialReferenceSelection,
         referenceType: CheatsheetEntryType? = nil
@@ -97,7 +97,7 @@ struct CheatsheetBrowserView: View {
         self.settings = settings
         self.syncedStore = syncedStore
         _highlighted = highlighted
-        _flashcardStarting = flashcardStarting
+        _practiceTarget = practiceTarget
         _selectedTab = selectedTab
         _referenceSelection = State(initialValue: referenceSelection)
         _selectedType = State(initialValue: referenceType ?? ScreenshotScenario.current?.referenceType ?? .consonants)
@@ -110,11 +110,9 @@ struct CheatsheetBrowserView: View {
     private var highlightedToneRule: String? { highlighted[.toneRule] }
     private var highlightedCluster: String? { highlighted[.cluster] }
 
-    /// Start practicing a card: set the starting value and switch to flashcards
-    private func startPractice(_ key: String, type: FlashcardType) {
+    private func startPractice(_ item: ReferenceItem) {
         referenceSelection.dismissSheet()
-        flashcardStarting[type] = key
-        highlighted[type] = nil
+        practiceTarget = item
         selectedTab = .flashcards
     }
 
@@ -963,7 +961,7 @@ private struct ReferenceInfoView: View {
     CheatsheetBrowserView(
         settings: FlashcardSettings(),
         highlighted: .constant([:]),
-        flashcardStarting: .constant([:]),
+        practiceTarget: .constant(nil),
         selectedTab: .constant(.reference)
     )
 }

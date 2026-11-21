@@ -32,6 +32,11 @@ enum ReferenceItem: Equatable, Identifiable {
 /// Owns detail presentation independently of table rows and their lifetimes.
 @Observable
 final class ReferenceSelection {
+    #if compiler(>=6.2)
+    // Avoid the MainActor deinit back-deployment thunk on affected runtimes.
+    nonisolated deinit {}
+    #endif
+
     private(set) var item: ReferenceItem?
     private(set) var isExpanded = false
     private(set) var wantsSheet = false

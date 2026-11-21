@@ -48,7 +48,7 @@ struct ContentView: View {
     @State private var manager: FlashcardManager?
     @State private var selectedTab: AppTab = ScreenshotScenario.current?.initialTab ?? .reference
     @State private var highlighted: [FlashcardType: String] = [:]
-    @State private var flashcardStarting: [FlashcardType: String] = [:]
+    @State private var practiceTarget: ReferenceItem?
 
     init(settings: FlashcardSettings, syncedStore: SyncedKeyValueStore? = nil) {
         self.settings = settings
@@ -74,7 +74,7 @@ struct ContentView: View {
                 settings: settings,
                 syncedStore: syncedStore,
                 highlighted: $highlighted,
-                flashcardStarting: $flashcardStarting,
+                practiceTarget: $practiceTarget,
                 selectedTab: $selectedTab
             )
             .tabItem {
@@ -87,7 +87,7 @@ struct ContentView: View {
                     manager: manager,
                     syncedStore: syncedStore,
                     highlighted: $highlighted,
-                    flashcardStarting: $flashcardStarting,
+                    practiceTarget: $practiceTarget,
                     selectedTab: $selectedTab
                 )
                 .tabItem {
@@ -130,7 +130,7 @@ struct FlashcardsView: View {
     var manager: FlashcardManager
     var syncedStore: SyncedKeyValueStore?
     @Binding var highlighted: [FlashcardType: String]
-    @Binding var flashcardStarting: [FlashcardType: String]
+    @Binding var practiceTarget: ReferenceItem?
     @Binding var selectedTab: AppTab
 
     @State private var showingSettings = false
@@ -177,12 +177,10 @@ struct FlashcardsView: View {
     }
 
     private func showNext() {
-        reviewNotice = nil
         manager.nextCard()
     }
 
     private func showPrevious() {
-        reviewNotice = nil
         manager.previousCard()
     }
 
@@ -370,6 +368,7 @@ struct FlashcardsView: View {
         VStack(spacing: 0) {
             cardHeader(for: card)
             flashcardContent(for: card)
+                .id(manager.attempt)
         }
         .navigationTitle("Flashcards")
         .navigationBarTitleDisplayMode(.inline)
@@ -410,10 +409,9 @@ struct FlashcardsView: View {
         ))
         .modifier(FlashcardsNavigationModifier(
             manager: manager,
-            flashcardStarting: $flashcardStarting
+            practiceTarget: $practiceTarget
         ))
-        // Any other way to a different card (Reference → Practice, a filter or
-        // scope change) starts a new attempt: a later return must not show it
+        .onChange(of: manager.attempt) { _, _ in reviewNotice = nil }
         .onChange(of: manager.currentCard?.id) { _, _ in reviewNotice = nil }
         .onAppear {
             #if DEBUG
@@ -540,28 +538,15 @@ struct BookScopeSettingsModifier: ViewModifier {
 /// Modifier for navigation jump handling
 struct FlashcardsNavigationModifier: ViewModifier {
     var manager: FlashcardManager
-    @Binding var flashcardStarting: [FlashcardType: String]
-
-    private typealias JumpFunc = (String) -> Void
-
-    private var jumpFunctions: [FlashcardType: JumpFunc] {
-        [
-            .consonant: manager.jumpToConsonant,
-            .vowel: manager.jumpToVowel,
-            .toneMark: manager.jumpToToneMark,
-            .toneRule: manager.jumpToToneRule,
-            .cluster: manager.jumpToCluster,
-        ]
-    }
+    @Binding var practiceTarget: ReferenceItem?
 
     func body(content: Content) -> some View {
         content
             .modifier(FlashcardsSettingsModifier(manager: manager))
-            .onChange(of: flashcardStarting) { _, newValue in
-                for (type, key) in newValue {
-                    jumpFunctions[type]?(key)
-                }
-                flashcardStarting.removeAll()
+            .onChange(of: practiceTarget, initial: true) { _, target in
+                guard let target else { return }
+                manager.practice(target)
+                practiceTarget = nil
             }
     }
 }
