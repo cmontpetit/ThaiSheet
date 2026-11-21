@@ -65,17 +65,22 @@ struct VowelFlashcardView: View {
             soundType: .vowel,
             soundKey: primaryWord ?? "",
             overrideItemID: overrideItemID,
-            showsPlayAction: !card.coversClosedForm,
+            // Each example word carries its own speaker instead.
+            showsPlayAction: false,
             onViewInReference: { onViewInReference?(card.display) },
             onShowDetails: { showingDetails = true },
             onPrevious: handlePrevious,
             onNext: handleNext
         ) {
             VStack(spacing: 4) {
-                Text(card.prompt)
-                    .font(.system(size: glyphSize))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
+                if currentStep == .completed, card.promptsWithWord, let word = primaryWord {
+                    exampleButton(word: word, font: .system(size: glyphSize), primary: true)
+                } else {
+                    Text(card.prompt)
+                        .font(.system(size: glyphSize))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                }
 
                 if currentStep == .completed {
                     revealedAnswer
@@ -89,9 +94,9 @@ struct VowelFlashcardView: View {
         card.revealedSamples.first?.word.word
     }
 
-    /// Under the prompt after reveal: the written form for a word prompt, else
-    /// the example words. A card covering both forms shows one per form, each
-    /// playable on its own.
+    /// Under the prompt after reveal: the written form for a word prompt
+    /// (whose word is already the prompt), else the example words, each with
+    /// its own speaker. A card covering both forms shows one per form.
     @ViewBuilder
     private var revealedAnswer: some View {
         if card.promptsWithWord, card.pronunciationWord != nil {
@@ -103,38 +108,47 @@ struct VowelFlashcardView: View {
         } else if card.coversClosedForm {
             HStack(spacing: 24) {
                 ForEach(card.revealedSamples) { sample in
-                    let hasSound = audioPlayer.hasSound(.vowel, key: sample.word.word)
-                    Button {
-                        play(sample.word.word)
-                    } label: {
-                        VStack(spacing: 0) {
-                            HStack(spacing: 6) {
-                                Text(sample.word.word)
-                                    .font(.title)
-                                Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
-                                    .font(.body)
-                                    .foregroundStyle(hasSound ? Color.accentColor : Color.secondary)
-                                    .accessibilityHidden(true)
-                            }
-                            Text(sample.form.label)
-                                .font(.caption)
-                        }
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!hasSound)
-                    .accessibilityLabel(Text(verbatim: "\(sample.word.word), \(sample.form.label)"))
+                    exampleButton(word: sample.word.word, caption: sample.form.label, font: .title)
                 }
             }
         } else if let word = primaryWord {
-            Text(word)
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
+            exampleButton(word: word, font: .largeTitle)
         }
+    }
+
+    /// An example word with a speaker beside it; tapping plays the word.
+    private func exampleButton(
+        word: String,
+        caption: String? = nil,
+        font: Font,
+        primary: Bool = false
+    ) -> some View {
+        let hasSound = audioPlayer.hasSound(.vowel, key: word)
+        return Button {
+            play(word)
+        } label: {
+            VStack(spacing: 0) {
+                HStack(spacing: 6) {
+                    Text(word)
+                        .font(font)
+                        .foregroundStyle(primary ? Color.primary : Color.secondary)
+                    Image(systemName: hasSound ? "speaker.wave.2.fill" : "speaker.slash")
+                        .font(.body)
+                        .foregroundStyle(hasSound ? Color.accentColor : Color.secondary)
+                        .accessibilityHidden(true)
+                }
+                if let caption {
+                    Text(caption)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+        }
+        .buttonStyle(.plain)
+        .disabled(!hasSound)
+        .accessibilityLabel(Text(verbatim: caption.map { "\(word), \($0)" } ?? word))
     }
 
     // MARK: - Summary Section
