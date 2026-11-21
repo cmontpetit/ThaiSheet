@@ -101,7 +101,7 @@ final class BookScopeDeckTests: XCTestCase {
 
         settings.bookProgress = .day1
         settings.showNotInBook = true
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         let scoped = manager.filteredCards.map(\.id)
         XCTAssertNotEqual(scoped, unscoped)
         XCTAssertEqual(settings.romanization, .readThaiIn10Days)
@@ -115,14 +115,17 @@ final class BookScopeDeckTests: XCTestCase {
 
     func test_day1_consonantsAreLowClass1_inBothNameModes() {
         settings.bookProgress = .day1
+        manager.syncDeck()
         let expected = ["ง", "ม", "น", "ร", "ล", "ย", "ว"]
         XCTAssertEqual(deckIDs(.consonant), Set(expected.map { FlashcardType.consonantCardId(for: $0, includesName: true) }))
         settings.consonantNames = false
+        manager.syncDeck()
         XCTAssertEqual(deckIDs(.consonant), Set(expected.map { FlashcardType.consonantCardId(for: $0, includesName: false) }))
     }
 
     func test_day1_vowelsAreLongForms_noTonesOrClusters() {
         settings.bookProgress = .day1
+        manager.syncDeck()
         let displays = vowelDisplays()
         XCTAssertTrue(displays.isSuperset(of: ["กา", "โก", "กอ", "กาย", "กาว"]), "กา- is part of the กา card")
         XCTAssertFalse(displays.contains("กะ"), "short vowels arrive on Day 3")
@@ -134,16 +137,20 @@ final class BookScopeDeckTests: XCTestCase {
 
     func test_toneRulesFromDay5_toneMarksFromDay6() {
         settings.bookProgress = .day4
+        manager.syncDeck()
         XCTAssertTrue(deckIDs(.toneRule).isEmpty)
         settings.bookProgress = .day5
+        manager.syncDeck()
         XCTAssertEqual(deckIDs(.toneRule).count, manager.data.toneRuleCards.count)
         XCTAssertTrue(deckIDs(.toneMark).isEmpty)
         settings.bookProgress = .day6
+        manager.syncDeck()
         XCTAssertEqual(deckIDs(.toneMark).count, 8)
     }
 
     func test_silentHClustersFromDay4() {
         settings.bookProgress = .day4
+        manager.syncDeck()
         let ids = deckIDs(.cluster)
         XCTAssertEqual(ids.count, 7)
         XCTAssertTrue(ids.contains(FlashcardType.cluster.cardId(for: "หน:initial")))
@@ -153,26 +160,32 @@ final class BookScopeDeckTests: XCTestCase {
     /// เกิ- is one card for two slots; it is eligible once its long slot is (Day 5).
     func test_sharedForm_eligibleWithItsEarlierSlot() {
         settings.bookProgress = .day4
+        manager.syncDeck()
         XCTAssertFalse(vowelDisplays().contains("เกิ-"))
         settings.bookProgress = .day5
+        manager.syncDeck()
         XCTAssertTrue(vowelDisplays().contains("เกิ-"))
     }
 
     /// `uay` is looked up by slot (Long:Closed, Day 5); its card keeps its progress key.
     func test_uay_eligibleOnDay5_keepsProgressKey() throws {
         settings.bookProgress = .day4
+        manager.syncDeck()
         XCTAssertFalse(vowelDisplays().contains("กวย"))
         settings.bookProgress = .day5
+        manager.syncDeck()
         XCTAssertTrue(vowelDisplays().contains("กวย"))
         XCTAssertEqual(try vowelCard("กวย").id, FlashcardType.vowel.cardId(for: "uay:Short:Closed"))
     }
 
     func test_notTaughtInBook_followsToggle() {
         settings.bookProgress = .lastDay
+        manager.syncDeck()
         let kho = FlashcardType.consonantCardId(for: "ฃ", includesName: true)
         XCTAssertFalse(deckIDs(.consonant).contains(kho))
         XCTAssertFalse(vowelDisplays().contains("โกย"))
         settings.showNotInBook = true
+        manager.syncDeck()
         XCTAssertTrue(deckIDs(.consonant).contains(kho))
         XCTAssertTrue(vowelDisplays().contains("โกย"))
     }
@@ -180,12 +193,14 @@ final class BookScopeDeckTests: XCTestCase {
     func test_lastDayWithToggle_isTheWholeDeck() {
         settings.bookProgress = .lastDay
         settings.showNotInBook = true
+        manager.syncDeck()
         XCTAssertEqual(manager.filteredCards.count, manager.allCards.count)
     }
 
     func test_scopeStacksWithFilters() {
         settings.bookProgress = .day4
         settings.highConsonants = false
+        manager.syncDeck()
         XCTAssertEqual(deckIDs(.consonant).count, 21)
     }
 
@@ -195,6 +210,7 @@ final class BookScopeDeckTests: XCTestCase {
         XCTAssertTrue(data.isLoaded, "the mapping is not a catalog")
         manager = makeManager(data: data)
         settings.bookProgress = .day1
+        manager.syncDeck()
         XCTAssertEqual(manager.filteredCards.count, manager.allCards.count)
     }
 
@@ -264,13 +280,16 @@ final class BookScopeDeckTests: XCTestCase {
     func test_cap_singleConsonantClassFilter() throws {
         settings.midConsonants = false
         settings.lowConsonants = false
+        manager.syncDeck()
         XCTAssertTrue(manager.isPartialTesting(try consonant("ข")))
         settings.midConsonants = true
+        manager.syncDeck()
         XCTAssertFalse(manager.isPartialTesting(try consonant("ข")))
     }
 
     func test_cap_singleVowelDurationFilter_onlyCardsAskingDuration() throws {
         settings.shortVowels = false
+        manager.syncDeck()
         XCTAssertTrue(manager.isPartialTesting(try vowelCard("กา")))
         XCTAssertTrue(manager.isPartialTesting(try vowelCard("เกิ-")), "accepts both durations, including the given-away one")
         XCTAssertFalse(manager.isPartialTesting(try vowelCard("กวย")), "asks no duration or form question")
@@ -279,9 +298,11 @@ final class BookScopeDeckTests: XCTestCase {
     func test_cap_singleToneRuleClassFilter() throws {
         settings.midToneRules = false
         settings.lowToneRules = false
+        manager.syncDeck()
         let card = try XCTUnwrap(manager.filteredCards.first { $0.type == .toneRule })
         XCTAssertTrue(manager.isPartialTesting(card))
         settings.lowToneRules = true
+        manager.syncDeck()
         XCTAssertFalse(manager.isPartialTesting(card), "High + Low rules vary in class, duration, and ending")
     }
 
@@ -289,6 +310,7 @@ final class BookScopeDeckTests: XCTestCase {
     /// filters gives the duration away even though it leaves two classes.
     func test_cap_highAndMidToneRules_durationGivenAway() throws {
         settings.lowToneRules = false
+        manager.syncDeck()
         let card = try XCTUnwrap(manager.filteredCards.first { $0.type == .toneRule })
         XCTAssertTrue(manager.isPartialTesting(card))
     }
@@ -298,25 +320,30 @@ final class BookScopeDeckTests: XCTestCase {
     func test_cap_silentClustersOnly() throws {
         settings.smoothClusters = false
         settings.irregularClusters = false
+        manager.syncDeck()
         XCTAssertTrue(manager.isPartialTesting(try cluster("หน:initial")))
     }
 
     func test_cap_day1_classAndDurationGivenAway() throws {
         settings.bookProgress = .day1
+        manager.syncDeck()
         XCTAssertTrue(manager.isPartialTesting(try consonant("ม")))
         XCTAssertTrue(manager.isPartialTesting(try vowelCard("กา")))
         settings.bookProgress = .day4
+        manager.syncDeck()
         XCTAssertFalse(manager.isPartialTesting(try consonant("ม")))
     }
 
     /// A card opened from Reference outside the deck is capped only by answers it accepts.
     func test_cap_oneOffCard_notCappedByAnswerItDoesNotAccept() throws {
         settings.bookProgress = .day1
+        manager.syncDeck()
         XCTAssertFalse(manager.isPartialTesting(try consonant("ข")), "deck is all low class, ข is high")
     }
 
     func test_cap_emptyComparisonGroup_neverCaps() throws {
         settings.bookProgress = .day1
+        manager.syncDeck()
         XCTAssertTrue(deckIDs(.cluster).isEmpty)
         XCTAssertFalse(manager.isPartialTesting(try cluster("หน:initial")))
     }
@@ -339,17 +366,17 @@ final class BookScopeDeckTests: XCTestCase {
 
     func test_scopeChange_clearsIneligibleOverride_keepsEligibleOne() {
         settings.bookProgress = .day1
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         manager.jumpToConsonant("ข")
         XCTAssertEqual(manager.currentCard?.id, FlashcardType.consonantCardId(for: "ข", includesName: true))
 
         settings.bookProgress = .day4
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         XCTAssertEqual(manager.currentCard?.id, FlashcardType.consonantCardId(for: "ข", includesName: true),
                        "ข is in the Day 4 deck, so the opened card stays")
 
         settings.bookProgress = .day3
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         XCTAssertNotEqual(manager.currentCard?.id, FlashcardType.consonantCardId(for: "ข", includesName: true))
         XCTAssertTrue(manager.filteredCards.contains { $0.id == manager.currentCard?.id })
     }
@@ -358,7 +385,7 @@ final class BookScopeDeckTests: XCTestCase {
     /// drops two stages), then Next returns to the scoped deck.
     func test_practiceOutsideChapter_gradedNormally_thenBackToDeck() throws {
         settings.bookProgress = .day1
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         manager.jumpToConsonant("ข")
         let card = try XCTUnwrap(manager.currentCard)
         XCTAssertFalse(manager.filteredCards.contains { $0.id == card.id }, "ข is outside Day 1")
@@ -396,6 +423,7 @@ final class BookScopeDeckTests: XCTestCase {
         XCTAssertEqual(original.prompt, original.bareForm, "The face shows the vowel, not the word")
 
         settings.bookProgress = .day5
+        manager.syncDeck()
         let scoped = try deckVowelCard("เกิ-")
         XCTAssertEqual(scoped.shownDuration, .long)
         XCTAssertEqual(scoped.pronunciationWord?.word, "เดิน")
@@ -426,7 +454,7 @@ final class BookScopeDeckTests: XCTestCase {
     /// Opening เกิ- from Reference lands on the deck's copy, in both selection modes.
     func test_sharedForm_jumpFromReference_presentsInScopeSlot() {
         settings.bookProgress = .day5
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         for smart in [false, true] {
             settings.useIntelligentSelection = smart
             practiceSharedVowel(.shortClosed)
@@ -437,14 +465,14 @@ final class BookScopeDeckTests: XCTestCase {
     /// A one-off เกิ- opened on Day 4 switches to the in-scope slot when Day 5 makes it eligible.
     func test_sharedForm_overrideBecomingEligible_presentsInScopeSlot() throws {
         settings.bookProgress = .day4
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         practiceSharedVowel(.shortClosed)
         let openedID = try XCTUnwrap(manager.currentCard?.id)
         let attempt = manager.attempt
         XCTAssertEqual(currentVowelWord, "เงิน", "outside the deck it presents its own (short) slot")
 
         settings.bookProgress = .day5
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         XCTAssertEqual(manager.currentCard?.id, openedID)
         XCTAssertEqual(currentVowelWord, "เดิน")
         XCTAssertEqual(manager.attempt, attempt + 1)
@@ -454,7 +482,7 @@ final class BookScopeDeckTests: XCTestCase {
     func test_sharedForm_overrideExcludedByFilters_presentsInScopeSlot() {
         settings.bookProgress = .day5
         settings.vowelsEnabled = false
-        manager.applyBookScopeChange()
+        manager.syncDeck()
         XCTAssertFalse(vowelDisplays().contains("เกิ-"))
         practiceSharedVowel(.shortClosed)
         XCTAssertEqual(currentVowelWord, "เดิน")
@@ -477,7 +505,7 @@ final class BookScopeDeckTests: XCTestCase {
 
     func test_sharedForm_practiceOutsideFiltersStartsNewAttemptEachTime() throws {
         settings.vowelsEnabled = false
-        manager.resetToStart()
+        manager.syncDeck()
         let cardID = try vowelCard("เกิ-").id
         let initialAttempt = manager.attempt
 
@@ -505,12 +533,14 @@ final class BookScopeDeckTests: XCTestCase {
     func test_sharedForm_day5_longOnly_presentsLongSlot() {
         settings.bookProgress = .day5
         settings.shortVowels = false
+        manager.syncDeck()
         XCTAssertEqual(sharedFormWord(), "เดิน", "its long slot passes both the filter and the chapter")
     }
 
     func test_sharedForm_day5_shortOnly_isExcluded() {
         settings.bookProgress = .day5
         settings.longVowels = false
+        manager.syncDeck()
         XCTAssertNil(sharedFormWord(), "its short slot is not taught; its long slot is filtered out")
     }
 
@@ -518,11 +548,13 @@ final class BookScopeDeckTests: XCTestCase {
         settings.bookProgress = .day5
         settings.longVowels = false
         settings.showNotInBook = true
+        manager.syncDeck()
         XCTAssertEqual(sharedFormWord(), "เงิน")
     }
 
     func test_sharedForm_day5_bothDurations_presentsLongSlot() {
         settings.bookProgress = .day5
+        manager.syncDeck()
         XCTAssertEqual(sharedFormWord(), "เดิน")
     }
 
@@ -531,9 +563,11 @@ final class BookScopeDeckTests: XCTestCase {
     func test_sharedForm_off_followsDurationFilter() {
         XCTAssertEqual(sharedFormWord(), "เงิน", "both durations: the card's own (short) slot")
         settings.shortVowels = false
+        manager.syncDeck()
         XCTAssertEqual(sharedFormWord(), "เดิน")
         settings.shortVowels = true
         settings.longVowels = false
+        manager.syncDeck()
         XCTAssertEqual(sharedFormWord(), "เงิน")
     }
 
@@ -541,6 +575,7 @@ final class BookScopeDeckTests: XCTestCase {
     func test_sharedForm_presentedSlot_keepsIdAndAnswers() throws {
         let original = try vowelCard("เกิ-")
         settings.shortVowels = false
+        manager.syncDeck()
         let item = try XCTUnwrap(manager.filteredCards.first { $0.id == original.id })
         XCTAssertEqual(item.fixedAnswerQuestions[.vowelDuration], ["Short", "Long"])
     }
@@ -548,6 +583,7 @@ final class BookScopeDeckTests: XCTestCase {
     func test_sharedForm_ownSlotInScope_presentsOwnSlot() throws {
         settings.bookProgress = .day5
         settings.showNotInBook = true
+        manager.syncDeck()
         let card = try deckVowelCard("เกิ-")
         XCTAssertEqual(card.shownDuration, card.duration)
     }

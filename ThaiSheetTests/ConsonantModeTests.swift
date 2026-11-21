@@ -48,7 +48,7 @@ final class ConsonantModeTests: XCTestCase {
         XCTAssertTrue(namedIDs.allSatisfy { $0.hasPrefix("consonant-") })
 
         settings.consonantNames = false
-        manager.applyConsonantMode()
+        manager.syncDeck()
 
         let soundIDs = manager.filteredCards.filter { $0.type == .consonant }.map(\.id)
         XCTAssertEqual(soundIDs.count, namedIDs.count)
@@ -60,13 +60,13 @@ final class ConsonantModeTests: XCTestCase {
 
     func test_switchingMode_rebuildsReferenceOverrideInNewMode() {
         settings.highConsonants = false
-        manager.resetToStart()
+        manager.syncDeck()
         manager.jumpToConsonant("ข")
         XCTAssertEqual(manager.currentCard?.id, "consonant-ข",
                        "A filtered-out consonant opened from Reference shows as an override")
 
         settings.consonantNames = false
-        manager.applyConsonantMode()
+        manager.syncDeck()
 
         XCTAssertEqual(manager.currentCard?.id, "consonantSound-ข",
                        "The override stays on the same letter but records progress in the new mode")
@@ -76,13 +76,10 @@ final class ConsonantModeTests: XCTestCase {
 
     func test_syncedModeChange_reloadThenApply_movesToNewIDs() {
         // A synced store change lands in the backing store, then the
-        // .syncedStoreDidChange handler reloads settings; ContentView's
-        // onChange(of: consonantNames) then calls applyConsonantMode().
+        // .syncedStoreDidChange handler reloads settings and applies the deck.
         defaults.set(false, forKey: "fc_consonantNames")
-        settings.reload()
+        manager.reloadFromSyncedStore()
         XCTAssertFalse(settings.consonantNames)
-
-        manager.applyConsonantMode()
 
         XCTAssertEqual(manager.currentCard?.id, manager.filteredCards.first?.id)
         XCTAssertTrue(manager.currentCard?.id.hasPrefix("consonantSound-") ?? false)
