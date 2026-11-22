@@ -198,6 +198,12 @@ enum BookSelection: Hashable {
     }
 
     var isOff: Bool { self == .off }
+
+    /// Specific days: empty states say "selected days", not "a later chapter",
+    /// since earlier days' material is not hidden for being early.
+    var isSpecificDays: Bool {
+        if case .days = self { true } else { false }
+    }
 }
 
 /// The learner's book selection applied to the catalog: an item is in scope

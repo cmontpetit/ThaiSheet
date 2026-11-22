@@ -199,6 +199,12 @@ final class BookScopeTests: XCTestCase {
         XCTAssertNil(BookSelection(storageValue: "weekly:day2"))
     }
 
+    func test_selection_isSpecificDays() {
+        XCTAssertTrue(BookSelection.days([.day7]).isSpecificDays)
+        XCTAssertFalse(BookSelection.through(.day7).isSpecificDays)
+        XCTAssertFalse(BookSelection.off.isSpecificDays)
+    }
+
     func test_selection_legacyProgressCoversTheSelection() {
         XCTAssertNil(BookSelection.off.legacyProgress)
         XCTAssertEqual(BookSelection.through(.day3).legacyProgress, .day3)

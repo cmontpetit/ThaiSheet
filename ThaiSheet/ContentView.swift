@@ -321,7 +321,9 @@ struct FlashcardsView: View {
         ContentUnavailableView {
             Label("No Cards", systemImage: "rectangle.on.rectangle")
         } description: {
-            if bookScope.isActive {
+            if bookScope.selection.isSpecificDays {
+                Text("Enable some options in Filters, or select other days in Study Content")
+            } else if bookScope.isActive {
                 Text("Enable some options in Filters, or choose a later chapter in Study Content")
             } else {
                 Text("Enable some options in Filters")

@@ -1,6 +1,61 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Nothing in the selected days with this filter" : {
+      "comment" : "Reference empty section: specific book days selected, a chip filters out their items here.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rien dans les jours choisis avec ce filtre"
+          }
+        }
+      }
+    },
+    "The selected days cover other items in this section." : {
+      "comment" : "Reference empty section with a chip, specific book days selected.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les jours choisis couvrent d’autres éléments de cette section."
+          }
+        }
+      }
+    },
+    "Not in the selected days" : {
+      "comment" : "Reference empty section: the selected book days introduce nothing here.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Absent des jours choisis"
+          }
+        }
+      }
+    },
+    "The selected days introduce nothing in this section. You can change them in Study Content." : {
+      "comment" : "Reference empty section description, specific book days selected.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les jours choisis n’introduisent rien dans cette section. Vous pouvez les modifier dans Contenu d’étude."
+          }
+        }
+      }
+    },
+    "Enable some options in Filters, or select other days in Study Content" : {
+      "comment" : "Flashcards empty deck, specific book days selected.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez des options dans les filtres, ou choisissez d’autres jours dans Contenu d’étude"
+          }
+        }
+      }
+    },
     "Show" : {
       "comment" : "Study Content picker: how the Read Thai in 10 Days selection applies (Off, Through a day, Specific days).",
       "localizations" : {
