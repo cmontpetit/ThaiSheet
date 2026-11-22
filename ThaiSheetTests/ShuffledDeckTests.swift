@@ -113,6 +113,15 @@ final class ShuffledDeckTests: XCTestCase {
         XCTAssertEqual(progress(missed), recorded)
     }
 
+    func test_oneOffInOtherModes_isNotAShuffledOneOff() throws {
+        for mode in [SelectionMode.smart, .sequential] {
+            settings.selectionMode = mode
+            manager.applySelectionModeChange()
+            manager.practice(try otherConsonant())
+            XCTAssertFalse(manager.isShowingShuffledOneOff, "mode: \(mode)")
+        }
+    }
+
     func test_otherModes_alwaysRecord() throws {
         for mode in [SelectionMode.smart, .sequential] {
             settings.selectionMode = mode
@@ -158,13 +167,16 @@ final class ShuffledDeckTests: XCTestCase {
         let position = try XCTUnwrap(manager.roundPosition)
 
         for swipe in [manager.nextCard, manager.previousCard] {
+            XCTAssertFalse(manager.isShowingShuffledOneOff)
             manager.practice(try otherConsonant())
             XCTAssertNotEqual(try current.id, roundCard)
             XCTAssertNil(manager.roundPosition)
+            XCTAssertTrue(manager.isShowingShuffledOneOff)
 
             swipe()
             XCTAssertEqual(try current.id, roundCard)
             XCTAssertEqual(manager.roundPosition, position)
+            XCTAssertFalse(manager.isShowingShuffledOneOff)
         }
     }
 
@@ -191,6 +203,7 @@ final class ShuffledDeckTests: XCTestCase {
         manager.practice(.consonant(consonant.character))
         XCTAssertEqual(try current.id, deckCard.id)
         XCTAssertNil(manager.roundSummary)
+        XCTAssertTrue(manager.isShowingShuffledOneOff, "Return to round is offered over the summary too")
 
         manager.nextCard()
         XCTAssertNil(manager.currentCard)

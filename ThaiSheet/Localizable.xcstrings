@@ -1,6 +1,17 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Return to round" : {
+      "comment" : "Flashcard header button and VoiceOver action in Shuffled: close the card opened from Reference and go back to the round.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retour au tour"
+          }
+        }
+      }
+    },
     "Correct" : {
       "comment" : "Round summary stat: cards whose first answer was correct.",
       "localizations" : {

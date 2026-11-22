@@ -246,6 +246,12 @@ class FlashcardManager {
 
     // MARK: - Shuffled Rounds
 
+    /// A card opened from Reference is showing over a Shuffled round (or its
+    /// summary). Either navigation move closes it and returns to the round.
+    var isShowingShuffledOneOff: Bool {
+        isShuffled && overrideCard != nil
+    }
+
     /// Position in the Shuffled pass or retry round; nil in other modes, on the
     /// summary, and while a card opened from Reference is showing.
     var roundPosition: ShuffledStrategy.Position? {

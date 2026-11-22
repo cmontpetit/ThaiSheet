@@ -399,8 +399,15 @@ struct FlashcardsView: View {
                     .textCase(.uppercase)
                     // Swiping the card face moves between cards; VoiceOver
                     // gets the same moves as actions on the first element.
-                    .accessibilityAction(named: Text("Next card"), showNext)
-                    .accessibilityAction(named: Text("Previous card"), showPrevious)
+                    // A Shuffled one-off has a single move: back to the round.
+                    .accessibilityActions {
+                        if manager.isShowingShuffledOneOff {
+                            Button("Return to round", action: showNext)
+                        } else {
+                            Button("Next card", action: showNext)
+                            Button("Previous card", action: showPrevious)
+                        }
+                    }
                 Spacer()
                 positionIndicator
                 Spacer()
@@ -415,6 +422,14 @@ struct FlashcardsView: View {
                             .contentShape(Rectangle())
                     }
                     .accessibilityHint(Text("Moves to the next card without answering"))
+                } else if manager.isShowingShuffledOneOff {
+                    // Closes the card opened from Reference, answered or not
+                    Button(action: showNext) {
+                        Label("Return to round", systemImage: "arrow.uturn.backward")
+                            .font(.caption)
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
                 }
                 Spacer(minLength: 0)
                 if let notice = reviewNotice(for: card) {
