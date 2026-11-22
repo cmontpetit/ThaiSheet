@@ -413,7 +413,11 @@ class FlashcardSettings {
         silentClusters = defaults.object(forKey: "fc_silentClusters") as? Bool ?? true
         irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
 
-        bookSelection = defaults.string(forKey: "fc_bookSelection").flatMap(BookSelection.init(storageValue:))
+        // A closure, not `BookSelection.init(storageValue:)` by reference: under
+        // MainActor default isolation the custom init is isolated, and an
+        // isolated function reference passed to flatMap warns. (Synthesized
+        // rawValue inits are nonisolated, so BookChapter.init is fine.)
+        bookSelection = defaults.string(forKey: "fc_bookSelection").flatMap { BookSelection(storageValue: $0) }
             ?? defaults.string(forKey: "fc_bookProgress").flatMap(BookChapter.init(rawValue:)).map { .through($0) }
             ?? .off
         showNotInBook = defaults.object(forKey: "fc_showNotInBook") as? Bool ?? false
