@@ -2,6 +2,14 @@
 
 All notable changes to ThaiSheet will be documented in this file.
 
+## 1.4.0 - 2026-11-22
+
+- New Shuffled flashcard mode: each card once in random order, then retry what you missed or skipped.
+- Study Content: limit both tabs to the days of Read Thai in 10 Days you have studied, and hide uncommon letters.
+- New Read Thai in 10 Days romanization, alongside learner, Paiboon, IPA, and RTGS.
+- Vowel cards ask Open, Closed, or Both and give every example word its own speaker, and a correct answer that does not count toward progress now says why.
+- Fixes for crashes in the Reference on older iOS versions.
+
 ## 1.3.0 - 2026-11-17
 
 - New "Why this tone?" sheet: type or paste a Thai syllable to see how it is read and which rule gives its tone.
