@@ -34,7 +34,7 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 ### Services (`ThaiSheet/Services/`)
 
 - **`FlashcardManager`** (`@Observable`) — owns card filtering, ordering, navigation. Delegates card selection to a `CardSelectionStrategy`.
-- **`CardSelectionStrategy`** (protocol) — `SequentialStrategy` (fixed order) and `WanikaniStrategy` (SRS-prioritized).
+- **`CardSelectionStrategy`** (protocol) — `SequentialStrategy` (fixed order), `WanikaniStrategy` (SRS-prioritized), and `ShuffledStrategy` (random pass plus retry rounds; it decides which answers are recorded, see `FlashcardManager.recordAnswer`).
 - **`AudioPlayer`** — app-owned service conforming to `AudioPlaying`, created by `ThaiSheetApp` and injected via `@Environment(\.audioPlayer)`. Uses `SoundType` enum (`.consonant`, `.vowel`, `.toneMark`, `.toneRule`, `.cluster`) for unified `play`/`hasSound` methods.
 - **`BundleLoader`** — generic JSON loading utility. All models use `BundleLoader.load(_:as:keyPath:)` instead of duplicated boilerplate.
 - **`ThaiDataStore`** — centralizes the bundled reference and flashcard data shared by `FlashcardManager` and `CheatsheetBrowserView`; injected via `@Environment(\.thaiData)`.

@@ -46,6 +46,29 @@ final class ReferenceBookScopeTests: XCTestCase {
         try XCTUnwrap(data.consonants.first { $0.character == character })
     }
 
+    // MARK: - Specific days
+
+    func test_specificDays_showOnlyWhatThoseDaysIntroduce() throws {
+        let map = try XCTUnwrap(data.bookChapters)
+        settings.bookSelection = .days([.day2, .day4])
+        let days = ReferenceBookScope(settings: settings, map: map)
+        XCTAssertTrue(days.isActive)
+        for consonant in data.consonants {
+            let placement = map.placement(of: consonant)
+            XCTAssertEqual(days.includes(consonant), placement == .chapter(.day2) || placement == .chapter(.day4), consonant.character)
+        }
+        XCTAssertTrue(data.consonants.contains { days.includes($0) })
+    }
+
+    /// Search uses `.inactive`, so it still finds a consonant outside the days.
+    func test_specificDays_searchStillFindsOtherChapters() throws {
+        settings.bookSelection = .days([.day4])
+        let days = ReferenceBookScope(settings: settings, map: data.bookChapters)
+        let day1 = try consonant("ง")
+        XCTAssertFalse(days.includes(day1))
+        XCTAssertTrue(ReferenceBookScope.inactive.includes(day1))
+    }
+
     // MARK: - Off / inactive
 
     func test_off_showsEverything() throws {

@@ -167,6 +167,50 @@ final class BookScopeTests: XCTestCase {
         XCTAssertTrue(BookScope(upTo: .day1, includesNotInBook: true).includes(.notInBook))
     }
 
+    func test_specificDays_includeOnlyThoseDays() {
+        let scope = BookScope(selection: .days([.day2, .day4]), includesNotInBook: false)
+        XCTAssertTrue(scope.isActive)
+        for chapter in BookChapter.allCases {
+            XCTAssertEqual(scope.includes(.chapter(chapter)), chapter == .day2 || chapter == .day4, "\(chapter)")
+        }
+        XCTAssertFalse(scope.includes(.notInBook))
+        XCTAssertTrue(BookScope(selection: .days([.day2]), includesNotInBook: true).includes(.notInBook))
+    }
+
+    /// Day 5 alone is that day's material; Through Day 5 adds the earlier days.
+    func test_day5Alone_vsThroughDay5() {
+        let alone = BookScope(selection: .days([.day5]), includesNotInBook: false)
+        let through = BookScope(selection: .through(.day5), includesNotInBook: false)
+        XCTAssertTrue(alone.includes(.chapter(.day5)))
+        XCTAssertFalse(alone.includes(.chapter(.day1)))
+        XCTAssertTrue(through.includes(.chapter(.day1)))
+        XCTAssertTrue(through.includes(.chapter(.day5)))
+    }
+
+    func test_selection_storageRoundTrip() {
+        let values: [BookSelection] = [.off, .through(.day4), .days([.day2, .day4]), .days([.lastDay])]
+        for value in values {
+            XCTAssertEqual(BookSelection(storageValue: value.storageValue), value, value.storageValue)
+        }
+        XCTAssertEqual(BookSelection.days([.day4, .day2]).storageValue, "days:day2,day4", "book order")
+        XCTAssertNil(BookSelection(storageValue: "days:"))
+        XCTAssertNil(BookSelection(storageValue: "days:day2,day42"))
+        XCTAssertNil(BookSelection(storageValue: "through:day42"))
+        XCTAssertNil(BookSelection(storageValue: "weekly:day2"))
+    }
+
+    func test_selection_isSpecificDays() {
+        XCTAssertTrue(BookSelection.days([.day7]).isSpecificDays)
+        XCTAssertFalse(BookSelection.through(.day7).isSpecificDays)
+        XCTAssertFalse(BookSelection.off.isSpecificDays)
+    }
+
+    func test_selection_legacyProgressCoversTheSelection() {
+        XCTAssertNil(BookSelection.off.legacyProgress)
+        XCTAssertEqual(BookSelection.through(.day3).legacyProgress, .day3)
+        XCTAssertEqual(BookSelection.days([.day2, .day7]).legacyProgress, .day7)
+    }
+
     func test_active_missingEntryCountsAsNotInBook() {
         XCTAssertFalse(BookScope(upTo: .lastDay, includesNotInBook: false).includes(nil))
         XCTAssertTrue(BookScope(upTo: .lastDay, includesNotInBook: true).includes(nil))
@@ -252,7 +296,52 @@ final class BookProgressSettingsTests: XCTestCase {
         XCTAssertNil(defaults.object(forKey: "fc_showNotInBook"))
     }
 
+    func test_bookSelection_persistsWithLegacyProgress() {
+        settings.bookSelection = .days([.day4, .day2])
+        XCTAssertEqual(defaults.string(forKey: "fc_bookSelection"), "days:day2,day4")
+        XCTAssertEqual(defaults.string(forKey: "fc_bookProgress"), "day4", "older builds read a superset")
+        XCTAssertNil(settings.bookProgress, "specific days are not a cumulative chapter")
+
+        settings.bookSelection = .through(.day3)
+        XCTAssertEqual(defaults.string(forKey: "fc_bookSelection"), "through:day3")
+        XCTAssertEqual(defaults.string(forKey: "fc_bookProgress"), "day3")
+
+        settings.bookSelection = .off
+        XCTAssertEqual(defaults.string(forKey: "fc_bookSelection"), "off")
+        XCTAssertEqual(defaults.string(forKey: "fc_bookProgress"), FlashcardSettings.bookProgressOff)
+    }
+
+    /// A saved cumulative chapter from before day selection loads as Through.
+    func test_legacyProgress_loadsAsThrough() {
+        defaults.set("day4", forKey: "fc_bookProgress")
+        let loaded = FlashcardSettings(defaults: defaults)
+        XCTAssertEqual(loaded.bookSelection, .through(.day4))
+        XCTAssertEqual(loaded.bookProgress, .day4)
+    }
+
+    func test_reload_picksUpExternalDaySelection() {
+        defaults.set("days:day2,day5", forKey: "fc_bookSelection")
+        settings.reload()
+        XCTAssertEqual(settings.bookSelection, .days([.day2, .day5]))
+    }
+
+    /// One-way: once the selection key exists, a legacy value is ignored.
+    func test_selectionKey_winsOverLegacyProgress() {
+        settings.bookSelection = .days([.day2])
+        defaults.set("lastDay", forKey: "fc_bookProgress")
+        settings.reload()
+        XCTAssertEqual(settings.bookSelection, .days([.day2]))
+    }
+
+    func test_reload_unreadableSelection_fallsBackToLegacyProgress() {
+        defaults.set("days:day42", forKey: "fc_bookSelection")
+        defaults.set("day3", forKey: "fc_bookProgress")
+        settings.reload()
+        XCTAssertEqual(settings.bookSelection, .through(.day3))
+    }
+
     func test_syncedKeys_containBookScope() {
+        XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_bookSelection"))
         XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_bookProgress"))
         XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_showNotInBook"))
     }

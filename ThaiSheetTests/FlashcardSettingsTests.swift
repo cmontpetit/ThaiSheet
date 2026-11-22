@@ -63,8 +63,8 @@ final class FlashcardSettingsTests: XCTestCase {
         XCTAssertTrue(settings.irregularClusters)
     }
 
-    func test_defaults_useIntelligentSelection_isFalse() {
-        XCTAssertFalse(settings.useIntelligentSelection)
+    func test_defaults_selectionMode_isSequential() {
+        XCTAssertEqual(settings.selectionMode, .sequential)
     }
 
     func test_defaults_appLanguage_isSystem() {
@@ -459,12 +459,10 @@ final class FlashcardSettingsTests: XCTestCase {
     func test_persistence_boolSettingRoundTrip() {
         settings.highConsonants = false
         settings.lowConsonants = false
-        settings.useIntelligentSelection = true
 
         // Verify persisted values directly in UserDefaults
         XCTAssertEqual(defaults.object(forKey: "fc_highConsonants") as? Bool, false)
         XCTAssertEqual(defaults.object(forKey: "fc_lowConsonants") as? Bool, false)
-        XCTAssertEqual(defaults.object(forKey: "fc_useIntelligentSelection") as? Bool, true)
         // Unset keys should be nil (init provides default)
         XCTAssertNil(defaults.object(forKey: "fc_midConsonants"))
     }
@@ -605,6 +603,61 @@ final class FlashcardSettingsTests: XCTestCase {
         defaults.set(FlashcardSettings.encodeVoiceOverrides(["cluster-กร": .matilda]), forKey: "fc_voiceOverrides")
         settings.reload()
         XCTAssertEqual(settings.voiceOverride(for: "cluster-กร"), .matilda)
+    }
+
+    // MARK: - Selection Mode
+
+    func test_selectionMode_persistsWithLegacyBool() {
+        settings.selectionMode = .smart
+        XCTAssertEqual(defaults.string(forKey: "fc_selectionMode"), "smart")
+        XCTAssertEqual(defaults.object(forKey: "fc_useIntelligentSelection") as? Bool, true)
+
+        settings.selectionMode = .shuffled
+        XCTAssertEqual(defaults.string(forKey: "fc_selectionMode"), "shuffled")
+        XCTAssertEqual(defaults.object(forKey: "fc_useIntelligentSelection") as? Bool, false,
+                       "Builds before Shuffled show it as Sequential")
+
+        settings.selectionMode = .sequential
+        XCTAssertEqual(defaults.string(forKey: "fc_selectionMode"), "sequential")
+        XCTAssertEqual(defaults.object(forKey: "fc_useIntelligentSelection") as? Bool, false)
+    }
+
+    func test_selectionMode_isSynced() {
+        XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_selectionMode"))
+        XCTAssertTrue(FlashcardSettings.syncedKeys.contains("fc_useIntelligentSelection"))
+    }
+
+    func test_selectionMode_migratesLegacyBool_whenModeIsMissing() {
+        defaults.set(true, forKey: "fc_useIntelligentSelection")
+        settings.reload()
+        XCTAssertEqual(settings.selectionMode, .smart)
+
+        defaults.set(false, forKey: "fc_useIntelligentSelection")
+        settings.reload()
+        XCTAssertEqual(settings.selectionMode, .sequential)
+    }
+
+    func test_selectionMode_reloadDoesNotWriteBack() {
+        defaults.set(true, forKey: "fc_useIntelligentSelection")
+        settings.reload()
+        XCTAssertNil(defaults.string(forKey: "fc_selectionMode"),
+                     "Loading must not persist (see suppressPersistence)")
+    }
+
+    /// One-way compatibility: once the mode key exists, a legacy Bool written by
+    /// an older build is ignored.
+    func test_selectionMode_ignoresLegacyBool_onceModeExists() {
+        settings.selectionMode = .shuffled
+        defaults.set(true, forKey: "fc_useIntelligentSelection")
+        settings.reload()
+        XCTAssertEqual(settings.selectionMode, .shuffled)
+    }
+
+    func test_selectionMode_unknownValue_fallsBackToLegacyBool() {
+        defaults.set("future-mode", forKey: "fc_selectionMode")
+        defaults.set(true, forKey: "fc_useIntelligentSelection")
+        settings.reload()
+        XCTAssertEqual(settings.selectionMode, .smart)
     }
 
     // MARK: - Consonant Names Mode

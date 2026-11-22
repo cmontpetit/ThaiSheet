@@ -145,6 +145,15 @@ struct FlashcardsView: View {
     @State private var filterRefreshID = UUID()
     /// Set when the last correct answer did not move the card's stage
     @State private var reviewNotice: ReviewNotice?
+    /// The quiz attempt the last answer completed. Skip shows until the
+    /// current attempt is answered; then the card's Next Card button takes over.
+    @State private var answeredAttempt: Int?
+
+    /// Shuffled shows a Skip control on an unanswered round card, so skipping
+    /// does not depend on the swipe gesture.
+    private var showsSkipButton: Bool {
+        manager.roundPosition != nil && answeredAttempt != manager.attempt
+    }
 
     /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the uncommon-content toggle).
     private var bookChapters: BookChapterMap? { manager.data.bookChapters }
@@ -170,9 +179,9 @@ struct FlashcardsView: View {
 
     /// Record a quiz answer and give haptic feedback
     private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
-        let fullTesting = !manager.isPartialTesting(card)
+        answeredAttempt = manager.attempt
         let learningModel = manager.learningModel
-        let outcome = learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
+        let outcome = manager.recordAnswer(for: card, correct: correct) ?? .practiceOnly
         reviewNotice = outcome == .counted ? nil : ReviewNotice(
             cardID: card.id,
             outcome: outcome,
@@ -249,16 +258,51 @@ struct FlashcardsView: View {
         }
     }
 
-    /// Position indicator for sequential mode (e.g., "12 / 44")
+    /// Position indicator: "12 / 44" in Sequential, the pass position or
+    /// "Retry 2 / 3" in Shuffled, nothing in Smart or for a one-off card.
     @ViewBuilder
     private var positionIndicator: some View {
-        if !manager.settings.useIntelligentSelection {
+        switch manager.settings.selectionMode {
+        case .sequential:
             let current = manager.currentIndex + 1
             let total = manager.filteredCards.count
             Text("\(current) / \(total)")
                 .font(.caption)
                 .foregroundColor(.secondary)
+        case .shuffled:
+            if let position = manager.roundPosition {
+                Group {
+                    switch position.phase {
+                    case .retry:
+                        Text("Retry \(position.number) / \(position.count)")
+                    case .skipped:
+                        Text("Skipped \(position.number) / \(position.count)")
+                    case .practice:
+                        Text("Practice \(position.number) / \(position.count)")
+                    case .pass, .summary:
+                        Text("\(position.number) / \(position.count)")
+                    }
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
+            }
+        case .smart:
+            EmptyView()
         }
+    }
+
+    /// The end of a Shuffled pass or retry round
+    private func roundSummaryView(_ summary: ShuffledStrategy.Summary) -> some View {
+        RoundSummaryView(
+            summary: summary,
+            onRetry: manager.startRetry,
+            onAnswerSkipped: manager.startSkipped,
+            onPracticeMissed: manager.startPracticeMissed,
+            onNewRound: manager.startNewRound
+        )
+        .navigationTitle("Flashcards")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { mainToolbar }
     }
 
     /// Shown when bundled learning data failed to load. Loading is synchronous,
@@ -277,7 +321,9 @@ struct FlashcardsView: View {
         ContentUnavailableView {
             Label("No Cards", systemImage: "rectangle.on.rectangle")
         } description: {
-            if bookScope.isActive {
+            if bookScope.selection.isSpecificDays {
+                Text("Enable some options in Filters, or select other days in Study Content")
+            } else if bookScope.isActive {
                 Text("Enable some options in Filters, or choose a later chapter in Study Content")
             } else {
                 Text("Enable some options in Filters")
@@ -353,13 +399,44 @@ struct FlashcardsView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .textCase(.uppercase)
+                    // Swiping the card face moves between cards; VoiceOver
+                    // gets the same moves as actions on the first element.
+                    // A Shuffled one-off has a single move: back to the round.
+                    .accessibilityActions {
+                        if manager.isShowingShuffledOneOff {
+                            Button("Return to round", action: showNext)
+                        } else {
+                            Button("Next card", action: showNext)
+                            Button("Previous card", action: showPrevious)
+                        }
+                    }
                 Spacer()
                 positionIndicator
                 Spacer()
                 stageIndicator(for: card)
             }
-            if let notice = reviewNotice(for: card) {
-                ReviewOutcomeHint(outcome: notice.outcome)
+            HStack(alignment: .firstTextBaseline) {
+                if showsSkipButton {
+                    Button(action: showNext) {
+                        Label("Skip", systemImage: "forward")
+                            .font(.caption)
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityHint(Text("Moves to the next card without answering"))
+                } else if manager.isShowingShuffledOneOff {
+                    // Closes the card opened from Reference, answered or not
+                    Button(action: showNext) {
+                        Label("Return to round", systemImage: "arrow.uturn.backward")
+                            .font(.caption)
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                }
+                Spacer(minLength: 0)
+                if let notice = reviewNotice(for: card) {
+                    ReviewOutcomeHint(outcome: notice.outcome)
+                }
             }
         }
         .padding(.horizontal)
@@ -391,11 +468,28 @@ struct FlashcardsView: View {
             // case where data loaded fine and the user filtered everything out.
             dataUnavailableView
         case .loaded:
-            if let card = manager.currentCard {
-                cardView(for: card)
+            #if DEBUG
+            if ScreenshotScenario.current == .flashcardRoundSummary {
+                roundSummaryView(.init(correct: 7, missed: 3, skipped: 2, leftToRetry: 3))
             } else {
-                emptyStateView
+                loadedContent
             }
+            #else
+            loadedContent
+            #endif
+        }
+    }
+
+    /// A card (a card opened from Reference comes first), else the Shuffled
+    /// round summary, else the empty deck.
+    @ViewBuilder
+    private var loadedContent: some View {
+        if let card = manager.currentCard {
+            cardView(for: card)
+        } else if let summary = manager.roundSummary {
+            roundSummaryView(summary)
+        } else {
+            emptyStateView
         }
     }
 
@@ -481,6 +575,7 @@ struct FlashcardDeckSyncModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onChange(of: settings.deckSettings) { _, _ in manager?.syncDeck() }
+            .onChange(of: settings.selectionMode) { _, _ in manager?.applySelectionModeChange() }
     }
 }
 

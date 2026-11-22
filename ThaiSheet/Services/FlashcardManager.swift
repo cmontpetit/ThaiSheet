@@ -20,6 +20,7 @@ class FlashcardManager {
     // Selection strategies
     private let sequentialStrategy = SequentialStrategy()
     private let wanikaniStrategy = WanikaniStrategy()
+    private let shuffledStrategy: ShuffledStrategy
 
     // Override card (shown once when jumping from Reference, clears on navigation)
     private var overrideCard: FlashcardItem? = nil
@@ -29,8 +30,14 @@ class FlashcardManager {
 
     /// Current active strategy based on settings
     private var activeStrategy: CardSelectionStrategy {
-        settings.useIntelligentSelection ? wanikaniStrategy : sequentialStrategy
+        switch settings.selectionMode {
+        case .smart: wanikaniStrategy
+        case .sequential: sequentialStrategy
+        case .shuffled: shuffledStrategy
+        }
     }
+
+    private var isShuffled: Bool { settings.selectionMode == .shuffled }
 
     var isLoaded: Bool {
         data.isLoaded
@@ -39,10 +46,16 @@ class FlashcardManager {
     /// The deck settings `filteredCards` was built from.
     @ObservationIgnored private var appliedSettings: FlashcardSettings.DeckSettings
 
-    init(settings: FlashcardSettings, learningModel: LearningModel, data: ThaiDataStore) {
+    init(
+        settings: FlashcardSettings,
+        learningModel: LearningModel,
+        data: ThaiDataStore,
+        shuffledStrategy: ShuffledStrategy = ShuffledStrategy()
+    ) {
         self.settings = settings
         self.learningModel = learningModel
         self.data = data
+        self.shuffledStrategy = shuffledStrategy
         appliedSettings = settings.deckSettings
         filteredCards = buildDeck()
         updateStrategies()
@@ -84,6 +97,7 @@ class FlashcardManager {
         let cards = filteredCards
         sequentialStrategy.update(cards: cards, learningModel: learningModel)
         wanikaniStrategy.update(cards: cards, learningModel: learningModel)
+        shuffledStrategy.update(cards: cards, learningModel: learningModel)
     }
 
     // MARK: - Filtered Cards
@@ -230,19 +244,90 @@ class FlashcardManager {
         return 0
     }
 
-    // MARK: - Navigation
+    // MARK: - Shuffled Rounds
 
-    func nextCard() {
-        // Clear override and resume normal navigation
-        overrideCard = nil
-        activeStrategy.nextCard()
+    /// A card opened from Reference is showing over a Shuffled round (or its
+    /// summary). Either navigation move closes it and returns to the round.
+    var isShowingShuffledOneOff: Bool {
+        isShuffled && overrideCard != nil
+    }
+
+    /// Position in the Shuffled pass or retry round; nil in other modes, on the
+    /// summary, and while a card opened from Reference is showing.
+    var roundPosition: ShuffledStrategy.Position? {
+        guard isShuffled, overrideCard == nil else { return nil }
+        return shuffledStrategy.position
+    }
+
+    /// The Shuffled round summary; nil in other modes, during a round, and while
+    /// a card opened from Reference takes its place.
+    var roundSummary: ShuffledStrategy.Summary? {
+        guard isShuffled, overrideCard == nil else { return nil }
+        return shuffledStrategy.summary
+    }
+
+    func startRetry() {
+        shuffledStrategy.startRetry()
         attempt += 1
     }
 
+    func startSkipped() {
+        shuffledStrategy.startSkipped()
+        attempt += 1
+    }
+
+    func startPracticeMissed() {
+        shuffledStrategy.startPracticeMissed()
+        attempt += 1
+    }
+
+    func startNewRound() {
+        shuffledStrategy.startNewRound()
+        attempt += 1
+    }
+
+    // MARK: - Answers
+
+    /// Records an answer to `card` when the mode grades it, and returns the SRS
+    /// outcome, or nil for a practice-only answer (a Shuffled retry, or a repeat
+    /// answer in a Shuffled pass). A card opened from Reference always records.
+    @discardableResult
+    func recordAnswer(for card: FlashcardItem, correct: Bool) -> ReviewOutcome? {
+        if isShuffled, overrideCard == nil,
+           !shuffledStrategy.noteAnswer(cardId: card.id, correct: correct) {
+            return nil
+        }
+        return learningModel.recordResult(for: card, correct: correct, fullTesting: !isPartialTesting(card))
+    }
+
+    // MARK: - Navigation
+
+    func nextCard() {
+        navigate { activeStrategy.nextCard() }
+    }
+
     func previousCard() {
-        // Clear override and resume normal navigation
+        navigate { activeStrategy.previousCard() }
+    }
+
+    /// Clears a card opened from Reference and resumes normal navigation. In
+    /// Shuffled, the swipe is spent closing it: the round card or summary comes
+    /// back unchanged.
+    private func navigate(_ move: () -> Void) {
+        let closesShuffledOverride = isShuffled && overrideCard != nil
         overrideCard = nil
-        activeStrategy.previousCard()
+        if !closesShuffledOverride {
+            move()
+        }
+        attempt += 1
+    }
+
+    /// The selection mode changed (here or via iCloud). Every mode change is a
+    /// new quiz attempt, so a same-type card never inherits the previous card's
+    /// answer state, and Shuffled always starts a fresh pass.
+    func applySelectionModeChange() {
+        updateStrategies()
+        shuffledStrategy.startNewRound()
         attempt += 1
     }
 
@@ -253,9 +338,14 @@ class FlashcardManager {
         let card: FlashcardItem
         if let index = sequentialStrategy.indexOf(cardId: item.id) {
             card = filteredCards.first { $0.id == item.id } ?? item
-            sequentialStrategy.jumpTo(index: index)
-            wanikaniStrategy.jumpTo(card: card)
-            overrideCard = nil
+            if isShuffled {
+                // A one-off that leaves the Shuffled round where it was
+                overrideCard = card
+            } else {
+                sequentialStrategy.jumpTo(index: index)
+                wanikaniStrategy.jumpTo(card: card)
+                overrideCard = nil
+            }
         } else {
             card = presentedInBookScope(item)
             overrideCard = card
@@ -352,6 +442,7 @@ class FlashcardManager {
         updateStrategies()
         sequentialStrategy.reset()
         wanikaniStrategy.reset()
+        shuffledStrategy.reset()
         attempt += 1
     }
 }

@@ -132,9 +132,19 @@ struct CheatsheetBrowserView: View {
             ContentUnavailableView.search(text: searchText)
         } else if hasChapterContentWithoutChips(type) {
             ContentUnavailableView {
-                Label("Nothing taught yet with this filter", systemImage: "line.3.horizontal.decrease.circle")
+                // Two literals each, not a ternary: a ternary of literals
+                // types as String, which Text would not localize.
+                if settings.bookSelection.isSpecificDays {
+                    Label("Nothing in the selected days with this filter", systemImage: "line.3.horizontal.decrease.circle")
+                } else {
+                    Label("Nothing taught yet with this filter", systemImage: "line.3.horizontal.decrease.circle")
+                }
             } description: {
-                Text("The chosen chapter covers other items in this section.")
+                if settings.bookSelection.isSpecificDays {
+                    Text("The selected days cover other items in this section.")
+                } else {
+                    Text("The chosen chapter covers other items in this section.")
+                }
             } actions: {
                 Button("Show All") { clearChips(type) }
             }
@@ -167,9 +177,17 @@ struct CheatsheetBrowserView: View {
 
     private var notTaughtYetView: some View {
         ContentUnavailableView {
-            Label("Not taught yet", systemImage: "text.book.closed")
+            if settings.bookSelection.isSpecificDays {
+                Label("Not in the selected days", systemImage: "text.book.closed")
+            } else {
+                Label("Not taught yet", systemImage: "text.book.closed")
+            }
         } description: {
-            Text("The book has not reached this section by the chosen chapter. You can change it in Study Content.")
+            if settings.bookSelection.isSpecificDays {
+                Text("The selected days introduce nothing in this section. You can change them in Study Content.")
+            } else {
+                Text("The book has not reached this section by the chosen chapter. You can change it in Study Content.")
+            }
         } actions: {
             Button("Open Study Content") {
                 showingStudyContent = true

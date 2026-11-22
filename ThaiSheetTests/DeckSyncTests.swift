@@ -131,7 +131,7 @@ final class DeckSyncTests: XCTestCase {
 
     func test_selectionModeIsNotADeckSetting() {
         let attempt = manager.attempt
-        settings.useIntelligentSelection = true
+        settings.selectionMode = .smart
         XCTAssertFalse(manager.syncDeck())
         XCTAssertEqual(manager.attempt, attempt)
     }
@@ -164,7 +164,7 @@ final class DeckSyncTests: XCTestCase {
     /// Smart selection after a sync picks from the reloaded progress: the only
     /// due card wins over new ones.
     func test_syncReload_smartSelectionUsesReloadedProgress() throws {
-        settings.useIntelligentSelection = true
+        settings.selectionMode = .smart
         settings.vowelsEnabled = false
         settings.tonesEnabled = false
         settings.clusters = false
@@ -208,15 +208,17 @@ final class DeckSyncTests: XCTestCase {
     /// Synced settings that do not change the deck. Any other synced key must
     /// be part of `DeckSettings`, or the deck would miss its change.
     private static let nonDeckKeys: Set<String> = [
-        "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides",
+        "fc_selectionMode", "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides",
         "fc_appLanguage", "fc_romanization",
     ]
 
     func test_deckSettings_coversEverySyncedDeckSetting() {
         for key in FlashcardSettings.syncedKeys where !Self.nonDeckKeys.contains(key) {
-            let values: [Any] = key == "fc_bookProgress"
-                ? [BookChapter.day3.rawValue, FlashcardSettings.bookProgressOff]
-                : [true, false]
+            let values: [Any] = switch key {
+            case "fc_bookProgress": [BookChapter.day3.rawValue, FlashcardSettings.bookProgressOff]
+            case "fc_bookSelection": ["through:day3", "days:day2,day4"]
+            default: [true, false]
+            }
             let snapshots = values.map { value in
                 defaults.set(value, forKey: key)
                 settings.reload()

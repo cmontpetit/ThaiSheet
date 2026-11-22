@@ -5,6 +5,17 @@
 
 import Foundation
 
+/// How the Flashcards tab presents the active deck (`FlashcardSettings.selectionMode`).
+/// The raw values are persisted and synced: never rename one.
+enum SelectionMode: String, CaseIterable {
+    /// Wanikani-style SRS: due cards, then new cards, then upcoming ones
+    case smart
+    /// The deck's fixed order
+    case sequential
+    /// Each card once per pass in random order, then retry rounds for misses
+    case shuffled
+}
+
 /// Protocol for card selection strategies
 protocol CardSelectionStrategy: AnyObject {
     /// The current card to display
@@ -68,6 +79,209 @@ class SequentialStrategy: CardSelectionStrategy {
     /// Find index of a card by ID
     func indexOf(cardId: String) -> Int? {
         cards.firstIndex(where: { $0.id == cardId })
+    }
+}
+
+// MARK: - Shuffled Strategy
+
+/// Deals the active deck once per pass in a fresh random order, then offers
+/// follow-up rounds from the summary.
+///
+/// Grading: a card's first answer is recorded to SRS (`noteAnswer` returns
+/// true for it) and is final for the round: it decides the Correct/Missed
+/// counts. It can come from the pass or from answering skipped cards. Repeat
+/// answers, retries, and practice of missed cards are practice only. A card
+/// passed without an answer stays skipped.
+@Observable
+final class ShuffledStrategy: CardSelectionStrategy {
+    enum Phase: Equatable {
+        /// The full deck, graded
+        case pass
+        /// Cards skipped so far, graded: finishes the pass
+        case skipped
+        /// Missed cards not yet answered correctly, practice only
+        case retry
+        /// Every missed card again, practice only, once nothing is left to retry
+        case practice
+        case summary
+
+        /// Whether a card's first answer in this phase is recorded
+        var isGraded: Bool { self == .pass || self == .skipped }
+    }
+
+    /// Where every card of the deck ended up. Correct + missed + skipped is the
+    /// deck size. A skipped card moves to correct or missed once answered;
+    /// a first answer never changes.
+    struct Summary: Equatable {
+        let correct: Int
+        let missed: Int
+        let skipped: Int
+        let leftToRetry: Int
+
+        /// Practice missed again: offered once nothing is left to retry
+        var canPracticeMissed: Bool { missed > 0 && leftToRetry == 0 }
+    }
+
+    struct Position: Equatable {
+        /// 1-based position in the current round
+        let number: Int
+        let count: Int
+        let phase: Phase
+    }
+
+    private var cards: [FlashcardItem] = []
+    private var order: [FlashcardItem] = []
+    private var index = 0
+    private(set) var phase: Phase = .pass
+
+    /// Card id → whether its first answer was correct. Final for the round.
+    private var firstAnswers: [String: Bool] = [:]
+    /// Missed cards not yet answered correctly in a retry round
+    private var pendingRetry: Set<String> = []
+    /// Cards answered correctly in the current retry round. Final for the round,
+    /// so going back to one and missing it or swiping past it keeps it cleared.
+    private var clearedThisRetry: Set<String> = []
+
+    @ObservationIgnored private var generator: AnyRandomNumberGenerator
+
+    init(generator: some RandomNumberGenerator = SystemRandomNumberGenerator()) {
+        self.generator = AnyRandomNumberGenerator(generator)
+    }
+
+    #if compiler(>=6.2)
+    /// See `FlashcardSettings`: avoids the back-deployed MainActor deinit thunk.
+    nonisolated deinit {}
+    #endif
+
+    var currentCard: FlashcardItem? {
+        guard phase != .summary, order.indices.contains(index) else { return nil }
+        return order[index]
+    }
+
+    /// Where the current card sits in its round; nil on the summary
+    var position: Position? {
+        guard currentCard != nil else { return nil }
+        return Position(number: index + 1, count: order.count, phase: phase)
+    }
+
+    /// The round summary, shown once a pass or follow-up round has ended
+    var summary: Summary? {
+        guard phase == .summary else { return nil }
+        let missed = firstAnswers.values.filter { !$0 }.count
+        return Summary(
+            correct: firstAnswers.count - missed,
+            missed: missed,
+            skipped: skippedCards.count,
+            leftToRetry: pendingRetry.count
+        )
+    }
+
+    func nextCard() {
+        guard phase != .summary, !order.isEmpty else { return }
+        if index < order.count - 1 {
+            index += 1
+        } else {
+            finishRound()
+        }
+    }
+
+    func previousCard() {
+        guard phase != .summary, index > 0 else { return }
+        index -= 1
+    }
+
+    func reset() {
+        startNewRound()
+    }
+
+    func update(cards: [FlashcardItem], learningModel: LearningModel) {
+        let deckChanged = cards.map(\.id) != self.cards.map(\.id)
+        self.cards = cards
+        if deckChanged {
+            startNewRound()
+        }
+    }
+
+    /// Notes an answer to the current card and returns whether it should be
+    /// recorded to SRS: true only for a card's first answer.
+    func noteAnswer(cardId: String, correct: Bool) -> Bool {
+        guard currentCard?.id == cardId else { return false }
+        switch phase {
+        case .pass, .skipped:
+            guard firstAnswers[cardId] == nil else { return false }
+            firstAnswers[cardId] = correct
+            if !correct {
+                pendingRetry.insert(cardId)
+            }
+            return true
+        case .retry:
+            if correct {
+                clearedThisRetry.insert(cardId)
+            }
+            return false
+        case .practice, .summary:
+            return false
+        }
+    }
+
+    /// Deals the cards still waiting for a retry in a fresh random order.
+    func startRetry() {
+        start(.retry, with: pendingRetry)
+    }
+
+    /// Deals the cards passed without an answer; their first answers are graded.
+    func startSkipped() {
+        start(.skipped, with: Set(skippedCards.map(\.id)))
+    }
+
+    /// Deals every missed card again for practice once nothing is left to retry.
+    /// Answers change nothing: the summary comes back as it was.
+    func startPracticeMissed() {
+        guard summary?.canPracticeMissed == true else { return }
+        start(.practice, with: Set(firstAnswers.filter { !$0.value }.map(\.key)))
+    }
+
+    /// Reshuffles the full deck and starts a new graded pass.
+    func startNewRound() {
+        order = cards.shuffled(using: &generator)
+        index = 0
+        phase = .pass
+        firstAnswers = [:]
+        pendingRetry = []
+        clearedThisRetry = []
+    }
+
+    private var skippedCards: [FlashcardItem] {
+        cards.filter { firstAnswers[$0.id] == nil }
+    }
+
+    private func start(_ next: Phase, with ids: Set<String>) {
+        guard phase == .summary, !ids.isEmpty else { return }
+        order = cards.filter { ids.contains($0.id) }.shuffled(using: &generator)
+        index = 0
+        clearedThisRetry = []
+        phase = next
+    }
+
+    private func finishRound() {
+        if phase == .retry {
+            pendingRetry.subtract(clearedThisRetry)
+            clearedThisRetry = []
+        }
+        phase = .summary
+    }
+}
+
+/// Type-erased generator, so tests can inject a seeded one.
+struct AnyRandomNumberGenerator: RandomNumberGenerator {
+    private var base: any RandomNumberGenerator
+
+    init(_ base: some RandomNumberGenerator) {
+        self.base = base
+    }
+
+    mutating func next() -> UInt64 {
+        base.next()
     }
 }
 

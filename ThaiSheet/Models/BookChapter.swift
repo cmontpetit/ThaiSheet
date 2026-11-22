@@ -142,16 +142,86 @@ struct BookChapterMap: Equatable {
     }
 }
 
-/// The learner's book progress applied to the catalog: an item is in scope when
-/// the book has introduced it by `upTo`. Items no chapter teaches are in scope
-/// only with `includesNotInBook`. A nil `upTo` (scope Off) includes everything.
+/// Which "Read Thai in 10 Days" material both tabs show (Study Content).
+enum BookSelection: Hashable {
+    /// No book-day filtering
+    case off
+    /// Cumulative: everything introduced up to and including the chapter
+    case through(BookChapter)
+    /// Only what the chosen chapters introduce. Never empty.
+    case days(Set<BookChapter>)
+
+    /// Persisted form (`fc_bookSelection`): "off", "through:day4", or
+    /// "days:day2,day4" (chapters in book order). The raw chapter values are
+    /// persisted: never rename one.
+    var storageValue: String {
+        switch self {
+        case .off:
+            return "off"
+        case .through(let chapter):
+            return "through:\(chapter.rawValue)"
+        case .days(let chapters):
+            return "days:" + chapters.sorted().map(\.rawValue).joined(separator: ",")
+        }
+    }
+
+    /// nil for anything unreadable (a value from a newer build, or an empty day list).
+    init?(storageValue: String) {
+        if storageValue == "off" {
+            self = .off
+            return
+        }
+        let parts = storageValue.split(separator: ":", maxSplits: 1).map(String.init)
+        guard parts.count == 2 else { return nil }
+        switch parts[0] {
+        case "through":
+            guard let chapter = BookChapter(rawValue: parts[1]) else { return nil }
+            self = .through(chapter)
+        case "days":
+            let raw = parts[1].split(separator: ",").map(String.init)
+            let chapters = raw.compactMap(BookChapter.init(rawValue:))
+            guard !chapters.isEmpty, chapters.count == raw.count else { return nil }
+            self = .days(Set(chapters))
+        default:
+            return nil
+        }
+    }
+
+    /// The cumulative chapter older builds understand (`fc_bookProgress`): the
+    /// chapter itself, or the last selected day, which covers every selected day.
+    var legacyProgress: BookChapter? {
+        switch self {
+        case .off: nil
+        case .through(let chapter): chapter
+        case .days(let chapters): chapters.max()
+        }
+    }
+
+    var isOff: Bool { self == .off }
+
+    /// Specific days: empty states say "selected days", not "a later chapter",
+    /// since earlier days' material is not hidden for being early.
+    var isSpecificDays: Bool {
+        if case .days = self { true } else { false }
+    }
+}
+
+/// The learner's book selection applied to the catalog: an item is in scope
+/// when a selected chapter introduces it (through a chapter: that chapter or
+/// an earlier one). Items no chapter teaches are in scope only with
+/// `includesNotInBook`. `.off` includes everything.
 struct BookScope: Equatable {
-    let upTo: BookChapter?
+    let selection: BookSelection
     let includesNotInBook: Bool
 
-    init(upTo: BookChapter?, includesNotInBook: Bool) {
-        self.upTo = upTo
+    init(selection: BookSelection, includesNotInBook: Bool) {
+        self.selection = selection
         self.includesNotInBook = includesNotInBook
+    }
+
+    /// Cumulative scope; nil is Off.
+    init(upTo: BookChapter?, includesNotInBook: Bool) {
+        self.init(selection: upTo.map { .through($0) } ?? .off, includesNotInBook: includesNotInBook)
     }
 
     /// The scope both tabs apply. Without a loaded map there is nothing to
@@ -160,19 +230,23 @@ struct BookScope: Equatable {
     /// is different: it counts as not taught in the book.)
     init(settings: FlashcardSettings, map: BookChapterMap?) {
         self.init(
-            upTo: map == nil ? nil : settings.bookProgress,
+            selection: map == nil ? .off : settings.bookSelection,
             includesNotInBook: settings.showNotInBook
         )
     }
 
-    var isActive: Bool { upTo != nil }
+    var isActive: Bool { !selection.isOff }
 
     /// A missing entry counts as not in the book.
     func includes(_ placement: BookPlacement?) -> Bool {
-        guard let upTo else { return true }
-        switch placement {
-        case .chapter(let chapter): return chapter <= upTo
-        case .notInBook, nil: return includesNotInBook
+        switch selection {
+        case .off:
+            return true
+        case .through(let upTo):
+            if case .chapter(let chapter) = placement { return chapter <= upTo }
+        case .days(let chapters):
+            if case .chapter(let chapter) = placement { return chapters.contains(chapter) }
         }
+        return includesNotInBook
     }
 }

@@ -24,6 +24,7 @@ enum ScreenshotScenario: String {
     case toneFinder = "tone-finder"
     case flashcard
     case flashcardCompleted = "flashcard-completed"
+    case flashcardRoundSummary = "flashcard-round-summary"
     case progress
 
     static var current: ScreenshotScenario? {
@@ -42,7 +43,7 @@ enum ScreenshotScenario: String {
 
     var initialTab: AppTab {
         switch self {
-        case .flashcard, .flashcardCompleted, .progress:
+        case .flashcard, .flashcardCompleted, .flashcardRoundSummary, .progress:
             return .flashcards
         default:
             return .reference

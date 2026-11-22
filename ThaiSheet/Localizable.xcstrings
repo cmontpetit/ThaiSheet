@@ -1,6 +1,354 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Nothing in the selected days with this filter" : {
+      "comment" : "Reference empty section: specific book days selected, a chip filters out their items here.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rien dans les jours choisis avec ce filtre"
+          }
+        }
+      }
+    },
+    "The selected days cover other items in this section." : {
+      "comment" : "Reference empty section with a chip, specific book days selected.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les jours choisis couvrent d’autres éléments de cette section."
+          }
+        }
+      }
+    },
+    "Not in the selected days" : {
+      "comment" : "Reference empty section: the selected book days introduce nothing here.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Absent des jours choisis"
+          }
+        }
+      }
+    },
+    "The selected days introduce nothing in this section. You can change them in Study Content." : {
+      "comment" : "Reference empty section description, specific book days selected.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les jours choisis n’introduisent rien dans cette section. Vous pouvez les modifier dans Contenu d’étude."
+          }
+        }
+      }
+    },
+    "Enable some options in Filters, or select other days in Study Content" : {
+      "comment" : "Flashcards empty deck, specific book days selected.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez des options dans les filtres, ou choisissez d’autres jours dans Contenu d’étude"
+          }
+        }
+      }
+    },
+    "Show" : {
+      "comment" : "Study Content picker: how the Read Thai in 10 Days selection applies (Off, Through a day, Specific days).",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher"
+          }
+        }
+      }
+    },
+    "Through a day" : {
+      "comment" : "Study Content option: everything the book has taught up to a chosen day.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jusqu’à un jour"
+          }
+        }
+      }
+    },
+    "Specific days" : {
+      "comment" : "Study Content option: only what the chosen days introduce.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jours précis"
+          }
+        }
+      }
+    },
+    "Both tabs show only what the selected days introduce. Reference search includes all chapters." : {
+      "comment" : "Study Content footer when specific days are selected.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les deux onglets n’affichent que ce que les jours choisis introduisent. La recherche dans Référence inclut tous les chapitres."
+          }
+        }
+      }
+    },
+    "Return to round" : {
+      "comment" : "Flashcard header button and VoiceOver action in Shuffled: close the card opened from Reference and go back to the round.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retour au tour"
+          }
+        }
+      }
+    },
+    "Correct" : {
+      "comment" : "Round summary stat: cards whose first answer was correct.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correctes"
+          }
+        }
+      }
+    },
+    "Skip" : {
+      "comment" : "Flashcard header button in Shuffled: move to the next card without answering.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passer"
+          }
+        }
+      }
+    },
+    "Moves to the next card without answering" : {
+      "comment" : "Accessibility hint for the Skip button.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passe à la carte suivante sans répondre"
+          }
+        }
+      }
+    },
+    "Next card" : {
+      "comment" : "VoiceOver action on the flashcard header: show the next card.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carte suivante"
+          }
+        }
+      }
+    },
+    "Previous card" : {
+      "comment" : "VoiceOver action on the flashcard header: show the previous card.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carte précédente"
+          }
+        }
+      }
+    },
+    "Skipped %lld / %lld" : {
+      "comment" : "Flashcard header position while answering skipped cards in Shuffled: card number / cards in the round.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skipped %1$lld / %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passées %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Practice %lld / %lld" : {
+      "comment" : "Flashcard header position while practicing missed cards again in Shuffled: card number / cards in the round.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Practice %1$lld / %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entraînement %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Answer skipped cards" : {
+      "comment" : "Round summary button: answer the cards passed over; first answers are recorded.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Répondre aux cartes passées"
+          }
+        }
+      }
+    },
+    "Practice missed again" : {
+      "comment" : "Round summary button: practice every missed card again, not recorded.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoir les cartes manquées"
+          }
+        }
+      }
+    },
+    "Shuffled" : {
+      "comment" : "Flashcard learning strategy: each selected card once in random order, then retries.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mélangé"
+          }
+        }
+      }
+    },
+    "Shows every selected card once in random order, then lets you retry the ones you missed. Good for working through a new lesson." : {
+      "comment" : "Description of the Shuffled learning strategy in Settings.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche chaque carte sélectionnée une fois dans un ordre aléatoire, puis vous permet de réessayer celles que vous avez manquées. Idéal pour travailler une nouvelle leçon."
+          }
+        }
+      }
+    },
+    "Practice only. Your SRS stage stays the same." : {
+      "comment" : "Flashcard header hint after an answer that is not recorded (a Shuffled retry or a repeat answer).",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entraînement seulement. Votre niveau SRS ne change pas."
+          }
+        }
+      }
+    },
+    "Retry %lld / %lld" : {
+      "comment" : "Flashcard header position during a Shuffled retry round: card number / cards in the round.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Retry %1$lld / %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessai %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Pass complete" : {
+      "comment" : "Title of the summary shown at the end of a Shuffled pass or retry round.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tour terminé"
+          }
+        }
+      }
+    },
+    "Missed" : {
+      "comment" : "Round summary stat: cards missed in the pass.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manquées"
+          }
+        }
+      }
+    },
+    "Skipped" : {
+      "comment" : "Round summary stat: cards passed without an answer.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passées"
+          }
+        }
+      }
+    },
+    "Left to retry: %lld" : {
+      "comment" : "Round summary: missed cards not yet answered correctly in a retry round.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À réessayer : %lld"
+          }
+        }
+      }
+    },
+    "All retried" : {
+      "comment" : "Round summary: every missed card was answered correctly in a retry round.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toutes réessayées"
+          }
+        }
+      }
+    },
+    "Retry %lld" : {
+      "comment" : "Round summary button: start a retry round with this many cards.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessayer %lld"
+          }
+        }
+      }
+    },
+    "New round" : {
+      "comment" : "Round summary button: reshuffle the whole deck and start a new pass.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveau tour"
+          }
+        }
+      }
+    },
     "Mastered: this card is no longer reviewed, so the stage stays the same." : {
       "comment" : "Flashcard header hint after a correct answer on a mastered card.",
       "localizations" : {
