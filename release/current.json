@@ -1,11 +1,12 @@
 {
-  "version": "1.3.0",
-  "build": 11,
-  "date": "2026-11-17",
+  "version": "1.4.0",
+  "build": 12,
+  "date": "2026-11-22",
   "notes": [
-    "New \"Why this tone?\" sheet: type or paste a Thai syllable to see how it is read and which rule gives its tone.",
-    "Choose how Thai is romanized: the learner spelling, Paiboon, IPA, or RTGS.",
-    "On iPad and iPhone Duo, the Reference shows details beside the table, and flashcards use two columns.",
-    "Consonant flashcards can skip the name question, transcriptions follow one consistent spelling, and early reviews no longer advance a card."
+    "New Shuffled flashcard mode: each card once in random order, then retry what you missed or skipped.",
+    "Study Content: limit both tabs to the days of Read Thai in 10 Days you have studied, and hide uncommon letters.",
+    "New Read Thai in 10 Days romanization, alongside learner, Paiboon, IPA, and RTGS.",
+    "Vowel cards ask Open, Closed, or Both and give every example word its own speaker, and a correct answer that does not count toward progress now says why.",
+    "Fixes for crashes in the Reference on older iOS versions."
   ]
 }

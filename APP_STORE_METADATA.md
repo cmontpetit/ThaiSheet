@@ -10,8 +10,8 @@ This file is a working draft for App Store Connect. Review it before submission,
 - Secondary category: Reference
 - Bundle ID: `net.montpetit.thaisheet`
 - SKU: `thaisheet`
-- Version: `1.3.0`
-- Build: `11`
+- Version: `1.4.0`
+- Build: `12`
 - Copyright: `2026 Claude Montpetit`
 - Pricing: Free
 - In-App Purchases: None
@@ -52,10 +52,11 @@ The Thai script cheat sheet as an app: reference tables, pronunciation audio, an
 
 ## What's New
 
-- New "Why this tone?" sheet: type or paste a Thai syllable to see how it is read and which rule gives its tone.
-- Choose how Thai is romanized: the learner spelling, Paiboon, IPA, or RTGS.
-- On iPad and iPhone Duo, the Reference shows details beside the table, and flashcards use two columns.
-- Consonant flashcards can skip the name question, transcriptions follow one consistent spelling, and early reviews no longer advance a card.
+- New Shuffled flashcard mode: each card once in random order, then retry what you missed or skipped.
+- Study Content: limit both tabs to the days of Read Thai in 10 Days you have studied, and hide uncommon letters.
+- New Read Thai in 10 Days romanization, alongside learner, Paiboon, IPA, and RTGS.
+- Vowel cards ask Open, Closed, or Both and give every example word its own speaker, and a correct answer that does not count toward progress now says why.
+- Fixes for crashes in the Reference on older iOS versions.
 
 ## French Store Metadata — DEFERRED
 
@@ -145,10 +146,10 @@ No user-generated content, web browsing, purchases, gambling, violence, medical 
 - [x] Regenerate bundled audio with official Google Cloud Text-to-Speech credentials (commit 46c0ffd, July 2026).
 - [x] Document rights/attribution for learning data and audio (Content Rights above).
 - [x] Run `scripts/check_release_binary.sh` on the unsigned 1.1 (5) Release product (passed July 20, 2026).
-- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.3.0 (11) archive before upload.
+- [ ] Run `scripts/check_release_binary.sh` on the final signed 1.4.0 (12) archive before upload.
 - [ ] Complete the account-level EU Digital Services Act trader-status declaration in Business.
 - [ ] Optionally complete the App Accessibility questionnaire after VoiceOver and Dynamic Type device testing.
 - [x] Create the App Store Connect app record.
-- [ ] Upload and select build 11 for version 1.3.0.
-- [ ] Create an internal TestFlight group, add build 11, and perform the upgrade/device test pass.
-- [ ] Create the 1.3.0 App Store version, add the What's New text, and upload the `appstore-1.3` screenshots.
+- [ ] Upload and select build 12 for version 1.4.0.
+- [ ] Create an internal TestFlight group, add build 12, and perform the upgrade/device test pass.
+- [ ] Create the 1.4.0 App Store version, add the What's New text, and upload the `appstore-1.3` screenshots.
