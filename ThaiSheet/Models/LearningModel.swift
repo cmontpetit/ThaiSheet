@@ -32,6 +32,9 @@ enum ReviewOutcome: Equatable {
     /// A correct answer on a mastered card, which is never reviewed again:
     /// nothing changed
     case mastered
+    /// Not recorded at all: a Shuffled retry, or a repeat answer in a Shuffled
+    /// pass (`FlashcardManager.recordAnswer`). Never returned by `recordResult`.
+    case practiceOnly
 }
 
 /// Tracks learning progress for all flashcards using Wanikani-style SRS

@@ -170,9 +170,8 @@ struct FlashcardsView: View {
 
     /// Record a quiz answer and give haptic feedback
     private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
-        let fullTesting = !manager.isPartialTesting(card)
         let learningModel = manager.learningModel
-        let outcome = learningModel.recordResult(for: card, correct: correct, fullTesting: fullTesting)
+        let outcome = manager.recordAnswer(for: card, correct: correct) ?? .practiceOnly
         reviewNotice = outcome == .counted ? nil : ReviewNotice(
             cardID: card.id,
             outcome: outcome,
@@ -249,16 +248,44 @@ struct FlashcardsView: View {
         }
     }
 
-    /// Position indicator for sequential mode (e.g., "12 / 44")
+    /// Position indicator: "12 / 44" in Sequential, the pass position or
+    /// "Retry 2 / 3" in Shuffled, nothing in Smart or for a one-off card.
     @ViewBuilder
     private var positionIndicator: some View {
-        if !manager.settings.useIntelligentSelection {
+        switch manager.settings.selectionMode {
+        case .sequential:
             let current = manager.currentIndex + 1
             let total = manager.filteredCards.count
             Text("\(current) / \(total)")
                 .font(.caption)
                 .foregroundColor(.secondary)
+        case .shuffled:
+            if let position = manager.roundPosition {
+                Group {
+                    if position.isRetry {
+                        Text("Retry \(position.number) / \(position.count)")
+                    } else {
+                        Text("\(position.number) / \(position.count)")
+                    }
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
+            }
+        case .smart:
+            EmptyView()
         }
+    }
+
+    /// The end of a Shuffled pass or retry round
+    private func roundSummaryView(_ summary: ShuffledStrategy.Summary) -> some View {
+        RoundSummaryView(
+            summary: summary,
+            onRetry: manager.startRetry,
+            onNewRound: manager.startNewRound
+        )
+        .navigationTitle("Flashcards")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { mainToolbar }
     }
 
     /// Shown when bundled learning data failed to load. Loading is synchronous,
@@ -391,11 +418,28 @@ struct FlashcardsView: View {
             // case where data loaded fine and the user filtered everything out.
             dataUnavailableView
         case .loaded:
-            if let card = manager.currentCard {
-                cardView(for: card)
+            #if DEBUG
+            if ScreenshotScenario.current == .flashcardRoundSummary {
+                roundSummaryView(.init(answered: 10, missed: 3, skipped: 2, leftToRetry: 3))
             } else {
-                emptyStateView
+                loadedContent
             }
+            #else
+            loadedContent
+            #endif
+        }
+    }
+
+    /// A card (a card opened from Reference comes first), else the Shuffled
+    /// round summary, else the empty deck.
+    @ViewBuilder
+    private var loadedContent: some View {
+        if let card = manager.currentCard {
+            cardView(for: card)
+        } else if let summary = manager.roundSummary {
+            roundSummaryView(summary)
+        } else {
+            emptyStateView
         }
     }
 
@@ -481,6 +525,7 @@ struct FlashcardDeckSyncModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onChange(of: settings.deckSettings) { _, _ in manager?.syncDeck() }
+            .onChange(of: settings.selectionMode) { _, _ in manager?.applySelectionModeChange() }
     }
 }
 

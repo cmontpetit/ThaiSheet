@@ -488,6 +488,10 @@ struct ReviewOutcomeHint: View {
             hint(systemImage: "checkmark.seal") {
                 Text("Mastered: this card is no longer reviewed, so the stage stays the same.")
             }
+        case .practiceOnly:
+            hint(systemImage: "arrow.counterclockwise") {
+                Text("Practice only. Your SRS stage stays the same.")
+            }
         }
     }
 

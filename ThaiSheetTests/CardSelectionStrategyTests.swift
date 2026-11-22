@@ -797,3 +797,225 @@ final class WanikaniStrategyTests: XCTestCase {
                              "Smart selection should still vary which card it opens on")
     }
 }
+
+@MainActor
+final class ShuffledStrategyTests: XCTestCase {
+
+    private var strategy: ShuffledStrategy!
+    private var learningModel: LearningModel!
+    private var testStore: InMemoryKeyValueStore!
+    private var testCards: [FlashcardItem]!
+
+    override func setUp() {
+        super.setUp()
+        testStore = InMemoryKeyValueStore()
+        strategy = ShuffledStrategy(generator: SeededRandomNumberGenerator(seed: 42))
+        learningModel = LearningModel(store: testStore)
+
+        let consonants = Consonant.loadAll()
+        XCTAssertFalse(consonants.isEmpty, "Need bundle data for tests")
+        testCards = consonants.prefix(5).map { FlashcardItem.consonant($0, includesName: true) }
+        strategy.update(cards: testCards, learningModel: learningModel)
+    }
+
+    override func tearDown() {
+        strategy = nil
+        learningModel = nil
+        testStore = nil
+        testCards = nil
+        super.tearDown()
+    }
+
+    private enum Action {
+        case correct
+        case wrong
+        case skip
+    }
+
+    /// Plays one action per card in display order, then moves past each card.
+    /// Returns the ids in the order they were shown.
+    @discardableResult
+    private func play(_ actions: [Action]) -> [String] {
+        var shown: [String] = []
+        for action in actions {
+            guard let id = strategy.currentCard?.id else {
+                XCTFail("Ran out of cards")
+                break
+            }
+            shown.append(id)
+            switch action {
+            case .correct: _ = strategy.noteAnswer(cardId: id, correct: true)
+            case .wrong: _ = strategy.noteAnswer(cardId: id, correct: false)
+            case .skip: break
+            }
+            strategy.nextCard()
+        }
+        return shown
+    }
+
+    // MARK: - Pass
+
+    func test_pass_showsEachCardExactlyOnce_thenSummary() {
+        var shown: [String] = []
+        var positions: [Int] = []
+        while let card = strategy.currentCard {
+            shown.append(card.id)
+            positions.append(strategy.position?.number ?? 0)
+            strategy.nextCard()
+        }
+        XCTAssertEqual(shown.count, testCards.count)
+        XCTAssertEqual(Set(shown), Set(testCards.map(\.id)))
+        XCTAssertEqual(positions, Array(1...testCards.count))
+        XCTAssertEqual(strategy.phase, .summary)
+        XCTAssertNil(strategy.position)
+    }
+
+    func test_pass_isShuffled() {
+        let shown = play(Array(repeating: .skip, count: testCards.count))
+        XCTAssertNotEqual(shown, testCards.map(\.id), "Seed 42 deals a non-identity order")
+    }
+
+    func test_summary_countsAnsweredMissedSkipped() {
+        play([.wrong, .correct, .skip, .wrong, .correct])
+        XCTAssertEqual(strategy.summary, .init(answered: 4, missed: 2, skipped: 1, leftToRetry: 2))
+    }
+
+    func test_summary_isNilDuringPass() {
+        XCTAssertNil(strategy.summary)
+        play([.correct])
+        XCTAssertNil(strategy.summary)
+    }
+
+    func test_firstAnswerIsRecorded_repeatAnswersAreNot() throws {
+        let id = try XCTUnwrap(strategy.currentCard?.id)
+        XCTAssertTrue(strategy.noteAnswer(cardId: id, correct: false))
+        XCTAssertFalse(strategy.noteAnswer(cardId: id, correct: true))
+
+        strategy.nextCard()
+        strategy.previousCard()
+        XCTAssertEqual(strategy.currentCard?.id, id)
+        XCTAssertFalse(strategy.noteAnswer(cardId: id, correct: true))
+
+        play(Array(repeating: .skip, count: testCards.count))
+        XCTAssertEqual(strategy.summary?.missed, 1, "The first answer decides the missed status")
+    }
+
+    func test_noteAnswer_forAnotherCard_isIgnored() throws {
+        let current = try XCTUnwrap(strategy.currentCard?.id)
+        let other = try XCTUnwrap(testCards.map(\.id).first { $0 != current })
+        XCTAssertFalse(strategy.noteAnswer(cardId: other, correct: false))
+    }
+
+    func test_previousCard_atStartOrOnSummary_isNoOp() throws {
+        let first = try XCTUnwrap(strategy.currentCard?.id)
+        strategy.previousCard()
+        XCTAssertEqual(strategy.currentCard?.id, first)
+
+        play(Array(repeating: .skip, count: testCards.count))
+        strategy.previousCard()
+        XCTAssertEqual(strategy.phase, .summary)
+    }
+
+    // MARK: - Retry rounds
+
+    func test_retry_dealsOnlyFirstPassMisses() {
+        let shown = play([.wrong, .correct, .skip, .wrong, .correct])
+        let missed = Set([shown[0], shown[3]])
+
+        strategy.startRetry()
+        XCTAssertEqual(strategy.phase, .retry)
+        XCTAssertEqual(strategy.position, .init(number: 1, count: 2, isRetry: true))
+        let retried = play([.skip, .skip])
+        XCTAssertEqual(Set(retried), missed, "First-pass skips are not retried")
+    }
+
+    func test_retry_answersAreNeverRecorded() throws {
+        play([.wrong, .correct, .correct, .correct, .correct])
+        strategy.startRetry()
+        let id = try XCTUnwrap(strategy.currentCard?.id)
+        XCTAssertFalse(strategy.noteAnswer(cardId: id, correct: true))
+    }
+
+    func test_retry_correctClears_wrongAndSwipeKeep_passTotalsFixed() {
+        play([.wrong, .wrong, .wrong, .correct, .skip])
+        let passSummary = strategy.summary
+
+        strategy.startRetry()
+        play([.correct, .wrong, .skip])
+        XCTAssertEqual(strategy.summary, .init(answered: 4, missed: 3, skipped: 1, leftToRetry: 2))
+        XCTAssertEqual(passSummary?.leftToRetry, 3)
+
+        strategy.startRetry()
+        XCTAssertEqual(strategy.position?.count, 2)
+        play([.correct, .correct])
+        XCTAssertEqual(strategy.summary, .init(answered: 4, missed: 3, skipped: 1, leftToRetry: 0))
+    }
+
+    func test_retry_clearedCardStaysCleared_afterGoingBack() throws {
+        play([.wrong, .wrong, .correct, .correct, .correct])
+        strategy.startRetry()
+
+        let first = try XCTUnwrap(strategy.currentCard?.id)
+        _ = strategy.noteAnswer(cardId: first, correct: true)
+        strategy.nextCard()
+        strategy.previousCard()
+        XCTAssertEqual(strategy.currentCard?.id, first)
+        _ = strategy.noteAnswer(cardId: first, correct: false)
+        strategy.nextCard()
+        strategy.previousCard()
+        strategy.nextCard()
+        strategy.nextCard() // swipe past the second card
+
+        XCTAssertEqual(strategy.summary?.leftToRetry, 1, "Only the unanswered retry card is left")
+        strategy.startRetry()
+        XCTAssertNotEqual(strategy.currentCard?.id, first)
+    }
+
+    func test_startRetry_withNothingLeft_staysOnSummary() {
+        play(Array(repeating: .correct, count: testCards.count))
+        XCTAssertEqual(strategy.summary?.leftToRetry, 0)
+        strategy.startRetry()
+        XCTAssertEqual(strategy.phase, .summary)
+        XCTAssertNil(strategy.currentCard)
+    }
+
+    // MARK: - New round and deck changes
+
+    func test_startNewRound_dealsTheFullDeckWithFreshGrading() throws {
+        play([.wrong, .wrong, .correct, .correct, .correct])
+        strategy.startRetry()
+        strategy.startNewRound()
+
+        XCTAssertEqual(strategy.phase, .pass)
+        XCTAssertNil(strategy.summary)
+        XCTAssertEqual(strategy.position, .init(number: 1, count: testCards.count, isRetry: false))
+        let id = try XCTUnwrap(strategy.currentCard?.id)
+        XCTAssertTrue(strategy.noteAnswer(cardId: id, correct: true))
+    }
+
+    func test_update_withDifferentDeck_startsFreshPass() {
+        play([.wrong, .correct])
+        let smaller = Array(testCards.prefix(3))
+        strategy.update(cards: smaller, learningModel: learningModel)
+        XCTAssertEqual(strategy.position, .init(number: 1, count: 3, isRetry: false))
+        let shown = play([.skip, .skip, .skip])
+        XCTAssertEqual(Set(shown), Set(smaller.map(\.id)))
+        XCTAssertEqual(strategy.summary, .init(answered: 0, missed: 0, skipped: 3, leftToRetry: 0))
+    }
+
+    func test_update_withSameDeck_keepsPosition() throws {
+        play([.correct, .correct])
+        let current = try XCTUnwrap(strategy.currentCard?.id)
+        strategy.update(cards: testCards, learningModel: learningModel)
+        XCTAssertEqual(strategy.currentCard?.id, current)
+        XCTAssertEqual(strategy.position?.number, 3)
+    }
+
+    func test_emptyDeck_hasNoCardAndNoSummary() {
+        strategy.update(cards: [], learningModel: learningModel)
+        XCTAssertNil(strategy.currentCard)
+        XCTAssertNil(strategy.summary)
+        strategy.nextCard()
+        XCTAssertNil(strategy.summary)
+    }
+}

@@ -19,7 +19,7 @@ class FlashcardSettings {
         "fc_longVowels", "fc_shortVowels", "fc_uncommonVowels",
         "fc_highToneRules", "fc_midToneRules", "fc_lowToneRules", "fc_toneMarks",
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
-        "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage",
+        "fc_selectionMode", "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage",
         "fc_romanization",
         "fc_bookProgress", "fc_showNotInBook",
     ]
@@ -152,8 +152,17 @@ class FlashcardSettings {
 
     // MARK: - Other Settings
 
-    var useIntelligentSelection = false {
-        didSet { persist(useIntelligentSelection, forKey: "fc_useIntelligentSelection") }
+    /// How the Flashcards tab orders the active deck. Persisted under
+    /// `fc_selectionMode`; the legacy `fc_useIntelligentSelection` Bool is still
+    /// written (`smart` → true, otherwise false) so builds before Shuffled read a
+    /// valid value, and they show Shuffled as Sequential. The compatibility is
+    /// one-way: once `fc_selectionMode` exists, the Bool is ignored on load, so a
+    /// mode chosen on an older build does not reach newer builds.
+    var selectionMode: SelectionMode = .sequential {
+        didSet {
+            persist(selectionMode.rawValue, forKey: "fc_selectionMode")
+            persist(selectionMode == .smart, forKey: "fc_useIntelligentSelection")
+        }
     }
 
     /// How romanized readings are displayed. The data always stores the learner
@@ -390,7 +399,8 @@ class FlashcardSettings {
         bookProgress = defaults.string(forKey: "fc_bookProgress").flatMap(BookChapter.init(rawValue:))
         showNotInBook = defaults.object(forKey: "fc_showNotInBook") as? Bool ?? false
 
-        useIntelligentSelection = defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false
+        selectionMode = defaults.string(forKey: "fc_selectionMode").flatMap(SelectionMode.init(rawValue:))
+            ?? ((defaults.object(forKey: "fc_useIntelligentSelection") as? Bool ?? false) ? .smart : .sequential)
         let recordedVoiceValue = defaults.string(forKey: "fc_recordedVoice")
         let voiceOverridesData = defaults.data(forKey: "fc_voiceOverrides")
         recordedVoice = recordedVoiceValue.flatMap(RecordedVoice.persistedValue) ?? .matilda

@@ -1,6 +1,144 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Shuffled" : {
+      "comment" : "Flashcard learning strategy: each selected card once in random order, then retries.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mélangé"
+          }
+        }
+      }
+    },
+    "Shows every selected card once in random order, then lets you retry the ones you missed. Good for working through a new lesson." : {
+      "comment" : "Description of the Shuffled learning strategy in Settings.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche chaque carte sélectionnée une fois dans un ordre aléatoire, puis vous permet de réessayer celles que vous avez manquées. Idéal pour travailler une nouvelle leçon."
+          }
+        }
+      }
+    },
+    "Practice only. Your SRS stage stays the same." : {
+      "comment" : "Flashcard header hint after an answer that is not recorded (a Shuffled retry or a repeat answer).",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entraînement seulement. Votre niveau SRS ne change pas."
+          }
+        }
+      }
+    },
+    "Retry %lld / %lld" : {
+      "comment" : "Flashcard header position during a Shuffled retry round: card number / cards in the round.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Retry %1$lld / %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessai %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Pass complete" : {
+      "comment" : "Title of the summary shown at the end of a Shuffled pass or retry round.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tour terminé"
+          }
+        }
+      }
+    },
+    "Answered" : {
+      "comment" : "Round summary stat: cards answered in the pass.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Répondues"
+          }
+        }
+      }
+    },
+    "Missed" : {
+      "comment" : "Round summary stat: cards missed in the pass.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manquées"
+          }
+        }
+      }
+    },
+    "Skipped" : {
+      "comment" : "Round summary stat: cards passed without an answer.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passées"
+          }
+        }
+      }
+    },
+    "Left to retry: %lld" : {
+      "comment" : "Round summary: missed cards not yet answered correctly in a retry round.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À réessayer : %lld"
+          }
+        }
+      }
+    },
+    "All retried" : {
+      "comment" : "Round summary: every missed card was answered correctly in a retry round.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toutes réessayées"
+          }
+        }
+      }
+    },
+    "Retry %lld" : {
+      "comment" : "Round summary button: start a retry round with this many cards.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessayer %lld"
+          }
+        }
+      }
+    },
+    "New round" : {
+      "comment" : "Round summary button: reshuffle the whole deck and start a new pass.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveau tour"
+          }
+        }
+      }
+    },
     "Mastered: this card is no longer reviewed, so the stage stays the same." : {
       "comment" : "Flashcard header hint after a correct answer on a mastered card.",
       "localizations" : {

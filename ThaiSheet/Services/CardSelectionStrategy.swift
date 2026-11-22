@@ -5,6 +5,17 @@
 
 import Foundation
 
+/// How the Flashcards tab presents the active deck (`FlashcardSettings.selectionMode`).
+/// The raw values are persisted and synced: never rename one.
+enum SelectionMode: String, CaseIterable {
+    /// Wanikani-style SRS: due cards, then new cards, then upcoming ones
+    case smart
+    /// The deck's fixed order
+    case sequential
+    /// Each card once per pass in random order, then retry rounds for misses
+    case shuffled
+}
+
 /// Protocol for card selection strategies
 protocol CardSelectionStrategy: AnyObject {
     /// The current card to display
@@ -68,6 +79,184 @@ class SequentialStrategy: CardSelectionStrategy {
     /// Find index of a card by ID
     func indexOf(cardId: String) -> Int? {
         cards.firstIndex(where: { $0.id == cardId })
+    }
+}
+
+// MARK: - Shuffled Strategy
+
+/// Deals the active deck once per pass in a fresh random order, then offers
+/// retry rounds for the cards missed in that pass.
+///
+/// Grading: only a card's first answer in a pass is recorded to SRS
+/// (`noteAnswer` returns true for it). Repeat answers in the pass and every
+/// retry answer are practice only. A card passed without an answer is
+/// skipped and is not retried.
+@Observable
+final class ShuffledStrategy: CardSelectionStrategy {
+    enum Phase: Equatable {
+        case pass
+        case retry
+        case summary
+    }
+
+    /// Totals of the last completed pass, fixed when the pass ends, plus the
+    /// cards still waiting for a retry.
+    struct Summary: Equatable {
+        let answered: Int
+        let missed: Int
+        let skipped: Int
+        let leftToRetry: Int
+    }
+
+    struct Position: Equatable {
+        /// 1-based position in the current pass or retry round
+        let number: Int
+        let count: Int
+        let isRetry: Bool
+    }
+
+    private var cards: [FlashcardItem] = []
+    private var order: [FlashcardItem] = []
+    private var index = 0
+    private(set) var phase: Phase = .pass
+
+    /// Card id → whether its first answer in this pass was correct
+    private var firstAnswers: [String: Bool] = [:]
+    private var passTotals: (answered: Int, missed: Int, skipped: Int) = (0, 0, 0)
+    /// Missed cards not yet answered correctly in a retry round
+    private var pendingRetry: Set<String> = []
+    /// Cards answered correctly in the current retry round. Final for the round,
+    /// so going back to one and missing it or swiping past it keeps it cleared.
+    private var clearedThisRetry: Set<String> = []
+
+    @ObservationIgnored private var generator: AnyRandomNumberGenerator
+
+    init(generator: some RandomNumberGenerator = SystemRandomNumberGenerator()) {
+        self.generator = AnyRandomNumberGenerator(generator)
+    }
+
+    #if compiler(>=6.2)
+    /// See `FlashcardSettings`: avoids the back-deployed MainActor deinit thunk.
+    nonisolated deinit {}
+    #endif
+
+    var currentCard: FlashcardItem? {
+        guard phase != .summary, order.indices.contains(index) else { return nil }
+        return order[index]
+    }
+
+    /// Where the current card sits in its pass or retry round; nil on the summary
+    var position: Position? {
+        guard currentCard != nil else { return nil }
+        return Position(number: index + 1, count: order.count, isRetry: phase == .retry)
+    }
+
+    /// The round summary, shown once a pass or retry round has ended
+    var summary: Summary? {
+        guard phase == .summary else { return nil }
+        return Summary(
+            answered: passTotals.answered,
+            missed: passTotals.missed,
+            skipped: passTotals.skipped,
+            leftToRetry: pendingRetry.count
+        )
+    }
+
+    func nextCard() {
+        guard phase != .summary, !order.isEmpty else { return }
+        if index < order.count - 1 {
+            index += 1
+        } else {
+            finishRound()
+        }
+    }
+
+    func previousCard() {
+        guard phase != .summary, index > 0 else { return }
+        index -= 1
+    }
+
+    func reset() {
+        startNewRound()
+    }
+
+    func update(cards: [FlashcardItem], learningModel: LearningModel) {
+        let deckChanged = cards.map(\.id) != self.cards.map(\.id)
+        self.cards = cards
+        if deckChanged {
+            startNewRound()
+        }
+    }
+
+    /// Notes an answer to the current card and returns whether it should be
+    /// recorded to SRS: true only for a card's first answer in a pass.
+    func noteAnswer(cardId: String, correct: Bool) -> Bool {
+        guard currentCard?.id == cardId else { return false }
+        switch phase {
+        case .pass:
+            guard firstAnswers[cardId] == nil else { return false }
+            firstAnswers[cardId] = correct
+            return true
+        case .retry:
+            if correct {
+                clearedThisRetry.insert(cardId)
+            }
+            return false
+        case .summary:
+            return false
+        }
+    }
+
+    /// Deals the cards still waiting for a retry in a fresh random order.
+    func startRetry() {
+        guard phase == .summary, !pendingRetry.isEmpty else { return }
+        order = cards.filter { pendingRetry.contains($0.id) }.shuffled(using: &generator)
+        index = 0
+        clearedThisRetry = []
+        phase = order.isEmpty ? .summary : .retry
+    }
+
+    /// Reshuffles the full deck and starts a new graded pass.
+    func startNewRound() {
+        order = cards.shuffled(using: &generator)
+        index = 0
+        phase = .pass
+        firstAnswers = [:]
+        passTotals = (0, 0, 0)
+        pendingRetry = []
+        clearedThisRetry = []
+    }
+
+    private func finishRound() {
+        switch phase {
+        case .pass:
+            let missed = firstAnswers.filter { !$0.value }.map(\.key)
+            passTotals = (
+                answered: firstAnswers.count,
+                missed: missed.count,
+                skipped: order.count - firstAnswers.count
+            )
+            pendingRetry = Set(missed)
+        case .retry:
+            pendingRetry.subtract(clearedThisRetry)
+            clearedThisRetry = []
+        case .summary:
+            break
+        }
+        phase = .summary
+    }
+}
+
+/// Type-erased generator, so tests can inject a seeded one.
+struct AnyRandomNumberGenerator: RandomNumberGenerator {
+    private var base: any RandomNumberGenerator
+
+    init(_ base: some RandomNumberGenerator) {
+        self.base = base
+    }
+
+    mutating func next() -> UInt64 {
+        base.next()
     }
 }
 

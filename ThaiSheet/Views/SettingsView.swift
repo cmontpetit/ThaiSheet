@@ -23,17 +23,25 @@ struct SettingsView: View {
                     strategyOption(
                         title: "Wanikani-style SRS",
                         description: "Prioritizes cards due for review based on your progress. Uses spaced repetition to optimize learning.",
-                        isSelected: settings.useIntelligentSelection
+                        isSelected: settings.selectionMode == .smart
                     ) {
-                        settings.useIntelligentSelection = true
+                        settings.selectionMode = .smart
                     }
 
                     strategyOption(
                         title: "Sequential",
                         description: "Shows cards in fixed order. Good for systematic review of all cards.",
-                        isSelected: !settings.useIntelligentSelection
+                        isSelected: settings.selectionMode == .sequential
                     ) {
-                        settings.useIntelligentSelection = false
+                        settings.selectionMode = .sequential
+                    }
+
+                    strategyOption(
+                        title: "Shuffled",
+                        description: "Shows every selected card once in random order, then lets you retry the ones you missed. Good for working through a new lesson.",
+                        isSelected: settings.selectionMode == .shuffled
+                    ) {
+                        settings.selectionMode = .shuffled
                     }
                 } header: {
                     Text("Flashcards: Learning Strategy")

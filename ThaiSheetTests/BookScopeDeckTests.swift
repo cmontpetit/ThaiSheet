@@ -451,31 +451,60 @@ final class BookScopeDeckTests: XCTestCase {
         XCTAssertTrue(card.coversClosedForm)
     }
 
-    /// Opening เกิ- from Reference lands on the deck's copy, in both selection modes.
+    /// Switches the mode the way the Flashcards tab's observer does.
+    private func select(_ mode: SelectionMode) {
+        settings.selectionMode = mode
+        manager.applySelectionModeChange()
+    }
+
+    /// Opening เกิ- from Reference lands on the deck's copy, in every selection mode.
     func test_sharedForm_jumpFromReference_presentsInScopeSlot() {
         settings.bookProgress = .day5
         manager.syncDeck()
-        for smart in [false, true] {
-            settings.useIntelligentSelection = smart
+        for mode in SelectionMode.allCases {
+            select(mode)
             practiceSharedVowel(.shortClosed)
-            XCTAssertEqual(currentVowelWord, "เดิน", "smart mode: \(smart)")
+            XCTAssertEqual(currentVowelWord, "เดิน", "mode: \(mode)")
         }
+    }
+
+    /// In Shuffled the opened เกิ- is a one-off: it shows the in-scope reading,
+    /// and dismissing it returns the round to the same card and position.
+    func test_sharedForm_jumpFromReference_shuffled_restoresRoundPosition() throws {
+        settings.bookProgress = .day5
+        manager.syncDeck()
+        select(.shuffled)
+        manager.nextCard()
+        let roundCard = try XCTUnwrap(manager.currentCard?.id)
+        let position = try XCTUnwrap(manager.roundPosition)
+
+        practiceSharedVowel(.shortClosed)
+        XCTAssertEqual(currentVowelWord, "เดิน")
+        XCTAssertNil(manager.roundPosition)
+
+        manager.nextCard()
+        XCTAssertEqual(manager.currentCard?.id, roundCard)
+        XCTAssertEqual(manager.roundPosition, position)
     }
 
     /// A one-off เกิ- opened on Day 4 switches to the in-scope slot when Day 5 makes it eligible.
     func test_sharedForm_overrideBecomingEligible_presentsInScopeSlot() throws {
-        settings.bookProgress = .day4
-        manager.syncDeck()
-        practiceSharedVowel(.shortClosed)
-        let openedID = try XCTUnwrap(manager.currentCard?.id)
-        let attempt = manager.attempt
-        XCTAssertEqual(currentVowelWord, "เงิน", "outside the deck it presents its own (short) slot")
+        for mode in SelectionMode.allCases {
+            select(mode)
+            settings.bookProgress = .day4
+            manager.syncDeck()
+            practiceSharedVowel(.shortClosed)
+            let openedID = try XCTUnwrap(manager.currentCard?.id)
+            let attempt = manager.attempt
+            XCTAssertEqual(currentVowelWord, "เงิน", "outside the deck it presents its own (short) slot, mode: \(mode)")
 
-        settings.bookProgress = .day5
-        manager.syncDeck()
-        XCTAssertEqual(manager.currentCard?.id, openedID)
-        XCTAssertEqual(currentVowelWord, "เดิน")
-        XCTAssertEqual(manager.attempt, attempt + 1)
+            settings.bookProgress = .day5
+            manager.syncDeck()
+            XCTAssertEqual(manager.currentCard?.id, openedID, "mode: \(mode)")
+            XCTAssertEqual(currentVowelWord, "เดิน", "mode: \(mode)")
+            XCTAssertEqual(manager.attempt, attempt + 1, "mode: \(mode)")
+            manager.nextCard()
+        }
     }
 
     /// In chapter scope but excluded by Filters: the one-off card still presents the in-scope slot.
@@ -484,8 +513,11 @@ final class BookScopeDeckTests: XCTestCase {
         settings.vowelsEnabled = false
         manager.syncDeck()
         XCTAssertFalse(vowelDisplays().contains("เกิ-"))
-        practiceSharedVowel(.shortClosed)
-        XCTAssertEqual(currentVowelWord, "เดิน")
+        for mode in SelectionMode.allCases {
+            select(mode)
+            practiceSharedVowel(.shortClosed)
+            XCTAssertEqual(currentVowelWord, "เดิน", "mode: \(mode)")
+        }
     }
 
     func test_sharedForm_practiceUsesSelectedReadingAndKeepsSequentialPosition() throws {

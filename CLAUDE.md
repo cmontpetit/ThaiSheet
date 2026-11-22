@@ -290,9 +290,12 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 - This prevents "gaming" the system by using narrow filters
 - Full testing (multiple options per question) required to reach Confident/Mastered
 
-**Selection strategies:**
+**Selection strategies** (`FlashcardSettings.selectionMode`, key `fc_selectionMode`, synced; never rename a raw value):
 - **Smart (Wanikani)**: Prioritizes due cards, then new cards, then future cards
 - **Sequential**: Shows cards in fixed order (still tracks SRS progress)
+- **Shuffled** (`ShuffledStrategy`): each card of the active deck once per pass in random order, then retry rounds for the misses. Only a card's first answer in a pass is recorded to SRS; repeat answers and every retry answer are practice only (`FlashcardManager.recordAnswer` returns nil, shown as `ReviewOutcome.practiceOnly`). A swipe past without an answer is a skip and is not retried; in a retry round a swipe or a miss keeps the card, and a correct retry clears it for good. Pass totals are fixed when the pass ends. Deck changes and mode changes start a fresh pass. A card opened from Reference is a one-off: closing it returns to the same round card or summary
+- The legacy `fc_useIntelligentSelection` Bool is still written (`smart` → true) for older builds, which show Shuffled as Sequential. One-way: once `fc_selectionMode` exists it is ignored on load
+- Every mode change calls `FlashcardManager.applySelectionModeChange()`, a new quiz attempt, so a same-type card never inherits the previous card's answer state
 
 **UI indicators:**
 - Stage shown as 8 dots with current stage filled
@@ -325,7 +328,7 @@ The app uses a Wanikani-inspired spaced repetition system with 8 stages:
 
 ### Verifying UI in the simulator (no UI automation)
 `xcrun simctl` cannot tap or scroll, so to see a specific screen:
-- Debug builds accept `-screenshotScenario` with `vowels`, `vowels-blurred`, `consonant-details`, `tones`, `flashcard` (an unanswered card), `flashcard-completed`, or `progress`. These deterministic states are disabled in Release builds
+- Debug builds accept `-screenshotScenario` with `vowels`, `vowels-blurred`, `consonant-details`, `tones`, `flashcard` (an unanswered card), `flashcard-completed`, `flashcard-round-summary` (the Shuffled end-of-pass summary with fixed counts), or `progress`. These deterministic states are disabled in Release builds
 - Reference detail checks also accept `vowel-details`, `cluster-details`, `tone-mark-details`, `tone-rule-details`, and `consonant-details-hidden`; the selected detail uses a compact sheet or expanded pane according to the container
 - `vowels-filtered` starts Reference with a Thai mark query and inactive search, to verify that the single persistent search field keeps the query visible without keyboard focus; `vowels-searching` opens the same query for editing to check toolbar/tab availability
 - App Store screenshots: the shot list, order, and captions live in `scripts/app_store_screenshots.json` (sets `iphone` = 6.9", `ipad` = 13", `duo-open`/`duo-closed` = iPhone Duo marketing images; Reference first, one flashcard shot last). Capture raw PNGs with `scripts/capture_app_store_screenshots.sh <simulator-udid> <raw-dir> <debug-app-path> <set> [display-id]` (standardizes the status bar; iPhone Duo needs the hinge pose set first and a `--display` id; build the Debug app with `INFOPLIST_KEY_CFBundleDisplayName=ThaiSheet`, since iPad's status bar shows the app name "ThaiSheet Dev"), then frame and caption them with `python3 scripts/frame_app_store_screenshots.py <raw-dir> <output-dir> <set>` (JPEG without alpha, same pixel size as the capture)
