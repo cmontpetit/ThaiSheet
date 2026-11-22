@@ -107,6 +107,7 @@ struct ContentView: View {
             }
         }
         .referenceViewportScope()
+        .modifier(FlashcardDeckSyncModifier(settings: settings, manager: manager))
         // Both tabs: detail sheets opened from a flashcard read stages too.
         .environment(\.learningModel, learningModel)
         .onAppear {
@@ -120,8 +121,12 @@ struct ContentView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .syncedStoreDidChange)) { _ in
-            settings.reload()
-            learningModel.reload()
+            if let manager {
+                manager.reloadFromSyncedStore()
+            } else {
+                settings.reload()
+                learningModel.reload()
+            }
         }
     }
 }
@@ -465,73 +470,17 @@ struct FlashcardsSheetModifier: ViewModifier {
     }
 }
 
-/// Modifier for parent category setting changes
-struct ParentSettingsModifier: ViewModifier {
-    var manager: FlashcardManager
+/// The one path from deck settings to the flashcard deck. It sits on the
+/// TabView, so a change made from either tab (Filters, Study Content) or by
+/// an iCloud reload is applied whether or not Flashcards has been shown.
+/// One logical change compares unequal once, so the deck is rebuilt once.
+struct FlashcardDeckSyncModifier: ViewModifier {
+    var settings: FlashcardSettings
+    var manager: FlashcardManager?
 
     func body(content: Content) -> some View {
         content
-            .onChange(of: manager.settings.consonantsEnabled) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.vowelsEnabled) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.tonesEnabled) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.clusters) { _, _ in manager.resetToStart() }
-    }
-}
-
-/// Modifier for consonant and vowel filter changes
-struct ConsonantVowelSettingsModifier: ViewModifier {
-    var manager: FlashcardManager
-
-    func body(content: Content) -> some View {
-        content
-            .onChange(of: manager.settings.highConsonants) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.midConsonants) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.lowConsonants) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.uncommonConsonants) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.consonantNames) { _, _ in manager.applyConsonantMode() }
-            .onChange(of: manager.settings.longVowels) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.shortVowels) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.uncommonVowels) { _, _ in manager.resetToStart() }
-    }
-}
-
-/// Modifier for tone and cluster filter changes
-struct ToneClusterSettingsModifier: ViewModifier {
-    var manager: FlashcardManager
-
-    func body(content: Content) -> some View {
-        content
-            .onChange(of: manager.settings.highToneRules) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.midToneRules) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.lowToneRules) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.toneMarks) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.smoothClusters) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.silentClusters) { _, _ in manager.resetToStart() }
-            .onChange(of: manager.settings.irregularClusters) { _, _ in manager.resetToStart() }
-    }
-}
-
-/// Combined modifier for all settings change observers
-struct FlashcardsSettingsModifier: ViewModifier {
-    var manager: FlashcardManager
-
-    func body(content: Content) -> some View {
-        content
-            .modifier(ParentSettingsModifier(manager: manager))
-            .modifier(ConsonantVowelSettingsModifier(manager: manager))
-            .modifier(ToneClusterSettingsModifier(manager: manager))
-            .modifier(BookScopeSettingsModifier(manager: manager))
-    }
-}
-
-/// Modifier for chapter scope changes (from either tab or via iCloud)
-struct BookScopeSettingsModifier: ViewModifier {
-    var manager: FlashcardManager
-
-    func body(content: Content) -> some View {
-        content
-            .onChange(of: manager.settings.bookProgress) { _, _ in manager.applyBookScopeChange() }
-            .onChange(of: manager.settings.showNotInBook) { _, _ in manager.applyBookScopeChange() }
+            .onChange(of: settings.deckSettings) { _, _ in manager?.syncDeck() }
     }
 }
 
@@ -542,7 +491,6 @@ struct FlashcardsNavigationModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .modifier(FlashcardsSettingsModifier(manager: manager))
             .onChange(of: practiceTarget, initial: true) { _, target in
                 guard let target else { return }
                 manager.practice(target)

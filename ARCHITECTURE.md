@@ -78,7 +78,8 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 - `ContentView` — `TabView` with flashcards and reference tabs
 - `FlashcardsView` — card display with toolbar, delegates to type-specific flashcard views
 - Cross-tab navigation carries the exact `ReferenceItem` into Practice and uses `[FlashcardType: String]` for highlights in Reference
-- View modifiers (`FlashcardsSheetModifier`, `FlashcardsNavigationModifier`, `FlashcardsSettingsModifier`) keep the body lean
+- View modifiers (`FlashcardsSheetModifier`, `FlashcardsNavigationModifier`) keep the body lean
+- `FlashcardDeckSyncModifier` on the `TabView` is the one path from settings to the deck: it observes `FlashcardSettings.deckSettings` and calls `FlashcardManager.syncDeck()`, so a change from either tab applies whether or not Flashcards has been shown. The `.syncedStoreDidChange` handler calls `FlashcardManager.reloadFromSyncedStore()` (settings, then progress, then the deck)
 
 ## Dependency Injection
 
@@ -95,9 +96,9 @@ ContentView.swift          App shell: TabView, navigation state, view modifiers
 ```
 JSON files  -->  BundleLoader  -->  Model types
                                        |
-FlashcardSettings  -->  FlashcardManager  -->  FlashcardItem
-                              |
-                    CardSelectionStrategy
+FlashcardSettings.deckSettings  --syncDeck()-->  FlashcardManager.filteredCards (applied deck)
+                                                       |
+                         CardSelectionStrategy, position count, SRSStatsView, QuestionCap
                               |
                         current card  -->  *FlashcardView
                               |

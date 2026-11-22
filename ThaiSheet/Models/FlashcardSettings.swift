@@ -488,7 +488,87 @@ class FlashcardSettings {
         }
     }
 
+    // MARK: - Deck Settings
+
+    /// Every setting that decides which flashcards are in the deck, or which
+    /// progress ID a card records under. `FlashcardManager.syncDeck()` compares
+    /// this value with the deck it last applied, so a bulk change (Select All,
+    /// a parent toggle, an iCloud reload) rebuilds the deck once. A new
+    /// deck-affecting setting must be added here as well as to the predicate.
+    struct DeckSettings: Equatable {
+        var consonantsEnabled: Bool
+        var vowelsEnabled: Bool
+        var tonesEnabled: Bool
+        var clusters: Bool
+        var highConsonants: Bool
+        var midConsonants: Bool
+        var lowConsonants: Bool
+        var uncommonConsonants: Bool
+        var consonantNames: Bool
+        var longVowels: Bool
+        var shortVowels: Bool
+        var uncommonVowels: Bool
+        var highToneRules: Bool
+        var midToneRules: Bool
+        var lowToneRules: Bool
+        var toneMarks: Bool
+        var smoothClusters: Bool
+        var silentClusters: Bool
+        var irregularClusters: Bool
+        var bookProgress: BookChapter?
+        var showNotInBook: Bool
+
+        /// Whether the chapter scope settings differ.
+        func changesBookScope(from other: DeckSettings) -> Bool {
+            bookProgress != other.bookProgress || showNotInBook != other.showNotInBook
+        }
+    }
+
+    /// Reads stored properties only, so observation tracks every field.
+    var deckSettings: DeckSettings {
+        DeckSettings(
+            consonantsEnabled: consonantsEnabled,
+            vowelsEnabled: vowelsEnabled,
+            tonesEnabled: tonesEnabled,
+            clusters: clusters,
+            highConsonants: highConsonants,
+            midConsonants: midConsonants,
+            lowConsonants: lowConsonants,
+            uncommonConsonants: uncommonConsonants,
+            consonantNames: consonantNames,
+            longVowels: longVowels,
+            shortVowels: shortVowels,
+            uncommonVowels: uncommonVowels,
+            highToneRules: highToneRules,
+            midToneRules: midToneRules,
+            lowToneRules: lowToneRules,
+            toneMarks: toneMarks,
+            smoothClusters: smoothClusters,
+            silentClusters: silentClusters,
+            irregularClusters: irregularClusters,
+            bookProgress: bookProgress,
+            showNotInBook: showNotInBook
+        )
+    }
+
     // MARK: - Bulk Actions
+
+    /// Child filters of each Filters category toggle.
+    static let categoryChildren: [ReferenceWritableKeyPath<FlashcardSettings, Bool>: [ReferenceWritableKeyPath<FlashcardSettings, Bool>]] = [
+        \.consonantsEnabled: [\.highConsonants, \.midConsonants, \.lowConsonants],
+        \.vowelsEnabled: [\.longVowels, \.shortVowels],
+        \.tonesEnabled: [\.highToneRules, \.midToneRules, \.lowToneRules, \.toneMarks],
+        \.clusters: [\.smoothClusters, \.silentClusters, \.irregularClusters],
+    ]
+
+    /// Sets a category toggle and cascades it to its child filters in one
+    /// change, so the deck is rebuilt once.
+    func setCategory(_ category: ReferenceWritableKeyPath<FlashcardSettings, Bool>, to value: Bool) {
+        self[keyPath: category] = value
+        for child in Self.categoryChildren[category] ?? [] {
+            self[keyPath: child] = value
+        }
+    }
 
     func selectAll() {
         // Parents
