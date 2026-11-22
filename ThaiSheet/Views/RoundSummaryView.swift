@@ -5,12 +5,31 @@
 
 import SwiftUI
 
-/// The end of a Shuffled pass or retry round: the pass totals, the cards left
-/// to retry, and the next step.
+/// The end of a Shuffled pass or follow-up round: where every card ended up
+/// (correct + missed + skipped = the deck), the cards left to retry, and the
+/// next steps.
 struct RoundSummaryView: View {
     let summary: ShuffledStrategy.Summary
     let onRetry: () -> Void
+    let onAnswerSkipped: () -> Void
+    let onPracticeMissed: () -> Void
     let onNewRound: () -> Void
+
+    private enum Action {
+        case retry, answerSkipped, practiceMissed, newRound
+    }
+
+    /// Available actions in order; the first is the prominent one. Practicing
+    /// missed cards again is optional and never takes the prominent slot.
+    private var actions: [Action] {
+        var available: [Action] = []
+        if summary.leftToRetry > 0 { available.append(.retry) }
+        if summary.skipped > 0 { available.append(.answerSkipped) }
+        if summary.canPracticeMissed { available.append(.practiceMissed) }
+        available.append(.newRound)
+        let primary = available.first { $0 != .practiceMissed } ?? .newRound
+        return [primary] + available.filter { $0 != primary }
+    }
 
     var body: some View {
         ContentUnavailableView {
@@ -18,7 +37,7 @@ struct RoundSummaryView: View {
         } description: {
             VStack(spacing: 16) {
                 HStack(spacing: 24) {
-                    stat("Answered", summary.answered)
+                    stat("Correct", summary.correct)
                     stat("Missed", summary.missed)
                     stat("Skipped", summary.skipped)
                 }
@@ -31,14 +50,27 @@ struct RoundSummaryView: View {
                 }
             }
         } actions: {
-            if summary.leftToRetry > 0 {
-                Button("Retry \(summary.leftToRetry)", action: onRetry)
-                    .buttonStyle(.borderedProminent)
-                Button("New round", action: onNewRound)
-            } else {
-                Button("New round", action: onNewRound)
-                    .buttonStyle(.borderedProminent)
+            ForEach(Array(actions.enumerated()), id: \.offset) { offset, action in
+                if offset == 0 {
+                    button(action).buttonStyle(.borderedProminent)
+                } else {
+                    button(action)
+                }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func button(_ action: Action) -> some View {
+        switch action {
+        case .retry:
+            Button("Retry \(summary.leftToRetry)", action: onRetry)
+        case .answerSkipped:
+            Button("Answer skipped cards", action: onAnswerSkipped)
+        case .practiceMissed:
+            Button("Practice missed again", action: onPracticeMissed)
+        case .newRound:
+            Button("New round", action: onNewRound)
         }
     }
 
@@ -54,18 +86,16 @@ struct RoundSummaryView: View {
     }
 }
 
-#Preview("Misses left") {
+#Preview("Misses left, skipped cards") {
     RoundSummaryView(
-        summary: .init(answered: 10, missed: 3, skipped: 2, leftToRetry: 3),
-        onRetry: {},
-        onNewRound: {}
+        summary: .init(correct: 7, missed: 3, skipped: 2, leftToRetry: 3),
+        onRetry: {}, onAnswerSkipped: {}, onPracticeMissed: {}, onNewRound: {}
     )
 }
 
 #Preview("All retried") {
     RoundSummaryView(
-        summary: .init(answered: 12, missed: 3, skipped: 0, leftToRetry: 0),
-        onRetry: {},
-        onNewRound: {}
+        summary: .init(correct: 9, missed: 3, skipped: 0, leftToRetry: 0),
+        onRetry: {}, onAnswerSkipped: {}, onPracticeMissed: {}, onNewRound: {}
     )
 }

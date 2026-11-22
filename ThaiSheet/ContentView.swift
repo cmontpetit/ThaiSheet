@@ -145,6 +145,15 @@ struct FlashcardsView: View {
     @State private var filterRefreshID = UUID()
     /// Set when the last correct answer did not move the card's stage
     @State private var reviewNotice: ReviewNotice?
+    /// The quiz attempt the last answer completed. Skip shows until the
+    /// current attempt is answered; then the card's Next Card button takes over.
+    @State private var answeredAttempt: Int?
+
+    /// Shuffled shows a Skip control on an unanswered round card, so skipping
+    /// does not depend on the swipe gesture.
+    private var showsSkipButton: Bool {
+        manager.roundPosition != nil && answeredAttempt != manager.attempt
+    }
 
     /// nil when the chapter mapping failed to load: the scope is Off (the sheet still holds the uncommon-content toggle).
     private var bookChapters: BookChapterMap? { manager.data.bookChapters }
@@ -170,6 +179,7 @@ struct FlashcardsView: View {
 
     /// Record a quiz answer and give haptic feedback
     private func recordAnswer(for card: FlashcardItem, type: FlashcardType, correct: Bool) {
+        answeredAttempt = manager.attempt
         let learningModel = manager.learningModel
         let outcome = manager.recordAnswer(for: card, correct: correct) ?? .practiceOnly
         reviewNotice = outcome == .counted ? nil : ReviewNotice(
@@ -262,9 +272,14 @@ struct FlashcardsView: View {
         case .shuffled:
             if let position = manager.roundPosition {
                 Group {
-                    if position.isRetry {
+                    switch position.phase {
+                    case .retry:
                         Text("Retry \(position.number) / \(position.count)")
-                    } else {
+                    case .skipped:
+                        Text("Skipped \(position.number) / \(position.count)")
+                    case .practice:
+                        Text("Practice \(position.number) / \(position.count)")
+                    case .pass, .summary:
                         Text("\(position.number) / \(position.count)")
                     }
                 }
@@ -281,6 +296,8 @@ struct FlashcardsView: View {
         RoundSummaryView(
             summary: summary,
             onRetry: manager.startRetry,
+            onAnswerSkipped: manager.startSkipped,
+            onPracticeMissed: manager.startPracticeMissed,
             onNewRound: manager.startNewRound
         )
         .navigationTitle("Flashcards")
@@ -380,13 +397,29 @@ struct FlashcardsView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .textCase(.uppercase)
+                    // Swiping the card face moves between cards; VoiceOver
+                    // gets the same moves as actions on the first element.
+                    .accessibilityAction(named: Text("Next card"), showNext)
+                    .accessibilityAction(named: Text("Previous card"), showPrevious)
                 Spacer()
                 positionIndicator
                 Spacer()
                 stageIndicator(for: card)
             }
-            if let notice = reviewNotice(for: card) {
-                ReviewOutcomeHint(outcome: notice.outcome)
+            HStack(alignment: .firstTextBaseline) {
+                if showsSkipButton {
+                    Button(action: showNext) {
+                        Label("Skip", systemImage: "forward")
+                            .font(.caption)
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityHint(Text("Moves to the next card without answering"))
+                }
+                Spacer(minLength: 0)
+                if let notice = reviewNotice(for: card) {
+                    ReviewOutcomeHint(outcome: notice.outcome)
+                }
             }
         }
         .padding(.horizontal)
@@ -420,7 +453,7 @@ struct FlashcardsView: View {
         case .loaded:
             #if DEBUG
             if ScreenshotScenario.current == .flashcardRoundSummary {
-                roundSummaryView(.init(answered: 10, missed: 3, skipped: 2, leftToRetry: 3))
+                roundSummaryView(.init(correct: 7, missed: 3, skipped: 2, leftToRetry: 3))
             } else {
                 loadedContent
             }

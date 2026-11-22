@@ -123,6 +123,33 @@ final class ShuffledDeckTests: XCTestCase {
         }
     }
 
+    func test_answeringASkippedCard_isRecorded() throws {
+        finishRound()
+        XCTAssertEqual(manager.roundSummary?.skipped, manager.filteredCards.count)
+        manager.startSkipped()
+        XCTAssertEqual(manager.roundPosition?.phase, .skipped)
+        let skippedCard = try current
+        XCTAssertEqual(manager.recordAnswer(for: skippedCard, correct: true), .counted)
+        XCTAssertEqual(progress(skippedCard).srsStage, .learning1)
+    }
+
+    func test_practiceMissedAgain_doesNotChangeProgress() throws {
+        let missed = try current
+        manager.recordAnswer(for: missed, correct: false)
+        finishRound()
+        manager.startRetry()
+        manager.recordAnswer(for: try current, correct: true)
+        finishRound()
+        let recorded = progress(missed)
+
+        let attempt = manager.attempt
+        manager.startPracticeMissed()
+        XCTAssertEqual(manager.attempt, attempt + 1)
+        XCTAssertEqual(manager.roundPosition?.phase, .practice)
+        XCTAssertNil(manager.recordAnswer(for: try current, correct: false))
+        XCTAssertEqual(progress(missed), recorded)
+    }
+
     // MARK: - Practice from Reference
 
     func test_referencePractice_duringPass_returnsToSameCardAndPosition() throws {
@@ -187,7 +214,7 @@ final class ShuffledDeckTests: XCTestCase {
         manager.applySelectionModeChange()
         XCTAssertEqual(manager.attempt, attempt + 2)
         XCTAssertEqual(manager.roundPosition?.number, 1)
-        XCTAssertEqual(manager.roundPosition?.isRetry, false)
+        XCTAssertEqual(manager.roundPosition?.phase, .pass)
         XCTAssertEqual(manager.recordAnswer(for: try current, correct: true), .counted,
                        "A fresh pass grades first answers again")
     }
@@ -207,11 +234,11 @@ final class ShuffledDeckTests: XCTestCase {
         var attempt = manager.attempt
         manager.startRetry()
         XCTAssertEqual(manager.attempt, attempt + 1)
-        XCTAssertEqual(manager.roundPosition?.isRetry, true)
+        XCTAssertEqual(manager.roundPosition?.phase, .retry)
 
         attempt = manager.attempt
         manager.startNewRound()
         XCTAssertEqual(manager.attempt, attempt + 1)
-        XCTAssertEqual(manager.roundPosition?.isRetry, false)
+        XCTAssertEqual(manager.roundPosition?.phase, .pass)
     }
 }

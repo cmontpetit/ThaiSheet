@@ -877,7 +877,7 @@ final class ShuffledStrategyTests: XCTestCase {
 
     func test_summary_countsAnsweredMissedSkipped() {
         play([.wrong, .correct, .skip, .wrong, .correct])
-        XCTAssertEqual(strategy.summary, .init(answered: 4, missed: 2, skipped: 1, leftToRetry: 2))
+        XCTAssertEqual(strategy.summary, .init(correct: 2, missed: 2, skipped: 1, leftToRetry: 2))
     }
 
     func test_summary_isNilDuringPass() {
@@ -924,7 +924,7 @@ final class ShuffledStrategyTests: XCTestCase {
 
         strategy.startRetry()
         XCTAssertEqual(strategy.phase, .retry)
-        XCTAssertEqual(strategy.position, .init(number: 1, count: 2, isRetry: true))
+        XCTAssertEqual(strategy.position, .init(number: 1, count: 2, phase: .retry))
         let retried = play([.skip, .skip])
         XCTAssertEqual(Set(retried), missed, "First-pass skips are not retried")
     }
@@ -942,13 +942,13 @@ final class ShuffledStrategyTests: XCTestCase {
 
         strategy.startRetry()
         play([.correct, .wrong, .skip])
-        XCTAssertEqual(strategy.summary, .init(answered: 4, missed: 3, skipped: 1, leftToRetry: 2))
+        XCTAssertEqual(strategy.summary, .init(correct: 1, missed: 3, skipped: 1, leftToRetry: 2))
         XCTAssertEqual(passSummary?.leftToRetry, 3)
 
         strategy.startRetry()
         XCTAssertEqual(strategy.position?.count, 2)
         play([.correct, .correct])
-        XCTAssertEqual(strategy.summary, .init(answered: 4, missed: 3, skipped: 1, leftToRetry: 0))
+        XCTAssertEqual(strategy.summary, .init(correct: 1, missed: 3, skipped: 1, leftToRetry: 0))
     }
 
     func test_retry_clearedCardStaysCleared_afterGoingBack() throws {
@@ -979,6 +979,79 @@ final class ShuffledStrategyTests: XCTestCase {
         XCTAssertNil(strategy.currentCard)
     }
 
+    func test_summary_countsAddUpToTheDeck() {
+        play([.wrong, .correct, .skip, .wrong, .correct])
+        let summary = strategy.summary
+        XCTAssertEqual((summary?.correct ?? 0) + (summary?.missed ?? 0) + (summary?.skipped ?? 0), testCards.count)
+    }
+
+    // MARK: - Answer skipped cards
+
+    func test_answerSkipped_gradesFirstAnswers_andMovesTheCounts() throws {
+        play([.correct, .skip, .skip, .wrong, .correct])
+        XCTAssertEqual(strategy.summary, .init(correct: 2, missed: 1, skipped: 2, leftToRetry: 1))
+
+        strategy.startSkipped()
+        XCTAssertEqual(strategy.position, .init(number: 1, count: 2, phase: .skipped))
+        let first = try XCTUnwrap(strategy.currentCard?.id)
+        XCTAssertTrue(strategy.noteAnswer(cardId: first, correct: true), "A skipped card's first answer is graded")
+        XCTAssertFalse(strategy.noteAnswer(cardId: first, correct: false), "The first answer is final")
+        strategy.nextCard()
+        strategy.nextCard() // passes over the second skipped card again
+        XCTAssertEqual(strategy.summary, .init(correct: 3, missed: 1, skipped: 1, leftToRetry: 1))
+    }
+
+    func test_answerSkipped_missJoinsTheRetryList() throws {
+        let shown = play([.correct, .skip, .correct, .correct, .correct])
+        strategy.startSkipped()
+        play([.wrong])
+        XCTAssertEqual(strategy.summary, .init(correct: 4, missed: 1, skipped: 0, leftToRetry: 1))
+
+        strategy.startRetry()
+        XCTAssertEqual(strategy.currentCard?.id, shown[1])
+    }
+
+    func test_answerSkipped_withNothingSkipped_staysOnSummary() {
+        play(Array(repeating: .correct, count: testCards.count))
+        strategy.startSkipped()
+        XCTAssertEqual(strategy.phase, .summary)
+    }
+
+    // MARK: - Practice missed again
+
+    func test_practiceMissed_onlyOnceNothingIsLeftToRetry() {
+        play([.wrong, .wrong, .correct, .correct, .correct])
+        XCTAssertEqual(strategy.summary?.canPracticeMissed, false)
+        strategy.startPracticeMissed()
+        XCTAssertEqual(strategy.phase, .summary, "Retry comes first")
+
+        strategy.startRetry()
+        play([.correct, .correct])
+        XCTAssertEqual(strategy.summary?.canPracticeMissed, true)
+    }
+
+    func test_practiceMissed_dealsEveryMiss_practiceOnly_summaryUnchanged() throws {
+        let shown = play([.wrong, .skip, .wrong, .correct, .correct])
+        strategy.startSkipped()
+        play([.wrong]) // a miss answered through Answer skipped cards
+        strategy.startRetry()
+        play([.correct, .correct, .correct])
+        let allRetried = try XCTUnwrap(strategy.summary)
+        XCTAssertEqual(allRetried, .init(correct: 2, missed: 3, skipped: 0, leftToRetry: 0))
+
+        strategy.startPracticeMissed()
+        XCTAssertEqual(strategy.position?.phase, .practice)
+        XCTAssertEqual(strategy.position?.count, 3)
+        var practiced: [String] = []
+        while let id = strategy.currentCard?.id {
+            practiced.append(id)
+            XCTAssertFalse(strategy.noteAnswer(cardId: id, correct: false))
+            strategy.nextCard()
+        }
+        XCTAssertEqual(Set(practiced), Set([shown[0], shown[1], shown[2]]))
+        XCTAssertEqual(strategy.summary, allRetried, "All retried still stands")
+    }
+
     // MARK: - New round and deck changes
 
     func test_startNewRound_dealsTheFullDeckWithFreshGrading() throws {
@@ -988,7 +1061,7 @@ final class ShuffledStrategyTests: XCTestCase {
 
         XCTAssertEqual(strategy.phase, .pass)
         XCTAssertNil(strategy.summary)
-        XCTAssertEqual(strategy.position, .init(number: 1, count: testCards.count, isRetry: false))
+        XCTAssertEqual(strategy.position, .init(number: 1, count: testCards.count, phase: .pass))
         let id = try XCTUnwrap(strategy.currentCard?.id)
         XCTAssertTrue(strategy.noteAnswer(cardId: id, correct: true))
     }
@@ -997,10 +1070,10 @@ final class ShuffledStrategyTests: XCTestCase {
         play([.wrong, .correct])
         let smaller = Array(testCards.prefix(3))
         strategy.update(cards: smaller, learningModel: learningModel)
-        XCTAssertEqual(strategy.position, .init(number: 1, count: 3, isRetry: false))
+        XCTAssertEqual(strategy.position, .init(number: 1, count: 3, phase: .pass))
         let shown = play([.skip, .skip, .skip])
         XCTAssertEqual(Set(shown), Set(smaller.map(\.id)))
-        XCTAssertEqual(strategy.summary, .init(answered: 0, missed: 0, skipped: 3, leftToRetry: 0))
+        XCTAssertEqual(strategy.summary, .init(correct: 0, missed: 0, skipped: 3, leftToRetry: 0))
     }
 
     func test_update_withSameDeck_keepsPosition() throws {

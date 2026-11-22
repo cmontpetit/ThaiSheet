@@ -265,6 +265,16 @@ class FlashcardManager {
         attempt += 1
     }
 
+    func startSkipped() {
+        shuffledStrategy.startSkipped()
+        attempt += 1
+    }
+
+    func startPracticeMissed() {
+        shuffledStrategy.startPracticeMissed()
+        attempt += 1
+    }
+
     func startNewRound() {
         shuffledStrategy.startNewRound()
         attempt += 1

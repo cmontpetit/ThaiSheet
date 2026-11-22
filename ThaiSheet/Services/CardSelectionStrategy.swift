@@ -85,34 +85,48 @@ class SequentialStrategy: CardSelectionStrategy {
 // MARK: - Shuffled Strategy
 
 /// Deals the active deck once per pass in a fresh random order, then offers
-/// retry rounds for the cards missed in that pass.
+/// follow-up rounds from the summary.
 ///
-/// Grading: only a card's first answer in a pass is recorded to SRS
-/// (`noteAnswer` returns true for it). Repeat answers in the pass and every
-/// retry answer are practice only. A card passed without an answer is
-/// skipped and is not retried.
+/// Grading: a card's first answer is recorded to SRS (`noteAnswer` returns
+/// true for it) and is final for the round: it decides the Correct/Missed
+/// counts. It can come from the pass or from answering skipped cards. Repeat
+/// answers, retries, and practice of missed cards are practice only. A card
+/// passed without an answer stays skipped.
 @Observable
 final class ShuffledStrategy: CardSelectionStrategy {
     enum Phase: Equatable {
+        /// The full deck, graded
         case pass
+        /// Cards skipped so far, graded: finishes the pass
+        case skipped
+        /// Missed cards not yet answered correctly, practice only
         case retry
+        /// Every missed card again, practice only, once nothing is left to retry
+        case practice
         case summary
+
+        /// Whether a card's first answer in this phase is recorded
+        var isGraded: Bool { self == .pass || self == .skipped }
     }
 
-    /// Totals of the last completed pass, fixed when the pass ends, plus the
-    /// cards still waiting for a retry.
+    /// Where every card of the deck ended up. Correct + missed + skipped is the
+    /// deck size. A skipped card moves to correct or missed once answered;
+    /// a first answer never changes.
     struct Summary: Equatable {
-        let answered: Int
+        let correct: Int
         let missed: Int
         let skipped: Int
         let leftToRetry: Int
+
+        /// Practice missed again: offered once nothing is left to retry
+        var canPracticeMissed: Bool { missed > 0 && leftToRetry == 0 }
     }
 
     struct Position: Equatable {
-        /// 1-based position in the current pass or retry round
+        /// 1-based position in the current round
         let number: Int
         let count: Int
-        let isRetry: Bool
+        let phase: Phase
     }
 
     private var cards: [FlashcardItem] = []
@@ -120,9 +134,8 @@ final class ShuffledStrategy: CardSelectionStrategy {
     private var index = 0
     private(set) var phase: Phase = .pass
 
-    /// Card id → whether its first answer in this pass was correct
+    /// Card id → whether its first answer was correct. Final for the round.
     private var firstAnswers: [String: Bool] = [:]
-    private var passTotals: (answered: Int, missed: Int, skipped: Int) = (0, 0, 0)
     /// Missed cards not yet answered correctly in a retry round
     private var pendingRetry: Set<String> = []
     /// Cards answered correctly in the current retry round. Final for the round,
@@ -145,19 +158,20 @@ final class ShuffledStrategy: CardSelectionStrategy {
         return order[index]
     }
 
-    /// Where the current card sits in its pass or retry round; nil on the summary
+    /// Where the current card sits in its round; nil on the summary
     var position: Position? {
         guard currentCard != nil else { return nil }
-        return Position(number: index + 1, count: order.count, isRetry: phase == .retry)
+        return Position(number: index + 1, count: order.count, phase: phase)
     }
 
-    /// The round summary, shown once a pass or retry round has ended
+    /// The round summary, shown once a pass or follow-up round has ended
     var summary: Summary? {
         guard phase == .summary else { return nil }
+        let missed = firstAnswers.values.filter { !$0 }.count
         return Summary(
-            answered: passTotals.answered,
-            missed: passTotals.missed,
-            skipped: passTotals.skipped,
+            correct: firstAnswers.count - missed,
+            missed: missed,
+            skipped: skippedCards.count,
             leftToRetry: pendingRetry.count
         )
     }
@@ -189,31 +203,42 @@ final class ShuffledStrategy: CardSelectionStrategy {
     }
 
     /// Notes an answer to the current card and returns whether it should be
-    /// recorded to SRS: true only for a card's first answer in a pass.
+    /// recorded to SRS: true only for a card's first answer.
     func noteAnswer(cardId: String, correct: Bool) -> Bool {
         guard currentCard?.id == cardId else { return false }
         switch phase {
-        case .pass:
+        case .pass, .skipped:
             guard firstAnswers[cardId] == nil else { return false }
             firstAnswers[cardId] = correct
+            if !correct {
+                pendingRetry.insert(cardId)
+            }
             return true
         case .retry:
             if correct {
                 clearedThisRetry.insert(cardId)
             }
             return false
-        case .summary:
+        case .practice, .summary:
             return false
         }
     }
 
     /// Deals the cards still waiting for a retry in a fresh random order.
     func startRetry() {
-        guard phase == .summary, !pendingRetry.isEmpty else { return }
-        order = cards.filter { pendingRetry.contains($0.id) }.shuffled(using: &generator)
-        index = 0
-        clearedThisRetry = []
-        phase = order.isEmpty ? .summary : .retry
+        start(.retry, with: pendingRetry)
+    }
+
+    /// Deals the cards passed without an answer; their first answers are graded.
+    func startSkipped() {
+        start(.skipped, with: Set(skippedCards.map(\.id)))
+    }
+
+    /// Deals every missed card again for practice once nothing is left to retry.
+    /// Answers change nothing: the summary comes back as it was.
+    func startPracticeMissed() {
+        guard summary?.canPracticeMissed == true else { return }
+        start(.practice, with: Set(firstAnswers.filter { !$0.value }.map(\.key)))
     }
 
     /// Reshuffles the full deck and starts a new graded pass.
@@ -222,26 +247,26 @@ final class ShuffledStrategy: CardSelectionStrategy {
         index = 0
         phase = .pass
         firstAnswers = [:]
-        passTotals = (0, 0, 0)
         pendingRetry = []
         clearedThisRetry = []
     }
 
+    private var skippedCards: [FlashcardItem] {
+        cards.filter { firstAnswers[$0.id] == nil }
+    }
+
+    private func start(_ next: Phase, with ids: Set<String>) {
+        guard phase == .summary, !ids.isEmpty else { return }
+        order = cards.filter { ids.contains($0.id) }.shuffled(using: &generator)
+        index = 0
+        clearedThisRetry = []
+        phase = next
+    }
+
     private func finishRound() {
-        switch phase {
-        case .pass:
-            let missed = firstAnswers.filter { !$0.value }.map(\.key)
-            passTotals = (
-                answered: firstAnswers.count,
-                missed: missed.count,
-                skipped: order.count - firstAnswers.count
-            )
-            pendingRetry = Set(missed)
-        case .retry:
+        if phase == .retry {
             pendingRetry.subtract(clearedThisRetry)
             clearedThisRetry = []
-        case .summary:
-            break
         }
         phase = .summary
     }

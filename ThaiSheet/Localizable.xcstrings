@@ -1,6 +1,117 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Correct" : {
+      "comment" : "Round summary stat: cards whose first answer was correct.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correctes"
+          }
+        }
+      }
+    },
+    "Skip" : {
+      "comment" : "Flashcard header button in Shuffled: move to the next card without answering.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passer"
+          }
+        }
+      }
+    },
+    "Moves to the next card without answering" : {
+      "comment" : "Accessibility hint for the Skip button.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passe à la carte suivante sans répondre"
+          }
+        }
+      }
+    },
+    "Next card" : {
+      "comment" : "VoiceOver action on the flashcard header: show the next card.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carte suivante"
+          }
+        }
+      }
+    },
+    "Previous card" : {
+      "comment" : "VoiceOver action on the flashcard header: show the previous card.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carte précédente"
+          }
+        }
+      }
+    },
+    "Skipped %lld / %lld" : {
+      "comment" : "Flashcard header position while answering skipped cards in Shuffled: card number / cards in the round.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skipped %1$lld / %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passées %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Practice %lld / %lld" : {
+      "comment" : "Flashcard header position while practicing missed cards again in Shuffled: card number / cards in the round.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Practice %1$lld / %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entraînement %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Answer skipped cards" : {
+      "comment" : "Round summary button: answer the cards passed over; first answers are recorded.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Répondre aux cartes passées"
+          }
+        }
+      }
+    },
+    "Practice missed again" : {
+      "comment" : "Round summary button: practice every missed card again, not recorded.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoir les cartes manquées"
+          }
+        }
+      }
+    },
     "Shuffled" : {
       "comment" : "Flashcard learning strategy: each selected card once in random order, then retries.",
       "localizations" : {
@@ -58,17 +169,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tour terminé"
-          }
-        }
-      }
-    },
-    "Answered" : {
-      "comment" : "Round summary stat: cards answered in the pass.",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Répondues"
           }
         }
       }
