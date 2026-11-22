@@ -1,6 +1,50 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Show" : {
+      "comment" : "Study Content picker: how the Read Thai in 10 Days selection applies (Off, Through a day, Specific days).",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher"
+          }
+        }
+      }
+    },
+    "Through a day" : {
+      "comment" : "Study Content option: everything the book has taught up to a chosen day.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jusqu’à un jour"
+          }
+        }
+      }
+    },
+    "Specific days" : {
+      "comment" : "Study Content option: only what the chosen days introduce.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jours précis"
+          }
+        }
+      }
+    },
+    "Both tabs show only what the selected days introduce. Reference search includes all chapters." : {
+      "comment" : "Study Content footer when specific days are selected.",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les deux onglets n’affichent que ce que les jours choisis introduisent. La recherche dans Référence inclut tous les chapitres."
+          }
+        }
+      }
+    },
     "Return to round" : {
       "comment" : "Flashcard header button and VoiceOver action in Shuffled: close the card opened from Reference and go back to the round.",
       "localizations" : {

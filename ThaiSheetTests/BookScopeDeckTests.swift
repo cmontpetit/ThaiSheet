@@ -78,6 +78,67 @@ final class BookScopeDeckTests: XCTestCase {
         .cluster(try XCTUnwrap(manager.data.clusters.first { $0.id == id }))
     }
 
+    // MARK: - Specific days
+
+    /// Every card's placements in the map: a vowel card counts each slot it covers.
+    private func placements(of item: FlashcardItem, map: BookChapterMap) -> [BookPlacement?] {
+        switch item {
+        case .consonant(let consonant, _): return [map.placement(of: consonant)]
+        case .cluster(let cluster): return [map.placement(of: cluster)]
+        case .toneMark(let card): return [map.placement(of: card)]
+        case .toneRule(let card): return [map.placement(of: card.rule, sample: card.sample)]
+        case .vowel(let card):
+            let durations: [VowelCard.VowelDuration] = card.acceptsBothDurations ? [.short, .long] : [card.duration]
+            let forms: [VowelCard.VowelFormType] = card.coversClosedForm ? [.open, .closed] : [card.form]
+            return durations.flatMap { duration in forms.map { map.placement(of: card.vowel, duration: duration, form: $0) } }
+        }
+    }
+
+    private func assertDeckMatches(_ chapters: Set<BookChapter>, file: StaticString = #filePath, line: UInt = #line) throws {
+        let map = try XCTUnwrap(manager.data.bookChapters)
+        let deck = Set(manager.filteredCards.map(\.id))
+        XCTAssertFalse(deck.isEmpty, file: file, line: line)
+        for item in manager.allCards {
+            let introduced = placements(of: item, map: map).contains {
+                if case .chapter(let chapter) = $0 { chapters.contains(chapter) } else { false }
+            }
+            XCTAssertEqual(deck.contains(item.id), introduced, item.id, file: file, line: line)
+        }
+    }
+
+    func test_singleDay_deckIsThatDaysMaterial() throws {
+        settings.bookSelection = .days([.day5])
+        manager.syncDeck()
+        try assertDeckMatches([.day5])
+        XCTAssertFalse(deckIDs(.consonant).contains(try consonant("ง").id), "Day 1 is not in Day 5 alone")
+    }
+
+    func test_nonConsecutiveDays_deckIsThoseDaysMaterial() throws {
+        settings.bookSelection = .days([.day2, .day4])
+        manager.syncDeck()
+        try assertDeckMatches([.day2, .day4])
+    }
+
+    func test_throughDay5_includesEarlierDays_dayFiveAloneDoesNot() throws {
+        settings.bookSelection = .through(.day5)
+        manager.syncDeck()
+        let through = Set(manager.filteredCards.map(\.id))
+        settings.bookSelection = .days([.day5])
+        manager.syncDeck()
+        let alone = Set(manager.filteredCards.map(\.id))
+        XCTAssertTrue(alone.isSubset(of: through))
+        XCTAssertTrue(through.contains(try consonant("ง").id))
+        XCTAssertFalse(alone.contains(try consonant("ง").id))
+    }
+
+    func test_daySelectionChange_isADeckChange() {
+        settings.bookSelection = .days([.day2])
+        XCTAssertTrue(manager.syncDeck())
+        settings.bookSelection = .days([.day2, .day4])
+        XCTAssertTrue(manager.syncDeck())
+        XCTAssertFalse(manager.syncDeck(), "Applied once")
+    }
+
     // MARK: - Deck contents
 
     func test_off_deckIsUnchanged() {

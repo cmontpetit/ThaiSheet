@@ -241,6 +241,29 @@ final class ShuffledDeckTests: XCTestCase {
         XCTAssertEqual(manager.roundPosition?.count, manager.filteredCards.count)
     }
 
+    func test_daySelectionChangeMidPass_restartsWithTheNewDeck() throws {
+        settings.setUncommonLetters(true)
+        settings.consonantsEnabled = true
+        settings.midConsonants = true
+        settings.highConsonants = true
+        settings.bookSelection = .days([.day1])
+        manager.syncDeck()
+        manager.recordAnswer(for: try current, correct: false)
+        manager.nextCard()
+        let attempt = manager.attempt
+
+        settings.bookSelection = .days([.day2, .day4])
+        XCTAssertTrue(manager.syncDeck())
+        XCTAssertEqual(manager.attempt, attempt + 1)
+        XCTAssertEqual(manager.roundPosition, .init(number: 1, count: manager.filteredCards.count, phase: .pass))
+        let map = try XCTUnwrap(manager.data.bookChapters)
+        let current = try current
+        guard case .consonant(let consonant, _) = current else { return XCTFail("consonant deck") }
+        let placement = map.placement(of: consonant)
+        XCTAssertTrue(placement == .chapter(.day2) || placement == .chapter(.day4))
+        XCTAssertEqual(manager.recordAnswer(for: current, correct: true), .counted, "Fresh pass: first answers graded")
+    }
+
     func test_retryAndNewRound_areNewAttempts() throws {
         manager.recordAnswer(for: try current, correct: false)
         finishRound()

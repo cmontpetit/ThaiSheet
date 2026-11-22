@@ -214,9 +214,11 @@ final class DeckSyncTests: XCTestCase {
 
     func test_deckSettings_coversEverySyncedDeckSetting() {
         for key in FlashcardSettings.syncedKeys where !Self.nonDeckKeys.contains(key) {
-            let values: [Any] = key == "fc_bookProgress"
-                ? [BookChapter.day3.rawValue, FlashcardSettings.bookProgressOff]
-                : [true, false]
+            let values: [Any] = switch key {
+            case "fc_bookProgress": [BookChapter.day3.rawValue, FlashcardSettings.bookProgressOff]
+            case "fc_bookSelection": ["through:day3", "days:day2,day4"]
+            default: [true, false]
+            }
             let snapshots = values.map { value in
                 defaults.set(value, forKey: key)
                 settings.reload()

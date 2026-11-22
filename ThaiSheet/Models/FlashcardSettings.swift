@@ -21,7 +21,7 @@ class FlashcardSettings {
         "fc_smoothClusters", "fc_silentClusters", "fc_irregularClusters",
         "fc_selectionMode", "fc_useIntelligentSelection", "fc_recordedVoice", "fc_voiceOverrides", "fc_appLanguage",
         "fc_romanization",
-        "fc_bookProgress", "fc_showNotInBook",
+        "fc_bookProgress", "fc_bookSelection", "fc_showNotInBook",
     ]
 
     // Inline values are placeholders overwritten by reload() in init;
@@ -133,13 +133,30 @@ class FlashcardSettings {
 
     // MARK: - Book Chapter Scope
 
-    /// "Read Thai in 10 Days" progress: both tabs show only what the book has
-    /// introduced up to this chapter. nil = Off. A scope, not a filter, so
-    /// select/deselect-all never touch it. Persisted as the chapter's raw value,
-    /// or "off" explicitly: an absent key would not sync turning it off, since
-    /// iCloud reconciliation only copies keys that exist.
-    var bookProgress: BookChapter? = nil {
-        didSet { persist(bookProgress?.rawValue ?? Self.bookProgressOff, forKey: "fc_bookProgress") }
+    /// "Read Thai in 10 Days" material both tabs show: Off, through a chapter
+    /// (cumulative), or specific chapters. A scope, not a filter, so
+    /// select/deselect-all never touch it. Persisted under `fc_bookSelection`
+    /// ("off" explicitly: an absent key would not sync turning it off, since
+    /// iCloud reconciliation only copies keys that exist). The legacy
+    /// `fc_bookProgress` is still written (the cumulative chapter, or the last
+    /// selected day) so builds before day selection read a superset. One-way:
+    /// once `fc_bookSelection` exists, `fc_bookProgress` is ignored on load.
+    var bookSelection: BookSelection = .off {
+        didSet {
+            persist(bookSelection.storageValue, forKey: "fc_bookSelection")
+            persist(bookSelection.legacyProgress?.rawValue ?? Self.bookProgressOff, forKey: "fc_bookProgress")
+        }
+    }
+
+    /// The cumulative chapter (nil when Off or when specific days are selected).
+    /// Setting it selects "through" that chapter, or Off for nil.
+    var bookProgress: BookChapter? {
+        get {
+            if case .through(let chapter) = bookSelection { chapter } else { nil }
+        }
+        set {
+            bookSelection = newValue.map { .through($0) } ?? .off
+        }
     }
 
     static let bookProgressOff = "off"
@@ -396,7 +413,9 @@ class FlashcardSettings {
         silentClusters = defaults.object(forKey: "fc_silentClusters") as? Bool ?? true
         irregularClusters = defaults.object(forKey: "fc_irregularClusters") as? Bool ?? true
 
-        bookProgress = defaults.string(forKey: "fc_bookProgress").flatMap(BookChapter.init(rawValue:))
+        bookSelection = defaults.string(forKey: "fc_bookSelection").flatMap(BookSelection.init(storageValue:))
+            ?? defaults.string(forKey: "fc_bookProgress").flatMap(BookChapter.init(rawValue:)).map { .through($0) }
+            ?? .off
         showNotInBook = defaults.object(forKey: "fc_showNotInBook") as? Bool ?? false
 
         selectionMode = defaults.string(forKey: "fc_selectionMode").flatMap(SelectionMode.init(rawValue:))
@@ -525,12 +544,12 @@ class FlashcardSettings {
         var smoothClusters: Bool
         var silentClusters: Bool
         var irregularClusters: Bool
-        var bookProgress: BookChapter?
+        var bookSelection: BookSelection
         var showNotInBook: Bool
 
         /// Whether the chapter scope settings differ.
         func changesBookScope(from other: DeckSettings) -> Bool {
-            bookProgress != other.bookProgress || showNotInBook != other.showNotInBook
+            bookSelection != other.bookSelection || showNotInBook != other.showNotInBook
         }
     }
 
@@ -556,7 +575,7 @@ class FlashcardSettings {
             smoothClusters: smoothClusters,
             silentClusters: silentClusters,
             irregularClusters: irregularClusters,
-            bookProgress: bookProgress,
+            bookSelection: bookSelection,
             showNotInBook: showNotInBook
         )
     }
